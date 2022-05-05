@@ -62,7 +62,7 @@ From the root of the repository run the below steps:
 4. To push the image to GCR, run: `docker push us.gcr.io/broad-dsp-gcr-public/terra-batch-analysis-ui:<tag>`
 
 To run the docker image locally:
-1. Run the app: `docker run -d -p 8080:8080 us.gcr.io/broad-dsp-gcr-public/terra-batch-analysis-ui`. The app should be hosted on port 8080
+1. Run the app: `docker run -d -p 8080:8080 us.gcr.io/broad-dsp-gcr-public/terra-batch-analysis-ui:<tag>`. The app should be hosted on port 8080
 2. Navigate to `http://localhost:8080/` to load the Hello World UI
 
 Note: Don't forget to stop the docker container after use. One can run the below commands to stop and remove the container:
