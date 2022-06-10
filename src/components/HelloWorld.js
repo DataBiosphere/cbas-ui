@@ -16,7 +16,7 @@ const styles = {
   }
 }
 
-export const HelloWorld = ( { cbasStatus: { ok: cbasOk } } ) => {
+export const HelloWorld = ( { cbasStatus: { ok: cbasOk = false} = {} } ) => {
   return div({}, [
     div({
       role: 'banner',
