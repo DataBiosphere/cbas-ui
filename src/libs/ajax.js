@@ -1,15 +1,7 @@
-// import { getDefaultProperties } from '@databiosphere/bard-client'
 import _ from 'lodash/fp'
-// import * as qs from 'qs'
-// import { getDisplayName, tools } from 'src/components/notebook-utils'
-// import { version } from 'src/data/machines'
-// import { ensureAuthSettled, getUser } from 'src/libs/auth'
 import { getConfig } from 'src/libs/config'
-// import { withErrorIgnoring } from 'src/libs/error'
-// import * as Nav from 'src/libs/nav'
-import { ajaxOverridesStore, authStore, knownBucketRequesterPaysStatuses, requesterPaysProjectStore, workspaceStore } from 'src/libs/state'
+import { ajaxOverridesStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
-// import { v4 as uuid } from 'uuid'
 
 // Allows use of ajaxOverrideStore to stub responses for testing
 const withInstrumentation = wrappedFetch => (...args) => {

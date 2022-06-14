@@ -1,4 +1,3 @@
-import _ from 'lodash/fp'
 import { useState } from 'react'
 import { h } from 'react-hyperscript-helpers'
 import { HelloWorld } from 'src/components/HelloWorld'
@@ -7,7 +6,6 @@ import { useCancellation, useOnMount } from 'src/libs/react-utils'
 
 
 const Main = () => {
-
   const [cbasStatus, setCbasStatus] = useState()
   const signal = useCancellation()
 
