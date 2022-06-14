@@ -1,4 +1,4 @@
-import { a, div, h2 } from 'react-hyperscript-helpers'
+import { a, div, h2, p } from 'react-hyperscript-helpers'
 import headerLeftHexes from 'src/images/header-left-hexes.svg'
 import headerRightHexes from 'src/images/header-right-hexes.svg'
 import colors from 'src/libs/colors'
@@ -16,7 +16,7 @@ const styles = {
   }
 }
 
-export const HelloWorld = () => {
+export const HelloWorld = ({ cbasStatus: { ok: cbasOk = false } = {} }) => {
   return div({}, [
     div({
       role: 'banner',
@@ -50,6 +50,9 @@ export const HelloWorld = () => {
     ]),
     div({ style: { margin: '1rem' } }, [
       h2(['Hello World!'])
+    ]),
+    div({}, [
+      p(['CBAS Status OK: ', JSON.stringify(cbasOk)])
     ])
   ])
 }
