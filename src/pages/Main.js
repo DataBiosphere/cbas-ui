@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { h } from 'react-hyperscript-helpers'
-import { HelloWorld } from 'src/components/HelloWorld'
 import { Ajax } from 'src/libs/ajax'
 import { useCancellation, useOnMount } from 'src/libs/react-utils'
+import { WorkflowInput } from 'src/pages/WorkflowInput'
 
 
 const Main = () => {
@@ -20,7 +20,7 @@ const Main = () => {
     }
   })
 
-  return h(HelloWorld, { cbasStatus })
+  return h(WorkflowInput, { cbasStatus })
 }
 
 export default Main
