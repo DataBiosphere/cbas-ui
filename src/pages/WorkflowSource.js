@@ -5,7 +5,7 @@ import { TextArea } from 'src/components/input'
 import { FormLabel } from 'src/libs/form'
 
 
-export const WorkflowInput = () => {
+export const WorkflowSource = () => {
   // State
   const [workflowUrl, setWorkflowUrl] = useState()
 
