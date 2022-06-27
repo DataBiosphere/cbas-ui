@@ -3,6 +3,7 @@ import { div, h, h2, h3 } from 'react-hyperscript-helpers'
 import { ButtonPrimary, headerBar, IdContainer, makeInlineDockLink } from 'src/components/common'
 import { TextArea } from 'src/components/input'
 import { FormLabel } from 'src/libs/form'
+import * as Nav from 'src/libs/nav'
 
 
 export const WorkflowSource = () => {
@@ -34,19 +35,26 @@ export const WorkflowSource = () => {
             style: { height: 100 },
             placeholder: 'Paste workflow URL here',
             value: workflowUrl,
-            onChange: value => {
-              console.log(value)
-              setWorkflowUrl(value)
-            }
+            onChange: setWorkflowUrl
           })
         ])]),
         div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
           h(ButtonPrimary, {
-            disabled: !workflowUrl
-            // onClick: navigateToNextPage TODO: Navigate to inputs page in https://broadworkbench.atlassian.net/browse/BW-1284
+            disabled: !workflowUrl,
+            onClick: () => Nav.goToPath('workflow-inputs')
           }, ['Use workflow'])
         ])
       ])
     ])
   ])
 }
+
+// For now, this will be our Landing page. It might be changed later on.
+export const navPaths = [
+  {
+    name: 'root',
+    path: '/',
+    component: WorkflowSource,
+    public: true
+  }
+]
