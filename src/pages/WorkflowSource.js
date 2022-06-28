@@ -4,11 +4,14 @@ import { ButtonPrimary, headerBar, IdContainer, makeInlineDockLink } from 'src/c
 import { TextArea } from 'src/components/input'
 import { FormLabel } from 'src/libs/form'
 import * as Nav from 'src/libs/nav'
+import * as StateHistory from 'src/libs/state-history'
 
 
 export const WorkflowSource = () => {
   // State
-  const [workflowUrl, setWorkflowUrl] = useState()
+  const [workflowUrl, setWorkflowUrl] = useState(StateHistory.get().workflowUrl || undefined)
+
+  console.log(`At beginning: ${workflowUrl}`)
 
   return div([
     headerBar(),
@@ -25,7 +28,7 @@ export const WorkflowSource = () => {
             makeInlineDockLink('https://firecloud.dsde-dev.broadinstitute.org/?return=terra#methods', 'Broad Methods Repository', 14),
             ` or in `,
             makeInlineDockLink('https://staging.dockstore.org/search?descriptorType=WDL&entryType=workflows&searchMode=files', 'Dockstore', 14),
-            `.`
+            `. Please note that for now only public, unauthenticated URLs ending in '.wdl' work.`
           ])
         ]),
         h(IdContainer, [id => h(Fragment, [
@@ -41,7 +44,15 @@ export const WorkflowSource = () => {
         div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
           h(ButtonPrimary, {
             disabled: !workflowUrl,
-            onClick: () => Nav.goToPath('workflow-inputs')
+            onClick: () => {
+              StateHistory.update({ workflowUrl: workflowUrl })
+              console.log(`State history: ${StateHistory.get().workflowUrl}`)
+
+              // this.setState({ workflowUrl: workflowUrl })
+              // console.log(`Get state: ${this.getState.workflowUrl}`)
+
+              Nav.goToPath('workflow-inputs')
+            }
           }, ['Use workflow'])
         ])
       ])
