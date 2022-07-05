@@ -1,65 +1,50 @@
-import { div, h2, h3, h } from 'react-hyperscript-helpers'
-import { ButtonOutline, ButtonPrimary, ButtonSecondary, headerBar, IdContainer } from 'src/components/common'
+import { Fragment } from 'react'
+import { div, h, h3, span } from 'react-hyperscript-helpers'
+import { ButtonOutline, ButtonPrimary, IdContainer } from 'src/components/common'
 import { TextArea } from 'src/components/input'
+import { Ajax } from 'src/libs/ajax'
 import { FormLabel } from 'src/libs/form'
-import { Fragment, useState } from 'react'
-import * as Nav from 'src/libs/nav'
-import * as StateHistory from 'src/libs/state-history'
+import { useCancellation } from 'src/libs/react-utils'
 
-export const WorkflowInputs = ({workflowUrl}) => {
-  // State
-  const [workflowInputs, setWorkflowInputs] = useState()
 
-  console.log(`Workflow URL in INPUTS file: ${StateHistory.get().workflowUrl}`)
+export const WorkflowInputs = ({ workflowUrl, workflowInputs, setWorkflowInputs, displayWorkflowUrlPage }) => {
+  const signal = useCancellation()
+
+  const submitRun = async () => {
+    const runRes = await Ajax(signal).Cbas.submitRun(workflowUrl, workflowInputs)
+    console.log(runRes)
+  }
 
   return div([
-    headerBar(),
-    div({ style: { margin: '4rem' } }, [
+    div({ style: { marginTop: '2rem' } }, [
+      span({ style: { fontWeight: 'bold' } }, ['Using workflow ']),
+      span([workflowUrl])
+    ]),
+    div({ style: { marginTop: '2rem' } }, [
+      h3(['Provide inputs JSON file']),
       div([
-        h2(['Submit a workflow']),
-        div(['Submit your Terra workflows with the Cromwell engine. Full featured workflow submissions coming soon!'])
-      ]),
-      div({ style: { marginTop: '2rem' }}, ['Using workflow ???']),
-      div({ style: { marginTop: '2rem' } }, [
-        h3(['Provide inputs JSON file']),
-        div([
-          'Copy and paste your JSON file below',
-          h(IdContainer, [id => h(Fragment, [
-            h(FormLabel, { htmlFor: id }),
-            h(TextArea, {
-              id,
-              style: { height: 100 },
-              placeholder: 'Paste your JSON inputs here',
-              value: workflowInputs,
-              onChange: setWorkflowInputs
-            })
-          ])]),
-          div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
-            h(ButtonOutline, {
-              onClick: () => {
-                console.log(`Back to previous page`)
-                Nav.goToPath('root')
-              }
-            }, ['Back to previous page']),
-            h(ButtonPrimary, {
-              style: { marginLeft: '1rem' },
-              disabled: !workflowInputs,
-              onClick: () => {
-                console.log(`SUBMIT value ${workflowInputs}`)
-              }
-            }, ['Run workflow'])
-          ])
+        'Copy and paste your JSON file below',
+        h(IdContainer, [id => h(Fragment, [
+          h(FormLabel, { htmlFor: id }),
+          h(TextArea, {
+            id,
+            style: { height: 100 },
+            placeholder: 'Paste your JSON inputs here',
+            value: workflowInputs,
+            onChange: setWorkflowInputs
+          })
+        ])]),
+        div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
+          h(ButtonOutline, {
+            onClick: displayWorkflowUrlPage
+          }, ['Back to previous page']),
+          h(ButtonPrimary, {
+            style: { marginLeft: '1rem' },
+            disabled: !workflowInputs,
+            onClick: () => submitRun()
+          }, ['Run workflow'])
         ])
       ])
     ])
   ])
 }
-
-export const navPaths = [
-  {
-    name: 'workflow-inputs',
-    path: '/workflow-inputs',
-    component: WorkflowInputs,
-    public: true
-  }
-]

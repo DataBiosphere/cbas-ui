@@ -1,13 +1,11 @@
 import _ from 'lodash/fp'
 import { compile, pathToRegexp } from 'path-to-regexp'
 import { routeHandlersStore } from 'src/libs/state'
-import * as WorkflowInputs from 'src/pages/WorkflowInputs'
-import * as WorkflowSource from 'src/pages/WorkflowSource'
+import * as SubmitWorkflow from 'src/pages/SubmitWorkflow'
 
 
 const routes = _.flatten([
-  WorkflowSource.navPaths,
-  WorkflowInputs.navPaths
+  SubmitWorkflow.navPaths
 ])
 
 const handlers = _.map(({ path, encode = encodeURIComponent, ...data }) => {

@@ -1,7 +1,7 @@
-import _ from 'lodash/fp'
 import { createHashHistory as createHistory } from 'history'
+import _ from 'lodash/fp'
 import * as qs from 'qs'
-import { createContext, useContext, useEffect, useState } from 'react'
+import { createContext, useContext, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { useOnMount, useStore } from 'src/libs/react-utils'
 import { routeHandlersStore } from 'src/libs/state'
@@ -42,14 +42,6 @@ export const getLink = (...args) => `#${getPath(...args).slice(1)}` // slice off
 export const goToPath = (...args) => {
   history.push({ pathname: getPath(...args) })
 }
-
-// export const Redirector = ({ pathname, search }) => {
-//   useOnMount(() => {
-//     history.replace({ pathname, search })
-//   })
-//
-//   return null
-// }
 
 const parseRoute = (handlers, { pathname, search }) => {
   const handler = _.find(({ regex }) => regex.test(pathname), handlers)
