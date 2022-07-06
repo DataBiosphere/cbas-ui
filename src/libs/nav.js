@@ -83,7 +83,7 @@ export const Router = () => {
 export const PathHashInserter = () => {
   useOnMount(() => {
     const loc = window.location
-    const desiredPath = '/'
+    const desiredPath = `${process.env.PUBLIC_URL}/`
     if (loc.pathname !== desiredPath) {
       history.replace({ pathname: loc.pathname.substr(1), search: loc.search })
       window.history.replaceState({}, '', desiredPath)
