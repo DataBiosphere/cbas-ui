@@ -73,19 +73,6 @@ export const useRoute = () => {
   return parseRoute(handlers, location)
 }
 
-// export const TitleManager = () => {
-//   const { title, params, query } = useRoute()
-//   const newTitle = Utils.cond(
-//     [_.isFunction(title), () => title({ ...params, queryParams: query })],
-//     [title, () => title],
-//     getAppName
-//   )
-//   useEffect(() => {
-//     document.title = newTitle
-//   }, [newTitle])
-//   return null
-// }
-
 export const Router = () => {
   const { component, params, query } = useRoute()
   return div({ style: { display: 'flex', flexDirection: 'column', flex: '1 0 auto', position: 'relative' } }, [
