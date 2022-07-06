@@ -83,7 +83,8 @@ export const Router = () => {
 export const PathHashInserter = () => {
   useOnMount(() => {
     const loc = window.location
-    const desiredPath = '/'
+    const desiredPath = 'https://leonardo.dsde-dev.broadinstitute.org/proxy/google/v1/apps/terra-dev-e64f6eae/terra-app-9d9eba32-0b9e-4981-a9af-a9f18de40db3/cromwell-service/'
+    // const desiredPath = 'http://localhost:3000/'
     if (loc.pathname !== desiredPath) {
       history.replace({ pathname: loc.pathname.substr(1), search: loc.search })
       window.history.replaceState({}, '', desiredPath)
