@@ -88,6 +88,9 @@ export const Router = () => {
 export const PathHashInserter = () => {
   useOnMount(() => {
     const loc = window.location
+
+    console.log(`### Window location path: ${loc.pathname.toString()}`)
+
     const desiredPath = '/'
     if (loc.pathname !== desiredPath) {
       history.replace({ pathname: loc.pathname.substr(1), search: loc.search })
