@@ -90,6 +90,7 @@ export const PathHashInserter = () => {
     const loc = window.location
 
     console.log(`### Window location path: ${loc.pathname.toString()}`)
+    console.log(`### PUBLIC_URL: ${process.env.PUBLIC_URL}`)
 
     const desiredPath = '/'
     if (loc.pathname !== desiredPath) {
