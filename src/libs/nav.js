@@ -45,6 +45,11 @@ export const goToPath = (...args) => {
 
 const parseRoute = (handlers, { pathname, search }) => {
   const handler = _.find(({ regex }) => regex.test(pathname), handlers)
+
+  console.log(`#### Pathname: ${pathname}`)
+  console.log(`#### Handler: ${handler.toString()}`)
+  console.log(`#### Handler regex: ${handler.regex.toString()}`)
+
   console.assert(handler, 'No handler found for path')
   return handler && {
     ...handler,
