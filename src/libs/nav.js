@@ -94,7 +94,7 @@ export const PathHashInserter = () => {
     const desiredPath = '/'
     if (loc.pathname !== desiredPath) {
       history.replace({ pathname: loc.pathname.substr(1), search: loc.search })
-      window.history.replaceState({}, '', loc.pathname)
+      window.history.replaceState({}, '', desiredPath)
     }
   })
   return null
