@@ -44,13 +44,13 @@ export const goToPath = (...args) => {
 }
 
 const parseRoute = (handlers, { pathname, search }) => {
-  console.log(`#### Original Pathname: ${pathname}`)
+  // console.log(`#### Original Pathname: ${pathname}`)
+  //
+  // const relativePathName = pathname.replace(/^\/proxy\/google\/v1\/apps\/(.+?)\/(.+?)\/cromwell-service/, '')
+  //
+  // console.log(`### Relative pathname: ${relativePathName}`)
 
-  const relativePathName = pathname.replace(/^\/proxy\/google\/v1\/apps\/(.+?)\/(.+?)\/cromwell-service/, '')
-
-  console.log(`### Relative pathname: ${relativePathName}`)
-
-  const handler = _.find(({ regex }) => regex.test(relativePathName), handlers)
+  const handler = _.find(({ regex }) => regex.test(pathname), handlers)
 
 
   console.log(`#### Handler: ${handler.toString()}`)
@@ -59,7 +59,7 @@ const parseRoute = (handlers, { pathname, search }) => {
   console.assert(handler, 'No handler found for path')
   return handler && {
     ...handler,
-    params: _.zipObject(handler.keys, _.tail(handler.regex.exec(relativePathName))),
+    params: _.zipObject(handler.keys, _.tail(handler.regex.exec(pathname))),
     query: qs.parse(search, { ignoreQueryPrefix: true, plainObjects: true })
   }
 }
