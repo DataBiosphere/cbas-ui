@@ -1,7 +1,7 @@
 import 'src/libs/routes'
 
 import { h } from 'react-hyperscript-helpers'
-import { LocationProvider, PathHashInserter, Router } from 'src/libs/nav'
+import { LocationProvider, Router } from 'src/libs/nav'
 // import { Ajax } from 'src/libs/ajax'
 // import { useCancellation, useOnMount } from 'src/libs/react-utils'
 // import { WorkflowSource } from 'src/pages/WorkflowSource'
@@ -26,7 +26,6 @@ const Main = () => {
   // return h(WorkflowSource, { cbasStatus })
 
   return h(LocationProvider, [
-    h(PathHashInserter),
     h(Router)
   ])
 }
