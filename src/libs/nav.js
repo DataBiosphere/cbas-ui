@@ -44,19 +44,9 @@ export const goToPath = (...args) => {
 }
 
 const parseRoute = (handlers, { pathname, search }) => {
-  // console.log(`#### Original Pathname: ${pathname}`)
-  //
-  // const relativePathName = pathname.replace(/^\/proxy\/google\/v1\/apps\/(.+?)\/(.+?)\/cromwell-service/, '')
-  //
-  // console.log(`### Relative pathname: ${relativePathName}`)
-
   const handler = _.find(({ regex }) => regex.test(pathname), handlers)
-
-
-  console.log(`#### Handler: ${handler.toString()}`)
-  console.log(`#### Handler regex: ${handler.regex.toString()}`)
-
   console.assert(handler, 'No handler found for path')
+
   return handler && {
     ...handler,
     params: _.zipObject(handler.keys, _.tail(handler.regex.exec(pathname))),
@@ -90,19 +80,3 @@ export const Router = () => {
     h(component, { key: history.location.pathname, ...params, queryParams: query })
   ])
 }
-
-// export const PathHashInserter = () => {
-//   useOnMount(() => {
-//     const loc = window.location
-//
-//     console.log(`### Window location path: ${loc.pathname.toString()}`)
-//     console.log(`### PUBLIC_URL: ${process.env.PUBLIC_URL}`)
-//
-//     const desiredPath = '/'
-//     if (loc.pathname !== desiredPath) {
-//       history.replace({ pathname: loc.pathname.substr(1), search: loc.search })
-//       window.history.replaceState({}, '', desiredPath)
-//     }
-//   })
-//   return null
-// }
