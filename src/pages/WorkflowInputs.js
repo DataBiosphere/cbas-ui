@@ -34,15 +34,18 @@ export const WorkflowInputs = ({ workflowUrl, workflowInputs, setWorkflowInputs,
             onChange: setWorkflowInputs
           })
         ])]),
-        div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
-          h(ButtonOutline, {
-            onClick: displayWorkflowUrlPage
-          }, ['Back to previous page']),
-          h(ButtonPrimary, {
-            style: { marginLeft: '1rem' },
-            disabled: !workflowInputs,
-            onClick: () => submitRun()
-          }, ['Run workflow'])
+        div({ style: { display: 'flex', marginTop: '1rem', justifyContent: 'space-between' } }, [
+          'Outputs will be saved to cloud storage',
+          div([
+            h(ButtonOutline, {
+              onClick: displayWorkflowUrlPage
+            }, ['Back to previous page']),
+            h(ButtonPrimary, {
+              style: { marginLeft: '1rem' },
+              disabled: !workflowInputs,
+              onClick: () => submitRun()
+            }, ['Run workflow'])
+          ])
         ])
       ])
     ])
