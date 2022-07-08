@@ -14,7 +14,7 @@ export const SubmitWorkflow = () => {
   return div([
     headerBar(),
     div({ style: { margin: '4rem' } }, [
-      h2(['Submit a workflow']),
+      h2(['Submit a workflow HELLO']),
       div(['Submit your Terra workflows with the Cromwell engine. Full featured workflow submissions coming soon!']),
       div({ style: { marginTop: '2rem' } }, [
         !showInputsPage && h(WorkflowSource, { workflowUrl, setWorkflowUrl, onClick: () => setShowInputsPage(true) }),
