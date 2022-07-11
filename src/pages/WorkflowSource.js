@@ -1,11 +1,11 @@
 import { Fragment } from 'react'
 import { div, h, h3 } from 'react-hyperscript-helpers'
-import { ButtonPrimary, IdContainer, makeInlineDockLink } from 'src/components/common'
+import { IdContainer, makeInlineDockLink } from 'src/components/common'
 import { TextArea } from 'src/components/input'
 import { FormLabel } from 'src/libs/form'
 
 
-export const WorkflowSource = ({ workflowUrl, setWorkflowUrl, onClick }) => {
+export const WorkflowSource = ({ workflowUrl, setWorkflowUrl }) => {
   return div([
     h3(['Provide a URL to a workflow']),
     div([
@@ -26,12 +26,6 @@ export const WorkflowSource = ({ workflowUrl, setWorkflowUrl, onClick }) => {
         value: workflowUrl,
         onChange: setWorkflowUrl
       })
-    ])]),
-    div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
-      h(ButtonPrimary, {
-        disabled: !workflowUrl,
-        onClick
-      }, ['Use workflow'])
-    ])
+    ])])
   ])
 }
