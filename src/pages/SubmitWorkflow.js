@@ -1,10 +1,10 @@
 import { useState } from 'react'
 import { div, h, h2 } from 'react-hyperscript-helpers'
 import { ButtonOutline, ButtonPrimary, headerBar } from 'src/components/common'
+import { WorkflowInputs } from 'src/components/WorkflowInputs'
+import { WorkflowSource } from 'src/components/WorkflowSource'
 import { Ajax } from 'src/libs/ajax'
 import { useCancellation } from 'src/libs/react-utils'
-import { WorkflowInputs } from 'src/pages/WorkflowInputs'
-import { WorkflowSource } from 'src/pages/WorkflowSource'
 
 
 export const SubmitWorkflow = () => {
