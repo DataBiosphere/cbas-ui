@@ -3,7 +3,7 @@ FROM node:14
 RUN set -x \
   && git clone https://github.com/DataBiosphere/terra-batch-analysis-ui.git \
   && cd terra-batch-analysis-ui \
-  && git checkout ss_submit_workflow \
+  && git checkout main \
   && npm install \
   && PUBLIC_URL="." npm run build # to get relative URLs so that it can be load up in proxied environment
 

@@ -11,7 +11,7 @@ export const WorkflowSource = ({ workflowUrl, setWorkflowUrl, onClick }) => {
     div([
       h(Fragment, [
         `You can browse for workflows in `,
-        makeInlineDockLink('https://firecloud.dsde-dev.broadinstitute.org/?return=terra#methods', 'Broad Methods Repository', 14),
+        makeInlineDockLink('https://firecloud.dsde-dev.broadinstitute.org/?return=#methods', 'Broad Methods Repository', 14),
         ` or in `,
         makeInlineDockLink('https://staging.dockstore.org/search?descriptorType=WDL&entryType=workflows&searchMode=files', 'Dockstore', 14),
         `. Please note that for now only public, unauthenticated URLs ending in '.wdl' work.`
