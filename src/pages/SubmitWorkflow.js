@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, Fragment } from 'react'
 import { div, h, h2 } from 'react-hyperscript-helpers'
 import { ButtonOutline, ButtonPrimary, headerBar } from 'src/components/common'
 import { WorkflowInputs } from 'src/pages/WorkflowInputs'
@@ -26,23 +26,30 @@ export const SubmitWorkflow = () => {
       h2(['Submit a workflow']),
       div(['Submit your Terra workflows with the Cromwell engine. Full featured workflow submissions coming soon!']),
       div({ style: { marginTop: '2rem' } }, [
-        !showInputsPage && h(WorkflowSource, { workflowUrl, setWorkflowUrl }),
-        !showInputsPage && div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
-          h(ButtonPrimary, {
-            disabled: !workflowUrl,
-            onClick: () => setShowInputsPage(true)
-          }, ['Use workflow'])
+        !showInputsPage && h(Fragment, [
+          h(WorkflowSource, { workflowUrl, setWorkflowUrl }),
+          div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
+            h(ButtonPrimary, {
+              disabled: !workflowUrl,
+              onClick: () => setShowInputsPage(true)
+            }, ['Use workflow'])
+          ])
         ]),
-        showInputsPage && h(WorkflowInputs, { workflowUrl, workflowInputs, setWorkflowInputs }),
-        showInputsPage && div({ style: { display: 'flex', marginTop: '1rem', justifyContent: 'flex-end' } }, [
-          h(ButtonOutline, {
-            onClick: () => setShowInputsPage(false)
-          }, ['Back to previous page']),
-          h(ButtonPrimary, {
-            style: { marginLeft: '1rem' },
-            disabled: !workflowInputs,
-            onClick: () => submitRun()
-          }, ['Run workflow'])
+        showInputsPage && h(Fragment, [
+          h(WorkflowInputs, { workflowUrl, workflowInputs, setWorkflowInputs }),
+          div({ style: { display: 'flex', marginTop: '1rem', justifyContent: 'space-between' } }, [
+            'Outputs will be saved to cloud storage',
+            div([
+              h(ButtonOutline, {
+                onClick: () => setShowInputsPage(false)
+              }, ['Change selected workflow']),
+              h(ButtonPrimary, {
+                style: { marginLeft: '1rem' },
+                disabled: !workflowInputs,
+                onClick: () => submitRun()
+              }, ['Run workflow'])
+            ])
+          ])
         ])
       ])
     ])

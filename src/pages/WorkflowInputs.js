@@ -24,8 +24,7 @@ export const WorkflowInputs = ({ workflowUrl, workflowInputs, setWorkflowInputs 
             value: workflowInputs,
             onChange: setWorkflowInputs
           })
-        ])]),
-        div({ style: { marginTop: '1rem' } }, ['Outputs will be saved to cloud storage'])
+        ])])
       ])
     ])
   ])
