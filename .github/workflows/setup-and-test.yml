@@ -1,4 +1,4 @@
-name: Build and Test
+name: Setup and Test
 
 on:
   push:
@@ -24,8 +24,7 @@ jobs:
         run: npm install --global yarn
 
       - name: Start and test with yarn
-        run: |
-          cd cbas-ui && yarn start && yarn test
+        run: cd cbas-ui && yarn start && yarn test
 
   dispatch-tag:
     needs: [ setup-and-test ]
