@@ -9,4 +9,11 @@ module.exports = function(app) {
       changeOrigin: true
     })
   )
+  app.use(
+    '/status',
+    createProxyMiddleware({
+      target: 'http://localhost:8080', // CBAS Service
+      changeOrigin: true
+    })
+  )
 }

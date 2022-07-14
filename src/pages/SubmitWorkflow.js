@@ -1,10 +1,10 @@
 import { useState, Fragment } from 'react'
-import { div, h, h2 } from 'react-hyperscript-helpers'
+import { div, h, h2, span } from 'react-hyperscript-helpers'
 import { ButtonOutline, ButtonPrimary, headerBar } from 'src/components/common'
 import { WorkflowInputs } from 'src/pages/WorkflowInputs'
 import { WorkflowSource } from 'src/pages/WorkflowSource'
 import { Ajax } from 'src/libs/ajax'
-import { useCancellation } from 'src/libs/react-utils'
+import { useCancellation, useOnMount } from 'src/libs/react-utils'
 
 
 export const SubmitWorkflow = () => {
@@ -12,8 +12,18 @@ export const SubmitWorkflow = () => {
   const [workflowUrl, setWorkflowUrl] = useState()
   const [workflowInputs, setWorkflowInputs] = useState()
   const [showInputsPage, setShowInputsPage] = useState(false)
+  const [cbasStatus, setCbasStatus] = useState()
 
   const signal = useCancellation()
+
+  useOnMount(() => {
+    const loadCbasStatus = async () => {
+      const cbasStatus = await Ajax(signal).Cbas.status()
+      setCbasStatus(cbasStatus)
+    }
+
+    loadCbasStatus()
+  })
 
   const submitRun = async () => {
     const runRes = await Ajax(signal).Cbas.submitRun(workflowUrl, workflowInputs)
@@ -50,6 +60,10 @@ export const SubmitWorkflow = () => {
               }, ['Run workflow'])
             ])
           ])
+        ]),
+        div({ style: { bottom: 0, position: 'absolute' } }, [
+          span(['CBAS Status OK: ']),
+          cbasStatus && span([JSON.stringify(cbasStatus.ok)])
         ])
       ])
     ])
