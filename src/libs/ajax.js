@@ -36,11 +36,24 @@ const withErrorRejection = wrappedFetch => async (...args) => {
   }
 }
 
+const withUrlPrefix = _.curry((prefix, wrappedFetch) => (path, ...args) => {
+  return wrappedFetch(prefix + path, ...args)
+})
+
 export const fetchOk = _.flow(withInstrumentation, withCancellation, withErrorRejection)(fetch)
+
+const fetchCbas = withUrlPrefix(`${getConfig().cbasUrlRoot}/api/batch/v1/`, fetchOk)
 
 const Cbas = signal => ({
   status: async () => {
     const res = await fetchOk(`${getConfig().cbasUrlRoot}/status`, { signal })
+    return res.json()
+  },
+  submitRun: async (workflowUrl, inputs) => {
+    const formData = new FormData()
+    formData.set('workflow_url', workflowUrl)
+    formData.set('workflow_params', inputs)
+    const res = await fetchCbas(`runs`, { body: formData, signal, method: 'POST' })
     return res.json()
   }
 })

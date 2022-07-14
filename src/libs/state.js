@@ -2,6 +2,8 @@ import { staticStorageSlot } from 'src/libs/browser-storage'
 import * as Utils from 'src/libs/utils'
 
 
+export const routeHandlersStore = Utils.atom([])
+
 /*
  * Modifies ajax responses for testing purposes.
  * Can be set to an array of objects of the form { fn, filter }.
