@@ -1,0 +1,41 @@
+name: Build and Test
+
+on:
+  push:
+    branches: [ main ]
+    paths-ignore: [ '*.md' ]
+  pull_request:
+    branches: [ '**' ]
+
+jobs:
+  setup-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16
+      - run: npm ci
+      - run: npm test
+
+      - name: Install yarn
+        run: npm install --global yarn
+
+      - name: Start and test with yarn
+        run: |
+          cd cbas-ui && yarn start && yarn test
+
+  dispatch-tag:
+    needs: [ setup-and-test ]
+    runs-on: ubuntu-latest
+
+    if: success() && github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Fire off tag action
+        uses: broadinstitute/workflow-dispatch@v1
+        with:
+          workflow: Tag
+          token: ${{ secrets.BROADBOT_TOKEN }}

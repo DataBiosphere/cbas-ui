@@ -57,6 +57,8 @@ Web user interface for Batch Analysis
 
 ### Build and publish Docker image
 
+(You should not need to manually build or publish the image: it should happen automatically after your PR is merged to main).
+
 From the root of the repository run the below steps:
 1. To build the docker image run: `docker build . --no-cache -t us.gcr.io/broad-dsp-gcr-public/terra-batch-analysis-ui:<tag>`
 4. To push the image to GCR, run: `docker push us.gcr.io/broad-dsp-gcr-public/terra-batch-analysis-ui:<tag>`
