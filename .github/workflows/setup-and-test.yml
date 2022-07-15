@@ -17,7 +17,7 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 16
-      - run: npm ci && npm test
+      - run: brew install yarn && yarn install && npm ci && npm test
 
       - name: Install yarn
         run: npm install --global yarn
