@@ -17,13 +17,12 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 16
-      - run: brew install yarn && yarn install && npm ci && npm test
 
-      - name: Install yarn
-        run: npm install --global yarn
+      - name: Set up Yarn and have it install
+        run: brew install yarn && yarn install
 
       - name: Start and test with yarn
-        run: cd cbas-ui && yarn start && yarn test
+        run: yarn start && yarn test
 
   dispatch-tag:
     needs: [ setup-and-test ]
