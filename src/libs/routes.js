@@ -1,10 +1,12 @@
 import _ from 'lodash/fp'
 import { compile, pathToRegexp } from 'path-to-regexp'
 import { routeHandlersStore } from 'src/libs/state'
+import * as PreviousRuns from 'src/pages/PreviousRuns'
 import * as SubmitWorkflow from 'src/pages/SubmitWorkflow'
 
 
 const routes = _.flatten([
+  PreviousRuns.navPaths,
   SubmitWorkflow.navPaths
 ])
 
