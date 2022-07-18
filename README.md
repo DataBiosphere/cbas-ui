@@ -58,7 +58,7 @@ Web user interface for Batch Analysis
 #### Adding a new navigation path
 
 1. Create a new component that is to be rendered upon navigating to new path
-2. Add new `navPaths` in the file for the new component (see `src/pages/PreviousRuns.js` in this PR as reference)
+2. Add new `navPaths` in the file for the new component (see `src/pages/PreviousRuns.js` in [this PR](https://github.com/DataBiosphere/cbas-ui/pull/8) as reference)
 3. Add the new `navPath` to `routes` in `src/libs/routes.js` (see above PR for reference)
 4. Use `Nav.goToPath(<navPath-name>)` to navigate to the new path
 
