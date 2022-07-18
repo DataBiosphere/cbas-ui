@@ -21,9 +21,6 @@ jobs:
       - name: Set up Yarn and have it install
         run: brew install yarn && yarn install
 
-      - name: Start and test with yarn
-        run: yarn start && yarn test
-
   dispatch-tag:
     needs: [ setup-and-test ]
     runs-on: ubuntu-latest
