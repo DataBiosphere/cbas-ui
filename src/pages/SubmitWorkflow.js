@@ -1,10 +1,11 @@
-import { useState, Fragment } from 'react'
+import { Fragment, useState } from 'react'
 import { div, h, h2, span } from 'react-hyperscript-helpers'
 import { ButtonOutline, ButtonPrimary, headerBar } from 'src/components/common'
-import { WorkflowInputs } from 'src/pages/WorkflowInputs'
-import { WorkflowSource } from 'src/pages/WorkflowSource'
 import { Ajax } from 'src/libs/ajax'
 import { useCancellation, useOnMount } from 'src/libs/react-utils'
+import { SavedWorkflows } from 'src/pages/SavedWorkflows'
+import { WorkflowInputs } from 'src/pages/WorkflowInputs'
+import { WorkflowSource } from 'src/pages/WorkflowSource'
 
 
 export const SubmitWorkflow = () => {
@@ -43,7 +44,8 @@ export const SubmitWorkflow = () => {
               disabled: !workflowUrl,
               onClick: () => setShowInputsPage(true)
             }, ['Use workflow'])
-          ])
+          ]),
+          h(SavedWorkflows, { setWorkflowUrl, setShowInputsPage })
         ]),
         showInputsPage && h(Fragment, [
           h(WorkflowInputs, { workflowUrl, workflowInputs, setWorkflowInputs }),
@@ -61,7 +63,7 @@ export const SubmitWorkflow = () => {
             ])
           ])
         ]),
-        div({ style: { bottom: 0, position: 'absolute' } }, [
+        div({ style: { bottom: 0, position: 'absolute', marginBottom: '1em' } }, [
           span(['CBAS Status OK: ']),
           cbasStatus && span([JSON.stringify(cbasStatus.ok)])
         ])
