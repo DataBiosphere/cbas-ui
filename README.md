@@ -55,6 +55,13 @@ Web user interface for Batch Analysis
         * Styles should be automatically applied by [.editorconfig](.editorconfig); make sure you've also [turned on eslint](https://www.jetbrains.com/help/idea/eslint.html#ws_js_eslint_automatic_configuration).
         * In order to correctly format a file at any time, run the IntelliJ `Reformat Code` action, and then right-click in a window and click `Fix ESLint Problems`. You could also create an IntelliJ macro to do this for you as explained [here](https://www.jetbrains.com/help/idea/using-macros-in-the-editor.html#reformat_on_save), and map running of the macro to a keyboard shortcut for convenience.
 
+#### Adding a new navigation path
+
+1. Create a new component that is to be rendered upon navigating to new path
+2. Add new `navPaths` in the file for the new component (see `src/pages/PreviousRuns.js` in this PR as reference)
+3. Add the new `navPath` to `routes` in `src/libs/routes.js` (see above PR for reference)
+4. Use `Nav.goToPath(<navPath-name>)` to navigate to the new path
+
 ### Build and publish Docker image
 
 From the root of the repository run the below steps:
