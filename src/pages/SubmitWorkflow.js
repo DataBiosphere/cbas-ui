@@ -1,8 +1,8 @@
 import { Fragment, useState } from 'react'
 import { div, h, h2, span } from 'react-hyperscript-helpers'
 import { ButtonOutline, ButtonPrimary, headerBar } from 'src/components/common'
-import * as Nav from 'src/libs/nav'
 import { Ajax } from 'src/libs/ajax'
+import * as Nav from 'src/libs/nav'
 import { useCancellation, useOnMount } from 'src/libs/react-utils'
 import { SavedWorkflows } from 'src/pages/SavedWorkflows'
 import { WorkflowInputs } from 'src/pages/WorkflowInputs'
@@ -31,7 +31,7 @@ export const SubmitWorkflow = () => {
     try {
       const runRes = await Ajax(signal).Cbas.submitRun(workflowUrl, workflowInputs)
       console.log(runRes)
-    } catch(error) {
+    } catch (error) {
       console.log(`Error submitting workflow - ${error instanceof Response ? await error.text() : error}`)
     }
 
