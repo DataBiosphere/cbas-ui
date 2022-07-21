@@ -17,7 +17,7 @@ export const PreviousRuns = () => {
   const [itemsPerPage, setItemsPerPage] = useState(100)
 
   // this hardcoded data to be removed in https://broadworkbench.atlassian.net/browse/BW-1319
-  const previousRuns1 = [
+  const previousRuns = [
     {
       workflowName: '1-simple-hello-world-1',
       workflowStatus: 'Submitted',
@@ -146,32 +146,6 @@ export const PreviousRuns = () => {
     }
   ]
 
-  const previousRuns = [
-    {
-      workflowName: '16-simple-hello-world-3',
-      workflowStatus: 'Aborted',
-      workflowInputs: '{ "wf_hello.hello.addressee": "16-World" }',
-      workflowUrl: 'https://raw.githubusercontent.com/broadinstitute/cromwell/develop/centaur/src/main/resources/standardTestCases/hello/hello.wdl',
-      submissionTimestamp: '2022-01-27T22:29:15.591Z'
-    },
-    {
-      workflowName: '17-mock-abc-3',
-      workflowStatus: 'Failed',
-      workflowInputs: '',
-      workflowUrl: 'https://raw.githubusercontent.com/abc/xyz',
-      submissionTimestamp: '2019-10-20T22:22:15.591Z'
-    },
-    {
-      workflowName: '18-dockstore-abc-hello-1',
-      workflowStatus: 'Done',
-      workflowInputs: '{ "hello.inputs_array": [18-1, 2, 3, 4, 5] }',
-      workflowUrl: 'https://dockstore/abc/hello.wdl',
-      submissionTimestamp: '2019-07-12T22:24:15.591Z'
-    }
-  ]
-
-  const previousRuns3 = []
-
   const sortedPreviousRuns = _.orderBy(sort.field, sort.direction, previousRuns)
 
   const firstPageIndex = (pageNumber - 1) * itemsPerPage
@@ -190,7 +164,7 @@ export const PreviousRuns = () => {
             'aria-label': 'previous runs',
             width, height, sort,
             rowCount: paginatedPreviousRuns.length,
-            noContentMessage: 'Nothing here yet! Your previously run workflows will be saved here.',
+            noContentMessage: 'Nothing here yet! Your previously run workflows will be displayed here.',
             hoverHighlight: true,
             columns: [
               {
