@@ -9116,6 +9116,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"paging-algorithm@npm:^1.0.1":
+  version: 1.0.1
+  resolution: "paging-algorithm@npm:1.0.1"
+  checksum: 310950fa2562f84314a5f221da3d1c9569735f0ee68d557c08380093ea10ad49eb0e2ea9e20fee76f8fd5737950b101235633f7b8e66945aeb30bfa57791a179
+  languageName: node
+  linkType: hard
+
 "param-case@npm:^3.0.4":
   version: 3.0.4
   resolution: "param-case@npm:3.0.4"
@@ -10493,6 +10500,19 @@ __metadata:
   peerDependencies:
     react: ^17.0.1
   checksum: 2bdfadfa23278137b14f70ecb2a5b0a6f5bee8a14d21749fe8fdbb23b10cf7c8b7f74a5d153ac73d80b70a63a57fd16706d32268e2c3d8f4cf17776c145c9570
+  languageName: node
+  linkType: hard
+
+"react-paginating@npm:^1.4.0":
+  version: 1.4.0
+  resolution: "react-paginating@npm:1.4.0"
+  dependencies:
+    paging-algorithm: ^1.0.1
+  peerDependencies:
+    prop-types: ">=15"
+    react: ">=16.8.0"
+    react-dom: ">=16.8.0"
+  checksum: b265b6b6f3f483d63a37ba15aeb47d21664c210c4593f30dc78ed8ffd8c6451a841e7822d041f9bd7b9cf535514ab3652538eff68cd02707df0b6829b0f6898c
   languageName: node
   linkType: hard
 
@@ -11945,6 +11965,7 @@ __metadata:
     react-hyperscript-helpers: ^1.2.0
     react-modal: ^3.14.3
     react-notifications-component: ^3.1.0
+    react-paginating: ^1.4.0
     react-scripts: 5.0.0
     react-textarea-autosize: ^8.3.3
     react-virtualized: ^9.22.3
