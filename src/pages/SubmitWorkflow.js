@@ -2,6 +2,7 @@ import { Fragment, useState } from 'react'
 import { div, h, h2, span } from 'react-hyperscript-helpers'
 import { ButtonOutline, ButtonPrimary, headerBar } from 'src/components/common'
 import { Ajax } from 'src/libs/ajax'
+import * as Nav from 'src/libs/nav'
 import { useCancellation, useOnMount } from 'src/libs/react-utils'
 import { SavedWorkflows } from 'src/pages/SavedWorkflows'
 import { WorkflowInputs } from 'src/pages/WorkflowInputs'
@@ -27,8 +28,14 @@ export const SubmitWorkflow = () => {
   })
 
   const submitRun = async () => {
-    const runRes = await Ajax(signal).Cbas.submitRun(workflowUrl, workflowInputs)
-    console.log(runRes)
+    try {
+      const runRes = await Ajax(signal).Cbas.submitRun(workflowUrl, workflowInputs)
+      console.log(runRes)
+    } catch (error) {
+      console.log(`Error submitting workflow - ${error instanceof Response ? await error.text() : error}`)
+    }
+
+    Nav.goToPath('previous-runs')
   }
 
   return div([
