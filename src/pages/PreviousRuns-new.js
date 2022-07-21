@@ -9,7 +9,7 @@ import { FlexTable, paginator, Sortable, tableHeight, TextCell } from 'src/compo
 import * as Utils from 'src/libs/utils'
 
 
-export const PreviousRuns = () => {
+export const PreviousRunsNew = () => {
   // State
   const [sort, setSort] = useState({ field: 'submissionTimestamp', direction: 'desc' })
   const [viewInputsId, setViewInputsId] = useState()
