@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
-import { useRef, useState } from 'react'
-import { div, h } from 'react-hyperscript-helpers'
+import { useRef, useState, Fragment } from 'react'
+import { button, div, h, label, option, select } from 'react-hyperscript-helpers'
 import { Grid as RVGrid } from 'react-virtualized'
 import { Clickable, IdContainer } from 'src/components/common'
 import { icon } from 'src/components/icons'
@@ -10,7 +10,100 @@ import colors from 'src/libs/colors'
 import { useLabelAssert, useOnMount } from 'src/libs/react-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
+import Pagination from 'react-paginating'
 
+
+const paginatorButton = (props, label) => button(_.merge({
+  style: {
+    margin: '0 2px', padding: '0.25rem 0.5rem',
+    display: 'flex', justifyContent: 'center', alignItems: 'center',
+    border: '1px solid #ccc', borderRadius: 3,
+    color: props.disabled ? colors.dark(0.7) : colors.accent(), backgroundColor: 'white',
+    cursor: props.disabled ? 'not-allowed' : 'pointer'
+  }
+}, props), label)
+
+/**
+ * @param {number} props.filteredDataLength
+ * @param {number} props.pageNumber
+ * @param {function(number)} props.setPageNumber
+ * @param {function(number)} [props.setItemsPerPage]
+ * @param {number} props.itemsPerPage
+ * @param {number[]} [props.itemsPerPageOptions=[10,25,50,100]]
+ */
+export const paginator = ({
+  filteredDataLength, unfilteredDataLength, pageNumber, setPageNumber, setItemsPerPage,
+  itemsPerPage, itemsPerPageOptions = [10, 25, 50, 100]
+}) => {
+  return h(Pagination, {
+    total: filteredDataLength,
+    limit: itemsPerPage,
+    pageCount: 5,
+    currentPage: pageNumber
+  }, [
+    ({ pages, currentPage, hasNextPage, hasPreviousPage, previousPage, nextPage, totalPages, getPageItemProps }) => h(Fragment,
+      [
+        div({ style: { display: 'flex', justifyContent: 'flex-end', alignItems: 'center', marginRight: '1rem' } }, [
+          `${(pageNumber - 1) * itemsPerPage + 1} - ${_.min([filteredDataLength, pageNumber * itemsPerPage])} of ${filteredDataLength}`,
+          unfilteredDataLength && filteredDataLength !== unfilteredDataLength && ` (filtered from ${unfilteredDataLength} total)`,
+          div({ style: { display: 'inline-flex', padding: '0 1rem' } }, [
+
+            paginatorButton(
+              _.merge({ 'aria-label': 'First page', disabled: currentPage === 1, style: { marginRight: '0.5rem' } },
+                getPageItemProps({ pageValue: 1, onPageChange: setPageNumber })),
+              [icon('angle-double-left', { size: 12 })]
+            ),
+
+            paginatorButton(
+              _.merge({ 'aria-label': 'Previous page', disabled: !hasPreviousPage, style: { marginRight: '1rem' } },
+                getPageItemProps({ pageValue: previousPage, onPageChange: setPageNumber })),
+              [icon('angle-left', { size: 12 })]
+            ),
+
+            _.map(num => paginatorButton(
+              _.merge({
+                  key: num,
+                  'aria-current': currentPage === num ? 'page' : undefined,
+                  style: {
+                    minWidth: '2rem',
+                    backgroundColor: currentPage === num ? colors.accent() : undefined,
+                    color: currentPage === num ? 'white' : colors.accent(),
+                    border: currentPage === num ? colors.accent() : undefined
+                  }
+                },
+                getPageItemProps({ pageValue: num, onPageChange: setPageNumber })),
+              num), pages
+            ),
+
+            paginatorButton(
+              _.merge({ 'aria-label': 'Next page', disabled: !hasNextPage, style: { marginLeft: '1rem' } },
+                getPageItemProps({ pageValue: nextPage, onPageChange: setPageNumber })),
+              [icon('angle-right', { size: 12 })]
+            ),
+
+            paginatorButton(
+              _.merge({ 'aria-label': 'Last page', disabled: currentPage === totalPages, style: { marginLeft: '0.5rem' } },
+                getPageItemProps({ pageValue: totalPages, onPageChange: setPageNumber })),
+              [icon('angle-double-right', { size: 12 })]
+            )
+          ]),
+
+          setItemsPerPage && h(IdContainer, [id => h(Fragment, [
+            label({ htmlFor: id }, ['Items per page:']),
+            select({
+                id,
+                style: { marginLeft: '0.5rem' },
+                onChange: e => setItemsPerPage(parseInt(e.target.value, 10)),
+                value: itemsPerPage
+              },
+              _.map(i => option({ value: i }, i),
+                itemsPerPageOptions))
+          ])])
+        ])
+      ]
+    )
+  ])
+}
 
 const cellStyles = {
   display: 'flex',
