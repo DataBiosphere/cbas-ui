@@ -35,40 +35,40 @@ export const SubmitWorkflow = () => {
   return div([
     // headerBar(),
     // div({ style: { margin: '4rem' } }, [
-      // h2(['Submit a workflow']),
-      // div(['Submit your Terra workflows with the Cromwell engine. Full featured workflow submissions coming soon!']),
-      // div({ style: { marginTop: '2rem' } }, [
-      //   !showInputsPage && h(Fragment, [
-      //     h(WorkflowSource, { workflowUrl, setWorkflowUrl }),
-      //     div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
-      //       h(ButtonPrimary, {
-      //         disabled: !workflowUrl,
-      //         onClick: () => setShowInputsPage(true)
-      //       }, ['Use workflow'])
-      //     ]),
-      //     h(SavedWorkflows, { setWorkflowUrl, setShowInputsPage })
-      //   ]),
-      //   showInputsPage && h(Fragment, [
-      //     h(WorkflowInputs, { workflowUrl, workflowInputs, setWorkflowInputs }),
-      //     div({ style: { display: 'flex', marginTop: '1rem', justifyContent: 'space-between' } }, [
-      //       'Outputs will be saved to cloud storage',
-      //       div([
-      //         h(ButtonOutline, {
-      //           onClick: () => setShowInputsPage(false)
-      //         }, ['Change selected workflow']),
-      //         h(ButtonPrimary, {
-      //           style: { marginLeft: '1rem' },
-      //           disabled: !workflowInputs,
-      //           onClick: () => submitRun()
-      //         }, ['Run workflow'])
-      //       ])
-      //     ])
-      //   ]),
-      //   div({ style: { bottom: 0, position: 'absolute', marginBottom: '1em' } }, [
-      //     span(['CBAS Status OK: ']),
-      //     cbasStatus && span([JSON.stringify(cbasStatus.ok)])
-      //   ])
-      // ])
+    // h2(['Submit a workflow']),
+    // div(['Submit your Terra workflows with the Cromwell engine. Full featured workflow submissions coming soon!']),
+    // div({ style: { marginTop: '2rem' } }, [
+    //   !showInputsPage && h(Fragment, [
+    //     h(WorkflowSource, { workflowUrl, setWorkflowUrl }),
+    //     div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
+    //       h(ButtonPrimary, {
+    //         disabled: !workflowUrl,
+    //         onClick: () => setShowInputsPage(true)
+    //       }, ['Use workflow'])
+    //     ]),
+    //     h(SavedWorkflows, { setWorkflowUrl, setShowInputsPage })
+    //   ]),
+    //   showInputsPage && h(Fragment, [
+    //     h(WorkflowInputs, { workflowUrl, workflowInputs, setWorkflowInputs }),
+    //     div({ style: { display: 'flex', marginTop: '1rem', justifyContent: 'space-between' } }, [
+    //       'Outputs will be saved to cloud storage',
+    //       div([
+    //         h(ButtonOutline, {
+    //           onClick: () => setShowInputsPage(false)
+    //         }, ['Change selected workflow']),
+    //         h(ButtonPrimary, {
+    //           style: { marginLeft: '1rem' },
+    //           disabled: !workflowInputs,
+    //           onClick: () => submitRun()
+    //         }, ['Run workflow'])
+    //       ])
+    //     ])
+    //   ]),
+    //   div({ style: { bottom: 0, position: 'absolute', marginBottom: '1em' } }, [
+    //     span(['CBAS Status OK: ']),
+    //     cbasStatus && span([JSON.stringify(cbasStatus.ok)])
+    //   ])
+    // ])
     // ])
     h(PreviousRuns)
   ])

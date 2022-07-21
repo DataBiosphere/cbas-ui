@@ -1,7 +1,8 @@
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
-import { useRef, useState, Fragment } from 'react'
+import { Fragment, useRef, useState } from 'react'
 import { button, div, h, label, option, select } from 'react-hyperscript-helpers'
+import Pagination from 'react-paginating'
 import { Grid as RVGrid } from 'react-virtualized'
 import { Clickable, IdContainer } from 'src/components/common'
 import { icon } from 'src/components/icons'
@@ -10,7 +11,6 @@ import colors from 'src/libs/colors'
 import { useLabelAssert, useOnMount } from 'src/libs/react-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import Pagination from 'react-paginating'
 
 
 const paginatorButton = (props, label) => button(_.merge({
@@ -62,16 +62,16 @@ export const paginator = ({
 
             _.map(num => paginatorButton(
               _.merge({
-                  key: num,
-                  'aria-current': currentPage === num ? 'page' : undefined,
-                  style: {
-                    minWidth: '2rem',
-                    backgroundColor: currentPage === num ? colors.accent() : undefined,
-                    color: currentPage === num ? 'white' : colors.accent(),
-                    border: currentPage === num ? colors.accent() : undefined
-                  }
-                },
-                getPageItemProps({ pageValue: num, onPageChange: setPageNumber })),
+                key: num,
+                'aria-current': currentPage === num ? 'page' : undefined,
+                style: {
+                  minWidth: '2rem',
+                  backgroundColor: currentPage === num ? colors.accent() : undefined,
+                  color: currentPage === num ? 'white' : colors.accent(),
+                  border: currentPage === num ? colors.accent() : undefined
+                }
+              },
+              getPageItemProps({ pageValue: num, onPageChange: setPageNumber })),
               num), pages
             ),
 
@@ -91,13 +91,13 @@ export const paginator = ({
           setItemsPerPage && h(IdContainer, [id => h(Fragment, [
             label({ htmlFor: id }, ['Items per page:']),
             select({
-                id,
-                style: { marginLeft: '0.5rem' },
-                onChange: e => setItemsPerPage(parseInt(e.target.value, 10)),
-                value: itemsPerPage
-              },
-              _.map(i => option({ value: i }, i),
-                itemsPerPageOptions))
+              id,
+              style: { marginLeft: '0.5rem' },
+              onChange: e => setItemsPerPage(parseInt(e.target.value, 10)),
+              value: itemsPerPage
+            },
+            _.map(i => option({ value: i }, i),
+              itemsPerPageOptions))
           ])])
         ])
       ]
@@ -148,6 +148,10 @@ const styles = {
     display: 'flex', alignItems: 'center'
   }
 }
+
+// Calculate a suitable pixel height for a table, capped at a certain number of rows.
+// Note: We always need 1 extra row's worth of height for the table header row:
+export const tableHeight = ({ actualRows, maxRows, heightPerRow = 48 }) => (_.min([actualRows, maxRows]) + 1) * heightPerRow
 
 /**
  * Return the sorting direction for a column identified by its field name, and using the same
