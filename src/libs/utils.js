@@ -4,6 +4,9 @@ import { div } from 'react-hyperscript-helpers'
 
 export const newTabLinkProps = { target: '_blank', rel: 'noopener noreferrer' } // https://mathiasbynens.github.io/rel-noopener/
 
+const completeDateFormat = new Intl.DateTimeFormat('default', { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: 'numeric' })
+export const makeCompleteDate = dateString => completeDateFormat.format(new Date(dateString))
+
 export const subscribable = () => {
   let subscribers = []
   return {
@@ -99,4 +102,12 @@ export const summarizeErrors = errors => {
       return div({ key: k, style: { marginTop: k !== '0' ? '0.5rem' : undefined } }, [v])
     }, _.toPairs(errorList))
   }
+}
+
+export const toIndexPairs = _.flow(_.toPairs, _.map(([k, v]) => [k * 1, v]))
+
+export const nextSort = ({ field, direction }, newField) => {
+  return newField === field ?
+    { field, direction: direction === 'asc' ? 'desc' : 'asc' } :
+    { field: newField, direction: 'asc' }
 }

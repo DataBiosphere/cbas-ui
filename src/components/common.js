@@ -136,6 +136,30 @@ export const ButtonPrimary = ({ disabled, danger = false, children, ...props }) 
   }, props), [children])
 }
 
+export const ButtonSecondary = ({ disabled, children, ...props }) => {
+  return h(Clickable, _.merge({
+    disabled,
+    style: {
+      ...styles.button,
+      color: disabled ? colors.dark(0.7) : colors.accent(),
+      cursor: disabled ? 'not-allowed' : 'pointer'
+    },
+    hover: disabled ? undefined : { color: colors.accent(0.8) }
+  }, props), [children])
+}
+
+export const ButtonOutline = ({ disabled, children, ...props }) => {
+  return h(ButtonPrimary, _.merge({
+    disabled,
+    style: {
+      border: `1px solid ${disabled ? colors.dark(0.4) : colors.accent()}`,
+      color: colors.accent(),
+      backgroundColor: disabled ? colors.dark(0.25) : 'white'
+    },
+    hover: disabled ? undefined : { backgroundColor: colors.accent(0.1) }
+  }, props), [children])
+}
+
 export const headerBar = () => {
   return div({
     role: 'banner',
