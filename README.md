@@ -1,4 +1,4 @@
-# Terra Batch Analysis UI
+# CBAS-UI (Composite Batch Analysis Service)
 
 Web user interface for Batch Analysis
 
@@ -62,15 +62,18 @@ Web user interface for Batch Analysis
 3. Add the new `navPath` to `routes` in `src/libs/routes.js` (see above PR for reference)
 4. Use `Nav.goToPath(<navPath-name>)` to navigate to the new path
 
-### Build and publish Docker image
+### Manually testing UI using Docker
 
-From the root of the repository run the below steps:
-1. To build the docker image run: `docker build . --no-cache -t us.gcr.io/broad-dsp-gcr-public/terra-batch-analysis-ui:<tag>`
-4. To push the image to GCR, run: `docker push us.gcr.io/broad-dsp-gcr-public/terra-batch-analysis-ui:<tag>`
+You may build a cbas-ui docker image for local testing, but manually publishing that image to GCR is not
+necessary: building and publication should happen automatically after your PR is merged to main.
+
+To manually build the docker image, from the root of the repository run `docker build . --no-cache -t us.gcr.io/broad-dsp-gcr-public/cbas-ui:<tag>`
 
 To run the docker image locally:
-1. Run the app: `docker run -d -p 8080:8080 us.gcr.io/broad-dsp-gcr-public/terra-batch-analysis-ui:<tag>`. The app should be hosted on port 8080
+1. Run the app: `docker run -d -p 8080:8080 us.gcr.io/broad-dsp-gcr-public/cbas-ui:<tag>`. The app should be hosted on port 8080
 2. Navigate to `http://localhost:8080/` to load the Hello World UI
+
+To manually push the image to GCR (which should not be necessary, since it's auto-published on PR merge), run: `docker push us.gcr.io/broad-dsp-gcr-public/cbas-ui:<tag>`
 
 Note: Don't forget to stop the docker container after use. One can run the below commands to stop and remove the container:
 ```
