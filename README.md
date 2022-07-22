@@ -1,4 +1,4 @@
-# Terra Batch Analysis UI
+# CBAS-UI (Composite Batch Analysis Service)
 
 Web user interface for Batch Analysis
 
@@ -55,17 +55,18 @@ Web user interface for Batch Analysis
         * Styles should be automatically applied by [.editorconfig](.editorconfig); make sure you've also [turned on eslint](https://www.jetbrains.com/help/idea/eslint.html#ws_js_eslint_automatic_configuration).
         * In order to correctly format a file at any time, run the IntelliJ `Reformat Code` action, and then right-click in a window and click `Fix ESLint Problems`. You could also create an IntelliJ macro to do this for you as explained [here](https://www.jetbrains.com/help/idea/using-macros-in-the-editor.html#reformat_on_save), and map running of the macro to a keyboard shortcut for convenience.
 
-### Build and publish Docker image
+### Manually testing UI using Docker
 
-(You should not need to manually build or publish the image: it should happen automatically after your PR is merged to main).
+You may build a cbas-ui docker image for local testing, but manually publishing that image to GCR is not
+necessary: building and publication should happen automatically after your PR is merged to main.
 
-From the root of the repository run the below steps:
-1. To build the docker image run: `docker build . --no-cache -t us.gcr.io/broad-dsp-gcr-public/terra-batch-analysis-ui:<tag>`
-4. To push the image to GCR, run: `docker push us.gcr.io/broad-dsp-gcr-public/terra-batch-analysis-ui:<tag>`
+To manually build the docker image, from the root of the repository run `docker build . --no-cache -t us.gcr.io/broad-dsp-gcr-public/cbas-ui:<tag>`
 
 To run the docker image locally:
-1. Run the app: `docker run -d -p 8080:8080 us.gcr.io/broad-dsp-gcr-public/terra-batch-analysis-ui:<tag>`. The app should be hosted on port 8080
+1. Run the app: `docker run -d -p 8080:8080 us.gcr.io/broad-dsp-gcr-public/cbas-ui:<tag>`. The app should be hosted on port 8080
 2. Navigate to `http://localhost:8080/` to load the Hello World UI
+
+To manually push the image to GCR (which should not be necessary, since it's auto-published on PR merge), run: `docker push us.gcr.io/broad-dsp-gcr-public/cbas-ui:<tag>`
 
 Note: Don't forget to stop the docker container after use. One can run the below commands to stop and remove the container:
 ```
