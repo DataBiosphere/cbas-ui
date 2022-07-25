@@ -7,51 +7,11 @@ import { FlexTable, Sortable, TextCell } from 'src/components/table'
 import * as Utils from 'src/libs/utils'
 
 
-export const SavedWorkflows = ({ setWorkflowUrl, setShowInputsPage }) => {
+export const SavedWorkflows = ({ runsData, setWorkflowUrl, setShowInputsPage }) => {
   // State
   const [sort, setSort] = useState({ field: 'submissionTimestamp', direction: 'desc' })
 
-  // this hardcoded data to be removed in https://broadworkbench.atlassian.net/browse/BW-1318
-  const previousRuns = [
-    {
-      workflowUrl: 'https://raw.githubusercontent.com/broadinstitute/cromwell/develop/centaur/src/main/resources/standardTestCases/hello/hello.wdl',
-      submissionTimestamp: '2022-01-27T22:27:15.591Z'
-    },
-    {
-      workflowUrl: 'https://raw.githubusercontent.com/abc/xyz',
-      submissionTimestamp: '2022-07-14T22:22:15.591Z'
-    },
-    {
-      workflowUrl: 'https://dockstore/abc/hello.wdl',
-      submissionTimestamp: '2022-07-12T22:57:15.591Z'
-    },
-    {
-      workflowUrl: 'https://raw.githubusercontent.com/broadinstitute/cromwell/develop/centaur/src/main/resources/standardTestCases/hello/hello.wdl',
-      submissionTimestamp: '2021-01-27T22:28:15.591Z'
-    },
-    {
-      workflowUrl: 'https://raw.githubusercontent.com/abc/xyz',
-      submissionTimestamp: '2022-07-14T22:28:15.591Z'
-    },
-    {
-      workflowUrl: 'https://dockstore/abc/hello.wdl',
-      submissionTimestamp: '2021-05-12T22:26:15.591Z'
-    },
-    {
-      workflowUrl: 'https://raw.githubusercontent.com/broadinstitute/cromwell/develop/centaur/src/main/resources/standardTestCases/hello/hello.wdl',
-      submissionTimestamp: '2022-01-27T22:29:15.591Z'
-    },
-    {
-      workflowUrl: 'https://raw.githubusercontent.com/abc/xyz',
-      submissionTimestamp: '2019-10-20T22:22:15.591Z'
-    },
-    {
-      workflowUrl: 'https://dockstore/abc/hello.wdl',
-      submissionTimestamp: '2019-07-12T22:24:15.591Z'
-    }
-  ]
-
-  const sortedPreviousRuns = _.orderBy(sort.field, sort.direction, previousRuns)
+  const sortedPreviousRuns = _.orderBy(sort.field, sort.direction, runsData)
 
   return div({ style: { marginTop: '2em', display: 'flex', flexDirection: 'column' } }, [
     h3(['Saved Workflows']),
@@ -69,7 +29,7 @@ export const SavedWorkflows = ({ setWorkflowUrl, setShowInputsPage }) => {
               field: 'workflowUrl',
               headerRenderer: () => h(Sortable, { sort, field: 'workflowUrl', onSort: setSort }, ['Workflow Link']),
               cellRenderer: ({ rowIndex }) => {
-                return h(TextCell, [sortedPreviousRuns[rowIndex].workflowUrl])
+                return h(TextCell, [sortedPreviousRuns[rowIndex].workflow_url])
               }
             },
             {
@@ -77,7 +37,10 @@ export const SavedWorkflows = ({ setWorkflowUrl, setShowInputsPage }) => {
               field: 'submissionTimestamp',
               headerRenderer: () => h(Sortable, { sort, field: 'submissionTimestamp', onSort: setSort }, ['Last Run']),
               cellRenderer: ({ rowIndex }) => {
-                return h(TextCell, [Utils.makeCompleteDate(sortedPreviousRuns[rowIndex].submissionTimestamp)])
+                console.log(sortedPreviousRuns[rowIndex])
+                console.log(sortedPreviousRuns[rowIndex].submission_date)
+                console.log('Interpreting submitted date value string: ', sortedPreviousRuns[rowIndex].submission_date)
+                return h(TextCell, [Utils.makeCompleteDate(sortedPreviousRuns[rowIndex].submission_date)])
               }
             },
             {
