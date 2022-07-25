@@ -19,3 +19,5 @@ window.ajaxOverridesStore = ajaxOverridesStore
  */
 export const configOverridesStore = staticStorageSlot(sessionStorage, 'config-overrides')
 window.configOverridesStore = configOverridesStore
+
+export const notificationStore = Utils.atom([])
