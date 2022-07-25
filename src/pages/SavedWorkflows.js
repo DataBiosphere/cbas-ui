@@ -37,9 +37,6 @@ export const SavedWorkflows = ({ runsData, setWorkflowUrl, setShowInputsPage }) 
               field: 'submissionTimestamp',
               headerRenderer: () => h(Sortable, { sort, field: 'submissionTimestamp', onSort: setSort }, ['Last Run']),
               cellRenderer: ({ rowIndex }) => {
-                console.log(sortedPreviousRuns[rowIndex])
-                console.log(sortedPreviousRuns[rowIndex].submission_date)
-                console.log('Interpreting submitted date value string: ', sortedPreviousRuns[rowIndex].submission_date)
                 return h(TextCell, [Utils.makeCompleteDate(sortedPreviousRuns[rowIndex].submission_date)])
               }
             },
