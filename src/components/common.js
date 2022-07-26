@@ -186,7 +186,7 @@ export const headerBar = () => {
             img({ src: cromwellLogoWhite, alt: '', style: styles.image }),
             h3({
               style: { color: 'white', fontWeight: 600, padding: '0px', marginLeft: '0.5rem' }
-            }, ['BATCH ANALYSIS'])
+            }, ['SUBMIT WORKFLOWS WITH CROMWELL'])
           ])
         ])
       ])

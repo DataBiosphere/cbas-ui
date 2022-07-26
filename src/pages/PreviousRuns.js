@@ -235,7 +235,7 @@ export const PreviousRuns = () => {
         style: { whiteSpace: 'pre-wrap', wordBreak: 'break-word' },
         name: false,
         collapsed: 4,
-        enableClipboard: false,
+        enableClipboard: true,
         displayDataTypes: false,
         displayObjectSize: false,
         src: _.isEmpty(paginatedPreviousRuns[viewInputsId].workflowInputs) ? {} : paginatedPreviousRuns[viewInputsId].workflowInputs
