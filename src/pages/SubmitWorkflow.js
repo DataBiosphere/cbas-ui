@@ -31,13 +31,12 @@ export const SubmitWorkflow = () => {
   const submitRun = async () => {
     try {
       const runRes = await Ajax(signal).Cbas.submitRun(workflowUrl, workflowInputs)
-      console.log(runRes)
+      notify('success', 'Workflow successfully submitted', { message: 'You may check on the progress of workflow on this page anytime.', timeout: 5000 })
+      Nav.goToPath('previous-runs')
     } catch (error) {
-      console.log(`Error submitting workflow - ${error instanceof Response ? await error.text() : error}`)
+      const errorMsg = error instanceof Response ? await error.text() : error
+      notify('error', 'Error submitting workflow', { message: errorMsg })
     }
-
-    notify('success', 'Workflow successfully submitted', { message: 'You may check on the progress of workflow on this page anytime.', timeout: 3000 })
-    Nav.goToPath('previous-runs')
   }
 
   return div([
