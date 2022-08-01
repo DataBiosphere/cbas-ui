@@ -47,7 +47,7 @@ export const SavedWorkflows = ({ runsData, setWorkflowUrl, setShowInputsPage }) 
               cellRenderer: ({ rowIndex }) => {
                 return h(ButtonOutline, {
                   onClick: () => {
-                    setWorkflowUrl(sortedPreviousRuns[rowIndex].workflowUrl)
+                    setWorkflowUrl(sortedPreviousRuns[rowIndex].workflow_url)
                     setShowInputsPage(true)
                   }
                 }, ['Use Workflow'])

@@ -37,7 +37,7 @@ export const SubmitWorkflow = () => {
 
   const submitRun = async () => {
     try {
-      const runRes = await Ajax(signal).Cbas.runs.post(workflowUrl, workflowInputs)
+      await Ajax(signal).Cbas.runs.post(workflowUrl, workflowInputs)
       notify('success', 'Workflow successfully submitted', { message: 'You may check on the progress of workflow on this page anytime.', timeout: 5000 })
       Nav.goToPath('previous-runs')
     } catch (error) {
