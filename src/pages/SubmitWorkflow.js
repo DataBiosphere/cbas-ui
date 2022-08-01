@@ -41,8 +41,7 @@ export const SubmitWorkflow = () => {
       notify('success', 'Workflow successfully submitted', { message: 'You may check on the progress of workflow on this page anytime.', timeout: 5000 })
       Nav.goToPath('previous-runs')
     } catch (error) {
-      const errorMsg = error instanceof Response ? await error.text() : error
-      notify('error', 'Error submitting workflow', { message: errorMsg })
+      notify('error', 'Error submitting workflow', { detail: await (error instanceof Response ? error.text() : error) })
     }
   }
 
