@@ -16,6 +16,7 @@ export const SubmitWorkflow = () => {
   const [workflowInputs, setWorkflowInputs] = useState()
   const [showInputsPage, setShowInputsPage] = useState(false)
   const [cbasStatus, setCbasStatus] = useState()
+  const [runsData, setRunsData] = useState()
 
   const signal = useCancellation()
 
@@ -25,12 +26,18 @@ export const SubmitWorkflow = () => {
       setCbasStatus(cbasStatus)
     }
 
+    const loadRunsData = async () => {
+      const runs = await Ajax(signal).Cbas.runs.get()
+      setRunsData(runs.runs)
+    }
+
     loadCbasStatus()
+    loadRunsData()
   })
 
   const submitRun = async () => {
     try {
-      const runRes = await Ajax(signal).Cbas.submitRun(workflowUrl, workflowInputs)
+      const runRes = await Ajax(signal).Cbas.runs.post(workflowUrl, workflowInputs)
       notify('success', 'Workflow successfully submitted', { message: 'You may check on the progress of workflow on this page anytime.', timeout: 5000 })
       Nav.goToPath('previous-runs')
     } catch (error) {
@@ -58,7 +65,7 @@ export const SubmitWorkflow = () => {
               onClick: () => setShowInputsPage(true)
             }, ['Use workflow'])
           ]),
-          h(SavedWorkflows, { setWorkflowUrl, setShowInputsPage })
+          h(SavedWorkflows, { runsData, setWorkflowUrl, setShowInputsPage })
         ]),
         showInputsPage && h(Fragment, [
           h(WorkflowInputs, { workflowUrl, workflowInputs, setWorkflowInputs }),

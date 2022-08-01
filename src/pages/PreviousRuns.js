@@ -1,9 +1,9 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { div, h, h2 } from 'react-hyperscript-helpers'
+import ReactJson from 'react-json-view'
 import { AutoSizer } from 'react-virtualized'
 import { ButtonOutline, ButtonPrimary, headerBar, Link } from 'src/components/common'
-import { TextArea } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { FlexTable, paginator, Sortable, tableHeight, TextCell } from 'src/components/table'
 import * as Nav from 'src/libs/nav'
@@ -15,14 +15,14 @@ export const PreviousRuns = () => {
   const [sort, setSort] = useState({ field: 'submissionTimestamp', direction: 'desc' })
   const [viewInputsId, setViewInputsId] = useState()
   const [pageNumber, setPageNumber] = useState(1)
-  const [itemsPerPage, setItemsPerPage] = useState(100)
+  const [itemsPerPage, setItemsPerPage] = useState(50)
 
   // this hardcoded data to be removed in https://broadworkbench.atlassian.net/browse/BW-1319
   const previousRuns = [
     {
       workflowName: '1-simple-hello-world-1',
       workflowStatus: 'Submitted',
-      workflowInputs: '{ "wf_hello.hello.addressee": "1-World" }',
+      workflowInputs: { 'wf_hello.hello.addressee': '1-World' },
       workflowUrl: 'https://raw.githubusercontent.com/broadinstitute/cromwell/develop/centaur/src/main/resources/standardTestCases/hello/hello.wdl',
       submissionTimestamp: '2022-01-27T22:27:15.591Z'
     },
@@ -36,14 +36,14 @@ export const PreviousRuns = () => {
     {
       workflowName: '3-dockstore-abc-hello-1',
       workflowStatus: 'Done',
-      workflowInputs: '{ "hello.inputs_array": [3-1, 2, 3, 4, 5] }',
+      workflowInputs: { 'hello.inputs_array-3': [1, 2, 3, 4, 5] },
       workflowUrl: 'https://dockstore/abc/hello.wdl',
       submissionTimestamp: '2022-07-12T22:57:15.591Z'
     },
     {
       workflowName: '4-simple-hello-world-2',
       workflowStatus: 'Done',
-      workflowInputs: '{ "wf_hello.hello.addressee": "4-World" }',
+      workflowInputs: { 'wf_hello.hello.addressee': '4-World' },
       workflowUrl: 'https://raw.githubusercontent.com/broadinstitute/cromwell/develop/centaur/src/main/resources/standardTestCases/hello/hello.wdl',
       submissionTimestamp: '2021-01-27T22:28:15.591Z'
     },
@@ -57,14 +57,14 @@ export const PreviousRuns = () => {
     {
       workflowName: '6-dockstore-abc-hello-1',
       workflowStatus: 'Done',
-      workflowInputs: '{ "hello.inputs_array": [6-1, 2, 3, 4, 5] }',
+      workflowInputs: { 'hello.inputs_array-6': [1, 2, 3, 4, 5] },
       workflowUrl: 'https://dockstore/abc/hello.wdl',
       submissionTimestamp: '2021-05-12T22:26:15.591Z'
     },
     {
       workflowName: '7-simple-hello-world-3',
       workflowStatus: 'Aborted',
-      workflowInputs: '{ "wf_hello.hello.addressee": "7-World" }',
+      workflowInputs: { 'wf_hello.hello.addressee': '7-World-world-world-world-world-world-world-world-world-world-world' },
       workflowUrl: 'https://raw.githubusercontent.com/broadinstitute/cromwell/develop/centaur/src/main/resources/standardTestCases/hello/hello.wdl',
       submissionTimestamp: '2022-01-27T22:29:15.591Z'
     },
@@ -78,14 +78,14 @@ export const PreviousRuns = () => {
     {
       workflowName: '9-dockstore-abc-hello-1',
       workflowStatus: 'Done',
-      workflowInputs: '{ "hello.inputs_array": [9-1, 2, 3, 4, 5] }',
+      workflowInputs: { 'hello.inputs_array-9': [1, 2, 3, 4, 5] },
       workflowUrl: 'https://dockstore/abc/hello.wdl',
       submissionTimestamp: '2019-07-12T22:24:15.591Z'
     },
     {
       workflowName: '10-simple-hello-world-1',
       workflowStatus: 'Submitted',
-      workflowInputs: '{ "wf_hello.hello.addressee": "10-World" }',
+      workflowInputs: { 'wf_hello.hello.addressee': '10-World' },
       workflowUrl: 'https://raw.githubusercontent.com/broadinstitute/cromwell/develop/centaur/src/main/resources/standardTestCases/hello/hello.wdl',
       submissionTimestamp: '2022-01-27T22:27:15.591Z'
     },
@@ -99,14 +99,14 @@ export const PreviousRuns = () => {
     {
       workflowName: '12-dockstore-abc-hello-1',
       workflowStatus: 'Done',
-      workflowInputs: '{ "hello.inputs_array": [12-1, 2, 3, 4, 5] }',
+      workflowInputs: { 'hello.inputs_array-12': [1, 2, 3, 4, 5] },
       workflowUrl: 'https://dockstore/abc/hello.wdl',
       submissionTimestamp: '2022-07-12T22:57:15.591Z'
     },
     {
       workflowName: '13-simple-hello-world-2',
       workflowStatus: 'Done',
-      workflowInputs: '{ "wf_hello.hello.addressee": "13-World" }',
+      workflowInputs: { 'wf_hello.hello.addressee': '13-World' },
       workflowUrl: 'https://raw.githubusercontent.com/broadinstitute/cromwell/develop/centaur/src/main/resources/standardTestCases/hello/hello.wdl',
       submissionTimestamp: '2021-01-27T22:28:15.591Z'
     },
@@ -120,14 +120,14 @@ export const PreviousRuns = () => {
     {
       workflowName: '15-dockstore-abc-hello-1',
       workflowStatus: 'Done',
-      workflowInputs: '{ "hello.inputs_array": [15-1, 2, 3, 4, 5] }',
+      workflowInputs: { 'hello.inputs_array-15': [1, 2, 3, 4, 5] },
       workflowUrl: 'https://dockstore/abc/hello.wdl',
       submissionTimestamp: '2021-05-12T22:26:15.591Z'
     },
     {
       workflowName: '16-simple-hello-world-3',
       workflowStatus: 'Aborted',
-      workflowInputs: '{ "wf_hello.hello.addressee": "16-World" }',
+      workflowInputs: { 'wf_hello.hello.addressee': '16-World' },
       workflowUrl: 'https://raw.githubusercontent.com/broadinstitute/cromwell/develop/centaur/src/main/resources/standardTestCases/hello/hello.wdl',
       submissionTimestamp: '2022-01-27T22:29:15.591Z'
     },
@@ -141,7 +141,7 @@ export const PreviousRuns = () => {
     {
       workflowName: '18-dockstore-abc-hello-1',
       workflowStatus: 'Done',
-      workflowInputs: '{ "hello.inputs_array": [18-1, 2, 3, 4, 5] }',
+      workflowInputs: { 'hello.inputs_array-18': [1, 2, 3, 4, 5] },
       workflowUrl: 'https://dockstore/abc/hello.wdl',
       submissionTimestamp: '2019-07-12T22:24:15.591Z'
     }
@@ -222,7 +222,7 @@ export const PreviousRuns = () => {
             setPageNumber(1)
             setItemsPerPage(v)
           },
-          itemsPerPageOptions: [10, 25, 50, 100, 250, 500, 1000]
+          itemsPerPageOptions: [10, 25, 50, 100]
         })
       ])
     ]),
@@ -237,11 +237,14 @@ export const PreviousRuns = () => {
           onClick: () => setViewInputsId(undefined)
         }, ['OK'])
     }, [
-      h(TextArea, {
-        style: { height: 100 },
-        'aria-label': 'Inputs JSON',
-        value: _.isEmpty(paginatedPreviousRuns[viewInputsId].workflowInputs) ? '{}' : paginatedPreviousRuns[viewInputsId].workflowInputs,
-        readOnly: true
+      h(ReactJson, {
+        style: { whiteSpace: 'pre-wrap', wordBreak: 'break-word' },
+        name: false,
+        collapsed: 4,
+        enableClipboard: true,
+        displayDataTypes: false,
+        displayObjectSize: false,
+        src: _.isEmpty(paginatedPreviousRuns[viewInputsId].workflowInputs) ? {} : paginatedPreviousRuns[viewInputsId].workflowInputs
       })
     ])
   ])
