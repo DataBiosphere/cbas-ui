@@ -49,12 +49,18 @@ const Cbas = signal => ({
     const res = await fetchOk(`${getConfig().cbasUrlRoot}/status`, { signal })
     return res.json()
   },
-  submitRun: async (workflowUrl, inputs) => {
-    const formData = new FormData()
-    formData.set('workflow_url', workflowUrl)
-    formData.set('workflow_params', inputs)
-    const res = await fetchCbas(`runs`, { body: formData, signal, method: 'POST' })
-    return res.json()
+  runs: {
+    get: async () => {
+      const res = await fetchCbas(`runs`, { signal, method: 'GET' })
+      return res.json()
+    },
+    post: async (workflowUrl, inputs) => {
+      const formData = new FormData()
+      formData.set('workflow_url', workflowUrl)
+      formData.set('workflow_params', inputs)
+      const res = await fetchCbas(`runs`, { body: formData, signal, method: 'POST' })
+      return res.json()
+    }
   }
 })
 
