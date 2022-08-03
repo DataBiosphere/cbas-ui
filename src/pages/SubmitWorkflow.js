@@ -3,6 +3,7 @@ import { div, h, h2, span } from 'react-hyperscript-helpers'
 import { ButtonOutline, ButtonPrimary, headerBar } from 'src/components/common'
 import { Ajax } from 'src/libs/ajax'
 import * as Nav from 'src/libs/nav'
+import { notify } from 'src/libs/notifications'
 import { useCancellation, useOnMount } from 'src/libs/react-utils'
 import { SavedWorkflows } from 'src/pages/SavedWorkflows'
 import { WorkflowInputs } from 'src/pages/WorkflowInputs'
@@ -36,19 +37,23 @@ export const SubmitWorkflow = () => {
 
   const submitRun = async () => {
     try {
-      const runRes = await Ajax(signal).Cbas.runs.post(workflowUrl, workflowInputs)
-      console.log(runRes)
+      await Ajax(signal).Cbas.runs.post(workflowUrl, workflowInputs)
+      notify('success', 'Workflow successfully submitted', { message: 'You may check on the progress of workflow on this page anytime.', timeout: 5000 })
+      Nav.goToPath('previous-runs')
     } catch (error) {
-      console.log(`Error submitting workflow - ${error instanceof Response ? await error.text() : error}`)
+      notify('error', 'Error submitting workflow', { detail: await (error instanceof Response ? error.text() : error) })
     }
-
-    Nav.goToPath('previous-runs')
   }
 
   return div([
     headerBar(),
     div({ style: { margin: '4rem' } }, [
-      h2(['Submit a workflow']),
+      div({ style: { display: 'flex', marginTop: '1rem', justifyContent: 'space-between' } }, [
+        h2(['Submit a workflow']),
+        h(ButtonOutline, {
+          onClick: () => Nav.goToPath('previous-runs')
+        }, ['View previous runs'])
+      ]),
       div(['Submit your Terra workflows with the Cromwell engine. Full featured workflow submissions coming soon!']),
       div({ style: { marginTop: '2rem' } }, [
         !showInputsPage && h(Fragment, [

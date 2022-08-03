@@ -3,9 +3,10 @@ import { Fragment, useState } from 'react'
 import { div, h, h2 } from 'react-hyperscript-helpers'
 import ReactJson from 'react-json-view'
 import { AutoSizer } from 'react-virtualized'
-import { ButtonPrimary, headerBar, Link } from 'src/components/common'
+import { ButtonOutline, ButtonPrimary, headerBar, Link } from 'src/components/common'
 import Modal from 'src/components/Modal'
 import { FlexTable, paginator, Sortable, tableHeight, TextCell } from 'src/components/table'
+import * as Nav from 'src/libs/nav'
 import * as Utils from 'src/libs/utils'
 
 
@@ -156,7 +157,12 @@ export const PreviousRuns = () => {
   return h(Fragment, [
     headerBar(),
     div({ style: { margin: '4em' } }, [
-      h2(['Previous Runs']),
+      div({ style: { display: 'flex', marginTop: '1rem', justifyContent: 'space-between' } }, [
+        h2(['Previous Runs']),
+        h(ButtonOutline, {
+          onClick: () => Nav.goToPath('root')
+        }, ['Submit another workflow'])
+      ]),
       div(['Remember to turn off your Cromwell App in Terra once you are done to prevent incurring costs.']),
       div({ style: { marginTop: '1em', height: tableHeight({ actualRows: paginatedPreviousRuns.length, maxRows: 12.5 }), minHeight: '10em' } }, [
         h(AutoSizer, [
