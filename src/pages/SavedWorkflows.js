@@ -2,12 +2,11 @@ import _ from 'lodash/fp'
 import { useState } from 'react'
 import { div, h, h3 } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
-import { ButtonOutline } from 'src/components/common'
 import { FlexTable, Sortable, TextCell } from 'src/components/table'
 import * as Utils from 'src/libs/utils'
 
 
-export const SavedWorkflows = ({ runsData, setWorkflowUrl, setShowInputsPage }) => {
+export const SavedWorkflows = ({ runsData }) => {
   // State
   const [sort, setSort] = useState({ field: 'submissionTimestamp', direction: 'desc' })
 
@@ -26,31 +25,18 @@ export const SavedWorkflows = ({ runsData, setWorkflowUrl, setShowInputsPage }) 
           columns: [
             {
               size: { basis: 500 },
-              field: 'workflowUrl',
-              headerRenderer: () => h(Sortable, { sort, field: 'workflowUrl', onSort: setSort }, ['Workflow Link']),
+              field: 'workflowName',
+              headerRenderer: () => h(Sortable, { sort, field: 'workflowName', onSort: setSort }, ['Workflow Name']),
               cellRenderer: ({ rowIndex }) => {
-                return h(TextCell, [sortedPreviousRuns[rowIndex].workflow_url])
+                return h(TextCell, [sortedPreviousRuns[rowIndex].name])
               }
             },
             {
-              size: { basis: 250, grow: 0 },
+              size: { basis: 350, grow: 0 },
               field: 'submissionTimestamp',
               headerRenderer: () => h(Sortable, { sort, field: 'submissionTimestamp', onSort: setSort }, ['Last Run']),
               cellRenderer: ({ rowIndex }) => {
                 return h(TextCell, [Utils.makeCompleteDate(sortedPreviousRuns[rowIndex].submission_date)])
-              }
-            },
-            {
-              size: { basis: 190, grow: 0 },
-              field: 'useWorkflowButton',
-              headerRenderer: () => '',
-              cellRenderer: ({ rowIndex }) => {
-                return h(ButtonOutline, {
-                  onClick: () => {
-                    setWorkflowUrl(sortedPreviousRuns[rowIndex].workflow_url)
-                    setShowInputsPage(true)
-                  }
-                }, ['Use Workflow'])
               }
             }
           ]
