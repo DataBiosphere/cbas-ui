@@ -1,5 +1,6 @@
 name: Publish and deploy
 
+# Note: Adapted from terra-data-catalog.
 # For future functionality like 'publish to Artifactory', 'push to GCR', ..., see the data catalog version of this file.
 
 # 'create' means upon branch or tag creation, so the completion of the workflow
