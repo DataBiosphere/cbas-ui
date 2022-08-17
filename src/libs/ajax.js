@@ -3,6 +3,9 @@ import { getConfig } from 'src/libs/config'
 import { ajaxOverridesStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
+
+const jsonBody = body => ({ body: JSON.stringify(body), headers: { 'Content-Type': 'application/json' } })
+
 // Allows use of ajaxOverrideStore to stub responses for testing
 const withInstrumentation = wrappedFetch => (...args) => {
   return _.flow(
@@ -59,6 +62,12 @@ const Cbas = signal => ({
       formData.set('workflow_url', workflowUrl)
       formData.set('workflow_params', inputs)
       const res = await fetchCbas(`runs`, { body: formData, signal, method: 'POST' })
+      return res.json()
+    }
+  },
+  runSets: {
+    post: async payload => {
+      const res = await fetchCbas(`run_sets`, _.mergeAll([{ signal, method: 'POST' }, jsonBody(payload)]))
       return res.json()
     }
   }

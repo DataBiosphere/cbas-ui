@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import { h } from 'react-hyperscript-helpers'
+import { h, input } from 'react-hyperscript-helpers'
 import TextAreaAutosize from 'react-textarea-autosize'
 import colors from 'src/libs/colors'
 import { forwardRefWithName, useLabelAssert } from 'src/libs/react-utils'
@@ -48,4 +48,24 @@ export const TextArea = forwardRefWithName('TextArea', ({ onChange, autosize = f
     style: styles.textarea,
     onChange: onChange ? (e => onChange(nativeOnChange ? e : e.target.value)) : undefined
   }, props))
+})
+
+export const TextInput = forwardRefWithName('TextInput', ({ onChange, nativeOnChange = false, ...props }, ref) => {
+  useLabelAssert('TextInput', { ...props, allowId: true })
+
+  return input({
+    ..._.merge({
+      className: 'focus-style',
+      onChange: onChange ? e => onChange(nativeOnChange ? e : e.target.value) : undefined,
+      style: {
+        ...styles.input,
+        width: '100%',
+        paddingLeft: '1rem', paddingRight: '1rem',
+        fontWeight: 400, fontSize: 14,
+        backgroundColor: props.disabled ? colors.light() : undefined
+      }
+    }, props),
+    // the ref does not get added to the props correctly when inside of _.merge
+    ref
+  })
 })

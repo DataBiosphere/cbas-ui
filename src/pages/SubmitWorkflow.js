@@ -13,7 +13,9 @@ import { WorkflowSource } from 'src/pages/WorkflowSource'
 export const SubmitWorkflow = () => {
   // State
   const [workflowUrl, setWorkflowUrl] = useState()
-  const [workflowInputs, setWorkflowInputs] = useState()
+  const [workflowInputsDefinition, setWorkflowInputsDefinition] = useState()
+  const [entityType, setEntityType] = useState('')
+  const [entityId, setEntityId] = useState('')
   const [showInputsPage, setShowInputsPage] = useState(false)
   const [cbasStatus, setCbasStatus] = useState()
   const [runsData, setRunsData] = useState()
@@ -41,7 +43,16 @@ export const SubmitWorkflow = () => {
 
   const submitRun = async () => {
     try {
-      await Ajax(signal).Cbas.runs.post(workflowUrl, workflowInputs)
+      const runSetsPayload = {
+        workflow_url: workflowUrl,
+        workflow_param_definitions: JSON.parse(workflowInputsDefinition),
+        wds_entities: {
+          entity_type: entityType,
+          entity_ids: JSON.parse(entityId)
+        }
+      }
+
+      await Ajax(signal).Cbas.runSets.post(runSetsPayload)
       notify('success', 'Workflow successfully submitted', { message: 'You may check on the progress of workflow on this page anytime.', timeout: 5000 })
       Nav.goToPath('previous-runs')
     } catch (error) {
@@ -71,7 +82,7 @@ export const SubmitWorkflow = () => {
           h(SavedWorkflows, { runsData })
         ]),
         showInputsPage && h(Fragment, [
-          h(WorkflowInputs, { workflowUrl, workflowInputs, setWorkflowInputs }),
+          h(WorkflowInputs, { workflowUrl, entityType, setEntityType, entityId, setEntityId, workflowInputsDefinition, setWorkflowInputsDefinition }),
           div({ style: { display: 'flex', marginTop: '1rem', justifyContent: 'space-between' } }, [
             'Outputs will be saved to cloud storage',
             div([
@@ -80,7 +91,7 @@ export const SubmitWorkflow = () => {
               }, ['Change selected workflow']),
               h(ButtonPrimary, {
                 style: { marginLeft: '1rem' },
-                disabled: !workflowInputs,
+                disabled: !workflowInputsDefinition,
                 onClick: () => submitRun()
               }, ['Run workflow'])
             ])
