@@ -6,7 +6,8 @@ import { FormLabel } from 'src/libs/form'
 
 
 export const WorkflowInputs = ({ workflowUrl, entityType, setEntityType, entityId, setEntityId, workflowInputsDefinition, setWorkflowInputsDefinition }) => {
-  // used as placeholder to let users know expected structure of inputs definition
+  // used as placeholder to let users know expected structure of inputs definition.
+  // To be removed later when we design UI for entering the input definition.
   const inputMappingExample = '\n[\n' +
     '\t{\n' +
     '    \t"parameter_name": "workflow_input_foo_rating",\n' +
@@ -18,7 +19,7 @@ export const WorkflowInputs = ({ workflowUrl, entityType, setEntityType, entityI
     '    },\n' +
     '    {\n' +
     '      \t"parameter_name": "workflow_input_foo_id",\n' +
-    '      \t"parameter_type": "Integer",\n' +
+    '      \t"parameter_type": "Int",\n' +
     '      \t"source": {\n' +
     '        \t"type": "literal",\n' +
     '        \t"param_value": "123"\n' +
