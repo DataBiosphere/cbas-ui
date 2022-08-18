@@ -8,24 +8,24 @@ import { FormLabel } from 'src/libs/form'
 export const WorkflowInputs = ({ workflowUrl, entityType, setEntityType, entityId, setEntityId, workflowInputsDefinition, setWorkflowInputsDefinition }) => {
   // used as placeholder to let users know expected structure of inputs definition.
   // To be removed later when we design UI for entering the input definition.
-  const inputMappingExample = '\n[\n' +
-    '\t{\n' +
-    '    \t"parameter_name": "workflow_input_foo_rating",\n' +
-    '      \t"parameter_type": "String",\n' +
-    '      \t"source": {\n' +
-    '        \t"type": "entity_lookup",\n' +
-    '        \t"entity_attribute": "entity_field_foo_rating"\n' +
-    '      \t}\n' +
-    '    },\n' +
-    '    {\n' +
-    '      \t"parameter_name": "workflow_input_foo_id",\n' +
-    '      \t"parameter_type": "Int",\n' +
-    '      \t"source": {\n' +
-    '        \t"type": "literal",\n' +
-    '        \t"param_value": "123"\n' +
-    '      \t}\n' +
-    '    }\n' +
-    ']'
+  const inputMappingExample = [
+    {
+      parameter_name: 'workflow_input_foo',
+      parameter_type: 'String',
+      source: {
+        type: 'literal',
+        entity_attribute: 'hello world'
+      }
+    },
+    {
+      parameter_name: 'workflow_input_foo_rating',
+      parameter_type: 'Int',
+      source: {
+        type: 'entity_lookup',
+        entity_attribute: 'entity_field_foo_rating'
+      }
+    }
+  ]
 
   return div([
     div({ style: { marginTop: '2rem' } }, [
@@ -66,7 +66,7 @@ export const WorkflowInputs = ({ workflowUrl, entityType, setEntityType, entityI
           h(TextArea, {
             id,
             style: { height: 360 },
-            placeholder: `Paste your JSON input mapping here. For example,${inputMappingExample}`,
+            placeholder: `Paste your JSON input mapping here. For example,\n ${JSON.stringify(inputMappingExample, null, 4)}`,
             value: workflowInputsDefinition,
             onChange: setWorkflowInputsDefinition
           })
