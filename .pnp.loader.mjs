@@ -108,10 +108,6 @@ function tryParseURL(str, base) {
     return null;
   }
 }
-let entrypointPath = null;
-function setEntrypointPath(file) {
-  entrypointPath = file;
-}
 function getFileFormat(filepath) {
   var _a, _b;
   const ext = path.extname(filepath);
@@ -135,7 +131,8 @@ function getFileFormat(filepath) {
       return (_a = pkg.data.type) != null ? _a : `commonjs`;
     }
     default: {
-      if (entrypointPath !== filepath)
+      const isMain = process.argv[1] === filepath;
+      if (!isMain)
         return null;
       const pkg = readPackageScope(filepath);
       if (!pkg)
@@ -169,40 +166,39 @@ async function getSource$1(urlString, context, defaultGetSource) {
   };
 }
 
-async function load$1(urlString, context, nextLoad) {
+async function load$1(urlString, context, defaultLoad) {
   const url = tryParseURL(urlString);
   if ((url == null ? void 0 : url.protocol) !== `file:`)
-    return nextLoad(urlString, context, nextLoad);
+    return defaultLoad(urlString, context, defaultLoad);
   const filePath = fileURLToPath(url);
   const format = getFileFormat(filePath);
   if (!format)
-    return nextLoad(urlString, context, nextLoad);
+    return defaultLoad(urlString, context, defaultLoad);
   return {
     format,
-    source: await fs.promises.readFile(filePath, `utf8`),
-    shortCircuit: true
+    source: await fs.promises.readFile(filePath, `utf8`)
   };
 }
 
 const pathRegExp = /^(?![a-zA-Z]:[\\/]|\\\\|\.{0,2}(?:\/|$))((?:node:)?(?:@[^/]+\/)?[^/]+)\/*(.*|)$/;
 const isRelativeRegexp = /^\.{0,2}\//;
-async function resolve$1(originalSpecifier, context, nextResolve) {
+async function resolve$1(originalSpecifier, context, defaultResolver) {
   var _a;
   const {findPnpApi} = moduleExports;
   if (!findPnpApi || isBuiltinModule(originalSpecifier))
-    return nextResolve(originalSpecifier, context, nextResolve);
+    return defaultResolver(originalSpecifier, context, defaultResolver);
   let specifier = originalSpecifier;
   const url = tryParseURL(specifier, isRelativeRegexp.test(specifier) ? context.parentURL : void 0);
   if (url) {
     if (url.protocol !== `file:`)
-      return nextResolve(originalSpecifier, context, nextResolve);
+      return defaultResolver(originalSpecifier, context, defaultResolver);
     specifier = fileURLToPath(url);
   }
   const {parentURL, conditions = []} = context;
   const issuer = parentURL ? fileURLToPath(parentURL) : process.cwd();
   const pnpapi = (_a = findPnpApi(issuer)) != null ? _a : url ? findPnpApi(specifier) : null;
   if (!pnpapi)
-    return nextResolve(originalSpecifier, context, nextResolve);
+    return defaultResolver(originalSpecifier, context, defaultResolver);
   const dependencyNameMatch = specifier.match(pathRegExp);
   let allowLegacyResolve = false;
   if (dependencyNameMatch) {
@@ -229,11 +225,8 @@ async function resolve$1(originalSpecifier, context, nextResolve) {
     resultURL.search = url.search;
     resultURL.hash = url.hash;
   }
-  if (!parentURL)
-    setEntrypointPath(fileURLToPath(resultURL));
   return {
-    url: resultURL.href,
-    shortCircuit: true
+    url: resultURL.href
   };
 }
 
