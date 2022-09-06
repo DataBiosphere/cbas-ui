@@ -18,8 +18,11 @@ jobs:
         with:
           node-version: 16
 
-      - name: Set up Yarn and have it install
-        run: brew install yarn && yarn set version 3.x && yarn install
+      - name: Install yarn
+        run: |
+          brew install yarn
+          yarn set version 3.x
+          yarn install
 
       - name: Run tests
         run: CI=true yarn test
