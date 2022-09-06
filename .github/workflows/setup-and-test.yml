@@ -19,7 +19,7 @@ jobs:
           node-version: 16
 
       - name: Set up Yarn and have it install
-        run: brew install yarn && yarn install
+        run: brew install yarn && yarn set version 3.x && yarn install
 
   dispatch-tag:
     needs: [ setup-and-test ]
