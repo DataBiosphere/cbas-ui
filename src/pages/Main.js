@@ -5,11 +5,4 @@ import { ReactNotifications } from 'react-notifications-component'
 import { LocationProvider, Router } from 'src/libs/nav'
 
 
-const Main = () => {
-  return h(LocationProvider, [
-    h(ReactNotifications),
-    h(Router)
-  ])
-}
-
-export default Main
+Zardoz
