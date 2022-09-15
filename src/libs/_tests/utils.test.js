@@ -1,5 +1,5 @@
-import '@testing-library/jest-dom'
 import { makeCompleteDate } from 'src/libs/utils'
+import '@testing-library/jest-dom'
 
 describe('makeCompleteDate', () => {
   it('converts string to Date', () => {
