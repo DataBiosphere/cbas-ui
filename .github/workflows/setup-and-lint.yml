@@ -1,4 +1,4 @@
-name: Setup and Test
+name: Setup and Lint
 
 on:
   push:
@@ -26,16 +26,3 @@ jobs:
 
       - name: Run linter
         run: yarn eslint --max-warnings=0 .
-
-  dispatch-tag:
-    needs: [ setup-and-test ]
-    runs-on: ubuntu-latest
-
-    if: success() && github.ref == 'refs/heads/main'
-
-    steps:
-      - name: Fire off tag action
-        uses: broadinstitute/workflow-dispatch@v1
-        with:
-          workflow: Tag
-          token: ${{ secrets.BROADBOT_TOKEN }}
