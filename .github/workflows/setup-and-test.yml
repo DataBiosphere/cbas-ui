@@ -28,7 +28,7 @@ jobs:
         run: CI=true yarn test
 
       - name: Run linter
-        run: yarn eslint --max-warnings=0
+        run: yarn eslint --max-warnings=0 .
 
   dispatch-tag:
     needs: [ setup-and-test ]
