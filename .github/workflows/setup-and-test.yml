@@ -24,8 +24,8 @@ jobs:
           yarn set version 3.x
           yarn install
 
-      - name: Run linter
-        run: yarn eslint --max-warnings=0 .
+      - name: Run tests
+        run: CI=true yarn test
 
   dispatch-tag:
     needs: [ setup-and-test ]
