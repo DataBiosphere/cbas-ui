@@ -1,8 +1,10 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { div, h, h2 } from 'react-hyperscript-helpers'
+import ReactJson from 'react-json-view'
 import { AutoSizer } from 'react-virtualized'
-import { ButtonOutline, headerBar } from 'src/components/common'
+import { ButtonOutline, ButtonPrimary, headerBar, Link } from 'src/components/common'
+import Modal from 'src/components/Modal'
 import { FlexTable, paginator, Sortable, tableHeight, TextCell } from 'src/components/table'
 import { Ajax } from 'src/libs/ajax'
 import * as Nav from 'src/libs/nav'
@@ -16,6 +18,7 @@ export const PreviousRuns = () => {
   const [sort, setSort] = useState({ field: 'submissionTimestamp', direction: 'desc' })
   const [pageNumber, setPageNumber] = useState(1)
   const [itemsPerPage, setItemsPerPage] = useState(50)
+  const [viewInputsId, setViewInputsId] = useState()
   const [runsData, setRunsData] = useState()
 
   const signal = useCancellation()
@@ -60,19 +63,29 @@ export const PreviousRuns = () => {
             hoverHighlight: true,
             columns: [
               {
-                size: { basis: 300 },
-                field: 'workflowName',
-                headerRenderer: () => h(Sortable, { sort, field: 'workflowName', onSort: setSort }, ['Workflow Name']),
+                size: { basis: 350 },
+                field: 'runId',
+                headerRenderer: () => h(Sortable, { sort, field: 'runId', onSort: setSort }, ['Run ID']),
                 cellRenderer: ({ rowIndex }) => {
-                  return h(TextCell, [paginatedPreviousRuns[rowIndex].name])
+                  return h(TextCell, [paginatedPreviousRuns[rowIndex].run_id])
                 }
               },
               {
-                size: { basis: 250, grow: 0 },
+                size: { basis: 200, grow: 0 },
                 field: 'workflowStatus',
                 headerRenderer: () => h(Sortable, { sort, field: 'workflowStatus', onSort: setSort }, ['Status']),
                 cellRenderer: ({ rowIndex }) => {
                   return h(TextCell, [paginatedPreviousRuns[rowIndex].state])
+                }
+              },
+              {
+                size: { basis: 150, grow: 0 },
+                field: 'workflowInputs',
+                headerRenderer: () => 'Inputs',
+                cellRenderer: ({ rowIndex }) => {
+                  return div({ style: { width: '100%', textAlign: 'center' } }, [
+                    h(Link, { onClick: () => setViewInputsId(rowIndex) }, ['View'])
+                  ])
                 }
               },
               {
@@ -99,6 +112,27 @@ export const PreviousRuns = () => {
             setItemsPerPage(v)
           },
           itemsPerPageOptions: [10, 25, 50, 100]
+        })
+      ]),
+      (viewInputsId !== undefined) && h(Modal, {
+        title: 'Inputs Definition JSON',
+        width: 600,
+        onDismiss: () => setViewInputsId(undefined),
+        showCancel: false,
+        okButton:
+          h(ButtonPrimary, {
+            disabled: false,
+            onClick: () => setViewInputsId(undefined)
+          }, ['OK'])
+      }, [
+        h(ReactJson, {
+          style: { whiteSpace: 'pre-wrap', wordBreak: 'break-word' },
+          name: false,
+          collapsed: 4,
+          enableClipboard: true,
+          displayDataTypes: false,
+          displayObjectSize: false,
+          src: _.isEmpty(paginatedPreviousRuns[viewInputsId].workflow_params) ? {} : JSON.parse(paginatedPreviousRuns[viewInputsId].workflow_params)
         })
       ])
     ])

@@ -79,7 +79,7 @@ export const SubmitWorkflow = () => {
               onClick: () => setShowInputsPage(true)
             }, ['Use workflow'])
           ]),
-          h(SavedWorkflows, { runsData })
+          h(SavedWorkflows, { runsData, setWorkflowUrl, setShowInputsPage })
         ]),
         showInputsPage && h(Fragment, [
           h(WorkflowInputs, { workflowUrl, entityType, setEntityType, entityId, setEntityId, workflowInputsDefinition, setWorkflowInputsDefinition }),
