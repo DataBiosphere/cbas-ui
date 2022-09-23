@@ -5,6 +5,8 @@ import { h } from 'react-hyperscript-helpers'
 import { SavedWorkflows } from 'src/pages/SavedWorkflows'
 
 
+// Note: Since the timestamps in the data is being converted to Local timezone, it returns different time when the tests
+//       are run locally and in GitHub action. Hence everywhere in this file we are verifying only the date format for now.
 describe('Saved Workflows component', () => {
   // SavedWorkflows component uses AutoSizer to determine the right size for table to be displayed. As a result we need to
   // mock out the height and width so that when AutoSizer asks for the width and height of "browser" it can use the mocked
@@ -87,13 +89,13 @@ describe('Saved Workflows component', () => {
     const cellsFromDataRow1 = within(rows[1]).queryAllByRole('cell')
     expect(cellsFromDataRow1.length).toBe(3)
     within(cellsFromDataRow1[0]).getByText('https://xyz.wdl')
-    within(cellsFromDataRow1[1]).getByText('Jul 14, 2022, 6:22 PM')
+    within(cellsFromDataRow1[1]).getByText(/Jul 14, 2022/)
 
     // check that second data row is rendered as expected
     const cellsFromDataRow2 = within(rows[2]).queryAllByRole('cell')
     expect(cellsFromDataRow2.length).toBe(3)
     within(cellsFromDataRow2[0]).getByText('https://abc.wdl')
-    within(cellsFromDataRow2[1]).getByText('Jan 27, 2022, 5:27 PM')
+    within(cellsFromDataRow2[1]).getByText(/Jan 27, 2022/)
   })
 
   it('should update workflowUrl and display inputs page when button is clicked', () => {
@@ -137,11 +139,11 @@ describe('Saved Workflows component', () => {
     // Assert - rows are sorted by submission timestamp in descending order
     const cellsFromDataRow1 = within(rows[1]).queryAllByRole('cell')
     within(cellsFromDataRow1[0]).getByText('https://xyz.wdl')
-    within(cellsFromDataRow1[1]).getByText('Jul 14, 2022, 6:22 PM')
+    within(cellsFromDataRow1[1]).getByText(/Jul 14, 2022/)
 
     const cellsFromDataRow2 = within(rows[2]).queryAllByRole('cell')
     within(cellsFromDataRow2[0]).getByText('https://abc.wdl')
-    within(cellsFromDataRow2[1]).getByText('Jan 27, 2022, 5:27 PM')
+    within(cellsFromDataRow2[1]).getByText(/Jan 27, 2022/)
 
     // Act - click on sort button on Last Run column to sort submission timestamp by ascending order
     const headers = within(rows[0]).queryAllByRole('columnheader')
@@ -151,10 +153,10 @@ describe('Saved Workflows component', () => {
     // Assert - rows are now sorted by submission timestamp in ascending order
     const cellsFromUpdatedDataRow1 = within(rows[1]).queryAllByRole('cell')
     within(cellsFromUpdatedDataRow1[0]).getByText('https://abc.wdl')
-    within(cellsFromUpdatedDataRow1[1]).getByText('Jan 27, 2022, 5:27 PM')
+    within(cellsFromUpdatedDataRow1[1]).getByText(/Jan 27, 2022/)
 
     const cellsFromUpdatedDataRow2 = within(rows[2]).queryAllByRole('cell')
     within(cellsFromUpdatedDataRow2[0]).getByText('https://xyz.wdl')
-    within(cellsFromUpdatedDataRow2[1]).getByText('Jul 14, 2022, 6:22 PM')
+    within(cellsFromUpdatedDataRow2[1]).getByText(/Jul 14, 2022/)
   })
 })

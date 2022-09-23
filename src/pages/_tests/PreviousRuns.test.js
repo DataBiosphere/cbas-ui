@@ -15,6 +15,8 @@ jest.mock('src/libs/config', () => ({
   getConfig: jest.fn().mockReturnValue({})
 }))
 
+// Note: Since the timestamps in the data is being converted to Local timezone, it returns different time when the tests
+//       are run locally and in GitHub action. Hence everywhere in this file we are verifying only the date format for now.
 describe('Previous Runs page', () => {
   // PreviousRuns component uses AutoSizer to determine the right size for table to be displayed. As a result we need to
   // mock out the height and width so that when AutoSizer asks for the width and height of "browser" it can use the mocked
@@ -122,13 +124,13 @@ describe('Previous Runs page', () => {
     expect(cellsFromDataRow1.length).toBe(4)
     within(cellsFromDataRow1[0]).getByText('b7234aae-6f43-405e-bb3a-71f924e09825')
     within(cellsFromDataRow1[1]).getByText('Failed')
-    within(cellsFromDataRow1[3]).getByText('Jul 14, 2022, 6:22 PM')
+    within(cellsFromDataRow1[3]).getByText(/Jul 14, 2022/)
 
     const cellsFromDataRow2 = within(rows[2]).queryAllByRole('cell')
     expect(cellsFromDataRow2.length).toBe(4)
     within(cellsFromDataRow2[0]).getByText('ea001565-1cd6-4e43-b446-932ac1918081')
     within(cellsFromDataRow2[1]).getByText('Submitted')
-    within(cellsFromDataRow2[3]).getByText('Jan 27, 2022, 5:27 PM')
+    within(cellsFromDataRow2[3]).getByText(/Jan 27, 2022/)
   })
 
   it('should sort columns properly', async () => {
@@ -153,13 +155,13 @@ describe('Previous Runs page', () => {
     expect(cellsFromUpdatedDataRow1.length).toBe(4)
     within(cellsFromUpdatedDataRow1[0]).getByText('ea001565-1cd6-4e43-b446-932ac1918081')
     within(cellsFromUpdatedDataRow1[1]).getByText('Submitted')
-    within(cellsFromUpdatedDataRow1[3]).getByText('Jan 27, 2022, 5:27 PM')
+    within(cellsFromUpdatedDataRow1[3]).getByText(/Jan 27, 2022/)
 
     const cellsFromUpdatedDataRow2 = within(rows[2]).queryAllByRole('cell')
     expect(cellsFromUpdatedDataRow2.length).toBe(4)
     within(cellsFromUpdatedDataRow2[0]).getByText('b7234aae-6f43-405e-bb3a-71f924e09825')
     within(cellsFromUpdatedDataRow2[1]).getByText('Failed')
-    within(cellsFromUpdatedDataRow2[3]).getByText('Jul 14, 2022, 6:22 PM')
+    within(cellsFromUpdatedDataRow2[3]).getByText(/Jul 14, 2022/)
 
     // Act - click on sort button on Status column
     await act(async () => {
@@ -171,12 +173,12 @@ describe('Previous Runs page', () => {
     expect(updatedDataRow1Cells.length).toBe(4)
     within(updatedDataRow1Cells[0]).getByText('b7234aae-6f43-405e-bb3a-71f924e09825')
     within(updatedDataRow1Cells[1]).getByText('Failed')
-    within(updatedDataRow1Cells[3]).getByText('Jul 14, 2022, 6:22 PM')
+    within(updatedDataRow1Cells[3]).getByText(/Jul 14, 2022/)
 
     const updatedDataRow2Cells = within(rows[2]).queryAllByRole('cell')
     expect(updatedDataRow2Cells.length).toBe(4)
     within(updatedDataRow2Cells[0]).getByText('ea001565-1cd6-4e43-b446-932ac1918081')
     within(updatedDataRow2Cells[1]).getByText('Submitted')
-    within(updatedDataRow2Cells[3]).getByText('Jan 27, 2022, 5:27 PM')
+    within(updatedDataRow2Cells[3]).getByText(/Jan 27, 2022/)
   })
 })
