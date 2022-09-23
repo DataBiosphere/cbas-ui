@@ -1,9 +1,8 @@
 import '@testing-library/jest-dom'
+
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import { h } from 'react-hyperscript-helpers'
 import { Ajax } from 'src/libs/ajax'
-import { notify } from 'src/libs/notifications'
-import { notificationStore } from 'src/libs/state'
 import { PreviousRuns } from 'src/pages/PreviousRuns'
 
 // Necessary to mock the AJAX module.
@@ -21,8 +20,8 @@ describe('Previous Runs page', () => {
   // mock out the height and width so that when AutoSizer asks for the width and height of "browser" it can use the mocked
   // values and render the component properly. Without this the tests will be break.
   // (see https://github.com/bvaughn/react-virtualized/issues/493 and https://stackoverflow.com/a/62214834)
-  const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'offsetHeight');
-  const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'offsetWidth');
+  const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'offsetHeight')
+  const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'offsetWidth')
 
   const runsData = {
     runs: [
@@ -44,9 +43,9 @@ describe('Previous Runs page', () => {
   }
 
   beforeAll(() => {
-    Object.defineProperty(HTMLElement.prototype, 'offsetHeight', { configurable: true, value: 1000 });
-    Object.defineProperty(HTMLElement.prototype, 'offsetWidth', { configurable: true, value: 800 });
-  });
+    Object.defineProperty(HTMLElement.prototype, 'offsetHeight', { configurable: true, value: 1000 })
+    Object.defineProperty(HTMLElement.prototype, 'offsetWidth', { configurable: true, value: 800 })
+  })
 
   beforeEach(() => {
     const getRunsMethod = jest.fn(() => Promise.resolve(runsData))
@@ -59,23 +58,23 @@ describe('Previous Runs page', () => {
         }
       }
     })
-  });
+  })
 
   afterEach(() => {
     jest.clearAllMocks()
-  });
+  })
 
   afterAll(() => {
-    Object.defineProperty(HTMLElement.prototype, 'offsetHeight', originalOffsetHeight);
-    Object.defineProperty(HTMLElement.prototype, 'offsetWidth', originalOffsetWidth);
-  });
+    Object.defineProperty(HTMLElement.prototype, 'offsetHeight', originalOffsetHeight)
+    Object.defineProperty(HTMLElement.prototype, 'offsetWidth', originalOffsetWidth)
+  })
 
   it('should display no content message when there are no previous runs', async () => {
     // Arrange
     const getRunsMethod = jest.fn(() => Promise.resolve([]))
     Ajax.mockImplementation(() => {
       return {
-        Cbas : {
+        Cbas: {
           runs: {
             get: getRunsMethod
           }
@@ -92,21 +91,21 @@ describe('Previous Runs page', () => {
     expect(getRunsMethod).toBeCalledTimes(1)
 
     const table = screen.getByRole('table')
-    expect(table).toHaveAttribute('aria-colcount', "4")
-    expect(table).toHaveAttribute('aria-rowcount', "1")
+    expect(table).toHaveAttribute('aria-colcount', '4')
+    expect(table).toHaveAttribute('aria-rowcount', '1')
   })
 
   it('should correctly display previous 2 runs', async () => {
     // Act
     await act(async () => {
       await render(h(PreviousRuns))
-    });
+    })
 
     const table = screen.getByRole('table')
 
     // Assert
-    expect(table).toHaveAttribute('aria-colcount', "4")
-    expect(table).toHaveAttribute('aria-rowcount', "3")
+    expect(table).toHaveAttribute('aria-colcount', '4')
+    expect(table).toHaveAttribute('aria-rowcount', '3')
 
     const rows = within(table).queryAllByRole('row')
     expect(rows.length).toBe(3)
@@ -136,7 +135,7 @@ describe('Previous Runs page', () => {
     // Act - click on sort button on Submitted column to sort submission timestamp by ascending order
     await act(async () => {
       await render(h(PreviousRuns))
-    });
+    })
 
     const table = screen.getByRole('table')
     const rows = within(table).queryAllByRole('row')
@@ -147,7 +146,7 @@ describe('Previous Runs page', () => {
 
     await act(async () => {
       await fireEvent.click(within(headers[3]).getByRole('button'))
-    });
+    })
 
     // Assert - rows are now sorted by submission timestamp in ascending order
     const cellsFromUpdatedDataRow1 = within(rows[1]).queryAllByRole('cell')
@@ -165,7 +164,7 @@ describe('Previous Runs page', () => {
     // Act - click on sort button on Status column
     await act(async () => {
       await fireEvent.click(within(headers[1]).getByRole('button'))
-    });
+    })
 
     // Assert that sort by Status worked
     const updatedDataRow1Cells = within(rows[1]).queryAllByRole('cell')

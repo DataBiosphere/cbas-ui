@@ -1,15 +1,17 @@
 import '@testing-library/jest-dom'
+
 import { fireEvent, render, screen, within } from '@testing-library/react'
 import { h } from 'react-hyperscript-helpers'
 import { SavedWorkflows } from 'src/pages/SavedWorkflows'
+
 
 describe('Saved Workflows component', () => {
   // SavedWorkflows component uses AutoSizer to determine the right size for table to be displayed. As a result we need to
   // mock out the height and width so that when AutoSizer asks for the width and height of "browser" it can use the mocked
   // values and render the component properly. Without this the tests will be break.
   // (see https://github.com/bvaughn/react-virtualized/issues/493 and https://stackoverflow.com/a/62214834)
-  const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'offsetHeight');
-  const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'offsetWidth');
+  const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'offsetHeight')
+  const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'offsetWidth')
 
   const runsData = [
     {
@@ -29,14 +31,14 @@ describe('Saved Workflows component', () => {
   ]
 
   beforeAll(() => {
-    Object.defineProperty(HTMLElement.prototype, 'offsetHeight', { configurable: true, value: 1000 });
-    Object.defineProperty(HTMLElement.prototype, 'offsetWidth', { configurable: true, value: 800 });
-  });
+    Object.defineProperty(HTMLElement.prototype, 'offsetHeight', { configurable: true, value: 1000 })
+    Object.defineProperty(HTMLElement.prototype, 'offsetWidth', { configurable: true, value: 800 })
+  })
 
   afterAll(() => {
-    Object.defineProperty(HTMLElement.prototype, 'offsetHeight', originalOffsetHeight);
-    Object.defineProperty(HTMLElement.prototype, 'offsetWidth', originalOffsetWidth);
-  });
+    Object.defineProperty(HTMLElement.prototype, 'offsetHeight', originalOffsetHeight)
+    Object.defineProperty(HTMLElement.prototype, 'offsetWidth', originalOffsetWidth)
+  })
 
   it('should display standard message when there are no saved workflows', () => {
     // Arrange
@@ -47,12 +49,12 @@ describe('Saved Workflows component', () => {
     const runsData = []
 
     // Act
-    render(h(SavedWorkflows, {runsData, setWorkflowUrl, setShowInputsPage }))
+    render(h(SavedWorkflows, { runsData, setWorkflowUrl, setShowInputsPage }))
     const table = screen.getByRole('table')
 
     // Assert
-    expect(table).toHaveAttribute('aria-colcount', "3")
-    expect(table).toHaveAttribute('aria-rowcount', "1")
+    expect(table).toHaveAttribute('aria-colcount', '3')
+    expect(table).toHaveAttribute('aria-rowcount', '1')
 
     // check that noContentMessage shows up as expected
     screen.getByText('Nothing here yet! Your previously run workflows will be saved here.')
@@ -69,8 +71,8 @@ describe('Saved Workflows component', () => {
     const table = screen.getByRole('table')
 
     // Assert
-    expect(table).toHaveAttribute('aria-colcount', "3")
-    expect(table).toHaveAttribute('aria-rowcount', "3")
+    expect(table).toHaveAttribute('aria-colcount', '3')
+    expect(table).toHaveAttribute('aria-rowcount', '3')
 
     const rows = within(table).queryAllByRole('row')
     expect(rows.length).toBe(3)
