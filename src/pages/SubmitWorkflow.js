@@ -14,6 +14,7 @@ export const SubmitWorkflow = () => {
   // State
   const [workflowUrl, setWorkflowUrl] = useState()
   const [workflowInputsDefinition, setWorkflowInputsDefinition] = useState()
+  const [workflowOutputsDefinition, setWorkflowOutputsDefinition] = useState()
   const [entityType, setEntityType] = useState('')
   const [entityId, setEntityId] = useState('')
   const [showInputsPage, setShowInputsPage] = useState(false)
@@ -46,6 +47,7 @@ export const SubmitWorkflow = () => {
       const runSetsPayload = {
         workflow_url: workflowUrl,
         workflow_param_definitions: JSON.parse(workflowInputsDefinition),
+        workflow_output_definitions: JSON.parse(workflowOutputsDefinition),
         wds_entities: {
           entity_type: entityType,
           entity_ids: JSON.parse(entityId)
@@ -82,7 +84,7 @@ export const SubmitWorkflow = () => {
           h(SavedWorkflows, { runsData, setWorkflowUrl, setShowInputsPage })
         ]),
         showInputsPage && h(Fragment, [
-          h(WorkflowInputs, { workflowUrl, entityType, setEntityType, entityId, setEntityId, workflowInputsDefinition, setWorkflowInputsDefinition }),
+          h(WorkflowInputs, { workflowUrl, entityType, setEntityType, entityId, setEntityId, workflowInputsDefinition, setWorkflowInputsDefinition, workflowOutputsDefinition, setWorkflowOutputsDefinition }),
           div({ style: { display: 'flex', marginTop: '1rem', justifyContent: 'space-between' } }, [
             'Outputs will be saved to cloud storage',
             div([

@@ -5,7 +5,7 @@ import { TextArea, TextInput } from 'src/components/input'
 import { FormLabel } from 'src/libs/form'
 
 
-export const WorkflowInputs = ({ workflowUrl, entityType, setEntityType, entityId, setEntityId, workflowInputsDefinition, setWorkflowInputsDefinition }) => {
+export const WorkflowInputs = ({ workflowUrl, entityType, setEntityType, entityId, setEntityId, workflowInputsDefinition, setWorkflowInputsDefinition, workflowOutputsDefinition, setWorkflowOutputsDefinition }) => {
   // used as placeholder to let users know expected structure of inputs definition.
   // To be removed later when we design UI for entering the input definition.
   const inputMappingExample = [
@@ -14,7 +14,7 @@ export const WorkflowInputs = ({ workflowUrl, entityType, setEntityType, entityI
       parameter_type: 'String',
       source: {
         type: 'literal',
-        entity_attribute: 'hello world'
+        parameter_value: 'hello world'
       }
     },
     {
@@ -24,6 +24,18 @@ export const WorkflowInputs = ({ workflowUrl, entityType, setEntityType, entityI
         type: 'entity_lookup',
         entity_attribute: 'entity_field_foo_rating'
       }
+    }
+  ]
+  const outputMappingExample = [
+    {
+      output_name: 'myWorkflow.myCall.output1',
+      output_type: 'Int',
+      record_attribute: 'entity_field_foo_rating'
+    },
+    {
+      output_name: 'myWorkflow.finalOutput',
+      output_type: 'String',
+      record_attribute: 'entity_field_final'
     }
   ]
 
@@ -38,7 +50,7 @@ export const WorkflowInputs = ({ workflowUrl, entityType, setEntityType, entityI
         div({ style: { display: 'flex', justifyContent: 'space-between' } }, [
           div([
             h(IdContainer, [id => h(Fragment, [
-              h(FormLabel, { htmlFor: id }, ['Entity Type']),
+              h(FormLabel, { htmlFor: id }, ['Select a Data Table']),
               h(TextInput, {
                 id,
                 style: { display: 'block', width: '100ex' },
@@ -50,7 +62,7 @@ export const WorkflowInputs = ({ workflowUrl, entityType, setEntityType, entityI
           ]),
           div([
             h(IdContainer, [id => h(Fragment, [
-              h(FormLabel, { htmlFor: id }, ['Entity ID(s)']),
+              h(FormLabel, { htmlFor: id }, ['Select Data Table row(s)']),
               h(TextInput, {
                 id,
                 style: { display: 'block', width: '100ex' },
@@ -61,16 +73,32 @@ export const WorkflowInputs = ({ workflowUrl, entityType, setEntityType, entityI
             ])])
           ])
         ]),
-        h(IdContainer, [id => h(Fragment, [
-          h(FormLabel, { htmlFor: id }, ['Inputs definition']),
-          h(TextArea, {
-            id,
-            style: { height: 360 },
-            placeholder: `Paste your JSON input mapping here. For example,\n ${JSON.stringify(inputMappingExample, null, 4)}`,
-            value: workflowInputsDefinition,
-            onChange: setWorkflowInputsDefinition
-          })
-        ])])
+        div({ style: { display: 'flex', justifyContent: 'space-between' } }, [
+          div([
+            h(IdContainer, [id => h(Fragment, [
+              h(FormLabel, { htmlFor: id }, ['Inputs definition']),
+              h(TextArea, {
+                id,
+                style: { display: 'block', height: 360, width: '100ex' },
+                placeholder: `Paste your JSON input mapping here. For example,\n ${JSON.stringify(inputMappingExample, null, 4)}`,
+                value: workflowInputsDefinition,
+                onChange: setWorkflowInputsDefinition
+              })
+            ])])
+          ]),
+          div([
+            h(IdContainer, [id => h(Fragment, [
+              h(FormLabel, { htmlFor: id }, ['Outputs definition']),
+              h(TextArea, {
+                id,
+                style: { display: 'block', height: 360, width: '100ex' },
+                placeholder: `Paste your JSON output mapping here. For example,\n ${JSON.stringify(outputMappingExample, null, 4)}`,
+                value: workflowOutputsDefinition,
+                onChange: setWorkflowOutputsDefinition
+              })
+            ])])
+          ])
+        ])
       ])
     ])
   ])
