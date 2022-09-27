@@ -15,7 +15,7 @@ import * as Utils from 'src/libs/utils'
 
 export const PreviousRuns = () => {
   // State
-  const [sort, setSort] = useState({ field: 'submissionTimestamp', direction: 'desc' })
+  const [sort, setSort] = useState({ field: 'submission_date', direction: 'desc' })
   const [pageNumber, setPageNumber] = useState(1)
   const [itemsPerPage, setItemsPerPage] = useState(50)
   const [viewInputsId, setViewInputsId] = useState()
@@ -64,23 +64,23 @@ export const PreviousRuns = () => {
             columns: [
               {
                 size: { basis: 350 },
-                field: 'runId',
-                headerRenderer: () => h(Sortable, { sort, field: 'runId', onSort: setSort }, ['Run ID']),
+                field: 'run_id',
+                headerRenderer: () => h(Sortable, { sort, field: 'run_id', onSort: setSort }, ['Run ID']),
                 cellRenderer: ({ rowIndex }) => {
                   return h(TextCell, [paginatedPreviousRuns[rowIndex].run_id])
                 }
               },
               {
                 size: { basis: 200, grow: 0 },
-                field: 'workflowStatus',
-                headerRenderer: () => h(Sortable, { sort, field: 'workflowStatus', onSort: setSort }, ['Status']),
+                field: 'state',
+                headerRenderer: () => h(Sortable, { sort, field: 'state', onSort: setSort }, ['Status']),
                 cellRenderer: ({ rowIndex }) => {
                   return h(TextCell, [paginatedPreviousRuns[rowIndex].state])
                 }
               },
               {
                 size: { basis: 150, grow: 0 },
-                field: 'workflowInputs',
+                field: 'workflow_params',
                 headerRenderer: () => 'Inputs',
                 cellRenderer: ({ rowIndex }) => {
                   return div({ style: { width: '100%', textAlign: 'center' } }, [
@@ -90,8 +90,8 @@ export const PreviousRuns = () => {
               },
               {
                 size: { basis: 350, grow: 0 },
-                field: 'submissionTimestamp',
-                headerRenderer: () => h(Sortable, { sort, field: 'submissionTimestamp', onSort: setSort }, ['Submitted']),
+                field: 'submission_date',
+                headerRenderer: () => h(Sortable, { sort, field: 'submission_date', onSort: setSort }, ['Submitted']),
                 cellRenderer: ({ rowIndex }) => {
                   return h(TextCell, [Utils.makeCompleteDate(paginatedPreviousRuns[rowIndex].submission_date)])
                 }

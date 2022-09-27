@@ -9,7 +9,7 @@ import * as Utils from 'src/libs/utils'
 
 export const SavedWorkflows = ({ runsData, setWorkflowUrl, setShowInputsPage }) => {
   // State
-  const [sort, setSort] = useState({ field: 'submissionTimestamp', direction: 'desc' })
+  const [sort, setSort] = useState({ field: 'submission_date', direction: 'desc' })
 
   const sortedPreviousRuns = _.orderBy(sort.field, sort.direction, runsData)
 
@@ -26,16 +26,16 @@ export const SavedWorkflows = ({ runsData, setWorkflowUrl, setShowInputsPage }) 
           columns: [
             {
               size: { basis: 500 },
-              field: 'workflowUrl',
-              headerRenderer: () => h(Sortable, { sort, field: 'workflowUrl', onSort: setSort }, ['Workflow Link']),
+              field: 'workflow_url',
+              headerRenderer: () => h(Sortable, { sort, field: 'workflow_url', onSort: setSort }, ['Workflow Link']),
               cellRenderer: ({ rowIndex }) => {
                 return h(TextCell, [sortedPreviousRuns[rowIndex].workflow_url])
               }
             },
             {
               size: { basis: 350, grow: 0 },
-              field: 'submissionTimestamp',
-              headerRenderer: () => h(Sortable, { sort, field: 'submissionTimestamp', onSort: setSort }, ['Last Run']),
+              field: 'submission_date',
+              headerRenderer: () => h(Sortable, { sort, field: 'submission_date', onSort: setSort }, ['Last Run']),
               cellRenderer: ({ rowIndex }) => {
                 return h(TextCell, [Utils.makeCompleteDate(sortedPreviousRuns[rowIndex].submission_date)])
               }
