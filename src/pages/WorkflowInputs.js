@@ -5,7 +5,7 @@ import { TextArea, TextInput } from 'src/components/input'
 import { FormLabel } from 'src/libs/form'
 
 
-export const WorkflowInputs = ({ workflowUrl, entityType, setEntityType, entityId, setEntityId, workflowInputsDefinition, setWorkflowInputsDefinition, workflowOutputsDefinition, setWorkflowOutputsDefinition }) => {
+export const WorkflowInputs = ({ workflowUrl, recordType, setRecordType, recordId, setRecordId, workflowInputsDefinition, setWorkflowInputsDefinition, workflowOutputsDefinition, setWorkflowOutputsDefinition }) => {
   // used as placeholder to let users know expected structure of inputs definition.
   // To be removed later when we design UI for entering the input definition.
   const inputMappingExample = [
@@ -22,7 +22,7 @@ export const WorkflowInputs = ({ workflowUrl, entityType, setEntityType, entityI
       input_type: 'Int',
       source: {
         type: 'record_lookup',
-        record_attribute: 'entity_field_foo_rating'
+        record_attribute: 'record_field_foo_rating'
       }
     }
   ]
@@ -55,8 +55,8 @@ export const WorkflowInputs = ({ workflowUrl, entityType, setEntityType, entityI
                 id,
                 style: { display: 'block', width: '100ex' },
                 placeholder: 'FOO',
-                value: entityType,
-                onChange: setEntityType
+                value: recordType,
+                onChange: setRecordType
               })
             ])])
           ]),
@@ -67,8 +67,8 @@ export const WorkflowInputs = ({ workflowUrl, entityType, setEntityType, entityI
                 id,
                 style: { display: 'block', width: '100ex' },
                 placeholder: '["F0011111-1111-1111-1111-111111111111"]',
-                value: entityId,
-                onChange: setEntityId
+                value: recordId,
+                onChange: setRecordId
               })
             ])])
           ])
