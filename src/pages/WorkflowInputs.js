@@ -5,7 +5,7 @@ import { TextArea, TextInput } from 'src/components/input'
 import { FormLabel } from 'src/libs/form'
 
 
-export const WorkflowInputs = ({ workflowUrl, entityType, setEntityType, entityId, setEntityId, workflowInputsDefinition, setWorkflowInputsDefinition }) => {
+export const WorkflowInputs = ({ workflowUrl, recordType, setRecordType, recordId, setRecordId, workflowInputsDefinition, setWorkflowInputsDefinition }) => {
   // used as placeholder to let users know expected structure of inputs definition.
   // To be removed later when we design UI for entering the input definition.
   const inputMappingExample = [
@@ -14,15 +14,15 @@ export const WorkflowInputs = ({ workflowUrl, entityType, setEntityType, entityI
       parameter_type: 'String',
       source: {
         type: 'literal',
-        entity_attribute: 'hello world'
+        record_attribute: 'hello world'
       }
     },
     {
       parameter_name: 'workflow_input_foo_rating',
       parameter_type: 'Int',
       source: {
-        type: 'entity_lookup',
-        entity_attribute: 'entity_field_foo_rating'
+        type: 'record_lookup',
+        record_attribute: 'record_field_foo_rating'
       }
     }
   ]
@@ -38,25 +38,25 @@ export const WorkflowInputs = ({ workflowUrl, entityType, setEntityType, entityI
         div({ style: { display: 'flex', justifyContent: 'space-between' } }, [
           div([
             h(IdContainer, [id => h(Fragment, [
-              h(FormLabel, { htmlFor: id }, ['Entity Type']),
+              h(FormLabel, { htmlFor: id }, ['Record Type']),
               h(TextInput, {
                 id,
                 style: { display: 'block', width: '100ex' },
                 placeholder: 'FOO',
-                value: entityType,
-                onChange: setEntityType
+                value: recordType,
+                onChange: setRecordType
               })
             ])])
           ]),
           div([
             h(IdContainer, [id => h(Fragment, [
-              h(FormLabel, { htmlFor: id }, ['Entity ID(s)']),
+              h(FormLabel, { htmlFor: id }, ['Record ID(s)']),
               h(TextInput, {
                 id,
                 style: { display: 'block', width: '100ex' },
                 placeholder: '["F0011111-1111-1111-1111-111111111111"]',
-                value: entityId,
-                onChange: setEntityId
+                value: recordId,
+                onChange: setRecordId
               })
             ])])
           ])
