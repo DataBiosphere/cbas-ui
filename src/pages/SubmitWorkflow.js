@@ -45,7 +45,8 @@ export const SubmitWorkflow = () => {
     try {
       const runSetsPayload = {
         workflow_url: workflowUrl,
-        workflow_param_definitions: JSON.parse(workflowInputsDefinition),
+        workflow_input_definitions: JSON.parse(workflowInputsDefinition),
+        workflow_output_definitions: [],
         wds_records: {
           record_type: recordType,
           record_ids: JSON.parse(recordId)
