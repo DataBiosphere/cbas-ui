@@ -10,19 +10,19 @@ export const WorkflowInputs = ({ workflowUrl, entityType, setEntityType, entityI
   // To be removed later when we design UI for entering the input definition.
   const inputMappingExample = [
     {
-      parameter_name: 'workflow_input_foo',
-      parameter_type: 'String',
+      input_name: 'workflow_input_foo',
+      input_type: 'String',
       source: {
         type: 'literal',
         parameter_value: 'hello world'
       }
     },
     {
-      parameter_name: 'workflow_input_foo_rating',
-      parameter_type: 'Int',
+      input_name: 'workflow_input_foo_rating',
+      input_type: 'Int',
       source: {
-        type: 'entity_lookup',
-        entity_attribute: 'entity_field_foo_rating'
+        type: 'record_lookup',
+        record_attribute: 'entity_field_foo_rating'
       }
     }
   ]
@@ -50,7 +50,7 @@ export const WorkflowInputs = ({ workflowUrl, entityType, setEntityType, entityI
         div({ style: { display: 'flex', justifyContent: 'space-between' } }, [
           div([
             h(IdContainer, [id => h(Fragment, [
-              h(FormLabel, { htmlFor: id }, ['Select a Data Table']),
+              h(FormLabel, { htmlFor: id, required: true }, ['Select a Data Table']),
               h(TextInput, {
                 id,
                 style: { display: 'block', width: '100ex' },
@@ -62,7 +62,7 @@ export const WorkflowInputs = ({ workflowUrl, entityType, setEntityType, entityI
           ]),
           div([
             h(IdContainer, [id => h(Fragment, [
-              h(FormLabel, { htmlFor: id }, ['Select Data Table row(s)']),
+              h(FormLabel, { htmlFor: id, required: true }, ['Select Data Table row(s)']),
               h(TextInput, {
                 id,
                 style: { display: 'block', width: '100ex' },
@@ -76,7 +76,7 @@ export const WorkflowInputs = ({ workflowUrl, entityType, setEntityType, entityI
         div({ style: { display: 'flex', justifyContent: 'space-between' } }, [
           div([
             h(IdContainer, [id => h(Fragment, [
-              h(FormLabel, { htmlFor: id }, ['Inputs definition']),
+              h(FormLabel, { htmlFor: id, required: true }, ['Inputs definition']),
               h(TextArea, {
                 id,
                 style: { display: 'block', height: 360, width: '100ex' },

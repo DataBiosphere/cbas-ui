@@ -1,3 +1,4 @@
+import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { div, h, h2, span } from 'react-hyperscript-helpers'
 import { ButtonOutline, ButtonPrimary, headerBar } from 'src/components/common'
@@ -46,8 +47,8 @@ export const SubmitWorkflow = () => {
     try {
       const runSetsPayload = {
         workflow_url: workflowUrl,
-        workflow_param_definitions: JSON.parse(workflowInputsDefinition),
-        workflow_output_definitions: JSON.parse(workflowOutputsDefinition),
+        workflow_input_definitions: JSON.parse(workflowInputsDefinition),
+        workflow_output_definitions: _.isEmpty(workflowOutputsDefinition) ? [] : JSON.parse(workflowOutputsDefinition),
         wds_entities: {
           entity_type: entityType,
           entity_ids: JSON.parse(entityId)
