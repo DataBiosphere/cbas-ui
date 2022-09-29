@@ -1,3 +1,4 @@
+import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { div, h, h2, span } from 'react-hyperscript-helpers'
 import { ButtonOutline, ButtonPrimary, headerBar } from 'src/components/common'
@@ -14,6 +15,7 @@ export const SubmitWorkflow = () => {
   // State
   const [workflowUrl, setWorkflowUrl] = useState()
   const [workflowInputsDefinition, setWorkflowInputsDefinition] = useState()
+  const [workflowOutputsDefinition, setWorkflowOutputsDefinition] = useState()
   const [recordType, setRecordType] = useState('')
   const [recordId, setRecordId] = useState('')
   const [showInputsPage, setShowInputsPage] = useState(false)
@@ -45,7 +47,8 @@ export const SubmitWorkflow = () => {
     try {
       const runSetsPayload = {
         workflow_url: workflowUrl,
-        workflow_param_definitions: JSON.parse(workflowInputsDefinition),
+        workflow_input_definitions: JSON.parse(workflowInputsDefinition),
+        workflow_output_definitions: _.isEmpty(workflowOutputsDefinition) ? [] : JSON.parse(workflowOutputsDefinition),
         wds_records: {
           record_type: recordType,
           record_ids: JSON.parse(recordId)
@@ -82,7 +85,7 @@ export const SubmitWorkflow = () => {
           h(SavedWorkflows, { runsData, setWorkflowUrl, setShowInputsPage })
         ]),
         showInputsPage && h(Fragment, [
-          h(WorkflowInputs, { workflowUrl, recordType, setRecordType, recordId, setRecordId, workflowInputsDefinition, setWorkflowInputsDefinition }),
+          h(WorkflowInputs, { workflowUrl, recordType, setRecordType, recordId, setRecordId, workflowInputsDefinition, setWorkflowInputsDefinition, workflowOutputsDefinition, setWorkflowOutputsDefinition }),
           div({ style: { display: 'flex', marginTop: '1rem', justifyContent: 'space-between' } }, [
             'Outputs will be saved to cloud storage',
             div([
