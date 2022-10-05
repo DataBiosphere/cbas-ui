@@ -79,6 +79,14 @@ export const PreviousRuns = () => {
                 }
               },
               {
+                size: { basis: 300, grow: 0 },
+                field: 'last_modified_timestamp',
+                headerRenderer: () => h(Sortable, { sort, field: 'last_modified_timestamp', onSort: setSort }, ['Last Changed']),
+                cellRenderer: ({ rowIndex }) => {
+                  return h(TextCell, [Utils.makeCompleteDate(paginatedPreviousRuns[rowIndex].last_modified_timestamp)])
+                }
+              },
+              {
                 size: { basis: 150, grow: 0 },
                 field: 'workflow_params',
                 headerRenderer: () => 'Inputs',
@@ -89,7 +97,7 @@ export const PreviousRuns = () => {
                 }
               },
               {
-                size: { basis: 350, grow: 0 },
+                size: { basis: 300, grow: 0 },
                 field: 'submission_date',
                 headerRenderer: () => h(Sortable, { sort, field: 'submission_date', onSort: setSort }, ['Submitted']),
                 cellRenderer: ({ rowIndex }) => {
