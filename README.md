@@ -5,18 +5,22 @@ Web user interface for Batch Analysis
 ------------------------
 
 ### Developing
-
 1. We use Node 16 (the current LTS) and Yarn. On Darwin with Homebrew:
 
     ```sh
     brew install node@16 yarn; brew link node@16 --force --overwrite
     ```
-2. Install deps:
+2. Set Yarn version
+
+    ```sh
+    yarn set version 3.x
+    ```
+3. Install deps:
 
     ```sh
     yarn install
     ```
-3. Start development server, which will report any lint violations as well:
+4. Start development server, which will report any lint violations as well:
 
     ```sh
     yarn start
@@ -42,12 +46,12 @@ Web user interface for Batch Analysis
     yarn install
     yarn start
     ```
-4. Testing:
+5. Testing:
 
     ```sh
     yarn test
     ```
-5. Code style and linting:
+6. Code style and linting:
     * On command line within the repo's root dir: `yarn lint`
       * Eslint will fix as many violations as possible. It will report any that it can't fix itself.
     * In an IDE other than IntelliJ (VS Code, etc): install the eslint plugin from your package manager, and there should be a command to fix issues at any time.
