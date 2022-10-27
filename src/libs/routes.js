@@ -3,11 +3,12 @@ import { compile, pathToRegexp } from 'path-to-regexp'
 import { routeHandlersStore } from 'src/libs/state'
 import * as PreviousRuns from 'src/pages/PreviousRuns'
 import * as SubmitWorkflow from 'src/pages/SubmitWorkflow'
-
+import * as WorkflowDashboard from 'src/pages/WorkflowDashboard'
 
 const routes = _.flatten([
   PreviousRuns.navPaths,
-  SubmitWorkflow.navPaths
+  SubmitWorkflow.navPaths,
+  WorkflowDashboard.navPaths
 ])
 
 const handlers = _.map(({ path, encode = encodeURIComponent, ...data }) => {
