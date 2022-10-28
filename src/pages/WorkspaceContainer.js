@@ -22,17 +22,17 @@ import { workspaceStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { differenceFromNowInSeconds } from 'src/libs/utils'
-import { ContextBar } from 'src/pages/workspaces/workspace/analysis/ContextBar'
-import { tools } from 'src/pages/workspaces/workspace/analysis/notebook-utils'
-import { analysisTabName } from 'src/pages/workspaces/workspace/analysis/runtime-common'
+import { ContextBar } from 'src/pages/ContextBar'
+import DeleteWorkspaceModal from 'src/pages/DeleteWorkspaceModal'
+import LockWorkspaceModal from 'src/pages/LockWorkspaceModal'
+import { tools } from 'src/pages/notebook-utils'
+import { analysisTabName } from 'src/pages/runtime-common'
 import {
   defaultLocation, getConvertedRuntimeStatus, getCurrentApp, getCurrentRuntime, getDiskAppType, isGcpContext, mapToPdTypes
-} from 'src/pages/workspaces/workspace/analysis/runtime-utils'
-import RuntimeManager from 'src/pages/workspaces/workspace/analysis/RuntimeManager'
-import DeleteWorkspaceModal from 'src/pages/workspaces/workspace/DeleteWorkspaceModal'
-import LockWorkspaceModal from 'src/pages/workspaces/workspace/LockWorkspaceModal'
-import ShareWorkspaceModal from 'src/pages/workspaces/workspace/ShareWorkspaceModal'
-import WorkspaceMenu from 'src/pages/workspaces/workspace/WorkspaceMenu'
+} from 'src/pages/runtime-utils'
+import RuntimeManager from 'src/pages/RuntimeManager'
+import ShareWorkspaceModal from 'src/pages/ShareWorkspaceModal'
+import WorkspaceMenu from 'src/pages/WorkspaceMenu'
 
 const WorkspacePermissionNotice = ({ workspace }) => {
   const isReadOnly = !Utils.canWrite(workspace.accessLevel)
