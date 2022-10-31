@@ -3,7 +3,7 @@ import { compile, pathToRegexp } from 'path-to-regexp'
 import { routeHandlersStore } from 'src/libs/state'
 import * as PreviousRuns from 'src/pages/PreviousRuns'
 import * as SubmitWorkflow from 'src/pages/SubmitWorkflow'
-import * as WorkflowDashboard from 'src/pages/WorkflowDashboard'
+import * as WorkflowDashboard from 'src/pages/workspaces/workspace/jobHistory/WorkflowDashboard.js'
 
 const routes = _.flatten([
   PreviousRuns.navPaths,

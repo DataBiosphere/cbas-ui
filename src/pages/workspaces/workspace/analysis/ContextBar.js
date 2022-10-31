@@ -19,8 +19,8 @@ import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { CloudEnvironmentModal } from 'src/pages/CloudEnvironmentModal'
-import { getAppType, tools } from 'src/pages/notebook-utils'
-import { appLauncherTabName } from 'src/pages/runtime-common'
+import { getAppType, tools } from 'src/pages/workspaces/workspace/analysis/notebook-utils.js'
+import { appLauncherTabName } from 'src/pages/workspaces/workspace/analysis/runtime-common.js'
 import { getCostDisplayForDisk, getCostDisplayForTool, getCurrentApp, getCurrentAppDataDisk, getCurrentPersistentDisk, getCurrentRuntime, getGalaxyComputeCost, getGalaxyDiskCost, getPersistentDiskCostHourly, getRuntimeCost } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 
 

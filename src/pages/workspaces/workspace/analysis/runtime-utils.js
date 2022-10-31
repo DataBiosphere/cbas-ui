@@ -8,7 +8,7 @@ import {
 import colors from 'src/libs/colors'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import { allAppTypes, tools } from 'src/pages/notebook-utils'
+import { allAppTypes, tools } from 'src/pages/workspaces/workspace/analysis/notebook-utils.js'
 
 
 export const computeStyles = {

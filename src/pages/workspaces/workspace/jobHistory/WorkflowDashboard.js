@@ -19,7 +19,7 @@ import { forwardRefWithName, useCancellation, useOnMount } from 'src/libs/react-
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import CallTable from 'src/pages/CallTable'
-import { wrapWorkspace } from 'src/pages/WorkspaceContainer'
+import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer.js'
 
 
 const styles = {
