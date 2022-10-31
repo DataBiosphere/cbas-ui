@@ -18,7 +18,7 @@ import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import { forwardRefWithName, useCancellation, useOnMount } from 'src/libs/react-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import CallTable from 'src/pages/CallTable'
+import CallTable from 'src/pages/workspaces/workspace/jobHistory/CallTable.js'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer.js'
 
 
