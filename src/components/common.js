@@ -1,3 +1,4 @@
+import * as clipboard from 'clipboard-polyfill/text'
 import _ from 'lodash/fp'
 import { useState } from 'react'
 import { a, div, h, h3, img } from 'react-hyperscript-helpers'
@@ -8,6 +9,7 @@ import cromwellLogoWhite from 'src/images/cromwell-logo-white.svg'
 import headerLeftHexes from 'src/images/header-left-hexes.svg'
 import headerRightHexes from 'src/images/header-right-hexes.svg'
 import colors, { terraSpecial } from 'src/libs/colors'
+import { withErrorReporting } from 'src/libs/error'
 import { topBarLogo } from 'src/libs/logos'
 import { forwardRefWithName, useLabelAssert } from 'src/libs/react-utils'
 import * as Style from 'src/libs/style'
@@ -192,4 +194,20 @@ export const headerBar = () => {
       ])
     ])
   ])
+}
+
+export const ClipboardButton = ({ text, onClick, children, ...props }) => {
+  const [copied, setCopied] = useState(false)
+  return h(Link, {
+    tooltip: copied ? 'Copied to clipboard' : 'Copy to clipboard',
+    ...props,
+    onClick: _.flow(
+      withErrorReporting('Error copying to clipboard'),
+      Utils.withBusyState(setCopied)
+    )(async e => {
+      onClick?.(e)
+      await clipboard.writeText(text)
+      await Utils.delay(1500)
+    })
+  }, [children, icon(copied ? 'check' : 'copy-to-clipboard', !!children && { style: { marginLeft: '0.5rem' } })])
 }

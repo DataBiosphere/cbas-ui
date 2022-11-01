@@ -111,3 +111,14 @@ export const nextSort = ({ field, direction }, newField) => {
     { field, direction: direction === 'asc' ? 'desc' : 'asc' } :
     { field: newField, direction: 'asc' }
 }
+
+// Transforms an async function so that it updates a busy flag via the provided callback 'setBusy'
+// Note that 'fn' does not get called during the transformation.
+export const withBusyState = _.curry((setBusy, fn) => async (...args) => {
+  try {
+    setBusy(true)
+    return await fn(...args)
+  } finally {
+    setBusy(false)
+  }
+})
