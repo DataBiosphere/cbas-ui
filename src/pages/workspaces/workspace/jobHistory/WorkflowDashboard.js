@@ -8,7 +8,8 @@ import { centeredSpinner, icon } from 'src/components/icons'
 import {
   collapseCromwellStatus, collapseStatus, makeSection, makeStatusLine, statusType, workflowDetailsBreadcrumbSubtitle
 } from 'src/components/job-common'
-import UriViewer from 'src/components/UriViewer'
+//  Q4-2022 Disable log-viewing
+//import UriViewer from 'src/components/UriViewer'
 import WDLViewer from 'src/components/WDLViewer'
 import { Ajax } from 'src/libs/ajax'
 import { bucketBrowserUrl } from 'src/libs/auth'
@@ -63,7 +64,8 @@ const WorkflowDashboard = _.flow(
    */
   const [workflow, setWorkflow] = useState()
   const [fetchTime, setFetchTime] = useState()
-  const [showLog, setShowLog] = useState(false)
+  //Q4-2022 Disable log-viewing
+  //const [showLog, setShowLog] = useState(false)
 
   const signal = useCancellation()
   const stateRefreshTimer = useRef()
@@ -100,6 +102,9 @@ const WorkflowDashboard = _.flow(
   /*
    * Page render
    */
+  // Disabling warning about workflowLog being unused
+  // TODO maybe display the path to the workflow log file rather than the contents?
+  // eslint-disable-next-line
   const { metadataArchiveStatus, calls, end, failures, start, status, workflowLog, workflowRoot, submittedFiles: { workflow: wdl } = {} } = workflow || {}
 
   const restructureFailures = failuresArray => {
@@ -166,11 +171,12 @@ const WorkflowDashboard = _.flow(
                 href: bucketBrowserUrl(workflowRoot.replace('gs://', '')),
                 style: { display: 'flex', marginLeft: '1rem', alignItems: 'center' },
                 tooltip: 'Execution directory'
-              }, [icon('folder-open', { size: 18 }), ' Execution Directory']),
-              h(Link, {
-                onClick: () => setShowLog(true),
-                style: { display: 'flex', marginLeft: '1rem', alignItems: 'center' }
-              }, [icon('fileAlt', { size: 18 }), ' View execution log'])
+              }, [icon('folder-open', { size: 18 }), ' Execution Directory'])
+              //  Q4-2022 Disable log-viewing
+              // h(Link, {
+              //   onClick: () => setShowLog(true),
+              //   style: { display: 'flex', marginLeft: '1rem', alignItems: 'center' }
+              // }, [icon('fileAlt', { size: 18 }), ' View execution log'])
             ])
           ])
         ]),
@@ -223,8 +229,9 @@ const WorkflowDashboard = _.flow(
         ),
         wdl && h(Collapse, {
           title: div({ style: Style.elements.sectionHeader }, ['Submitted workflow script'])
-        }, [h(WDLViewer, { wdl })]),
-        showLog && h(UriViewer, { workspace, uri: workflowLog, onDismiss: () => setShowLog(false) })
+        }, [h(WDLViewer, { wdl })])
+        //  Q4-2022 Disable log-viewing
+        //showLog && h(UriViewer, { workspace, uri: workflowLog, onDismiss: () => setShowLog(false) })
       ])
     )
   ])
