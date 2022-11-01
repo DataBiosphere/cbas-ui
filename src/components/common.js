@@ -2,7 +2,8 @@ import * as clipboard from 'clipboard-polyfill/text'
 import _ from 'lodash/fp'
 import { useState } from 'react'
 import { a, div, h, h3, img } from 'react-hyperscript-helpers'
-import { containsUnlabelledIcon, icon } from 'src/components/icons'
+import RSelect, { components as RSelectComponents } from 'react-select'
+import { centeredSpinner, containsUnlabelledIcon, icon } from 'src/components/icons'
 import Interactive from 'src/components/Interactive'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import cromwellLogoWhite from 'src/images/cromwell-logo-white.svg'
@@ -11,7 +12,7 @@ import headerRightHexes from 'src/images/header-right-hexes.svg'
 import colors, { terraSpecial } from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
 import { topBarLogo } from 'src/libs/logos'
-import { forwardRefWithName, useLabelAssert } from 'src/libs/react-utils'
+import { forwardRefWithName, useLabelAssert, useUniqueId } from 'src/libs/react-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 
@@ -211,3 +212,116 @@ export const ClipboardButton = ({ text, onClick, children, ...props }) => {
     })
   }, [children, icon(copied ? 'check' : 'copy-to-clipboard', !!children && { style: { marginLeft: '0.5rem' } })])
 }
+
+const BaseSelect = ({ value, newOptions, id, findValue, ...props }) => {
+  const newValue = props.isMulti ? _.map(findValue, value) : findValue(value)
+  const myId = useUniqueId()
+  const inputId = id || myId
+
+  return h(RSelect, _.merge({
+    inputId,
+    ...commonSelectProps,
+    getOptionLabel: ({ value, label }) => label || value.toString(),
+    value: newValue || null, // need null instead of undefined to clear the select
+    options: newOptions,
+    formatGroupLabel
+  }, props))
+}
+
+/**
+ * @param {Object} props - see {@link https://react-select.com/props#select-props}
+ * @param props.value - a member of options
+ * @param {Array} props.options - can be of any type; if objects, they should each contain a value and label, unless defining getOptionLabel
+ * @param props.id - The HTML ID to give the form element
+ */
+export const Select = ({ value, options, ...props }) => {
+  useLabelAssert('Select', { ...props, allowId: true })
+
+  const newOptions = options && !_.isObject(options[0]) ? _.map(value => ({ value }), options) : options
+  const findValue = target => _.find({ value: target }, newOptions)
+
+  return h(BaseSelect, { value, newOptions, findValue, ...props })
+}
+
+const commonSelectProps = {
+  theme: base => _.merge(base, {
+    colors: {
+      primary: colors.accent(),
+      neutral20: colors.dark(0.55),
+      neutral30: colors.dark(0.55)
+    },
+    spacing: { controlHeight: 36 }
+  }),
+  styles: {
+    control: (base, { isDisabled }) => _.merge(base, {
+      backgroundColor: isDisabled ? colors.dark(0.25) : 'white',
+      boxShadow: 'none'
+    }),
+    singleValue: base => ({ ...base, color: colors.dark() }),
+    option: (base, { isSelected, isFocused, isDisabled }) => _.merge(base, {
+      fontWeight: isSelected ? 600 : undefined,
+      backgroundColor: isFocused ? colors.dark(0.15) : 'white',
+      color: isDisabled ? undefined : colors.dark(),
+      ':active': { backgroundColor: colors.accent(isSelected ? 0.55 : 0.4) }
+    }),
+    clearIndicator: base => ({ ...base, paddingRight: 0 }),
+    indicatorSeparator: () => ({ display: 'none' }),
+    dropdownIndicator: (base, { selectProps: { isClearable } }) => _.merge(base, { paddingLeft: isClearable ? 0 : undefined }),
+    multiValueLabel: base => ({ ...base, maxWidth: '100%' }),
+    multiValueRemove: base => _.merge(base, { ':hover': { backgroundColor: 'unset' } }),
+    placeholder: base => ({ ...base, color: colors.dark(0.8) })
+  },
+  components: {
+    Option: ({ children, selectProps, ...props }) => h(RSelectComponents.Option, _.merge(props, {
+      selectProps,
+      innerProps: {
+        role: 'option',
+        'aria-selected': props.isSelected
+      }
+    }), [
+      div({ style: { display: 'flex', alignItems: 'center', minHeight: 25 } }, [
+        div({ style: { flex: 1, minWidth: 0, overflowWrap: 'break-word' } }, [children]),
+        props.isSelected && icon('check', { size: 14, style: { flex: 'none', marginLeft: '0.5rem', color: colors.dark(0.5) } })
+      ])
+    ]),
+    Menu: ({ children, selectProps, ...props }) => h(RSelectComponents.Menu, _.merge(props, {
+      selectProps,
+      innerProps: {
+        role: 'listbox',
+        'aria-label': 'Options',
+        'aria-multiselectable': selectProps.isMulti
+      }
+    }), [children])
+  }
+}
+
+const formatGroupLabel = group => (
+  div({
+    style: {
+      color: colors.dark(),
+      fontSize: 14,
+      height: 30,
+      fontWeight: 600,
+      borderBottom: `1px solid ${colors.dark(0.25)}`
+    }
+  }, [group.label]))
+
+const makeBaseSpinner = ({ outerStyles = {}, innerStyles = {} }) => div(
+  {
+    style: {
+      position: 'absolute',
+      display: 'flex', alignItems: 'center',
+      top: 0, right: 0, bottom: 0, left: 0,
+      backgroundColor: 'rgba(0, 0, 0, 0.1)',
+      zIndex: 9999, // make sure it's on top of any third party components with z-indicies
+      ...outerStyles
+    }
+  }, [
+    centeredSpinner({
+      size: 64,
+      style: { backgroundColor: 'rgba(255, 255, 255, 0.85)', padding: '1rem', borderRadius: '0.5rem', ...innerStyles }
+    })
+  ]
+)
+
+export const spinnerOverlay = makeBaseSpinner({})
