@@ -10,6 +10,7 @@
     "animate.css": "^4.1.1",
     "color": "^4.0.1",
     "easymde": "^2.16.1",
+    "filesize": "^7.0.0",
     "github-markdown-css": "^4.0.0",
     "history": "^4.10.1",
     "http-proxy-middleware": "^2.0.6",

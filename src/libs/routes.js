@@ -5,6 +5,7 @@ import * as PreviousRuns from 'src/pages/PreviousRuns'
 import * as SubmitWorkflow from 'src/pages/SubmitWorkflow'
 import * as WorkspaceDashboard from 'src/pages/workspaces/workspace/jobHistory/WorkflowDashboard.js'
 
+
 const routes = _.flatten([
   PreviousRuns.navPaths,
   SubmitWorkflow.navPaths,

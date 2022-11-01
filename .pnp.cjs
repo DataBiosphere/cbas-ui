@@ -46,6 +46,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["eslint-config-react-app", "virtual:84c9679c491320aaf965c26b72107c84cbe7ca87fbaac338ec332a5c11f17545037f3990719cbeba601f077fb0e68374d8f0a50ac50eba5838ce679fc7acc1f0#npm:7.0.1"],\
             ["eslint-plugin-lodash-fp", "virtual:84c9679c491320aaf965c26b72107c84cbe7ca87fbaac338ec332a5c11f17545037f3990719cbeba601f077fb0e68374d8f0a50ac50eba5838ce679fc7acc1f0#npm:2.2.0-a1"],\
             ["eslint-plugin-simple-import-sort", "virtual:84c9679c491320aaf965c26b72107c84cbe7ca87fbaac338ec332a5c11f17545037f3990719cbeba601f077fb0e68374d8f0a50ac50eba5838ce679fc7acc1f0#npm:7.0.0"],\
+            ["filesize", "npm:7.0.0"],\
             ["github-markdown-css", "npm:4.0.0"],\
             ["history", "npm:4.10.1"],\
             ["html-webpack-plugin", "virtual:84c9679c491320aaf965c26b72107c84cbe7ca87fbaac338ec332a5c11f17545037f3990719cbeba601f077fb0e68374d8f0a50ac50eba5838ce679fc7acc1f0#npm:5.5.0"],\
@@ -9094,6 +9095,13 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         }]\
       ]],\
       ["filesize", [\
+        ["npm:7.0.0", {\
+          "packageLocation": "./.yarn/cache/filesize-npm-7.0.0-f8805bad23-f71bb43839.zip/node_modules/filesize/",\
+          "packageDependencies": [\
+            ["filesize", "npm:7.0.0"]\
+          ],\
+          "linkType": "HARD"\
+        }],\
         ["npm:8.0.7", {\
           "packageLocation": "./.yarn/cache/filesize-npm-8.0.7-4070ceca66-8603d27c52.zip/node_modules/filesize/",\
           "packageDependencies": [\
@@ -16852,6 +16860,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["eslint-config-react-app", "virtual:84c9679c491320aaf965c26b72107c84cbe7ca87fbaac338ec332a5c11f17545037f3990719cbeba601f077fb0e68374d8f0a50ac50eba5838ce679fc7acc1f0#npm:7.0.1"],\
             ["eslint-plugin-lodash-fp", "virtual:84c9679c491320aaf965c26b72107c84cbe7ca87fbaac338ec332a5c11f17545037f3990719cbeba601f077fb0e68374d8f0a50ac50eba5838ce679fc7acc1f0#npm:2.2.0-a1"],\
             ["eslint-plugin-simple-import-sort", "virtual:84c9679c491320aaf965c26b72107c84cbe7ca87fbaac338ec332a5c11f17545037f3990719cbeba601f077fb0e68374d8f0a50ac50eba5838ce679fc7acc1f0#npm:7.0.0"],\
+            ["filesize", "npm:7.0.0"],\
             ["github-markdown-css", "npm:4.0.0"],\
             ["history", "npm:4.10.1"],\
             ["html-webpack-plugin", "virtual:84c9679c491320aaf965c26b72107c84cbe7ca87fbaac338ec332a5c11f17545037f3990719cbeba601f077fb0e68374d8f0a50ac50eba5838ce679fc7acc1f0#npm:5.5.0"],\

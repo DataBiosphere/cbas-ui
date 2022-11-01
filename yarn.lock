@@ -6331,6 +6331,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"filesize@npm:^7.0.0":
+  version: 7.0.0
+  resolution: "filesize@npm:7.0.0"
+  checksum: f71bb43839c68b8482263c004b4f44839d038ddbf8ef3322d40876beea57db14fa3e728f47e91e2d03e3e6850b8fbd6ac604f1ef5fd25cfac629a655701137c1
+  languageName: node
+  linkType: hard
+
 "filesize@npm:^8.0.6":
   version: 8.0.7
   resolution: "filesize@npm:8.0.7"
@@ -12414,6 +12421,7 @@ __metadata:
     easymde: ^2.16.1
     eslint-plugin-lodash-fp: ^2.2.0-a1
     eslint-plugin-simple-import-sort: ^7.0.0
+    filesize: ^7.0.0
     github-markdown-css: ^4.0.0
     history: ^4.10.1
     http-proxy-middleware: ^2.0.6

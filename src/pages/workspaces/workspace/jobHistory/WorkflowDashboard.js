@@ -56,7 +56,7 @@ const statusCell = ({ calls }) => {
 }
 
 const WorkflowDashboard = _.flow(
-  forwardRefWithName('WorkflowDashboard'),
+  forwardRefWithName('WorkflowDashboard')
 )(({ namespace, name, submissionId, workflowId, workspace }, _ref) => {
   /*
    * State setup
