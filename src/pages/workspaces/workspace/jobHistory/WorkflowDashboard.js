@@ -15,7 +15,7 @@ import { Ajax } from 'src/libs/ajax'
 import { bucketBrowserUrl } from 'src/libs/auth'
 import { getConfig } from 'src/libs/config'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
-import { forwardRefWithName, useCancellation, useOnMount } from 'src/libs/react-utils'
+import { useCancellation, useOnMount } from 'src/libs/react-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import CallTable from 'src/pages/workspaces/workspace/jobHistory/CallTable'
@@ -56,9 +56,7 @@ const statusCell = ({ calls }) => {
   )
 }
 
-const WorkflowDashboard = _.flow(
-  forwardRefWithName('WorkflowDashboard')
-)(({ namespace, name, submissionId, workflowId, workspace }, _ref) => {
+const WorkflowDashboard = (({ namespace, name, submissionId, workflowId, workspace }, _ref) => {
   /*
    * State setup
    */
