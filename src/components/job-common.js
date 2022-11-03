@@ -120,3 +120,5 @@ export const makeSection = (label, children, { style = {} } = {}) => div({
   h4({ style: Style.elements.sectionHeader }, label),
   h(Fragment, children)
 ])
+
+export const breadcrumbHistoryCaret = icon('angle-right', { size: 10, style: { margin: '0 0.25rem' } })
