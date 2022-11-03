@@ -6,7 +6,7 @@ import Collapse from 'src/components/Collapse'
 import { ClipboardButton, Link } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
 import {
-  collapseCromwellStatus, collapseStatus, makeSection, makeStatusLine, statusType, workflowDetailsBreadcrumbSubtitle
+  collapseCromwellStatus, collapseStatus, makeSection, makeStatusLine, statusType
 } from 'src/components/job-common'
 //  Q4-2022 Disable log-viewing
 //import UriViewer from 'src/components/UriViewer'
@@ -119,7 +119,6 @@ const WorkflowDashboard = (({ namespace, name, submissionId, workflowId }, _ref)
   const callNames = _.sortBy(callName => _.min(_.map('start', calls[callName])), _.keys(calls))
 
   return div({ style: { padding: '1rem 2rem 2rem', flex: 1, display: 'flex', flexDirection: 'column' } }, [
-    workflowDetailsBreadcrumbSubtitle(namespace, name, submissionId, workflowId),
     Utils.cond(
       [workflow === undefined, () => h(Fragment, [
         div({ style: { fontStyle: 'italic', marginBottom: '1rem' } }, ['Fetching workflow metadata...']),
