@@ -79,8 +79,7 @@ const WorkflowDashboard = (({ namespace, name, submissionId, workflowId }, _ref)
       const excludeKey = []
 
       const timeBefore = Date.now()
-      const wf = await Ajax(signal).Cbas.runs(workflowId)
-      const metadata = await wf.metadata({ includeKey, excludeKey })
+      const metadata = await Ajax(signal).Cromwell.runs(workflowId).metadata({ includeKey, excludeKey })
       setWorkflow(metadata)
       setFetchTime(Date.now() - timeBefore)
 
@@ -224,8 +223,8 @@ const WorkflowDashboard = (({ namespace, name, submissionId, workflowId }, _ref)
 
 export const navPaths = [
   {
-    name: 'workspace-workflow-dashboard',
-    path: '/workspaces/:namespace/:name/job_history/:submissionId/:workflowId',
+    name: 'workflow-dashboard',
+    path: '/job_history/:workflowId',
     component: WorkflowDashboard,
     title: ({ name }) => `${name} - Workflow Dashboard`
   }
