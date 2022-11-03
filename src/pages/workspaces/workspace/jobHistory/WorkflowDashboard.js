@@ -12,7 +12,6 @@ import {
 //import UriViewer from 'src/components/UriViewer'
 import WDLViewer from 'src/components/WDLViewer'
 import { Ajax } from 'src/libs/ajax'
-import { bucketBrowserUrl } from 'src/libs/auth'
 import { useCancellation, useOnMount } from 'src/libs/react-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -149,12 +148,6 @@ const WorkflowDashboard = (({ namespace, name, submissionId, workflowId }, _ref)
           ]),
           makeSection('Links', [
             div({ style: { display: 'flex', flexFlow: 'row wrap', marginTop: '0.5rem', lineHeight: '2rem' } }, [
-              h(Link, {
-                ...Utils.newTabLinkProps,
-                href: bucketBrowserUrl(workflowRoot.replace('gs://', '')),
-                style: { display: 'flex', marginLeft: '1rem', alignItems: 'center' },
-                tooltip: 'Execution directory'
-              }, [icon('folder-open', { size: 18 }), ' Execution Directory'])
               //  Q4-2022 Disable log-viewing
               // h(Link, {
               //   onClick: () => setShowLog(true),
