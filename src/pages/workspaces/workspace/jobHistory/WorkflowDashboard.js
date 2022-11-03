@@ -14,7 +14,6 @@ import WDLViewer from 'src/components/WDLViewer'
 import { Ajax } from 'src/libs/ajax'
 import { bucketBrowserUrl } from 'src/libs/auth'
 import { getConfig } from 'src/libs/config'
-import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import { useCancellation, useOnMount } from 'src/libs/react-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -56,7 +55,7 @@ const statusCell = ({ calls }) => {
   )
 }
 
-const WorkflowDashboard = (({ namespace, name, submissionId, workflowId, workspace }, _ref) => {
+const WorkflowDashboard = (({ namespace, name, submissionId, workflowId }, _ref) => {
   /*
    * State setup
    */
@@ -156,11 +155,6 @@ const WorkflowDashboard = (({ namespace, name, submissionId, workflowId, workspa
               h(Link, {
                 ...Utils.newTabLinkProps,
                 href: `${getConfig().jobManagerUrlRoot}/${workflowId}`,
-                onClick: () => Ajax().Metrics.captureEvent(Events.jobManagerOpenExternal, {
-                  workflowId,
-                  from: 'workspace-workflow-dashboard',
-                  ...extractWorkspaceDetails(workspace.workspace)
-                }),
                 style: { display: 'flex', alignItems: 'center' },
                 tooltip: 'Job Manager'
               }, [icon('tasks', { size: 18 }), ' Job Manager']),
