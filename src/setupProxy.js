@@ -16,4 +16,14 @@ module.exports = function(app) {
       changeOrigin: true
     })
   )
+  app.use(
+    '/cromwell/api*',
+    createProxyMiddleware({
+      target: 'http://localhost:8000', // Cromwell
+      changeOrigin: true,
+      pathRewrite: {
+        '^/cromwell/api': '/api'
+      }
+    })
+  )
 }
