@@ -69,11 +69,11 @@ const Cbas = signal => ({
 })
 
 const Cromwell = signal => ({
-  runs: runId => {
+  workflows: workflowId => {
     return {
       metadata: async (includeKey, excludeKey) => {
         const keyParams = qs.stringify({ includeKey, excludeKey }, { arrayFormat: 'repeat' })
-        const res = await fetchCromwell(`${runId}/metadata?${keyParams}`, { signal, method: 'GET' })
+        const res = await fetchCromwell(`${workflowId}/metadata?${keyParams}`, { signal, method: 'GET' })
         return res.json()
       }
     }

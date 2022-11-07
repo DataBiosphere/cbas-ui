@@ -78,7 +78,7 @@ const WorkflowDashboard = (({ namespace, name, submissionId, workflowId }, _ref)
       const excludeKey = []
 
       const timeBefore = Date.now()
-      const metadata = await Ajax(signal).Cromwell.runs(workflowId).metadata({ includeKey, excludeKey })
+      const metadata = await Ajax(signal).Cromwell.workflows(workflowId).metadata({ includeKey, excludeKey })
       setWorkflow(metadata)
       setFetchTime(Date.now() - timeBefore)
 
