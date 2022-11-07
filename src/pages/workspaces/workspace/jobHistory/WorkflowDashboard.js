@@ -216,7 +216,7 @@ const WorkflowDashboard = (({ namespace, name, submissionId, workflowId }, _ref)
 export const navPaths = [
   {
     name: 'workflow-dashboard',
-    path: '/job_history/:workflowId',
+    path: '/job-history/:workflowId',
     component: WorkflowDashboard,
     title: ({ name }) => `${name} - Workflow Dashboard`
   }
