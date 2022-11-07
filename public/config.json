@@ -1,4 +1,3 @@
 {
-  "cbasUrlRoot" : "http://localhost:3000",
-  "cromwellUrlRoot" : "http://localhost:8000"
+  "cbasUrlRoot" : "http://localhost:3000"
 }
