@@ -67,7 +67,10 @@ export const PreviousRuns = () => {
                 field: 'run_id',
                 headerRenderer: () => h(Sortable, { sort, field: 'run_id', onSort: setSort }, ['Run ID']),
                 cellRenderer: ({ rowIndex }) => {
-                  return h(TextCell, [paginatedPreviousRuns[rowIndex].run_id])
+                  const run = paginatedPreviousRuns[rowIndex]
+                  return h(Link, { 
+                    onClick: () => Nav.goToPath('workflow-dashboard', { workflowId: run.engine_id })
+                  }, [run.run_id])
                 }
               },
               {
