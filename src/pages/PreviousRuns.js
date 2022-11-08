@@ -68,7 +68,7 @@ export const PreviousRuns = () => {
                 headerRenderer: () => h(Sortable, { sort, field: 'run_id', onSort: setSort }, ['Run ID']),
                 cellRenderer: ({ rowIndex }) => {
                   const run = paginatedPreviousRuns[rowIndex]
-                  return h(Link, { 
+                  return h(Link, {
                     onClick: () => Nav.goToPath('workflow-dashboard', { workflowId: run.engine_id })
                   }, [run.run_id])
                 }

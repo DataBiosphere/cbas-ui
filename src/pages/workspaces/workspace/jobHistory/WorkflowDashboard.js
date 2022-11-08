@@ -149,7 +149,7 @@ const WorkflowDashboard = (({ namespace, name, submissionId, workflowId }, _ref)
           ]),
           makeSection('Links', [
             div({ style: { display: 'flex', flexFlow: 'row wrap', marginTop: '0.5rem', lineHeight: '2rem' } }, [
-              h(Link, { onClick: () => Nav.goToPath('previous-runs') }, "See Previous Runs")
+              h(Link, { onClick: () => Nav.goToPath('previous-runs') }, 'See Previous Runs')
 
               //  Q4-2022 Disable log-viewing
               // h(Link, {
