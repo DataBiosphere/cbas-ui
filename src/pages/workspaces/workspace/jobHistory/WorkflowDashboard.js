@@ -12,6 +12,7 @@ import {
 //import UriViewer from 'src/components/UriViewer'
 import WDLViewer from 'src/components/WDLViewer'
 import { Ajax } from 'src/libs/ajax'
+import * as Nav from 'src/libs/nav'
 import { useCancellation, useOnMount } from 'src/libs/react-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -78,7 +79,7 @@ const WorkflowDashboard = (({ namespace, name, submissionId, workflowId }, _ref)
       const excludeKey = []
 
       const timeBefore = Date.now()
-      const metadata = await Ajax(signal).Cromwell.runs(workflowId).metadata({ includeKey, excludeKey })
+      const metadata = await Ajax(signal).Cromwell.workflows(workflowId).metadata({ includeKey, excludeKey })
       setWorkflow(metadata)
       setFetchTime(Date.now() - timeBefore)
 
@@ -148,6 +149,8 @@ const WorkflowDashboard = (({ namespace, name, submissionId, workflowId }, _ref)
           ]),
           makeSection('Links', [
             div({ style: { display: 'flex', flexFlow: 'row wrap', marginTop: '0.5rem', lineHeight: '2rem' } }, [
+              h(Link, { onClick: () => Nav.goToPath('previous-runs') }, 'See Previous Runs')
+
               //  Q4-2022 Disable log-viewing
               // h(Link, {
               //   onClick: () => setShowLog(true),
@@ -216,7 +219,7 @@ const WorkflowDashboard = (({ namespace, name, submissionId, workflowId }, _ref)
 export const navPaths = [
   {
     name: 'workflow-dashboard',
-    path: '/job-history/:workflowId',
+    path: '/previous-runs/:workflowId/dashboard',
     component: WorkflowDashboard,
     title: ({ name }) => `${name} - Workflow Dashboard`
   }
