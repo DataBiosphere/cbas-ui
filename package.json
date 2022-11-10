@@ -8,13 +8,16 @@
     "@fortawesome/free-solid-svg-icons": "^5.15.4",
     "@fortawesome/react-fontawesome": "^0.1.15",
     "animate.css": "^4.1.1",
+    "clipboard-polyfill": "^3.0.3",
     "color": "^4.0.1",
     "easymde": "^2.16.1",
+    "filesize": "^7.0.0",
     "github-markdown-css": "^4.0.0",
     "history": "^4.10.1",
     "http-proxy-middleware": "^2.0.6",
     "lodash": "^4.17.21",
     "path-to-regexp": "^5.0.0",
+    "pluralize": "^8.0.0",
     "prismjs": "^1.27.0",
     "prop-types": "^15.7.2",
     "qs": "^6.10.1",
@@ -26,6 +29,7 @@
     "react-notifications-component": "^3.1.0",
     "react-paginating": "^1.4.0",
     "react-scripts": "5.0.0",
+    "react-select": "^5.2.2",
     "react-textarea-autosize": "^8.3.3",
     "react-virtualized": "^9.22.3",
     "uuid": "^8.3.2"
@@ -63,7 +67,7 @@
     "not ie <= 11",
     "not op_mini all"
   ],
-  "packageManager": "yarn@3.2.0",
+  "packageManager": "yarn@3.2.4",
   "workspaces": [
     "integration-tests"
   ]

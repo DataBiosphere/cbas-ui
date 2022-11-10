@@ -7,6 +7,7 @@ import { Grid as RVGrid } from 'react-virtualized'
 import { Clickable, IdContainer } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import Interactive from 'src/components/Interactive'
+import TooltipTrigger from 'src/components/TooltipTrigger'
 import colors from 'src/libs/colors'
 import { useLabelAssert, useOnMount } from 'src/libs/react-utils'
 import * as Style from 'src/libs/style'
@@ -182,6 +183,10 @@ export const ariaSort = (sort, field) => {
 export const TextCell = ({ children, ...props }) => {
   return div(_.merge({ style: Style.noWrapEllipsis }, props), [children])
 }
+
+export const TooltipCell = ({ children, tooltip, ...props }) => h(TooltipTrigger, {
+  content: tooltip || children
+}, [h(TextCell, props, [children])])
 
 export const Sortable = ({ sort, field, onSort, children }) => {
   return h(IdContainer, [id => h(Clickable, {

@@ -2,7 +2,24 @@ import { staticStorageSlot } from 'src/libs/browser-storage'
 import * as Utils from 'src/libs/utils'
 
 
+export const authStore = Utils.atom({
+  isSignedIn: undefined,
+  anonymousId: undefined,
+  registrationStatus: undefined,
+  acceptedTos: undefined,
+  user: {},
+  profile: {},
+  fenceStatus: {},
+  cookiesAccepted: undefined,
+  authContext: undefined,
+  oidcConfig: {}
+})
+
 export const routeHandlersStore = Utils.atom([])
+
+export const requesterPaysProjectStore = Utils.atom()
+
+export const workspaceStore = Utils.atom()
 
 /*
  * Modifies ajax responses for testing purposes.

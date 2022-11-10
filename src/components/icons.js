@@ -1,7 +1,9 @@
 import _ from 'lodash/fp'
-import { Children } from 'react'
+import { Children, Fragment } from 'react'
+import { h, span } from 'react-hyperscript-helpers'
+import DelayedRender from 'src/components/DelayedRender'
+import colors from 'src/libs/colors'
 import iconDict from 'src/libs/icon-dict'
-
 /**
  * To support accessibility, every icon must be labeled, either:
  * * by placing it next to relevant text and hiding the icon, or
@@ -27,6 +29,22 @@ export const containsUnlabelledIcon = ({ children, 'aria-label': ariaLabel, 'ari
   }
   return false
 }
+
+export const spinner = ({ message = 'Loading', ...props } = {}) => h(Fragment, [
+  icon('loadingSpinner', _.merge({ size: 24, style: { color: colors.primary() } }, props)),
+  h(DelayedRender, { delay: 150 }, [span({ className: 'sr-only', role: 'alert' }, [message])])
+])
+
+export const centeredSpinner = ({ size = 48, ...props } = {}) => spinner(_.merge({
+  size, style: {
+    display: 'block',
+    position: 'sticky',
+    top: `calc(50% - ${size / 2}px)`,
+    bottom: `calc(50% - ${size / 2}px)`,
+    left: `calc(50% - ${size / 2}px)`,
+    right: `calc(50% - ${size / 2}px)`
+  }
+}, props))
 
 /**
  * Creates an icon: FA or custom.
