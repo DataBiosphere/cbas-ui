@@ -6,13 +6,12 @@ import Collapse from 'src/components/Collapse'
 import { ClipboardButton, Link } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
 import {
-  collapseCromwellStatus, collapseStatus, makeSection, makeStatusLine, statusType, workflowDetailsBreadcrumbSubtitle
+  collapseCromwellStatus, collapseStatus, makeSection, makeStatusLine, statusType
 } from 'src/components/job-common'
 //  Q4-2022 Disable log-viewing
 //import UriViewer from 'src/components/UriViewer'
 import WDLViewer from 'src/components/WDLViewer'
 import { Ajax } from 'src/libs/ajax'
-import { bucketBrowserUrl } from 'src/libs/auth'
 import { useCancellation, useOnMount } from 'src/libs/react-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -79,8 +78,7 @@ const WorkflowDashboard = (({ namespace, name, submissionId, workflowId }, _ref)
       const excludeKey = []
 
       const timeBefore = Date.now()
-      const wf = await Ajax(signal).Cbas.runs(workflowId)
-      const metadata = await wf.metadata({ includeKey, excludeKey })
+      const metadata = await Ajax(signal).Cromwell.runs(workflowId).metadata({ includeKey, excludeKey })
       setWorkflow(metadata)
       setFetchTime(Date.now() - timeBefore)
 
@@ -120,7 +118,6 @@ const WorkflowDashboard = (({ namespace, name, submissionId, workflowId }, _ref)
   const callNames = _.sortBy(callName => _.min(_.map('start', calls[callName])), _.keys(calls))
 
   return div({ style: { padding: '1rem 2rem 2rem', flex: 1, display: 'flex', flexDirection: 'column' } }, [
-    workflowDetailsBreadcrumbSubtitle(namespace, name, submissionId, workflowId),
     Utils.cond(
       [workflow === undefined, () => h(Fragment, [
         div({ style: { fontStyle: 'italic', marginBottom: '1rem' } }, ['Fetching workflow metadata...']),
@@ -151,12 +148,6 @@ const WorkflowDashboard = (({ namespace, name, submissionId, workflowId }, _ref)
           ]),
           makeSection('Links', [
             div({ style: { display: 'flex', flexFlow: 'row wrap', marginTop: '0.5rem', lineHeight: '2rem' } }, [
-              h(Link, {
-                ...Utils.newTabLinkProps,
-                href: bucketBrowserUrl(workflowRoot.replace('gs://', '')),
-                style: { display: 'flex', marginLeft: '1rem', alignItems: 'center' },
-                tooltip: 'Execution directory'
-              }, [icon('folder-open', { size: 18 }), ' Execution Directory'])
               //  Q4-2022 Disable log-viewing
               // h(Link, {
               //   onClick: () => setShowLog(true),
@@ -224,8 +215,8 @@ const WorkflowDashboard = (({ namespace, name, submissionId, workflowId }, _ref)
 
 export const navPaths = [
   {
-    name: 'workspace-workflow-dashboard',
-    path: '/workspaces/:namespace/:name/job_history/:submissionId/:workflowId',
+    name: 'workflow-dashboard',
+    path: '/job-history/:workflowId',
     component: WorkflowDashboard,
     title: ({ name }) => `${name} - Workflow Dashboard`
   }

@@ -1,4 +1,5 @@
 import _ from 'lodash/fp'
+import * as qs from 'qs'
 import { getConfig } from 'src/libs/config'
 import { ajaxOverridesStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
@@ -46,6 +47,7 @@ const withUrlPrefix = _.curry((prefix, wrappedFetch) => (path, ...args) => {
 export const fetchOk = _.flow(withInstrumentation, withCancellation, withErrorRejection)(fetch)
 
 const fetchCbas = withUrlPrefix(`${getConfig().cbasUrlRoot}/api/batch/v1/`, fetchOk)
+const fetchCromwell = withUrlPrefix(`${getConfig().cbasUrlRoot}/cromwell/api/workflows/v1/`, fetchOk)
 
 const Cbas = signal => ({
   status: async () => {
@@ -66,8 +68,21 @@ const Cbas = signal => ({
   }
 })
 
+const Cromwell = signal => ({
+  runs: runId => {
+    return {
+      metadata: async (includeKey, excludeKey) => {
+        const keyParams = qs.stringify({ includeKey, excludeKey }, { arrayFormat: 'repeat' })
+        const res = await fetchCromwell(`${runId}/metadata?${keyParams}`, { signal, method: 'GET' })
+        return res.json()
+      }
+    }
+  }
+})
+
 export const Ajax = signal => {
   return {
-    Cbas: Cbas(signal)
+    Cbas: Cbas(signal),
+    Cromwell: Cromwell(signal)
   }
 }

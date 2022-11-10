@@ -1,10 +1,8 @@
 import { Fragment } from 'react'
-import { div, h, h3, h4 } from 'react-hyperscript-helpers'
-import { Link } from 'src/components/common'
+import { div, h, h4 } from 'react-hyperscript-helpers'
 import { icon } from 'src/components/icons'
 import { TooltipCell } from 'src/components/table'
 import colors from 'src/libs/colors'
-import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 
 
@@ -124,30 +122,3 @@ export const makeSection = (label, children, { style = {} } = {}) => div({
 ])
 
 export const breadcrumbHistoryCaret = icon('angle-right', { size: 10, style: { margin: '0 0.25rem' } })
-
-export const jobHistoryBreadcrumbPrefix = (namespace, workspaceName) => {
-  return h(Fragment, [
-    h(Link, {
-      href: Nav.getLink('workspace-job-history', { namespace, name: workspaceName })
-    }, [icon('arrowLeft', { style: { marginRight: '0.5rem' } }), 'Job History']),
-    breadcrumbHistoryCaret
-  ])
-}
-
-export const submissionDetailsBreadcrumbSubtitle = (namespace, workspaceName, submissionId) => {
-  return div({ style: { marginBottom: '1rem', display: 'flex', alignItems: 'center' } }, [
-    jobHistoryBreadcrumbPrefix(namespace, workspaceName),
-    h3({ style: Style.elements.sectionHeader }, [`Submission ${submissionId}`])
-  ])
-}
-
-export const workflowDetailsBreadcrumbSubtitle = (namespace, workspaceName, submissionId, workflowId) => {
-  return div({ style: { marginBottom: '1rem', display: 'flex', alignItems: 'center' } }, [
-    jobHistoryBreadcrumbPrefix(namespace, workspaceName),
-    h(Link, {
-      href: Nav.getLink('workspace-submission-details', { namespace, name: workspaceName, submissionId })
-    }, [`Submission ${submissionId}`]),
-    breadcrumbHistoryCaret,
-    h3({ style: Style.elements.sectionHeader }, [`Workflow ${workflowId}`])
-  ])
-}
