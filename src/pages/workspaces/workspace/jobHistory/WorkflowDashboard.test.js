@@ -1,64 +1,55 @@
 import '@testing-library/jest-dom'
 
-import { render, screen } from '@testing-library/react'
-import { axe } from 'jest-axe'
-import { useState } from 'react'
-import { div, h } from 'react-hyperscript-helpers'
-import { MenuTrigger } from 'src/components/PopupTrigger'
-import TooltipTrigger from 'src/components/TooltipTrigger'
-import { useWorkspaceDetails } from 'src/components/workspace-utils'
-import WorkspaceMenu from 'src/pages/workspaces/workspace/WorkspaceMenu'
+import { render, screen, waitFor } from '@testing-library/react'
+import { h } from 'react-hyperscript-helpers'
+import { Ajax } from 'src/libs/ajax'
+import { WorkflowDashboard } from 'src/pages/workspaces/workspace/jobHistory/WorkflowDashboard'
 
+jest.mock('src/libs/ajax')
 
-jest.mock('src/components/workspace-utils', () => {
-  const originalModule = jest.requireActual('src/components/workspace-utils')
-  return {
-    ...originalModule,
-    useWorkspaceDetails: jest.fn()
-  }
-})
+const workspaceDashboardProps = {
+  namespace: "example-billing-project",
+  name: "workspace",
+  submissionId: "subId",
+  workflowId: "workId"
+}
+
+const workspaceDashboardMetadata = {
+  end: "",
+  executionStatus: "",
+  failures: "",
+  start: "",
+  status: "",
+  submittedFilesWorkflow: "",
+  workflowLog: "",
+  workflowRoot: "",
+  callCachingResult: "",
+  callCachingEffectiveCallCachingMode: "",
+  backendStatus: ""
+}
 
 beforeEach(() => {
-  MenuTrigger.mockImplementation(({ content }) => { return div({ role: 'menu' }, [content]) })
-  TooltipTrigger.mockImplementation(({ content, children }) => {
-    const [open, setOpen] = useState(false)
-    return (div([
-      div(
-        {
-          onMouseEnter: () => {
-            setOpen(true)
-          },
-          onMouseLeave: () => {
-            setOpen(false)
+    const workId = {
+      metadata() {
+        return  jest.fn(() => {Promise.resolve(workspaceDashboardMetadata)});
+      }
+    }
+    Ajax.mockImplementation(() => {
+      return {
+        Cromwell: {
+          workflows() {
+            return workId;
           }
-        },
-        [children]
-      ),
-      open && !!content && div([content])
-    ]))
-  })
-})
-
-describe('WorkspaceMenu - undefined workspace', () => {
-  beforeEach(() => {
-    // Arrange
-    useWorkspaceDetails.mockReturnValue({ workspace: undefined })
+        }
+      }
+    })
   })
 
-  it('should not fail any accessibility tests', async () => {
+describe('WorkspaceDashboard - Dashboard render smoke test', () => {
+  it('should not fail any accessibility tests', () => {
     // Act
-    const { container } = render(h(WorkspaceMenu, workspaceMenuProps))
+    render(h(WorkflowDashboard, workspaceDashboardProps))
     // Assert
-    expect(await axe(container)).toHaveNoViolations()
-  })
-
-  it.each([
-    'Clone', 'Share', 'Lock', 'Leave', 'Delete'
-  ])('renders menu item %s as disabled', menuText => {
-    // Act
-    render(h(WorkspaceMenu, workspaceMenuProps))
-    const menuItem = screen.getByText(menuText)
-    // Assert
-    expect(menuItem).toHaveAttribute('disabled')
+    waitFor(() => expect(screen.queryByText("Links")).toBeInTheDocument())
   })
 })
