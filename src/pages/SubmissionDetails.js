@@ -1,0 +1,157 @@
+import _ from 'lodash/fp'
+import { Fragment, useState } from 'react'
+import { div, h, h2 } from 'react-hyperscript-helpers'
+import ReactJson from 'react-json-view'
+import { AutoSizer } from 'react-virtualized'
+import { ButtonOutline, ButtonPrimary, headerBar, Link } from 'src/components/common'
+import Modal from 'src/components/Modal'
+import { FlexTable, paginator, Sortable, tableHeight, TextCell } from 'src/components/table'
+import { Ajax } from 'src/libs/ajax'
+import * as Nav from 'src/libs/nav'
+import { notify } from 'src/libs/notifications'
+import { useCancellation, useOnMount } from 'src/libs/react-utils'
+import * as Utils from 'src/libs/utils'
+
+
+export const SubmissionDetails = () => {
+  // State
+  const [sort, setSort] = useState({ field: 'submission_date', direction: 'desc' })
+  const [pageNumber, setPageNumber] = useState(1)
+  const [itemsPerPage, setItemsPerPage] = useState(50)
+  const [viewInputsId, setViewInputsId] = useState()
+  const [runsData, setRunsData] = useState()
+
+  const signal = useCancellation()
+
+  useOnMount(() => {
+    const loadRunsData = async () => {
+      try {
+        const runs = await Ajax(signal).Cbas.runs.get()
+        setRunsData(runs.runs)
+      } catch (error) {
+        notify('error', 'Error loading previous runs', { detail: await (error instanceof Response ? error.text() : error) })
+      }
+    }
+
+    loadRunsData()
+  })
+
+  const sortedPreviousRuns = _.orderBy(sort.field, sort.direction, runsData)
+
+  const firstPageIndex = (pageNumber - 1) * itemsPerPage
+  const lastPageIndex = firstPageIndex + itemsPerPage
+  const paginatedPreviousRuns = sortedPreviousRuns.slice(firstPageIndex, lastPageIndex)
+
+
+  return h(Fragment, [
+    headerBar(),
+    div({ style: { margin: '4em' } }, [
+      div({ style: { display: 'flex', marginTop: '1rem', justifyContent: 'space-between' } }, [
+        h2(['Submission Details']),
+        h(ButtonOutline, {
+          onClick: () => Nav.goToPath('root')
+        }, ['Submit another workflow'])
+      ]),
+      div(['Remember to turn off your Cromwell App in Terra once you are done to prevent incurring costs.']),
+      div({ style: { marginTop: '1em', height: tableHeight({ actualRows: paginatedPreviousRuns.length, maxRows: 12.5 }), minHeight: '10em' } }, [
+        h(AutoSizer, [
+          ({ width, height }) => h(FlexTable, {
+            'aria-label': 'previous runs',
+            width, height, sort,
+            rowCount: paginatedPreviousRuns.length,
+            noContentMessage: 'Nothing here yet! Your previously run workflows will be displayed here.',
+            hoverHighlight: true,
+            columns: [
+              {
+                size: { basis: 350 },
+                field: 'run_id',
+                headerRenderer: () => h(Sortable, { sort, field: 'run_id', onSort: setSort }, ['Run ID']),
+                cellRenderer: ({ rowIndex }) => {
+                  return h(TextCell, [paginatedPreviousRuns[rowIndex].run_id])
+                }
+              },
+              {
+                size: { basis: 200, grow: 0 },
+                field: 'state',
+                headerRenderer: () => h(Sortable, { sort, field: 'state', onSort: setSort }, ['Status']),
+                cellRenderer: ({ rowIndex }) => {
+                  return h(TextCell, [paginatedPreviousRuns[rowIndex].state])
+                }
+              },
+              {
+                size: { basis: 300, grow: 0 },
+                field: 'last_modified_timestamp',
+                headerRenderer: () => h(Sortable, { sort, field: 'last_modified_timestamp', onSort: setSort }, ['Last Changed']),
+                cellRenderer: ({ rowIndex }) => {
+                  return h(TextCell, [Utils.makeCompleteDate(paginatedPreviousRuns[rowIndex].last_modified_timestamp)])
+                }
+              },
+              {
+                size: { basis: 150, grow: 0 },
+                field: 'workflow_params',
+                headerRenderer: () => 'Inputs',
+                cellRenderer: ({ rowIndex }) => {
+                  return div({ style: { width: '100%', textAlign: 'center' } }, [
+                    h(Link, { onClick: () => setViewInputsId(rowIndex) }, ['View'])
+                  ])
+                }
+              },
+              {
+                size: { basis: 300, grow: 0 },
+                field: 'submission_date',
+                headerRenderer: () => h(Sortable, { sort, field: 'submission_date', onSort: setSort }, ['Submitted']),
+                cellRenderer: ({ rowIndex }) => {
+                  return h(TextCell, [Utils.makeCompleteDate(paginatedPreviousRuns[rowIndex].submission_date)])
+                }
+              }
+            ]
+          })
+        ])
+      ]),
+      !_.isEmpty(sortedPreviousRuns) && div({ style: { bottom: 0, position: 'absolute', marginBottom: '1.5rem', right: '4rem' } }, [
+        paginator({
+          filteredDataLength: sortedPreviousRuns.length,
+          unfilteredDataLength: sortedPreviousRuns.length,
+          pageNumber,
+          setPageNumber,
+          itemsPerPage,
+          setItemsPerPage: v => {
+            setPageNumber(1)
+            setItemsPerPage(v)
+          },
+          itemsPerPageOptions: [10, 25, 50, 100]
+        })
+      ]),
+      (viewInputsId !== undefined) && h(Modal, {
+        title: 'Inputs Definition JSON',
+        width: 600,
+        onDismiss: () => setViewInputsId(undefined),
+        showCancel: false,
+        okButton:
+          h(ButtonPrimary, {
+            disabled: false,
+            onClick: () => setViewInputsId(undefined)
+          }, ['OK'])
+      }, [
+        h(ReactJson, {
+          style: { whiteSpace: 'pre-wrap', wordBreak: 'break-word' },
+          name: false,
+          collapsed: 4,
+          enableClipboard: true,
+          displayDataTypes: false,
+          displayObjectSize: false,
+          src: _.isEmpty(paginatedPreviousRuns[viewInputsId].workflow_params) ? {} : JSON.parse(paginatedPreviousRuns[viewInputsId].workflow_params)
+        })
+      ])
+    ])
+  ])
+}
+
+export const navPaths = [
+  {
+    name: 'submission-details',
+    path: '/submission-details',
+    component: SubmissionDetails,
+    public: true
+  }
+]

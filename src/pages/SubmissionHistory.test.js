@@ -3,7 +3,7 @@ import '@testing-library/jest-dom'
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import { h } from 'react-hyperscript-helpers'
 import { Ajax } from 'src/libs/ajax'
-import { PreviousRuns } from 'src/pages/PreviousRuns'
+import { SubmissionHistory } from 'src/pages/SubmissionHistory'
 
 // Necessary to mock the AJAX module.
 jest.mock('src/libs/ajax')
@@ -18,7 +18,7 @@ jest.mock('src/libs/config', () => ({
 // Note: Since the timestamps in the data is being converted to Local timezone, it returns different time when the tests
 //       are run locally and in GitHub action. Hence everywhere in this file we are verifying only the date format for now.
 describe('Previous Runs page', () => {
-  // PreviousRuns component uses AutoSizer to determine the right size for table to be displayed. As a result we need to
+  // SubmissionHistory component uses AutoSizer to determine the right size for table to be displayed. As a result we need to
   // mock out the height and width so that when AutoSizer asks for the width and height of "browser" it can use the mocked
   // values and render the component properly. Without this the tests will be break.
   // (see https://github.com/bvaughn/react-virtualized/issues/493 and https://stackoverflow.com/a/62214834)
@@ -87,7 +87,7 @@ describe('Previous Runs page', () => {
     })
 
     // Act
-    render(h(PreviousRuns))
+    render(h(SubmissionHistory))
 
     // Assert
     await screen.findByText('Nothing here yet! Your previously run workflows will be displayed here.')
@@ -102,7 +102,7 @@ describe('Previous Runs page', () => {
   it('should correctly display previous 2 runs', async () => {
     // Act
     await act(async () => {
-      await render(h(PreviousRuns))
+      await render(h(SubmissionHistory))
     })
 
     const table = screen.getByRole('table')
@@ -141,7 +141,7 @@ describe('Previous Runs page', () => {
   it('should sort columns properly', async () => {
     // Act - click on sort button on Submitted column to sort submission timestamp by ascending order
     await act(async () => {
-      await render(h(PreviousRuns))
+      await render(h(SubmissionHistory))
     })
 
     const table = screen.getByRole('table')
