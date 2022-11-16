@@ -50,7 +50,7 @@ export const SubmissionDetails = () => {
         h2(['Submission Details']),
         h(ButtonOutline, {
           onClick: () => Nav.goToPath('root')
-        }, ['Submit another workflow'])
+        }, ['Submit a new workflow'])
       ]),
       div(['Remember to turn off your Cromwell App in Terra once you are done to prevent incurring costs.']),
       div({ style: { marginTop: '1em', height: tableHeight({ actualRows: paginatedPreviousRuns.length, maxRows: 12.5 }), minHeight: '10em' } }, [
