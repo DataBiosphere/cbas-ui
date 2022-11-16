@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
-import { div, h, h2 } from 'react-hyperscript-helpers'
+import { div, h, h1 } from 'react-hyperscript-helpers'
 import ReactJson from 'react-json-view'
 import { AutoSizer } from 'react-virtualized'
 import { ButtonOutline, ButtonPrimary, headerBar, Link } from 'src/components/common'
@@ -20,6 +20,7 @@ export const SubmissionDetails = ({submissionId}) => {
   const [pageNumber, setPageNumber] = useState(1)
   const [itemsPerPage, setItemsPerPage] = useState(50)
   const [viewInputsId, setViewInputsId] = useState()
+  const [viewOutputsId, setViewOutputsId] = useState()
   const [runsData, setRunsData] = useState()
 
   const signal = useCancellation()
@@ -27,7 +28,7 @@ export const SubmissionDetails = ({submissionId}) => {
   useOnMount(() => {
     const loadRunsData = async () => {
       try {
-        const runs = await Ajax(signal).Cbas.runs.get()
+        const runs = await Ajax(signal).Cbas.runs.get(submissionId)
         setRunsData(runs.runs)
       } catch (error) {
         notify('error', 'Error loading previous runs', { detail: await (error instanceof Response ? error.text() : error) })
@@ -48,13 +49,15 @@ export const SubmissionDetails = ({submissionId}) => {
     headerBar(),
     div({ style: { margin: '4em' } }, [
       div({ style: { display: 'flex', marginTop: '0.5rem', justifyContent: 'space-between' } }, [
-        h(Link, { onClick: () => Nav.goToPath('submission-history') }, ['Submission History']),
-        h(TextCell, ['> Submission ' + submissionId]),
+        h1(['Submission Details']),
         h(ButtonOutline, {
           onClick: () => Nav.goToPath('root')
         }, ['Submit a new workflow'])
       ]),
-      div(['Breadcrumb placeholder.']),
+      div([
+        h(Link, { onClick: () => Nav.goToPath('submission-history') }, ['Submission History']),
+        h(TextCell, ['> Submission ' + submissionId])
+      ]),
       div({ style: { marginTop: '1em', height: tableHeight({ actualRows: paginatedPreviousRuns.length, maxRows: 12.5 }), minHeight: '10em' } }, [
         h(AutoSizer, [
           ({ width, height }) => h(FlexTable, {
@@ -83,7 +86,7 @@ export const SubmissionDetails = ({submissionId}) => {
               {
                 size: { basis: 300, grow: 0 },
                 field: 'submission_date',
-                headerRenderer: () => h(Sortable, { sort, field: 'submission_date', onSort: setSort }, ['Submitted']),
+                headerRenderer: () => h(Sortable, { sort, field: 'submission_date', onSort: setSort }, ['Submission date']),
                 cellRenderer: ({ rowIndex }) => {
                   return h(TextCell, [Utils.makeCompleteDate(paginatedPreviousRuns[rowIndex].submission_date)])
                 }
@@ -109,10 +112,11 @@ export const SubmissionDetails = ({submissionId}) => {
               {
                 size: { basis: 150, grow: 0 },
                 field: 'workflow_params',
-                headerRenderer: () => 'Inputs',
+                headerRenderer: () => 'Data',
                 cellRenderer: ({ rowIndex }) => {
                   return div({ style: { width: '100%', textAlign: 'center' } }, [
-                    h(Link, { onClick: () => setViewInputsId(rowIndex) }, ['View'])
+                    h(Link, { onClick: () => setViewInputsId(rowIndex) }, ['View inputs']),
+                    h(Link, { onClick: () => setViewOutputsId(rowIndex) }, ['View outputs'])
                   ])
                 }
               },
@@ -153,6 +157,27 @@ export const SubmissionDetails = ({submissionId}) => {
           displayDataTypes: false,
           displayObjectSize: false,
           src: _.isEmpty(paginatedPreviousRuns[viewInputsId].workflow_params) ? {} : JSON.parse(paginatedPreviousRuns[viewInputsId].workflow_params)
+        })
+      ]),
+      (viewOutputsId !== undefined) && h(Modal, {
+        title: 'Outputs Definition JSON',
+        width: 600,
+        onDismiss: () => setViewOutputsId(undefined),
+        showCancel: false,
+        okButton:
+          h(ButtonPrimary, {
+            disabled: false,
+            onClick: () => setViewOutputsId(undefined)
+          }, ['OK'])
+      }, [
+        h(ReactJson, {
+          style: { whiteSpace: 'pre-wrap', wordBreak: 'break-word' },
+          name: false,
+          collapsed: 4,
+          enableClipboard: true,
+          displayDataTypes: false,
+          displayObjectSize: false,
+          src: _.isEmpty(paginatedPreviousRuns[viewOutputsId].workflow_params) ? {} : JSON.parse(paginatedPreviousRuns[viewOutputsId].workflow_params)
         })
       ])
     ])

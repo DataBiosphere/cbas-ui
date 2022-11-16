@@ -55,8 +55,8 @@ const Cbas = signal => ({
     return res.json()
   },
   runs: {
-    get: async () => {
-      const res = await fetchCbas(`runs`, { signal, method: 'GET' })
+    get: async (submissionId) => {
+      const res = await fetchCbas(`runs?run_set_id=${submissionId}`, { signal, method: 'GET' })
       return res.json()
     }
   },
