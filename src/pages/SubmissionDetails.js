@@ -13,8 +13,9 @@ import { useCancellation, useOnMount } from 'src/libs/react-utils'
 import * as Utils from 'src/libs/utils'
 
 
-export const SubmissionDetails = () => {
+export const SubmissionDetails = ({submissionId}) => {
   // State
+  console.log("submissionId = " + submissionId)
   const [sort, setSort] = useState({ field: 'submission_date', direction: 'desc' })
   const [pageNumber, setPageNumber] = useState(1)
   const [itemsPerPage, setItemsPerPage] = useState(50)
@@ -46,13 +47,14 @@ export const SubmissionDetails = () => {
   return h(Fragment, [
     headerBar(),
     div({ style: { margin: '4em' } }, [
-      div({ style: { display: 'flex', marginTop: '1rem', justifyContent: 'space-between' } }, [
-        h2(['Submission Details']),
+      div({ style: { display: 'flex', marginTop: '0.5rem', justifyContent: 'space-between' } }, [
+        h(Link, { onClick: () => Nav.goToPath('submission-history') }, ['Submission History']),
+        h(TextCell, ['> Submission ' + submissionId]),
         h(ButtonOutline, {
           onClick: () => Nav.goToPath('root')
         }, ['Submit a new workflow'])
       ]),
-      div(['Remember to turn off your Cromwell App in Terra once you are done to prevent incurring costs.']),
+      div(['Breadcrumb placeholder.']),
       div({ style: { marginTop: '1em', height: tableHeight({ actualRows: paginatedPreviousRuns.length, maxRows: 12.5 }), minHeight: '10em' } }, [
         h(AutoSizer, [
           ({ width, height }) => h(FlexTable, {
@@ -160,7 +162,7 @@ export const SubmissionDetails = () => {
 export const navPaths = [
   {
     name: 'submission-details',
-    path: '/submission-details',
+    path: '/submission-history/:submissionId',
     component: SubmissionDetails,
     public: true
   }
