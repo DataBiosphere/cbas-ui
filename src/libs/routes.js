@@ -10,7 +10,7 @@ import * as WorkspaceDashboard from 'src/pages/workspaces/workspace/jobHistory/W
 const routes = _.flatten([
   SubmissionDetails.navPaths,
   SubmissionHistory.navPaths,
-  SubmitWorkflow.navPaths
+  SubmitWorkflow.navPaths,
   WorkspaceDashboard.navPaths
 ])
 

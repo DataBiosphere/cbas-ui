@@ -42,6 +42,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["color", "npm:4.2.3"],\
             ["csp-html-webpack-plugin", "virtual:84c9679c491320aaf965c26b72107c84cbe7ca87fbaac338ec332a5c11f17545037f3990719cbeba601f077fb0e68374d8f0a50ac50eba5838ce679fc7acc1f0#npm:5.1.0"],\
             ["customize-cra", "npm:1.0.0"],\
+            ["date-fns", "npm:2.29.3"],\
             ["easymde", "npm:2.16.1"],\
             ["eslint", "npm:8.19.0"],\
             ["eslint-config-react-app", "virtual:84c9679c491320aaf965c26b72107c84cbe7ca87fbaac338ec332a5c11f17545037f3990719cbeba601f077fb0e68374d8f0a50ac50eba5838ce679fc7acc1f0#npm:7.0.1"],\
@@ -7701,6 +7702,15 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["abab", "npm:2.0.6"],\
             ["whatwg-mimetype", "npm:2.3.0"],\
             ["whatwg-url", "npm:8.7.0"]\
+          ],\
+          "linkType": "HARD"\
+        }]\
+      ]],\
+      ["date-fns", [\
+        ["npm:2.29.3", {\
+          "packageLocation": "./.yarn/cache/date-fns-npm-2.29.3-fef7e3c72c-e01cf5b62a.zip/node_modules/date-fns/",\
+          "packageDependencies": [\
+            ["date-fns", "npm:2.29.3"]\
           ],\
           "linkType": "HARD"\
         }]\
@@ -17233,6 +17243,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["color", "npm:4.2.3"],\
             ["csp-html-webpack-plugin", "virtual:84c9679c491320aaf965c26b72107c84cbe7ca87fbaac338ec332a5c11f17545037f3990719cbeba601f077fb0e68374d8f0a50ac50eba5838ce679fc7acc1f0#npm:5.1.0"],\
             ["customize-cra", "npm:1.0.0"],\
+            ["date-fns", "npm:2.29.3"],\
             ["easymde", "npm:2.16.1"],\
             ["eslint", "npm:8.19.0"],\
             ["eslint-config-react-app", "virtual:84c9679c491320aaf965c26b72107c84cbe7ca87fbaac338ec332a5c11f17545037f3990719cbeba601f077fb0e68374d8f0a50ac50eba5838ce679fc7acc1f0#npm:7.0.1"],\

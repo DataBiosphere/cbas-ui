@@ -80,10 +80,28 @@ export const SubmissionDetails = () => {
               },
               {
                 size: { basis: 300, grow: 0 },
-                field: 'last_modified_timestamp',
-                headerRenderer: () => h(Sortable, { sort, field: 'last_modified_timestamp', onSort: setSort }, ['Last Changed']),
+                field: 'submission_date',
+                headerRenderer: () => h(Sortable, { sort, field: 'submission_date', onSort: setSort }, ['Submitted']),
                 cellRenderer: ({ rowIndex }) => {
-                  return h(TextCell, [Utils.makeCompleteDate(paginatedPreviousRuns[rowIndex].last_modified_timestamp)])
+                  return h(TextCell, [Utils.makeCompleteDate(paginatedPreviousRuns[rowIndex].submission_date)])
+                }
+              },
+              {
+                size: { basis: 300, grow: 0 },
+                field: 'duration',
+                headerRenderer: () => h(Sortable, { sort, field: 'duration', onSort: setSort }, ['Duration']),
+                cellRenderer: ({ rowIndex }) => {
+                  let terminalStates = ["COMPLETE", "CANCELED", "SYSTEM_ERROR", "ABORTED", "EXECUTOR_ERROR"]
+                  let durationSeconds
+                  if (terminalStates.includes(paginatedPreviousRuns[rowIndex].state)) {
+                    durationSeconds = Utils.differenceFromDatesInSeconds(
+                      paginatedPreviousRuns[rowIndex].submission_date,
+                      paginatedPreviousRuns[rowIndex].last_modified_timestamp,
+                    )
+                  } else {
+                    durationSeconds = Utils.differenceFromNowInSeconds(paginatedPreviousRuns[rowIndex].submission_date)
+                  }
+                  return h(TextCell, [Utils.customFormatDuration(durationSeconds)])
                 }
               },
               {
@@ -96,14 +114,6 @@ export const SubmissionDetails = () => {
                   ])
                 }
               },
-              {
-                size: { basis: 300, grow: 0 },
-                field: 'submission_date',
-                headerRenderer: () => h(Sortable, { sort, field: 'submission_date', onSort: setSort }, ['Submitted']),
-                cellRenderer: ({ rowIndex }) => {
-                  return h(TextCell, [Utils.makeCompleteDate(paginatedPreviousRuns[rowIndex].submission_date)])
-                }
-              }
             ]
           })
         ])
