@@ -12,35 +12,46 @@ import { notify } from 'src/libs/notifications'
 import { useCancellation, useOnMount } from 'src/libs/react-utils'
 import * as Utils from 'src/libs/utils'
 
-
 export const SubmissionHistory = () => {
   // State
   const [sort, setSort] = useState({ field: 'submission_date', direction: 'desc' })
   const [pageNumber, setPageNumber] = useState(1)
   const [itemsPerPage, setItemsPerPage] = useState(50)
   const [viewInputsId, setViewInputsId] = useState()
-  const [runsData, setRunsData] = useState()
+  const [runSetsData, setRunSetData] = useState()
 
   const signal = useCancellation()
 
   useOnMount(() => {
-    const loadRunsData = async () => {
+    const loadRunSetsData = async () => {
       try {
-        const runs = await Ajax(signal).Cbas.runs.get()
-        setRunsData(runs.runs)
+        const runSets = await Ajax(signal).Cbas.runSets.get()
+        setRunSetData(runSets.run_sets)
       } catch (error) {
-        notify('error', 'Error loading previous runs', { detail: await (error instanceof Response ? error.text() : error) })
+        notify('error', 'Error loading previous run sets', { detail: await (error instanceof Response ? error.text() : error) })
       }
     }
 
-    loadRunsData()
+    loadRunSetsData()
   })
 
-  const sortedPreviousRuns = _.orderBy(sort.field, sort.direction, runsData)
+  const stateCell = ( { state, error_count } ) => {
+    return {
+      SET_UNKNOWN: h(TextCell, ["Unknown"]),
+      SET_RUNNING: h(TextCell, ["Running"]),
+      SET_COMPLETE: h(TextCell, ["Success"]),
+      SET_ERROR: h(
+        Link, 
+        { onClick: () => window.alert('TODO: API call to retrieve error messages for this Run Set') }, 
+        [`Failed with ${error_count} errors`]),
+    }[state]
+  } 
+
+  const sortedPreviousRunSets = _.orderBy(sort.field, sort.direction, runSetsData)
 
   const firstPageIndex = (pageNumber - 1) * itemsPerPage
   const lastPageIndex = firstPageIndex + itemsPerPage
-  const paginatedPreviousRuns = sortedPreviousRuns.slice(firstPageIndex, lastPageIndex)
+  const paginatedPreviousRunSets = sortedPreviousRunSets.slice(firstPageIndex, lastPageIndex)
 
 
   return h(Fragment, [
@@ -53,21 +64,22 @@ export const SubmissionHistory = () => {
         }, ['Submit another workflow'])
       ]),
       div(['Remember to turn off your Cromwell App in Terra once you are done to prevent incurring costs.']),
-      div({ style: { marginTop: '1em', height: tableHeight({ actualRows: paginatedPreviousRuns.length, maxRows: 12.5 }), minHeight: '10em' } }, [
+      div({ style: { marginTop: '1em', height: tableHeight({ actualRows: paginatedPreviousRunSets.length, maxRows: 12.5, heightPerRow: 80 }), minHeight: '10em' } }, [
         h(AutoSizer, [
           ({ width, height }) => h(FlexTable, {
             'aria-label': 'previous runs',
             width, height, sort,
-            rowCount: paginatedPreviousRuns.length,
+            rowCount: paginatedPreviousRunSets.length,
             noContentMessage: 'Nothing here yet! Your previously run workflows will be displayed here.',
             hoverHighlight: true,
+            rowHeight: 150,
             columns: [
               {
                 size: { basis: 350 },
                 field: 'run_id',
-                headerRenderer: () => h(Sortable, { sort, field: 'run_id', onSort: setSort }, ['Run ID']),
+                headerRenderer: () => h(Sortable, { sort, field: 'run_id', onSort: setSort }, ['Workflow Name']),
                 cellRenderer: ({ rowIndex }) => {
-                  return h(TextCell, [paginatedPreviousRuns[rowIndex].run_id])
+                  return h(TextCell, [paginatedPreviousRunSets[rowIndex].run_set_id])
                 }
               },
               {
@@ -75,43 +87,54 @@ export const SubmissionHistory = () => {
                 field: 'state',
                 headerRenderer: () => h(Sortable, { sort, field: 'state', onSort: setSort }, ['Status']),
                 cellRenderer: ({ rowIndex }) => {
-                  return h(TextCell, [paginatedPreviousRuns[rowIndex].state])
-                }
-              },
-              {
-                size: { basis: 300, grow: 0 },
-                field: 'last_modified_timestamp',
-                headerRenderer: () => h(Sortable, { sort, field: 'last_modified_timestamp', onSort: setSort }, ['Last Changed']),
-                cellRenderer: ({ rowIndex }) => {
-                  return h(TextCell, [Utils.makeCompleteDate(paginatedPreviousRuns[rowIndex].last_modified_timestamp)])
-                }
-              },
-              {
-                size: { basis: 150, grow: 0 },
-                field: 'workflow_params',
-                headerRenderer: () => 'Inputs',
-                cellRenderer: ({ rowIndex }) => {
-                  return div({ style: { width: '100%', textAlign: 'center' } }, [
-                    h(Link, { onClick: () => setViewInputsId(rowIndex) }, ['View'])
-                  ])
+                  return stateCell(paginatedPreviousRunSets[rowIndex])
                 }
               },
               {
                 size: { basis: 300, grow: 0 },
                 field: 'submission_date',
-                headerRenderer: () => h(Sortable, { sort, field: 'submission_date', onSort: setSort }, ['Submitted']),
+                headerRenderer: () => h(Sortable, { sort, field: 'submission_date', onSort: setSort }, ['Submission Date']),
                 cellRenderer: ({ rowIndex }) => {
-                  return h(TextCell, [Utils.makeCompleteDate(paginatedPreviousRuns[rowIndex].submission_date)])
+                  return h(TextCell, [Utils.makeCompleteDate(paginatedPreviousRunSets[rowIndex].submission_timestamp)])
                 }
-              }
+              },
+              {
+                size: { basis: 300, grow: 0 },
+                field: 'duration',
+                headerRenderer: () => h(Sortable, { sort, field: 'duration', onSort: setSort }, ['Duration']),
+                cellRenderer: ({ rowIndex }) => {
+                  let terminalStates = ["SET_ERROR"]
+                  let durationSeconds
+                  if (terminalStates.includes(paginatedPreviousRunSets[rowIndex].state)) {
+                    durationSeconds = Utils.differenceFromDatesInSeconds(
+                      paginatedPreviousRunSets[rowIndex].submission_timestamp,
+                      paginatedPreviousRunSets[rowIndex].last_modified_timestamp,
+                    )
+                  } else {
+                    durationSeconds = Utils.differenceFromNowInSeconds(paginatedPreviousRunSets[rowIndex].submission_timestamp)
+                  }
+                  return h(TextCell, [Utils.customFormatDuration(durationSeconds)])
+                }
+              },
+              {
+                size: { basis: 300, grow: 0 },
+                field: 'comment',
+                headerRenderer: () => 'Comment',
+                cellRenderer: ({ rowIndex }) => {
+                  return div({ style: { width: '100%', textAlign: 'left' } }, [
+                    h(TextCell, {style: { whiteSpace: 'normal' }}, ["Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."]),
+                    h(Link, { onClick: () => window.alert('Comment editing disabled') }, ['Edit']),
+                  ])
+                }
+              },
             ]
           })
         ])
       ]),
-      !_.isEmpty(sortedPreviousRuns) && div({ style: { bottom: 0, position: 'absolute', marginBottom: '1.5rem', right: '4rem' } }, [
+      !_.isEmpty(sortedPreviousRunSets) && div({ style: { bottom: 0, position: 'absolute', marginBottom: '1.5rem', right: '4rem' } }, [
         paginator({
-          filteredDataLength: sortedPreviousRuns.length,
-          unfilteredDataLength: sortedPreviousRuns.length,
+          filteredDataLength: sortedPreviousRunSets.length,
+          unfilteredDataLength: sortedPreviousRunSets.length,
           pageNumber,
           setPageNumber,
           itemsPerPage,
@@ -122,27 +145,6 @@ export const SubmissionHistory = () => {
           itemsPerPageOptions: [10, 25, 50, 100]
         })
       ]),
-      (viewInputsId !== undefined) && h(Modal, {
-        title: 'Inputs Definition JSON',
-        width: 600,
-        onDismiss: () => setViewInputsId(undefined),
-        showCancel: false,
-        okButton:
-          h(ButtonPrimary, {
-            disabled: false,
-            onClick: () => setViewInputsId(undefined)
-          }, ['OK'])
-      }, [
-        h(ReactJson, {
-          style: { whiteSpace: 'pre-wrap', wordBreak: 'break-word' },
-          name: false,
-          collapsed: 4,
-          enableClipboard: true,
-          displayDataTypes: false,
-          displayObjectSize: false,
-          src: _.isEmpty(paginatedPreviousRuns[viewInputsId].workflow_params) ? {} : JSON.parse(paginatedPreviousRuns[viewInputsId].workflow_params)
-        })
-      ])
     ])
   ])
 }
