@@ -177,7 +177,7 @@ export const SubmissionDetails = ({submissionId}) => {
           enableClipboard: true,
           displayDataTypes: false,
           displayObjectSize: false,
-          src: _.isEmpty(paginatedPreviousRuns[viewOutputsId].workflow_params) ? {} : JSON.parse(paginatedPreviousRuns[viewOutputsId].workflow_params)
+          src: _.isEmpty(paginatedPreviousRuns[viewOutputsId].workflow_outputs) ? {} : JSON.parse(paginatedPreviousRuns[viewOutputsId].workflow_outputs)
         })
       ])
     ])
