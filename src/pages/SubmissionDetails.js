@@ -84,7 +84,7 @@ export const SubmissionDetails = ({submissionId}) => {
                   const failureStates = ['SYSTEM_ERROR', 'EXECUTOR_ERROR']
                   if (failureStates.includes(paginatedPreviousRuns[rowIndex].state)) {
                     return div({ style: { width: '100%', textAlign: 'center' } }, [
-                      h(TextCell, {style: {margin: '0.5rem'}} ['Failed with error']),
+                      div({style: {marginBottom: '0.25rem'}}, [h(TextCell,  ['Failed with error'])]),
                       h(Link, { onClick: () => setViewErrorsId(rowIndex) }, ['View'])
                     ])
                   } else {return h(TextCell, [paginatedPreviousRuns[rowIndex].state])}

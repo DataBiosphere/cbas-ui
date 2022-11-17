@@ -152,7 +152,7 @@ const styles = {
 
 // Calculate a suitable pixel height for a table, capped at a certain number of rows.
 // Note: We always need 1 extra row's worth of height for the table header row:
-export const tableHeight = ({ actualRows, maxRows, heightPerRow = 48 }) => (_.min([actualRows, maxRows]) + 1) * heightPerRow
+export const tableHeight = ({ actualRows, maxRows, heightPerRow = 60 }) => (_.min([actualRows, maxRows]) + 1) * heightPerRow
 
 /**
  * Return the sorting direction for a column identified by its field name, and using the same
@@ -218,7 +218,7 @@ const NoContentRow = ({ noContentMessage, noContentRenderer = _.noop, numColumns
   ])
 ])
 
-export const flexTableDefaultRowHeight = 48
+export const flexTableDefaultRowHeight = 60
 
 /**
  * A virtual table with a fixed header and flexible column widths. Intended to take up the full
