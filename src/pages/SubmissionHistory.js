@@ -88,7 +88,16 @@ export const SubmissionHistory = () => {
                 field: 'run_id',
                 headerRenderer: () => h(Sortable, { sort, field: 'run_id', onSort: setSort }, ['Workflow Name']),
                 cellRenderer: ({ rowIndex }) => {
-                  return h(TextCell, [paginatedPreviousRunSets[rowIndex].run_set_id])
+                  // return h(TextCell, [paginatedPreviousRunSets[rowIndex].run_set_id])
+                  return div([
+                    h(
+                      Link, 
+                      {onClick: () => {window.alert("this will go to the Submission Details page")}, style: {fontWeight: 'bold'} }, 
+                      ["pathogenic-genomic-surveillance/fastq_to_ubam [HARDCODED]"]
+                    ),
+                    h(TextCell, { style: {display: 'block', marginTop: '1em', whiteSpace: 'normal'} }, ["Data used: covid 19 sample [HARDCODED]"]),
+                    h(TextCell, { style: {display: 'block', marginTop: '1em', whiteSpace: 'normal'} }, ["68 Workflows [HARDCODED]"])
+                  ])
                 }
               },
               {
