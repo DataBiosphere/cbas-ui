@@ -5,7 +5,7 @@ import ReactJson from 'react-json-view'
 import { AutoSizer } from 'react-virtualized'
 import { ButtonOutline, ButtonPrimary, headerBar, Link } from 'src/components/common'
 import Modal from 'src/components/Modal'
-import { FlexTable, paginator, Sortable, tableHeight, TextCell } from 'src/components/table'
+import { FlexTable, paginator, Sortable, tableHeight, TextCell, styles } from 'src/components/table'
 import { Ajax } from 'src/libs/ajax'
 import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
@@ -82,6 +82,13 @@ export const SubmissionHistory = () => {
             noContentMessage: 'Nothing here yet! Your previously run workflows will be displayed here.',
             hoverHighlight: true,
             rowHeight: rowHeight,
+            styleCell: () => ({
+              display: 'flex',
+              alignItems: 'top',
+              paddingLeft: '1rem',
+              paddingRight: '1rem',
+              paddingTop: '1em'
+            }),
             columns: [
               {
                 size: { basis: 350 },

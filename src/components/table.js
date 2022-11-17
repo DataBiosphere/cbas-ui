@@ -108,10 +108,9 @@ export const paginator = ({
 
 const cellStyles = {
   display: 'flex',
-  alignItems: 'top',
+  alignItems: 'center',
   paddingLeft: '1rem',
   paddingRight: '1rem',
-  paddingTop: '1em'
 }
 
 const styles = {
