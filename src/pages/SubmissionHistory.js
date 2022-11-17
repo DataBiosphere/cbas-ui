@@ -53,7 +53,7 @@ export const SubmissionHistory = () => {
   const lastPageIndex = firstPageIndex + itemsPerPage
   const paginatedPreviousRunSets = sortedPreviousRunSets.slice(firstPageIndex, lastPageIndex)
 
-  const rowHeight = 350
+  const rowHeight = 250
 
   return h(Fragment, [
     headerBar(),
@@ -100,15 +100,15 @@ export const SubmissionHistory = () => {
                 }
               },
               {
-                size: { basis: 300, grow: 0 },
+                size: { basis: 200, grow: 0 },
                 field: 'submission_date',
                 headerRenderer: () => h(Sortable, { sort, field: 'submission_date', onSort: setSort }, ['Submission Date']),
                 cellRenderer: ({ rowIndex }) => {
-                  return h(TextCell, [Utils.makeCompleteDate(paginatedPreviousRunSets[rowIndex].submission_timestamp)])
+                  return h(TextCell, {style: { whiteSpace: 'normal' }},[Utils.makeCompleteDate(paginatedPreviousRunSets[rowIndex].submission_timestamp)])
                 }
               },
               {
-                size: { basis: 300, grow: 0 },
+                size: { basis: 175, grow: 0 },
                 field: 'duration',
                 headerRenderer: () => h(Sortable, { sort, field: 'duration', onSort: setSort }, ['Duration']),
                 cellRenderer: ({ rowIndex }) => {
@@ -126,9 +126,9 @@ export const SubmissionHistory = () => {
                 }
               },
               {
-                size: { basis: 300, grow: 0 },
+                size: { basis: 600, grow: 0 },
                 field: 'comment',
-                headerRenderer: () => 'Comment',
+                headerRenderer: () => h(Sortable, { sort, field: 'comment', onSort: setSort }, ['Comment']),
                 cellRenderer: ({ rowIndex }) => {
                   return div({ style: { width: '100%', textAlign: 'left' } }, [
                     h(TextCell, {style: { whiteSpace: 'normal' }}, ["Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."]),
