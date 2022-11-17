@@ -68,7 +68,7 @@ const Cbas = signal => ({
     get: async () => {
       const res = await fetchCbas(`run_sets`, { signal, method: 'GET' })
       return res.json()
-    },
+    }
   }
 })
 
