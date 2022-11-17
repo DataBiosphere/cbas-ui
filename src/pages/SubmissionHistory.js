@@ -99,18 +99,18 @@ export const SubmissionHistory = () => {
                       h(
                         Link,
                         { onClick: () => { window.alert('this will go to the Submission Details page') }, style: { fontWeight: 'bold' } },
-                        [ paginatedPreviousRunSets[rowIndex].workflow_name || 'pathogenic-genomic-surveillance/fastq_to_ubam [HARDCODED]']
+                        [paginatedPreviousRunSets[rowIndex].runset_name || 'pathogenic-genomic-surveillance/fastq_to_ubam [HARDCODED]']
                       ),
                       h(
-                        TextCell, 
-                        { style: { display: 'block', marginTop: '1em', whiteSpace: 'normal' } }, 
-                        [ `Data used: ${paginatedPreviousRunSets[rowIndex].datatable_name || 'covid 19 sample [HARDCODED]'}` ]
+                        TextCell,
+                        { style: { display: 'block', marginTop: '1em', whiteSpace: 'normal' } },
+                        [`Data used: ${paginatedPreviousRunSets[rowIndex].record_type}`]
                       ),
                       h(
-                        TextCell, 
-                        { style: { display: 'block', marginTop: '1em', whiteSpace: 'normal' } }, 
-                        [ paginatedPreviousRunSets[rowIndex].run_counts || '68 workflows [HARDCODED]' ]
-                      ),
+                        TextCell,
+                        { style: { display: 'block', marginTop: '1em', whiteSpace: 'normal' } },
+                        [`${paginatedPreviousRunSets[rowIndex].runs_count} workflows`]
+                      )
                     ])
                   }
                 },
@@ -154,7 +154,7 @@ export const SubmissionHistory = () => {
                   headerRenderer: () => h(Sortable, { sort, field: 'comment', onSort: setSort }, ['Comment']),
                   cellRenderer: ({ rowIndex }) => {
                     return div({ style: { width: '100%', textAlign: 'left' } }, [
-                      h(TextCell, { style: { whiteSpace: 'normal' } }, [paginatedPreviousRunSets[rowIndex].comment || LOREM_IPSUM]),
+                      h(TextCell, { style: { whiteSpace: 'normal' } }, [paginatedPreviousRunSets[rowIndex].user_comment || LOREM_IPSUM]),
                       h(Link, { style: { display: 'block', marginTop: '1em', textDecoration: 'underline' }, onClick: () => window.alert('Comment editing disabled') }, ['Edit'])
                     ])
                   }
