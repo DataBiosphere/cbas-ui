@@ -126,6 +126,16 @@ export const SubmissionDetails = ({submissionId}) => {
                     h(Link, { onClick: () => setViewOutputsId(rowIndex) }, ['View outputs'])
                   ])
                 }
+              },
+              {
+                size: { basis: 150, grow: 0 },
+                field: 'logs',
+                headerRenderer: () => 'Logs',
+                cellRenderer: ({ rowIndex }) => {
+                  return div({ style: { width: '100%', textAlign: 'center' } }, [
+                    h(Link, { onClick: () => setViewInputsId(rowIndex) }, ['View workflow log file'])
+                  ])
+                }
               }
             ]
           })
