@@ -13,9 +13,9 @@ import { useCancellation, useOnMount } from 'src/libs/react-utils'
 import * as Utils from 'src/libs/utils'
 
 
-export const SubmissionDetails = ({submissionId}) => {
+export const SubmissionDetails = ({ submissionId }) => {
   // State
-  console.log("submissionId = " + submissionId)
+  console.log(`submissionId = ${submissionId}`)
   const [sort, setSort] = useState({ field: 'submission_date', direction: 'desc' })
   const [pageNumber, setPageNumber] = useState(1)
   const [itemsPerPage, setItemsPerPage] = useState(50)
@@ -56,7 +56,7 @@ export const SubmissionDetails = ({submissionId}) => {
       ]),
       div([
         h(Link, { onClick: () => Nav.goToPath('submission-history') }, ['Submission History']),
-        h(TextCell, ['> Submission ' + submissionId])
+        h(TextCell, [`> Submission ${submissionId}`])
       ]),
       div({ style: { marginTop: '1em', height: tableHeight({ actualRows: paginatedPreviousRuns.length, maxRows: 12.5 }), minHeight: '10em' } }, [
         h(AutoSizer, [
