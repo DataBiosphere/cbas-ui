@@ -80,7 +80,13 @@ export const SubmissionDetails = ({submissionId}) => {
                 field: 'state',
                 headerRenderer: () => h(Sortable, { sort, field: 'state', onSort: setSort }, ['Status']),
                 cellRenderer: ({ rowIndex }) => {
-                  return h(TextCell, [paginatedPreviousRuns[rowIndex].state])
+                  const failureStates = ['SYSTEM_ERROR', 'EXECUTOR_ERROR']
+                  if (failureStates.includes(paginatedPreviousRuns[rowIndex].state)) {
+                    return div({ style: { width: '100%', textAlign: 'center' } }, [
+                      h(TextCell, ['Failed with error']),
+                      h(Link, { onClick: () => setViewInputsId(rowIndex) }, ['View'])
+                    ])
+                  } else {return h(TextCell, [paginatedPreviousRuns[rowIndex].state])}
                 }
               },
               {
