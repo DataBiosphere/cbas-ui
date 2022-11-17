@@ -110,7 +110,7 @@ const cellStyles = {
   display: 'flex',
   alignItems: 'center',
   paddingLeft: '1rem',
-  paddingRight: '1rem',
+  paddingRight: '1rem'
 }
 
 const styles = {
