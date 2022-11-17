@@ -46,6 +46,7 @@ export const SubmissionDetails = ({submissionId}) => {
   const paginatedPreviousRuns = sortedPreviousRuns.slice(firstPageIndex, lastPageIndex)
 
 
+  let rowHeight = 200
   return h(Fragment, [
     headerBar(),
     div({ style: { margin: '4em' } }, [
@@ -59,7 +60,11 @@ export const SubmissionDetails = ({submissionId}) => {
         h(Link, { onClick: () => Nav.goToPath('submission-history') }, ['Submission History']),
         h(TextCell, ['> Submission ' + submissionId])
       ]),
-      div({ style: { marginTop: '1em', height: tableHeight({ actualRows: paginatedPreviousRuns.length, maxRows: 12.5 }), minHeight: '10em' } }, [
+      div({
+        style: {
+          marginTop: '1em', height: tableHeight({ actualRows: paginatedPreviousRuns.length, maxRows: 12.5, heightPerRow: 250 }), minHeight: '10em'
+        }
+      }, [
         h(AutoSizer, [
           ({ width, height }) => h(FlexTable, {
             'aria-label': 'previous runs',
@@ -67,6 +72,7 @@ export const SubmissionDetails = ({submissionId}) => {
             rowCount: paginatedPreviousRuns.length,
             noContentMessage: 'Nothing here yet! Your previously run workflows will be displayed here.',
             hoverHighlight: true,
+            rowHeight,
             columns: [
               {
                 size: { basis: 350 },
@@ -84,7 +90,7 @@ export const SubmissionDetails = ({submissionId}) => {
                   const failureStates = ['SYSTEM_ERROR', 'EXECUTOR_ERROR']
                   if (failureStates.includes(paginatedPreviousRuns[rowIndex].state)) {
                     return div({ style: { width: '100%', textAlign: 'center' } }, [
-                      div({style: {marginBottom: '0.25rem'}}, [h(TextCell,  ['Failed with error'])]),
+                      div({ style: { marginBottom: '0.25rem' } }, [h(TextCell, ['Failed with error'])]),
                       h(Link, { onClick: () => setViewErrorsId(rowIndex) }, ['View'])
                     ])
                   } else {return h(TextCell, [paginatedPreviousRuns[rowIndex].state])}
@@ -194,7 +200,9 @@ export const SubmissionDetails = ({submissionId}) => {
           enableClipboard: true,
           displayDataTypes: false,
           displayObjectSize: false,
-          src: _.isEmpty(paginatedPreviousRuns[viewOutputsId].workflow_outputs) ? {} : JSON.parse(paginatedPreviousRuns[viewOutputsId].workflow_outputs)
+          src: _.isEmpty(paginatedPreviousRuns[viewOutputsId].workflow_outputs) ?
+            {} :
+            JSON.parse(paginatedPreviousRuns[viewOutputsId].workflow_outputs)
         })
       ]),
       (viewErrorsId !== undefined) && h(Modal, {
