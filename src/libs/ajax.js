@@ -64,6 +64,10 @@ const Cbas = signal => ({
     post: async payload => {
       const res = await fetchCbas(`run_sets`, _.mergeAll([{ signal, method: 'POST' }, jsonBody(payload)]))
       return res.json()
+    },
+    get: async () => {
+      const res = await fetchCbas(`run_sets`, { signal, method: 'GET' })
+      return res.json()
     }
   }
 })

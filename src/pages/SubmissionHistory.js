@@ -1,10 +1,8 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { div, h, h2 } from 'react-hyperscript-helpers'
-import ReactJson from 'react-json-view'
 import { AutoSizer } from 'react-virtualized'
-import { ButtonOutline, ButtonPrimary, headerBar, Link } from 'src/components/common'
-import Modal from 'src/components/Modal'
+import { ButtonOutline, headerBar, Link } from 'src/components/common'
 import { FlexTable, paginator, Sortable, tableHeight, TextCell } from 'src/components/table'
 import { Ajax } from 'src/libs/ajax'
 import * as Nav from 'src/libs/nav'
@@ -18,30 +16,44 @@ export const SubmissionHistory = () => {
   const [sort, setSort] = useState({ field: 'submission_date', direction: 'desc' })
   const [pageNumber, setPageNumber] = useState(1)
   const [itemsPerPage, setItemsPerPage] = useState(50)
-  const [viewInputsId, setViewInputsId] = useState()
-  const [runsData, setRunsData] = useState()
+  const [runSetsData, setRunSetData] = useState()
 
   const signal = useCancellation()
 
+  const LOREM_IPSUM = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.'
+
   useOnMount(() => {
-    const loadRunsData = async () => {
+    const loadRunSetsData = async () => {
       try {
-        const runs = await Ajax(signal).Cbas.runs.get()
-        setRunsData(runs.runs)
+        const runSets = await Ajax(signal).Cbas.runSets.get()
+        setRunSetData(runSets.run_sets)
       } catch (error) {
-        notify('error', 'Error loading previous runs', { detail: await (error instanceof Response ? error.text() : error) })
+        notify('error', 'Error loading previous run sets', { detail: await (error instanceof Response ? error.text() : error) })
       }
     }
 
-    loadRunsData()
+    loadRunSetsData()
   })
 
-  const sortedPreviousRuns = _.orderBy(sort.field, sort.direction, runsData)
+  const stateCell = ({ state, errorCount }) => {
+    return {
+      SET_UNKNOWN: h(TextCell, ['Unknown']),
+      SET_RUNNING: h(TextCell, ['Running']),
+      SET_COMPLETE: h(TextCell, ['Success']),
+      SET_ERROR: h(
+        Link,
+        { onClick: () => window.alert('TODO: API call to retrieve error messages for this Run Set') },
+        [`Failed with ${errorCount} errors`])
+    }[state]
+  }
+
+  const sortedPreviousRunSets = _.orderBy(sort.field, sort.direction, runSetsData)
 
   const firstPageIndex = (pageNumber - 1) * itemsPerPage
   const lastPageIndex = firstPageIndex + itemsPerPage
-  const paginatedPreviousRuns = sortedPreviousRuns.slice(firstPageIndex, lastPageIndex)
+  const paginatedPreviousRunSets = sortedPreviousRunSets.slice(firstPageIndex, lastPageIndex)
 
+  const rowHeight = 250
 
   return h(Fragment, [
     headerBar(),
@@ -53,65 +65,108 @@ export const SubmissionHistory = () => {
         }, ['Submit another workflow'])
       ]),
       div(['Remember to turn off your Cromwell App in Terra once you are done to prevent incurring costs.']),
-      div({ style: { marginTop: '1em', height: tableHeight({ actualRows: paginatedPreviousRuns.length, maxRows: 12.5 }), minHeight: '10em' } }, [
-        h(AutoSizer, [
-          ({ width, height }) => h(FlexTable, {
-            'aria-label': 'previous runs',
-            width, height, sort,
-            rowCount: paginatedPreviousRuns.length,
-            noContentMessage: 'Nothing here yet! Your previously run workflows will be displayed here.',
-            hoverHighlight: true,
-            columns: [
-              {
-                size: { basis: 350 },
-                field: 'run_id',
-                headerRenderer: () => h(Sortable, { sort, field: 'run_id', onSort: setSort }, ['Run ID']),
-                cellRenderer: ({ rowIndex }) => {
-                  return h(TextCell, [paginatedPreviousRuns[rowIndex].run_id])
+      div(
+        {
+          style: {
+            marginTop: '1em',
+            height: tableHeight({ actualRows: paginatedPreviousRunSets.length, maxRows: 12.5, heightPerRow: rowHeight }),
+            minHeight: '10em'
+          }
+        },
+        [
+          h(AutoSizer, [
+            ({ width, height }) => h(FlexTable, {
+              'aria-label': 'previous runs',
+              width, height, sort,
+              rowCount: paginatedPreviousRunSets.length,
+              noContentMessage: 'Nothing here yet! Your previously run workflows will be displayed here.',
+              hoverHighlight: true,
+              rowHeight,
+              styleCell: () => ({
+                display: 'flex',
+                alignItems: 'top',
+                paddingLeft: '1rem',
+                paddingRight: '1rem',
+                paddingTop: '1em'
+              }),
+              columns: [
+                {
+                  size: { basis: 350 },
+                  field: 'run_id',
+                  headerRenderer: () => h(Sortable, { sort, field: 'run_id', onSort: setSort }, ['Workflow Name']),
+                  cellRenderer: ({ rowIndex }) => {
+                    return div([
+                      h(
+                        Link,
+                        { onClick: () => { window.alert('this will go to the Submission Details page') }, style: { fontWeight: 'bold' } },
+                        [ paginatedPreviousRunSets[rowIndex].workflow_name || 'pathogenic-genomic-surveillance/fastq_to_ubam [HARDCODED]']
+                      ),
+                      h(
+                        TextCell, 
+                        { style: { display: 'block', marginTop: '1em', whiteSpace: 'normal' } }, 
+                        [ `Data used: ${paginatedPreviousRunSets[rowIndex].datatable_name || 'covid 19 sample [HARDCODED]'}` ]
+                      ),
+                      h(
+                        TextCell, 
+                        { style: { display: 'block', marginTop: '1em', whiteSpace: 'normal' } }, 
+                        [ paginatedPreviousRunSets[rowIndex].run_counts || '68 workflows [HARDCODED]' ]
+                      ),
+                    ])
+                  }
+                },
+                {
+                  size: { basis: 200, grow: 0 },
+                  field: 'state',
+                  headerRenderer: () => h(Sortable, { sort, field: 'state', onSort: setSort }, ['Status']),
+                  cellRenderer: ({ rowIndex }) => {
+                    return stateCell(paginatedPreviousRunSets[rowIndex])
+                  }
+                },
+                {
+                  size: { basis: 200, grow: 0 },
+                  field: 'submission_date',
+                  headerRenderer: () => h(Sortable, { sort, field: 'submission_date', onSort: setSort }, ['Submission Date']),
+                  cellRenderer: ({ rowIndex }) => {
+                    return h(TextCell, { style: { whiteSpace: 'normal' } }, [Utils.makeCompleteDate(paginatedPreviousRunSets[rowIndex].submission_timestamp)])
+                  }
+                },
+                {
+                  size: { basis: 175, grow: 0 },
+                  field: 'duration',
+                  headerRenderer: () => h(Sortable, { sort, field: 'duration', onSort: setSort }, ['Duration']),
+                  cellRenderer: ({ rowIndex }) => {
+                    const terminalStates = ['SET_ERROR']
+                    let durationSeconds
+                    if (terminalStates.includes(paginatedPreviousRunSets[rowIndex].state)) {
+                      durationSeconds = Utils.differenceFromDatesInSeconds(
+                        paginatedPreviousRunSets[rowIndex].submission_timestamp,
+                        paginatedPreviousRunSets[rowIndex].last_modified_timestamp
+                      )
+                    } else {
+                      durationSeconds = Utils.differenceFromNowInSeconds(paginatedPreviousRunSets[rowIndex].submission_timestamp)
+                    }
+                    return h(TextCell, [Utils.customFormatDuration(durationSeconds)])
+                  }
+                },
+                {
+                  size: { basis: 600, grow: 0 },
+                  field: 'comment',
+                  headerRenderer: () => h(Sortable, { sort, field: 'comment', onSort: setSort }, ['Comment']),
+                  cellRenderer: ({ rowIndex }) => {
+                    return div({ style: { width: '100%', textAlign: 'left' } }, [
+                      h(TextCell, { style: { whiteSpace: 'normal' } }, [paginatedPreviousRunSets[rowIndex].comment || LOREM_IPSUM]),
+                      h(Link, { style: { display: 'block', marginTop: '1em', textDecoration: 'underline' }, onClick: () => window.alert('Comment editing disabled') }, ['Edit'])
+                    ])
+                  }
                 }
-              },
-              {
-                size: { basis: 200, grow: 0 },
-                field: 'state',
-                headerRenderer: () => h(Sortable, { sort, field: 'state', onSort: setSort }, ['Status']),
-                cellRenderer: ({ rowIndex }) => {
-                  return h(TextCell, [paginatedPreviousRuns[rowIndex].state])
-                }
-              },
-              {
-                size: { basis: 300, grow: 0 },
-                field: 'last_modified_timestamp',
-                headerRenderer: () => h(Sortable, { sort, field: 'last_modified_timestamp', onSort: setSort }, ['Last Changed']),
-                cellRenderer: ({ rowIndex }) => {
-                  return h(TextCell, [Utils.makeCompleteDate(paginatedPreviousRuns[rowIndex].last_modified_timestamp)])
-                }
-              },
-              {
-                size: { basis: 150, grow: 0 },
-                field: 'workflow_params',
-                headerRenderer: () => 'Inputs',
-                cellRenderer: ({ rowIndex }) => {
-                  return div({ style: { width: '100%', textAlign: 'center' } }, [
-                    h(Link, { onClick: () => setViewInputsId(rowIndex) }, ['View'])
-                  ])
-                }
-              },
-              {
-                size: { basis: 300, grow: 0 },
-                field: 'submission_date',
-                headerRenderer: () => h(Sortable, { sort, field: 'submission_date', onSort: setSort }, ['Submitted']),
-                cellRenderer: ({ rowIndex }) => {
-                  return h(TextCell, [Utils.makeCompleteDate(paginatedPreviousRuns[rowIndex].submission_date)])
-                }
-              }
-            ]
-          })
-        ])
-      ]),
-      !_.isEmpty(sortedPreviousRuns) && div({ style: { bottom: 0, position: 'absolute', marginBottom: '1.5rem', right: '4rem' } }, [
+              ]
+            })
+          ])
+        ]),
+      !_.isEmpty(sortedPreviousRunSets) && div({ style: { bottom: 0, position: 'absolute', marginBottom: '1.5rem', right: '4rem' } }, [
         paginator({
-          filteredDataLength: sortedPreviousRuns.length,
-          unfilteredDataLength: sortedPreviousRuns.length,
+          filteredDataLength: sortedPreviousRunSets.length,
+          unfilteredDataLength: sortedPreviousRunSets.length,
           pageNumber,
           setPageNumber,
           itemsPerPage,
@@ -120,27 +175,6 @@ export const SubmissionHistory = () => {
             setItemsPerPage(v)
           },
           itemsPerPageOptions: [10, 25, 50, 100]
-        })
-      ]),
-      (viewInputsId !== undefined) && h(Modal, {
-        title: 'Inputs Definition JSON',
-        width: 600,
-        onDismiss: () => setViewInputsId(undefined),
-        showCancel: false,
-        okButton:
-          h(ButtonPrimary, {
-            disabled: false,
-            onClick: () => setViewInputsId(undefined)
-          }, ['OK'])
-      }, [
-        h(ReactJson, {
-          style: { whiteSpace: 'pre-wrap', wordBreak: 'break-word' },
-          name: false,
-          collapsed: 4,
-          enableClipboard: true,
-          displayDataTypes: false,
-          displayObjectSize: false,
-          src: _.isEmpty(paginatedPreviousRuns[viewInputsId].workflow_params) ? {} : JSON.parse(paginatedPreviousRuns[viewInputsId].workflow_params)
         })
       ])
     ])

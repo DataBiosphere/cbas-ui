@@ -96,12 +96,12 @@ export const SubmissionDetails = ({submissionId}) => {
                 field: 'duration',
                 headerRenderer: () => h(Sortable, { sort, field: 'duration', onSort: setSort }, ['Duration']),
                 cellRenderer: ({ rowIndex }) => {
-                  let terminalStates = ["COMPLETE", "CANCELED", "SYSTEM_ERROR", "ABORTED", "EXECUTOR_ERROR"]
+                  const terminalStates = ['COMPLETE', 'CANCELED', 'SYSTEM_ERROR', 'ABORTED', 'EXECUTOR_ERROR']
                   let durationSeconds
                   if (terminalStates.includes(paginatedPreviousRuns[rowIndex].state)) {
                     durationSeconds = Utils.differenceFromDatesInSeconds(
                       paginatedPreviousRuns[rowIndex].submission_date,
-                      paginatedPreviousRuns[rowIndex].last_modified_timestamp,
+                      paginatedPreviousRuns[rowIndex].last_modified_timestamp
                     )
                   } else {
                     durationSeconds = Utils.differenceFromNowInSeconds(paginatedPreviousRuns[rowIndex].submission_date)
@@ -119,7 +119,7 @@ export const SubmissionDetails = ({submissionId}) => {
                     h(Link, { onClick: () => setViewOutputsId(rowIndex) }, ['View outputs'])
                   ])
                 }
-              },
+              }
             ]
           })
         ])

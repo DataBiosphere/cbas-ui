@@ -1,7 +1,8 @@
+import { formatDuration, intervalToDuration } from 'date-fns'
+import { differenceInSeconds, parseJSON } from 'date-fns/fp'
 import _ from 'lodash/fp'
 import { div } from 'react-hyperscript-helpers'
-import { differenceInSeconds, parseJSON } from 'date-fns/fp'
-import { intervalToDuration, formatDuration } from 'date-fns'
+
 
 export const newTabLinkProps = { target: '_blank', rel: 'noopener noreferrer' } // https://mathiasbynens.github.io/rel-noopener/
 
@@ -19,7 +20,7 @@ export const differenceFromDatesInSeconds = (jsonDateStringStart, jsonDateString
   return differenceInSeconds(parseJSON(jsonDateStringStart), parseJSON(jsonDateStringEnd))
 }
 
-export const customFormatDuration = (seconds) => {
+export const customFormatDuration = seconds => {
   const durations = intervalToDuration({ start: 0, end: seconds * 1000 }) // this function expects milliseconds
   return formatDuration(durations)
 }
