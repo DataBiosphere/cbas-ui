@@ -36,7 +36,7 @@ export const SubmissionHistory = () => {
     loadRunSetsData()
   })
 
-  const stateCell = ({ state, errorCount }) => {
+  const stateCell = ({ state, error_count: errorCount }) => {
     const stateContent = {
       SET_UNKNOWN: 'Unknown',
       SET_RUNNING: 'Running',
