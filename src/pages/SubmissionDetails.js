@@ -4,6 +4,7 @@ import { div, h, h1 } from 'react-hyperscript-helpers'
 import ReactJson from 'react-json-view'
 import { AutoSizer } from 'react-virtualized'
 import { ButtonOutline, ButtonPrimary, headerBar, Link } from 'src/components/common'
+import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import { FlexTable, paginator, Sortable, tableHeight, TextCell } from 'src/components/table'
 import { Ajax } from 'src/libs/ajax'
@@ -90,8 +91,8 @@ export const SubmissionDetails = ({submissionId}) => {
                   const failureStates = ['SYSTEM_ERROR', 'EXECUTOR_ERROR']
                   if (failureStates.includes(paginatedPreviousRuns[rowIndex].state)) {
                     return div({ style: { width: '100%', textAlign: 'center' } }, [
-                      div({ style: { marginBottom: '0.25rem' } }, [h(TextCell, ['Failed with error'])]),
-                      h(Link, { onClick: () => setViewErrorsId(rowIndex) }, ['View'])
+                      div({ style: { marginBottom: '1rem', fontSize: '13px', fontWeight: 'bold' } }, [h(TextCell, {}, [icon('warning-standard', { size: 18, color: 'red' }),['   Failed with error']])]),
+                      h(Link, { style: {}, onClick: () => setViewErrorsId(rowIndex) }, ['View'])
                     ])
                   } else {return h(TextCell, [paginatedPreviousRuns[rowIndex].state])}
                 }
