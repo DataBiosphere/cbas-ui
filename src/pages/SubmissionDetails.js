@@ -21,6 +21,7 @@ export const SubmissionDetails = ({submissionId}) => {
   const [itemsPerPage, setItemsPerPage] = useState(50)
   const [viewInputsId, setViewInputsId] = useState()
   const [viewOutputsId, setViewOutputsId] = useState()
+  const [viewErrorsId, setViewErrorsId] = useState()
   const [runsData, setRunsData] = useState()
 
   const signal = useCancellation()
@@ -84,7 +85,7 @@ export const SubmissionDetails = ({submissionId}) => {
                   if (failureStates.includes(paginatedPreviousRuns[rowIndex].state)) {
                     return div({ style: { width: '100%', textAlign: 'center' } }, [
                       h(TextCell, ['Failed with error']),
-                      h(Link, { onClick: () => setViewInputsId(rowIndex) }, ['View'])
+                      h(Link, { onClick: () => setViewErrorsId(rowIndex) }, ['View'])
                     ])
                   } else {return h(TextCell, [paginatedPreviousRuns[rowIndex].state])}
                 }
@@ -185,6 +186,21 @@ export const SubmissionDetails = ({submissionId}) => {
           displayObjectSize: false,
           src: _.isEmpty(paginatedPreviousRuns[viewOutputsId].workflow_outputs) ? {} : JSON.parse(paginatedPreviousRuns[viewOutputsId].workflow_outputs)
         })
+      ]),
+      (viewErrorsId !== undefined) && h(Modal, {
+        title: 'Error Messages',
+        width: 600,
+        onDismiss: () => setViewErrorsId(undefined),
+        showCancel: false,
+        okButton:
+          h(ButtonPrimary, {
+            disabled: false,
+            onClick: () => setViewErrorsId(undefined)
+          }, ['OK'])
+      }, [
+        h(TextCell, {
+          style: { whiteSpace: 'pre-wrap', wordBreak: 'break-word' }
+        }, [paginatedPreviousRuns[viewErrorsId].error_messages])
       ])
     ])
   ])
