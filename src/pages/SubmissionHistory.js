@@ -53,6 +53,7 @@ export const SubmissionHistory = () => {
   const lastPageIndex = firstPageIndex + itemsPerPage
   const paginatedPreviousRunSets = sortedPreviousRunSets.slice(firstPageIndex, lastPageIndex)
 
+  const rowHeight = 350
 
   return h(Fragment, [
     headerBar(),
@@ -64,7 +65,15 @@ export const SubmissionHistory = () => {
         }, ['Submit another workflow'])
       ]),
       div(['Remember to turn off your Cromwell App in Terra once you are done to prevent incurring costs.']),
-      div({ style: { marginTop: '1em', height: tableHeight({ actualRows: paginatedPreviousRunSets.length, maxRows: 12.5, heightPerRow: 80 }), minHeight: '10em' } }, [
+      div(
+        { 
+          style: { 
+            marginTop: '1em', 
+            height: tableHeight({ actualRows: paginatedPreviousRunSets.length, maxRows: 12.5, heightPerRow: rowHeight }), 
+            minHeight: '10em',
+          } 
+        }, 
+        [
         h(AutoSizer, [
           ({ width, height }) => h(FlexTable, {
             'aria-label': 'previous runs',
@@ -72,7 +81,7 @@ export const SubmissionHistory = () => {
             rowCount: paginatedPreviousRunSets.length,
             noContentMessage: 'Nothing here yet! Your previously run workflows will be displayed here.',
             hoverHighlight: true,
-            rowHeight: 150,
+            rowHeight: rowHeight,
             columns: [
               {
                 size: { basis: 350 },
@@ -123,7 +132,7 @@ export const SubmissionHistory = () => {
                 cellRenderer: ({ rowIndex }) => {
                   return div({ style: { width: '100%', textAlign: 'left' } }, [
                     h(TextCell, {style: { whiteSpace: 'normal' }}, ["Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."]),
-                    h(Link, { onClick: () => window.alert('Comment editing disabled') }, ['Edit']),
+                    h(Link, { style: {display: 'block', marginTop: '1em', textDecoration: 'underline'}, onClick: () => window.alert('Comment editing disabled') }, ['Edit']),
                   ])
                 }
               },
