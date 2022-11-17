@@ -84,7 +84,7 @@ export const SubmissionDetails = ({submissionId}) => {
                   const failureStates = ['SYSTEM_ERROR', 'EXECUTOR_ERROR']
                   if (failureStates.includes(paginatedPreviousRuns[rowIndex].state)) {
                     return div({ style: { width: '100%', textAlign: 'center' } }, [
-                      h(TextCell, ['Failed with error']),
+                      h(TextCell, {style: {margin: '0.5rem'}} ['Failed with error']),
                       h(Link, { onClick: () => setViewErrorsId(rowIndex) }, ['View'])
                     ])
                   } else {return h(TextCell, [paginatedPreviousRuns[rowIndex].state])}
@@ -199,7 +199,7 @@ export const SubmissionDetails = ({submissionId}) => {
           }, ['OK'])
       }, [
         h(TextCell, {
-          style: { whiteSpace: 'pre-wrap', wordBreak: 'break-word' }
+          style: { textAlign: 'center', whiteSpace: 'pre-wrap', wordBreak: 'break-word', margin: '3rem', marginBottom: '1rem' }
         }, [paginatedPreviousRuns[viewErrorsId].error_messages])
       ])
     ])
