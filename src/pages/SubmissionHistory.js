@@ -99,13 +99,18 @@ export const SubmissionHistory = () => {
                       h(
                         Link,
                         { onClick: () => { window.alert('this will go to the Submission Details page') }, style: { fontWeight: 'bold' } },
-                        ['pathogenic-genomic-surveillance/fastq_to_ubam [HARDCODED]']
+                        [ paginatedPreviousRunSets[rowIndex].workflow_name || 'pathogenic-genomic-surveillance/fastq_to_ubam [HARDCODED]']
                       ),
-                      h(TextCell, { style: { display: 'block', marginTop: '1em', whiteSpace: 'normal' } }, ['Data used: covid 19 sample [HARDCODED]']),
-                      h(TextCell, { style: { display: 'block', marginTop: '1em', whiteSpace: 'normal' } }, [
-                        paginatedPreviousRunSets[rowIndex].run_counts || '68 workflows [HARDCODED]'
-                      ]
-                      )
+                      h(
+                        TextCell, 
+                        { style: { display: 'block', marginTop: '1em', whiteSpace: 'normal' } }, 
+                        [ `Data used: ${paginatedPreviousRunSets[rowIndex].datatable_name || 'covid 19 sample [HARDCODED]'}` ]
+                      ),
+                      h(
+                        TextCell, 
+                        { style: { display: 'block', marginTop: '1em', whiteSpace: 'normal' } }, 
+                        [ paginatedPreviousRunSets[rowIndex].run_counts || '68 workflows [HARDCODED]' ]
+                      ),
                     ])
                   }
                 },
