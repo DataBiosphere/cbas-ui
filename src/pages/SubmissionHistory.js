@@ -3,6 +3,7 @@ import { Fragment, useState } from 'react'
 import { div, h, h2 } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import { ButtonOutline, headerBar, Link } from 'src/components/common'
+import { makeStatusLine, statusType } from 'src/components/submission-common'
 import { FlexTable, paginator, Sortable, tableHeight, TextCell } from 'src/components/table'
 import { Ajax } from 'src/libs/ajax'
 import * as Nav from 'src/libs/nav'
@@ -36,15 +37,26 @@ export const SubmissionHistory = () => {
   })
 
   const stateCell = ({ state, errorCount }) => {
-    return {
-      SET_UNKNOWN: h(TextCell, ['Unknown']),
-      SET_RUNNING: h(TextCell, ['Running']),
-      SET_COMPLETE: h(TextCell, ['Success']),
+    const stateContent = {
+      SET_UNKNOWN: 'Unknown',
+      SET_RUNNING: 'Running',
+      SET_COMPLETE: 'Success',
       SET_ERROR: h(
         Link,
         { onClick: () => window.alert('TODO: API call to retrieve error messages for this Run Set') },
         [`Failed with ${errorCount} errors`])
-    }[state]
+    }
+
+    const stateIconKey = {
+      SET_UNKNOWN: 'unknown',
+      SET_RUNNING: 'running',
+      SET_COMPLETE: 'succeeded',
+      SET_ERROR: 'failed'
+    }
+
+    return div([
+      makeStatusLine(statusType[stateIconKey[state]].icon, stateContent[state])
+    ])
   }
 
   const sortedPreviousRunSets = _.orderBy(sort.field, sort.direction, runSetsData)
