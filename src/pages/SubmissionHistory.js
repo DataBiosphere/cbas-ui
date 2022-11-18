@@ -3,6 +3,7 @@ import { Fragment, useState } from 'react'
 import { div, h, h2 } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import { ButtonOutline, headerBar, Link } from 'src/components/common'
+import { icon } from 'src/components/icons'
 import { makeStatusLine, statusType } from 'src/components/submission-common'
 import { FlexTable, paginator, Sortable, tableHeight, TextCell } from 'src/components/table'
 import { Ajax } from 'src/libs/ajax'
@@ -95,7 +96,7 @@ export const SubmissionHistory = () => {
               hoverHighlight: true,
               rowHeight,
               styleCell: () => ({
-                display: 'flex',
+                display: 'inline',
                 alignItems: 'top',
                 paddingLeft: '1rem',
                 paddingRight: '1rem',
@@ -103,9 +104,20 @@ export const SubmissionHistory = () => {
               }),
               columns: [
                 {
+                  size: { basis: 100 },
+                  field: 'actions',
+                  headerRenderer: () => h(Sortable, { sort, field: 'actions', onSort: setSort }, ['Actions']),
+                  cellRenderer: () => {
+                    return div(
+                      { style: { textAlign: 'center' } },
+                      [icon('cardMenuIcon', { size: 24, onClick: () => { window.alert('TODO: go to actions menu') } })]
+                    )
+                  }
+                },
+                {
                   size: { basis: 350 },
-                  field: 'run_id',
-                  headerRenderer: () => h(Sortable, { sort, field: 'run_id', onSort: setSort }, ['Workflow Name']),
+                  field: 'runset_name',
+                  headerRenderer: () => h(Sortable, { sort, field: 'runset_name', onSort: setSort }, ['Workflow Name']),
                   cellRenderer: ({ rowIndex }) => {
                     return div([
                       h(
