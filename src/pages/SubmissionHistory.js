@@ -77,7 +77,6 @@ export const SubmissionHistory = () => {
           onClick: () => Nav.goToPath('root')
         }, ['Submit another workflow'])
       ]),
-      div(['Remember to turn off your Cromwell App in Terra once you are done to prevent incurring costs.']),
       div(
         {
           style: {
@@ -104,7 +103,7 @@ export const SubmissionHistory = () => {
               }),
               columns: [
                 {
-                  size: { basis: 100 },
+                  size: { basis: 100, grow: 0 },
                   field: 'actions',
                   headerRenderer: () => h(Sortable, { sort, field: 'actions', onSort: setSort }, ['Actions']),
                   cellRenderer: () => {
@@ -117,7 +116,7 @@ export const SubmissionHistory = () => {
                 {
                   size: { basis: 350 },
                   field: 'runset_name',
-                  headerRenderer: () => h(Sortable, { sort, field: 'runset_name', onSort: setSort }, ['Workflow Name']),
+                  headerRenderer: () => h(Sortable, { sort, field: 'runset_name', onSort: setSort }, ['Submission']),
                   cellRenderer: ({ rowIndex }) => {
                     return div([
                       h(
@@ -149,7 +148,7 @@ export const SubmissionHistory = () => {
                 {
                   size: { basis: 200, grow: 0 },
                   field: 'submission_date',
-                  headerRenderer: () => h(Sortable, { sort, field: 'submission_date', onSort: setSort }, ['Submission Date']),
+                  headerRenderer: () => h(Sortable, { sort, field: 'submission_date', onSort: setSort }, ['Date Submitted']),
                   cellRenderer: ({ rowIndex }) => {
                     return h(TextCell, { style: { whiteSpace: 'normal' } }, [Utils.makeCompleteDate(paginatedPreviousRunSets[rowIndex].submission_timestamp)])
                   }
