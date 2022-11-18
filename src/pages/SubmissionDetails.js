@@ -46,7 +46,7 @@ export const SubmissionDetails = ({submissionId}) => {
   const lastPageIndex = firstPageIndex + itemsPerPage
   const paginatedPreviousRuns = sortedPreviousRuns.slice(firstPageIndex, lastPageIndex)
 
-
+  let rowWidth = 100
   let rowHeight = 200
   return h(Fragment, [
     headerBar(),
@@ -58,8 +58,7 @@ export const SubmissionDetails = ({submissionId}) => {
         }, ['Submit a new workflow'])
       ]),
       div([
-        h(Link, { onClick: () => Nav.goToPath('submission-history') }, ['Submission History']),
-        h(TextCell, ['> Submission ' + submissionId])
+        h(TextCell, [(h(Link, { onClick: () => Nav.goToPath('submission-history') }, ['Submission History'])),' > Submission ' + submissionId])
       ]),
       div({
         style: {
@@ -84,14 +83,14 @@ export const SubmissionDetails = ({submissionId}) => {
                 }
               },
               {
-                size: { basis: 200, grow: 0 },
+                size: { basis: 220, grow: 0 },
                 field: 'state',
                 headerRenderer: () => h(Sortable, { sort, field: 'state', onSort: setSort }, ['Status']),
                 cellRenderer: ({ rowIndex }) => {
                   const failureStates = ['SYSTEM_ERROR', 'EXECUTOR_ERROR']
                   if (failureStates.includes(paginatedPreviousRuns[rowIndex].state)) {
                     return div({ style: { width: '100%', textAlign: 'center' } }, [
-                      div({ style: { marginBottom: '1rem', fontSize: '13px', fontWeight: 'bold' } }, [h(TextCell, {}, [icon('warning-standard', { size: 18, color: 'red' }),['   Failed with error']])]),
+                      div({ style: { marginBottom: '1rem', fontWeight: 'bold' } }, [h(TextCell, {}, [icon('warning-standard', { size: 18, color: 'red' }),['   Failed with error']])]),
                       h(Link, { style: {}, onClick: () => setViewErrorsId(rowIndex) }, ['View'])
                     ])
                   } else {return h(TextCell, [paginatedPreviousRuns[rowIndex].state])}
@@ -124,13 +123,13 @@ export const SubmissionDetails = ({submissionId}) => {
                 }
               },
               {
-                size: { basis: 150, grow: 0 },
+                size: { basis: 155, grow: 0 },
                 field: 'workflow_params',
                 headerRenderer: () => 'Data',
                 cellRenderer: ({ rowIndex }) => {
-                  return div({ style: { width: '100%', textAlign: 'center' } }, [
-                    h(Link, { onClick: () => setViewInputsId(rowIndex) }, ['View inputs']),
-                    h(Link, { onClick: () => setViewOutputsId(rowIndex) }, ['View outputs'])
+                  return div({ style: { width: '100%', textAlign: 'left' } }, [
+                    h(Link, { style: { display: 'inline-block', marginBottom: '1rem', textDecoration: 'underline' }, onClick: () => setViewInputsId(rowIndex) }, ['View inputs']),
+                    h(Link, { style: { textDecoration: 'underline' }, onClick: () => setViewOutputsId(rowIndex) }, ['View outputs'])
                   ])
                 }
               },
@@ -140,7 +139,7 @@ export const SubmissionDetails = ({submissionId}) => {
                 headerRenderer: () => 'Logs',
                 cellRenderer: ({ rowIndex }) => {
                   return div({ style: { width: '100%', textAlign: 'center' } }, [
-                    h(Link, { onClick: () => setViewInputsId(rowIndex) }, ['View workflow log file'])
+                    h(Link, { disabled: 'true', onClick: () => setViewInputsId(rowIndex) }, ['View workflow log file'])
                   ])
                 }
               }
