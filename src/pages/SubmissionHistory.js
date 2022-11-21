@@ -39,20 +39,20 @@ export const SubmissionHistory = () => {
 
   const stateCell = ({ state, error_count: errorCount }) => {
     const stateContent = {
-      SET_UNKNOWN: 'Unknown',
-      SET_RUNNING: 'Running',
-      SET_COMPLETE: 'Success',
-      SET_ERROR: h(
+      UNKNOWN: 'Unknown',
+      RUNNING: 'Running',
+      COMPLETE: 'Success',
+      ERROR: h(
         Link,
         { onClick: () => window.alert('TODO: API call to retrieve error messages for this Run Set') },
         [`Failed with ${errorCount} errors`])
     }
 
     const stateIconKey = {
-      SET_UNKNOWN: 'unknown',
-      SET_RUNNING: 'running',
-      SET_COMPLETE: 'succeeded',
-      SET_ERROR: 'failed'
+      UNKNOWN: 'unknown',
+      RUNNING: 'running',
+      COMPLETE: 'succeeded',
+      ERROR: 'failed'
     }
 
     return div([
@@ -132,7 +132,7 @@ export const SubmissionHistory = () => {
                       h(
                         TextCell,
                         { style: { display: 'block', marginTop: '1em', whiteSpace: 'normal' } },
-                        [`${paginatedPreviousRunSets[rowIndex].runs_count} workflows`]
+                        [`${paginatedPreviousRunSets[rowIndex].run_count} workflows`]
                       )
                     ])
                   }
