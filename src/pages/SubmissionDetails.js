@@ -73,6 +73,7 @@ export const SubmissionDetails = ({submissionId}) => {
             noContentMessage: 'Nothing here yet! Your previously run workflows will be displayed here.',
             hoverHighlight: true,
             rowHeight,
+            rowWidth,
             columns: [
               {
                 size: { basis: 350 },
@@ -129,12 +130,12 @@ export const SubmissionDetails = ({submissionId}) => {
                 cellRenderer: ({ rowIndex }) => {
                   return div({ style: { width: '100%', textAlign: 'left' } }, [
                     h(Link, { style: { display: 'inline-block', marginBottom: '1rem', textDecoration: 'underline' }, onClick: () => setViewInputsId(rowIndex) }, ['View inputs']),
-                    h(Link, { style: { textDecoration: 'underline' }, onClick: () => setViewOutputsId(rowIndex) }, ['View outputs'])
+                    h(Link, { style: { display: 'inline-block', marginTop: '1rem', textDecoration: 'underline' }, onClick: () => setViewOutputsId(rowIndex) }, ['View outputs'])
                   ])
                 }
               },
               {
-                size: { basis: 150, grow: 0 },
+                size: { basis: 250, grow: 0 },
                 field: 'logs',
                 headerRenderer: () => 'Logs',
                 cellRenderer: ({ rowIndex }) => {
