@@ -3,6 +3,8 @@ import { Fragment, useState } from 'react'
 import { div, h, h2 } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import { ButtonOutline, headerBar, Link } from 'src/components/common'
+import { icon } from 'src/components/icons'
+import { makeStatusLine, statusType } from 'src/components/submission-common'
 import { FlexTable, paginator, Sortable, tableHeight, TextCell } from 'src/components/table'
 import { Ajax } from 'src/libs/ajax'
 import * as Nav from 'src/libs/nav'
@@ -35,16 +37,27 @@ export const SubmissionHistory = () => {
     loadRunSetsData()
   })
 
-  const stateCell = ({ state, errorCount }) => {
-    return {
-      SET_UNKNOWN: h(TextCell, ['Unknown']),
-      SET_RUNNING: h(TextCell, ['Running']),
-      SET_COMPLETE: h(TextCell, ['Success']),
-      SET_ERROR: h(
+  const stateCell = ({ state, error_count: errorCount }) => {
+    const stateContent = {
+      UNKNOWN: 'Unknown',
+      RUNNING: 'Running',
+      COMPLETE: 'Success',
+      ERROR: h(
         Link,
         { onClick: () => window.alert('TODO: API call to retrieve error messages for this Run Set') },
         [`Failed with ${errorCount} errors`])
-    }[state]
+    }
+
+    const stateIconKey = {
+      UNKNOWN: 'unknown',
+      RUNNING: 'running',
+      COMPLETE: 'succeeded',
+      ERROR: 'failed'
+    }
+
+    return div([
+      makeStatusLine(statusType[stateIconKey[state]].icon, stateContent[state])
+    ])
   }
 
   const sortedPreviousRunSets = _.orderBy(sort.field, sort.direction, runSetsData)
@@ -64,7 +77,6 @@ export const SubmissionHistory = () => {
           onClick: () => Nav.goToPath('root')
         }, ['Submit another workflow'])
       ]),
-      div(['Remember to turn off your Cromwell App in Terra once you are done to prevent incurring costs.']),
       div(
         {
           style: {
@@ -83,7 +95,7 @@ export const SubmissionHistory = () => {
               hoverHighlight: true,
               rowHeight,
               styleCell: () => ({
-                display: 'flex',
+                display: 'inline',
                 alignItems: 'top',
                 paddingLeft: '1rem',
                 paddingRight: '1rem',
@@ -91,26 +103,37 @@ export const SubmissionHistory = () => {
               }),
               columns: [
                 {
+                  size: { basis: 100, grow: 0 },
+                  field: 'actions',
+                  headerRenderer: () => h(Sortable, { sort, field: 'actions', onSort: setSort }, ['Actions']),
+                  cellRenderer: () => {
+                    return div(
+                      { style: { textAlign: 'center' } },
+                      [icon('cardMenuIcon', { size: 24, onClick: () => { window.alert('TODO: go to actions menu') } })]
+                    )
+                  }
+                },
+                {
                   size: { basis: 350 },
-                  field: 'run_id',
-                  headerRenderer: () => h(Sortable, { sort, field: 'run_id', onSort: setSort }, ['Workflow Name']),
+                  field: 'runset_name',
+                  headerRenderer: () => h(Sortable, { sort, field: 'runset_name', onSort: setSort }, ['Submission']),
                   cellRenderer: ({ rowIndex }) => {
                     return div([
                       h(
                         Link,
                         { onClick: () => { window.alert('this will go to the Submission Details page') }, style: { fontWeight: 'bold' } },
-                        [ paginatedPreviousRunSets[rowIndex].workflow_name || 'pathogenic-genomic-surveillance/fastq_to_ubam [HARDCODED]']
+                        [paginatedPreviousRunSets[rowIndex].runset_name || 'pathogenic-genomic-surveillance/fastq_to_ubam [HARDCODED]']
                       ),
                       h(
-                        TextCell, 
-                        { style: { display: 'block', marginTop: '1em', whiteSpace: 'normal' } }, 
-                        [ `Data used: ${paginatedPreviousRunSets[rowIndex].datatable_name || 'covid 19 sample [HARDCODED]'}` ]
+                        TextCell,
+                        { style: { display: 'block', marginTop: '1em', whiteSpace: 'normal' } },
+                        [`Data used: ${paginatedPreviousRunSets[rowIndex].record_type}`]
                       ),
                       h(
-                        TextCell, 
-                        { style: { display: 'block', marginTop: '1em', whiteSpace: 'normal' } }, 
-                        [ paginatedPreviousRunSets[rowIndex].run_counts || '68 workflows [HARDCODED]' ]
-                      ),
+                        TextCell,
+                        { style: { display: 'block', marginTop: '1em', whiteSpace: 'normal' } },
+                        [`${paginatedPreviousRunSets[rowIndex].run_count} workflows`]
+                      )
                     ])
                   }
                 },
@@ -125,7 +148,7 @@ export const SubmissionHistory = () => {
                 {
                   size: { basis: 200, grow: 0 },
                   field: 'submission_date',
-                  headerRenderer: () => h(Sortable, { sort, field: 'submission_date', onSort: setSort }, ['Submission Date']),
+                  headerRenderer: () => h(Sortable, { sort, field: 'submission_date', onSort: setSort }, ['Date Submitted']),
                   cellRenderer: ({ rowIndex }) => {
                     return h(TextCell, { style: { whiteSpace: 'normal' } }, [Utils.makeCompleteDate(paginatedPreviousRunSets[rowIndex].submission_timestamp)])
                   }
@@ -154,7 +177,7 @@ export const SubmissionHistory = () => {
                   headerRenderer: () => h(Sortable, { sort, field: 'comment', onSort: setSort }, ['Comment']),
                   cellRenderer: ({ rowIndex }) => {
                     return div({ style: { width: '100%', textAlign: 'left' } }, [
-                      h(TextCell, { style: { whiteSpace: 'normal' } }, [paginatedPreviousRunSets[rowIndex].comment || LOREM_IPSUM]),
+                      h(TextCell, { style: { whiteSpace: 'normal' } }, [paginatedPreviousRunSets[rowIndex].user_comment || LOREM_IPSUM]),
                       h(Link, { style: { display: 'block', marginTop: '1em', textDecoration: 'underline' }, onClick: () => window.alert('Comment editing disabled') }, ['Edit'])
                     ])
                   }

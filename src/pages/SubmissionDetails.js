@@ -14,9 +14,9 @@ import { useCancellation, useOnMount } from 'src/libs/react-utils'
 import * as Utils from 'src/libs/utils'
 
 
-export const SubmissionDetails = ({submissionId}) => {
+export const SubmissionDetails = ({ submissionId }) => {
   // State
-  console.log("submissionId = " + submissionId)
+  console.log(`submissionId = ${submissionId}`)
   const [sort, setSort] = useState({ field: 'submission_date', direction: 'desc' })
   const [pageNumber, setPageNumber] = useState(1)
   const [itemsPerPage, setItemsPerPage] = useState(50)
