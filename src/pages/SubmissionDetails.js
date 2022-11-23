@@ -4,6 +4,7 @@ import { div, h, h1 } from 'react-hyperscript-helpers'
 import ReactJson from 'react-json-view'
 import { AutoSizer } from 'react-virtualized'
 import { ButtonOutline, ButtonPrimary, headerBar, Link } from 'src/components/common'
+import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import { FlexTable, paginator, Sortable, tableHeight, TextCell } from 'src/components/table'
 import { Ajax } from 'src/libs/ajax'
@@ -21,6 +22,7 @@ export const SubmissionDetails = ({ submissionId }) => {
   const [itemsPerPage, setItemsPerPage] = useState(50)
   const [viewInputsId, setViewInputsId] = useState()
   const [viewOutputsId, setViewOutputsId] = useState()
+  const [viewErrorsId, setViewErrorsId] = useState()
   const [runsData, setRunsData] = useState()
 
   const signal = useCancellation()
@@ -44,7 +46,8 @@ export const SubmissionDetails = ({ submissionId }) => {
   const lastPageIndex = firstPageIndex + itemsPerPage
   const paginatedPreviousRuns = sortedPreviousRuns.slice(firstPageIndex, lastPageIndex)
 
-
+  let rowWidth = 100
+  let rowHeight = 200
   return h(Fragment, [
     headerBar(),
     div({ style: { margin: '4em' } }, [
@@ -55,10 +58,13 @@ export const SubmissionDetails = ({ submissionId }) => {
         }, ['Submit a new workflow'])
       ]),
       div([
-        h(Link, { onClick: () => Nav.goToPath('submission-history') }, ['Submission History']),
-        h(TextCell, [`> Submission ${submissionId}`])
+        h(TextCell, [(h(Link, { onClick: () => Nav.goToPath('submission-history') }, ['Submission History'])),' > Submission ' + submissionId])
       ]),
-      div({ style: { marginTop: '1em', height: tableHeight({ actualRows: paginatedPreviousRuns.length, maxRows: 12.5 }), minHeight: '10em' } }, [
+      div({
+        style: {
+          marginTop: '1em', height: tableHeight({ actualRows: paginatedPreviousRuns.length, maxRows: 12.5, heightPerRow: 250 }), minHeight: '10em'
+        }
+      }, [
         h(AutoSizer, [
           ({ width, height }) => h(FlexTable, {
             'aria-label': 'previous runs',
@@ -66,6 +72,8 @@ export const SubmissionDetails = ({ submissionId }) => {
             rowCount: paginatedPreviousRuns.length,
             noContentMessage: 'Nothing here yet! Your previously run workflows will be displayed here.',
             hoverHighlight: true,
+            rowHeight,
+            rowWidth,
             columns: [
               {
                 size: { basis: 350 },
@@ -76,11 +84,17 @@ export const SubmissionDetails = ({ submissionId }) => {
                 }
               },
               {
-                size: { basis: 200, grow: 0 },
+                size: { basis: 220, grow: 0 },
                 field: 'state',
                 headerRenderer: () => h(Sortable, { sort, field: 'state', onSort: setSort }, ['Status']),
                 cellRenderer: ({ rowIndex }) => {
-                  return h(TextCell, [paginatedPreviousRuns[rowIndex].state])
+                  const failureStates = ['SYSTEM_ERROR', 'EXECUTOR_ERROR']
+                  if (failureStates.includes(paginatedPreviousRuns[rowIndex].state)) {
+                    return div({ style: { width: '100%', textAlign: 'center' } }, [
+                      div({ style: { marginBottom: '1rem', fontWeight: 'bold' } }, [h(TextCell, {}, [icon('warning-standard', { size: 18, color: 'red' }),['   Failed with error']])]),
+                      h(Link, { style: {}, onClick: () => setViewErrorsId(rowIndex) }, ['View'])
+                    ])
+                  } else {return h(TextCell, [paginatedPreviousRuns[rowIndex].state])}
                 }
               },
               {
@@ -110,13 +124,23 @@ export const SubmissionDetails = ({ submissionId }) => {
                 }
               },
               {
-                size: { basis: 150, grow: 0 },
+                size: { basis: 155, grow: 0 },
                 field: 'workflow_params',
                 headerRenderer: () => 'Data',
                 cellRenderer: ({ rowIndex }) => {
+                  return div({ style: { width: '100%', textAlign: 'left' } }, [
+                    h(Link, { style: { display: 'inline-block', marginBottom: '1rem', textDecoration: 'underline' }, onClick: () => setViewInputsId(rowIndex) }, ['View inputs']),
+                    h(Link, { style: { display: 'inline-block', marginTop: '1rem', textDecoration: 'underline' }, onClick: () => setViewOutputsId(rowIndex) }, ['View outputs'])
+                  ])
+                }
+              },
+              {
+                size: { basis: 250, grow: 0 },
+                field: 'logs',
+                headerRenderer: () => 'Logs',
+                cellRenderer: ({ rowIndex }) => {
                   return div({ style: { width: '100%', textAlign: 'center' } }, [
-                    h(Link, { onClick: () => setViewInputsId(rowIndex) }, ['View inputs']),
-                    h(Link, { onClick: () => setViewOutputsId(rowIndex) }, ['View outputs'])
+                    h(Link, { disabled: 'true', onClick: () => setViewInputsId(rowIndex) }, ['View workflow log file'])
                   ])
                 }
               }
@@ -177,8 +201,25 @@ export const SubmissionDetails = ({ submissionId }) => {
           enableClipboard: true,
           displayDataTypes: false,
           displayObjectSize: false,
-          src: _.isEmpty(paginatedPreviousRuns[viewOutputsId].workflow_outputs) ? {} : JSON.parse(paginatedPreviousRuns[viewOutputsId].workflow_outputs)
+          src: _.isEmpty(paginatedPreviousRuns[viewOutputsId].workflow_outputs) ?
+            {} :
+            JSON.parse(paginatedPreviousRuns[viewOutputsId].workflow_outputs)
         })
+      ]),
+      (viewErrorsId !== undefined) && h(Modal, {
+        title: 'Error Messages',
+        width: 600,
+        onDismiss: () => setViewErrorsId(undefined),
+        showCancel: false,
+        okButton:
+          h(ButtonPrimary, {
+            disabled: false,
+            onClick: () => setViewErrorsId(undefined)
+          }, ['OK'])
+      }, [
+        h(TextCell, {
+          style: { textAlign: 'center', whiteSpace: 'pre-wrap', wordBreak: 'break-word', margin: '3rem', marginBottom: '1rem' }
+        }, [paginatedPreviousRuns[viewErrorsId].error_messages])
       ])
     ])
   ])
