@@ -138,18 +138,18 @@ describe('SubmissionHistory page', () => {
     // check data rows are rendered as expected
     const cellsFromDataRow1 = within(rows[1]).queryAllByRole('cell')
     expect(cellsFromDataRow1.length).toBe(6)
-    within(cellsFromDataRow1[1]).getByText(/Data used: FOO/)
-    within(cellsFromDataRow1[1]).getByText(/1 workflows/)
-    within(cellsFromDataRow1[2]).getByText(/Success/)
-    within(cellsFromDataRow1[3]).getByText(/Jan 1, 2022/)
-    within(cellsFromDataRow1[4]).getByText('1 day 1 hour 1 minute 1 second')
+    within(cellsFromDataRow1[headerPosition['Submission']]).getByText('Data used: FOO')
+    within(cellsFromDataRow1[headerPosition['Submission']]).getByText('1 workflows')
+    within(cellsFromDataRow1[headerPosition['Status']]).getByText('Success')
+    within(cellsFromDataRow1[headerPosition['Date Submitted']]).getByText(/Jan 1, 2022/)
+    within(cellsFromDataRow1[headerPosition['Duration']]).getByText('1 day 1 hour 1 minute 1 second')
 
     const cellsFromDataRow2 = within(rows[2]).queryAllByRole('cell')
     expect(cellsFromDataRow2.length).toBe(6)
-    within(cellsFromDataRow2[1]).getByText(/Data used: FOO/)
-    within(cellsFromDataRow2[2]).getByText(/Failed with 1 errors/)
-    within(cellsFromDataRow2[3]).getByText(/Jul 10, 2021/)
-    within(cellsFromDataRow2[4]).getByText('1 month 1 day 1 hour 1 minute 1 second')
+    within(cellsFromDataRow2[headerPosition['Submission']]).getByText('Data used: FOO')
+    within(cellsFromDataRow2[headerPosition['Status']]).getByText('Failed with 1 errors')
+    within(cellsFromDataRow2[headerPosition['Date Submitted']]).getByText(/Jul 10, 2021/)
+    within(cellsFromDataRow2[headerPosition['Duration']]).getByText('1 month 1 day 1 hour 1 minute 1 second')
   })
 
   it('should sort columns properly', async () => {
@@ -190,13 +190,13 @@ describe('SubmissionHistory page', () => {
     await act(async () => {
       await fireEvent.click(within(headers[headerPosition['Status']]).getByRole('button'))
     })
-    within(topRowCells(headerPosition['Status'])).getByText(/Success/)
+    within(topRowCells(headerPosition['Status'])).getByText('Success')
 
     // * descending order
     await act(async () => {
       await fireEvent.click(within(headers[headerPosition['Status']]).getByRole('button'))
     })
-    within(topRowCells(headerPosition['Status'])).getByText(/Failed with 1 errors/)
+    within(topRowCells(headerPosition['Status'])).getByText('Failed with 1 errors')
 
 
     // Click on "Duration" column and check that the top column is correct for:
