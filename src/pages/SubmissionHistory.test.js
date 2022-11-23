@@ -68,7 +68,7 @@ describe('SubmissionHistory page', () => {
       return {
         Cbas: {
           runSets: {
-            get: getRunSetsMethod // todo: change this to latest API
+            get: getRunSetsMethod
           }
         }
       }
@@ -180,7 +180,7 @@ describe('SubmissionHistory page', () => {
 
     // * descending order
     await act(async () => {
-      await fireEvent.click(within(headers[3]).getByRole('button'))
+      await fireEvent.click(within(headers[headerPosition['Date Submitted']]).getByRole('button'))
     })
     within(topRowCells(headerPosition['Date Submitted'])).getByText(/Jan 1, 2022/)
 
