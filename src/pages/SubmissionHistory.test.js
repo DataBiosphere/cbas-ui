@@ -87,7 +87,7 @@ describe('SubmissionHistory page', () => {
   it('should display no content message when there are no previous runs', async () => {
     // Arrange
     const getRunSetsMethod = jest.fn(() => Promise.resolve([]))
-    Ajax.mockImplementation(() => {
+    await Ajax.mockImplementation(() => {
       return {
         Cbas: {
           runSets: {
