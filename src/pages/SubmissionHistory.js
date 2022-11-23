@@ -15,7 +15,7 @@ import * as Utils from 'src/libs/utils'
 
 export const SubmissionHistory = () => {
   // State
-  const [sort, setSort] = useState({ field: 'submission_date', direction: 'desc' })
+  const [sort, setSort] = useState({ field: 'submission_timestamp', direction: 'desc' })
   const [pageNumber, setPageNumber] = useState(1)
   const [itemsPerPage, setItemsPerPage] = useState(50)
   const [runSetsData, setRunSetData] = useState()
@@ -24,11 +24,23 @@ export const SubmissionHistory = () => {
 
   const LOREM_IPSUM = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.'
 
+  const terminalStates = ['ERROR', 'COMPLETE']
+
+  const runSetDuration = ({
+    state,
+    submission_timestamp: submitted,
+    last_modified_timestamp: modified
+  }) => {
+    return terminalStates.includes(state) ?
+      Utils.differenceFromDatesInSeconds(submitted, modified) :
+      Utils.differenceFromNowInSeconds(submitted)
+  }
+
   useOnMount(() => {
     const loadRunSetsData = async () => {
       try {
         const runSets = await Ajax(signal).Cbas.runSets.get()
-        setRunSetData(runSets.run_sets)
+        setRunSetData(_.map(r => _.merge(r, { duration: runSetDuration(r) }), runSets.run_sets))
       } catch (error) {
         notify('error', 'Error loading previous run sets', { detail: await (error instanceof Response ? error.text() : error) })
       }
@@ -61,7 +73,6 @@ export const SubmissionHistory = () => {
   }
 
   const sortedPreviousRunSets = _.orderBy(sort.field, sort.direction, runSetsData)
-
   const firstPageIndex = (pageNumber - 1) * itemsPerPage
   const lastPageIndex = firstPageIndex + itemsPerPage
   const paginatedPreviousRunSets = sortedPreviousRunSets.slice(firstPageIndex, lastPageIndex)
@@ -147,8 +158,8 @@ export const SubmissionHistory = () => {
                 },
                 {
                   size: { basis: 200, grow: 0 },
-                  field: 'submission_date',
-                  headerRenderer: () => h(Sortable, { sort, field: 'submission_date', onSort: setSort }, ['Date Submitted']),
+                  field: 'submission_timestamp',
+                  headerRenderer: () => h(Sortable, { sort, field: 'submission_timestamp', onSort: setSort }, ['Date Submitted']),
                   cellRenderer: ({ rowIndex }) => {
                     return h(TextCell, { style: { whiteSpace: 'normal' } }, [Utils.makeCompleteDate(paginatedPreviousRunSets[rowIndex].submission_timestamp)])
                   }
@@ -158,17 +169,7 @@ export const SubmissionHistory = () => {
                   field: 'duration',
                   headerRenderer: () => h(Sortable, { sort, field: 'duration', onSort: setSort }, ['Duration']),
                   cellRenderer: ({ rowIndex }) => {
-                    const terminalStates = ['SET_ERROR']
-                    let durationSeconds
-                    if (terminalStates.includes(paginatedPreviousRunSets[rowIndex].state)) {
-                      durationSeconds = Utils.differenceFromDatesInSeconds(
-                        paginatedPreviousRunSets[rowIndex].submission_timestamp,
-                        paginatedPreviousRunSets[rowIndex].last_modified_timestamp
-                      )
-                    } else {
-                      durationSeconds = Utils.differenceFromNowInSeconds(paginatedPreviousRunSets[rowIndex].submission_timestamp)
-                    }
-                    return h(TextCell, [Utils.customFormatDuration(durationSeconds)])
+                    return h(TextCell, [Utils.customFormatDuration(runSetDuration(paginatedPreviousRunSets[rowIndex]))])
                   }
                 },
                 {
