@@ -23,12 +23,12 @@ export const SubmissionHistory = () => {
   const signal = useCancellation()
 
   const LOREM_IPSUM = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.'
-  
+
   const terminalStates = ['ERROR', 'COMPLETE']
 
   const runSetDuration = ({
-    state: state, 
-    submission_timestamp: submitted, 
+    state,
+    submission_timestamp: submitted,
     last_modified_timestamp: modified
   }) => {
     return terminalStates.includes(state) ?
@@ -40,7 +40,7 @@ export const SubmissionHistory = () => {
     const loadRunSetsData = async () => {
       try {
         const runSets = await Ajax(signal).Cbas.runSets.get()
-        setRunSetData(_.map((r)=>_.merge(r, {'duration': runSetDuration(r)}), runSets.run_sets))
+        setRunSetData(_.map(r => _.merge(r, { duration: runSetDuration(r) }), runSets.run_sets))
       } catch (error) {
         notify('error', 'Error loading previous run sets', { detail: await (error instanceof Response ? error.text() : error) })
       }

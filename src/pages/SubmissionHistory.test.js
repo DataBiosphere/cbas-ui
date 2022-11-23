@@ -17,7 +17,7 @@ jest.mock('src/libs/config', () => ({
 
 // Note: Since the timestamps in the data is being converted to Local timezone, it returns different time when the tests
 //       are run locally and in GitHub action. Hence everywhere in this file we are verifying only the date format for now.
-describe('Previous Runs page', () => {
+describe('SubmissionHistory page', () => {
   // SubmissionHistory component uses AutoSizer to determine the right size for table to be displayed. As a result we need to
   // mock out the height and width so that when AutoSizer asks for the width and height of "browser" it can use the mocked
   // values and render the component properly. Without this the tests will be break.
@@ -25,23 +25,34 @@ describe('Previous Runs page', () => {
   const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'offsetHeight')
   const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'offsetWidth')
 
-  const runsData = {
-    runs: [
+  const headerPosition = {
+    Actions: 0,
+    Submission: 1,
+    Status: 2,
+    'Date Submitted': 3,
+    Duration: 4,
+    Comment: 5
+  }
+
+  const runSetData = {
+    run_sets: [
       {
-        run_id: 'ea001565-1cd6-4e43-b446-932ac1918081',
-        state: 'Submitted',
-        submission_date: '2022-01-27T22:27:15.591Z',
-        workflow_url: 'https://abc.wdl',
-        last_modified_timestamp: '2022-01-28T22:30:05.291Z',
-        workflow_params: '[{"parameter_name":"workflow_input_foo","parameter_type":"String","source":{"type":"literal","entity_attribute":"helloworld"}},{"parameter_name":"workflow_input_foo_rating","parameter_type":"Int","source":{"type":"entity_lookup","entity_attribute":"entity_field_foo_rating"}}]'
+        error_count: 0,
+        submission_timestamp: '2022-01-01T12:00:00.000+00:00',
+        last_modified_timestamp: '2022-01-02T13:01:01.000+00:00',
+        record_type: 'FOO',
+        run_count: 1,
+        run_set_id: 'ea001565-1cd6-4e43-b446-932ac1918081',
+        state: 'COMPLETE'
       },
       {
-        run_id: 'b7234aae-6f43-405e-bb3a-71f924e09825',
-        state: 'Failed',
-        submission_date: '2022-07-14T22:22:15.591Z',
-        workflow_url: 'https://xyz.wdl',
-        last_modified_timestamp: '2022-07-14T23:14:25.791Z',
-        workflow_params: '[{"parameter_name":"workflow_input_foo","parameter_type":"String","source":{"type":"literal","entity_attribute":"helloworld"}},{"parameter_name":"workflow_input_foo_rating","parameter_type":"Int","source":{"type":"entity_lookup","entity_attribute":"entity_field_foo_rating"}}]'
+        error_count: 1,
+        submission_timestamp: '2021-07-10T12:00:00.000+00:00',
+        last_modified_timestamp: '2021-08-11T13:01:01.000+00:00',
+        record_type: 'FOO',
+        run_count: 2,
+        run_set_id: 'b7234aae-6f43-405e-bb3a-71f924e09825',
+        state: 'ERROR'
       }
     ]
   }
@@ -52,12 +63,12 @@ describe('Previous Runs page', () => {
   })
 
   beforeEach(() => {
-    const getRunsMethod = jest.fn(() => Promise.resolve(runsData))
+    const getRunSetsMethod = jest.fn(() => Promise.resolve(runSetData))
     Ajax.mockImplementation(() => {
       return {
         Cbas: {
-          runs: {
-            get: getRunsMethod
+          runSets: {
+            get: getRunSetsMethod
           }
         }
       }
@@ -75,12 +86,12 @@ describe('Previous Runs page', () => {
 
   it('should display no content message when there are no previous runs', async () => {
     // Arrange
-    const getRunsMethod = jest.fn(() => Promise.resolve([]))
-    Ajax.mockImplementation(() => {
+    const getRunSetsMethod = jest.fn(() => Promise.resolve([]))
+    await Ajax.mockImplementation(() => {
       return {
         Cbas: {
-          runs: {
-            get: getRunsMethod
+          runSets: {
+            get: getRunSetsMethod
           }
         }
       }
@@ -90,13 +101,14 @@ describe('Previous Runs page', () => {
     render(h(SubmissionHistory))
 
     // Assert
-    await screen.findByText('Nothing here yet! Your previously run workflows will be displayed here.')
-
-    expect(getRunsMethod).toBeCalledTimes(1)
+    expect(getRunSetsMethod).toBeCalledTimes(1)
 
     const table = screen.getByRole('table')
-    expect(table).toHaveAttribute('aria-colcount', '5')
+    expect(table).toHaveAttribute('aria-colcount', '6')
     expect(table).toHaveAttribute('aria-rowcount', '1')
+
+    const rows = within(table).queryAllByRole('cell')
+    within(rows[0]).findByText('Nothing here yet! Your previously run submissions will be displayed here.')
   })
 
   it('should correctly display previous 2 runs', async () => {
@@ -108,34 +120,36 @@ describe('Previous Runs page', () => {
     const table = screen.getByRole('table')
 
     // Assert
-    expect(table).toHaveAttribute('aria-colcount', '5')
+    expect(table).toHaveAttribute('aria-colcount', '6')
     expect(table).toHaveAttribute('aria-rowcount', '3')
 
     const rows = within(table).queryAllByRole('row')
     expect(rows.length).toBe(3)
 
     const headers = within(rows[0]).queryAllByRole('columnheader')
-    expect(headers.length).toBe(5)
-    within(headers[0]).getByText('Run ID')
-    within(headers[1]).getByText('Status')
-    within(headers[2]).getByText('Last Changed')
-    within(headers[3]).getByText('Inputs')
-    within(headers[4]).getByText('Submitted')
+    expect(headers.length).toBe(6)
+    within(headers[headerPosition['Actions']]).getByText('Actions')
+    within(headers[headerPosition['Submission']]).getByText('Submission')
+    within(headers[headerPosition['Status']]).getByText('Status')
+    within(headers[headerPosition['Date Submitted']]).getByText('Date Submitted')
+    within(headers[headerPosition['Duration']]).getByText('Duration')
+    within(headers[headerPosition['Comment']]).getByText('Comment')
 
     // check data rows are rendered as expected
     const cellsFromDataRow1 = within(rows[1]).queryAllByRole('cell')
-    expect(cellsFromDataRow1.length).toBe(5)
-    within(cellsFromDataRow1[0]).getByText('b7234aae-6f43-405e-bb3a-71f924e09825')
-    within(cellsFromDataRow1[1]).getByText('Failed')
-    within(cellsFromDataRow1[2]).getByText(/Jul 14, 2022/)
-    within(cellsFromDataRow1[4]).getByText(/Jul 14, 2022/)
+    expect(cellsFromDataRow1.length).toBe(6)
+    within(cellsFromDataRow1[headerPosition['Submission']]).getByText('Data used: FOO')
+    within(cellsFromDataRow1[headerPosition['Submission']]).getByText('1 workflows')
+    within(cellsFromDataRow1[headerPosition['Status']]).getByText('Success')
+    within(cellsFromDataRow1[headerPosition['Date Submitted']]).getByText(/Jan 1, 2022/)
+    within(cellsFromDataRow1[headerPosition['Duration']]).getByText('1 day 1 hour 1 minute 1 second')
 
     const cellsFromDataRow2 = within(rows[2]).queryAllByRole('cell')
-    expect(cellsFromDataRow2.length).toBe(5)
-    within(cellsFromDataRow2[0]).getByText('ea001565-1cd6-4e43-b446-932ac1918081')
-    within(cellsFromDataRow2[1]).getByText('Submitted')
-    within(cellsFromDataRow2[2]).getByText(/Jan 28, 2022/)
-    within(cellsFromDataRow2[4]).getByText(/Jan 27, 2022/)
+    expect(cellsFromDataRow2.length).toBe(6)
+    within(cellsFromDataRow2[headerPosition['Submission']]).getByText('Data used: FOO')
+    within(cellsFromDataRow2[headerPosition['Status']]).getByText('Failed with 1 errors')
+    within(cellsFromDataRow2[headerPosition['Date Submitted']]).getByText(/Jul 10, 2021/)
+    within(cellsFromDataRow2[headerPosition['Duration']]).getByText('1 month 1 day 1 hour 1 minute 1 second')
   })
 
   it('should sort columns properly', async () => {
@@ -149,45 +163,53 @@ describe('Previous Runs page', () => {
     expect(rows.length).toBe(3)
 
     const headers = within(rows[0]).queryAllByRole('columnheader')
-    expect(headers.length).toBe(5)
+    expect(headers.length).toBe(6)
 
+    const topRowCells = column => {
+      const topRowCells = within(rows[1]).queryAllByRole('cell')
+      return topRowCells[column]
+    }
+
+
+    // Click on "Date Submitted" column and check that the top column is correct for:
+    // * ascending order
     await act(async () => {
-      await fireEvent.click(within(headers[4]).getByRole('button'))
+      await fireEvent.click(within(headers[headerPosition['Date Submitted']]).getByRole('button'))
     })
+    within(topRowCells(headerPosition['Date Submitted'])).getByText(/Jul 10, 2021/)
 
-    // Assert - rows are now sorted by submission timestamp in ascending order
-    const cellsFromUpdatedDataRow1 = within(rows[1]).queryAllByRole('cell')
-    expect(cellsFromUpdatedDataRow1.length).toBe(5)
-    within(cellsFromUpdatedDataRow1[0]).getByText('ea001565-1cd6-4e43-b446-932ac1918081')
-    within(cellsFromUpdatedDataRow1[1]).getByText('Submitted')
-    within(cellsFromUpdatedDataRow1[2]).getByText(/Jan 28, 2022/)
-    within(cellsFromUpdatedDataRow1[4]).getByText(/Jan 27, 2022/)
-
-    const cellsFromUpdatedDataRow2 = within(rows[2]).queryAllByRole('cell')
-    expect(cellsFromUpdatedDataRow2.length).toBe(5)
-    within(cellsFromUpdatedDataRow2[0]).getByText('b7234aae-6f43-405e-bb3a-71f924e09825')
-    within(cellsFromUpdatedDataRow2[1]).getByText('Failed')
-    within(cellsFromUpdatedDataRow2[2]).getByText(/Jul 14, 2022/)
-    within(cellsFromUpdatedDataRow2[4]).getByText(/Jul 14, 2022/)
-
-    // Act - click on sort button on Status column
+    // * descending order
     await act(async () => {
-      await fireEvent.click(within(headers[1]).getByRole('button'))
+      await fireEvent.click(within(headers[headerPosition['Date Submitted']]).getByRole('button'))
     })
+    within(topRowCells(headerPosition['Date Submitted'])).getByText(/Jan 1, 2022/)
 
-    // Assert that sort by Status worked
-    const updatedDataRow1Cells = within(rows[1]).queryAllByRole('cell')
-    expect(updatedDataRow1Cells.length).toBe(5)
-    within(updatedDataRow1Cells[0]).getByText('b7234aae-6f43-405e-bb3a-71f924e09825')
-    within(updatedDataRow1Cells[1]).getByText('Failed')
-    within(updatedDataRow1Cells[2]).getByText(/Jul 14, 2022/)
-    within(updatedDataRow1Cells[4]).getByText(/Jul 14, 2022/)
 
-    const updatedDataRow2Cells = within(rows[2]).queryAllByRole('cell')
-    expect(updatedDataRow2Cells.length).toBe(5)
-    within(updatedDataRow2Cells[0]).getByText('ea001565-1cd6-4e43-b446-932ac1918081')
-    within(updatedDataRow2Cells[1]).getByText('Submitted')
-    within(updatedDataRow2Cells[2]).getByText(/Jan 28, 2022/)
-    within(updatedDataRow2Cells[4]).getByText(/Jan 27, 2022/)
+    // Click on "Status" column and check that the top column is correct for:
+    // * ascending order
+    await act(async () => {
+      await fireEvent.click(within(headers[headerPosition['Status']]).getByRole('button'))
+    })
+    within(topRowCells(headerPosition['Status'])).getByText('Success')
+
+    // * descending order
+    await act(async () => {
+      await fireEvent.click(within(headers[headerPosition['Status']]).getByRole('button'))
+    })
+    within(topRowCells(headerPosition['Status'])).getByText('Failed with 1 errors')
+
+
+    // Click on "Duration" column and check that the top column is correct for:
+    // * ascending order
+    await act(async () => {
+      await fireEvent.click(within(headers[headerPosition['Duration']]).getByRole('button'))
+    })
+    within(topRowCells(headerPosition['Duration'])).getByText('1 day 1 hour 1 minute 1 second')
+
+    // * descending order
+    await act(async () => {
+      await fireEvent.click(within(headers[headerPosition['Duration']]).getByRole('button'))
+    })
+    within(topRowCells(headerPosition['Duration'])).getByText('1 month 1 day 1 hour 1 minute 1 second')
   })
 })
