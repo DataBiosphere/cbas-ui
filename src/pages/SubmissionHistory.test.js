@@ -25,6 +25,15 @@ describe('SubmissionHistory page', () => {
   const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'offsetHeight')
   const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'offsetWidth')
 
+  const headerPosition = {
+    'Actions': 0,
+    'Submission': 1,
+    'Status': 2,
+    'Date Submitted': 3,
+    'Duration': 4,
+    'Comment': 5,
+  }
+
   const runSetData = {
     run_sets: [
       {
@@ -119,17 +128,17 @@ describe('SubmissionHistory page', () => {
 
     const headers = within(rows[0]).queryAllByRole('columnheader')
     expect(headers.length).toBe(6)
-    within(headers[0]).getByText('Actions')
-    within(headers[1]).getByText('Submission')
-    within(headers[2]).getByText('Status')
-    within(headers[3]).getByText('Date Submitted')
-    within(headers[4]).getByText('Duration')
-    within(headers[5]).getByText('Comment')
+    within(headers[headerPosition['Actions']]).getByText('Actions')
+    within(headers[headerPosition['Submission']]).getByText('Submission')
+    within(headers[headerPosition['Status']]).getByText('Status')
+    within(headers[headerPosition['Date Submitted']]).getByText('Date Submitted')
+    within(headers[headerPosition['Duration']]).getByText('Duration')
+    within(headers[headerPosition['Comment']]).getByText('Comment')
 
     // check data rows are rendered as expected
     const cellsFromDataRow1 = within(rows[1]).queryAllByRole('cell')
     expect(cellsFromDataRow1.length).toBe(6)
-    within(cellsFromDataRow1[1]).getByText(/Data used: FOO/) // enclosing slashes indicates a substring
+    within(cellsFromDataRow1[1]).getByText(/Data used: FOO/)
     within(cellsFromDataRow1[1]).getByText(/1 workflows/)
     within(cellsFromDataRow1[2]).getByText(/Success/)
     within(cellsFromDataRow1[3]).getByText(/Jan 1, 2022/)
@@ -154,45 +163,54 @@ describe('SubmissionHistory page', () => {
     expect(rows.length).toBe(3)
 
     const headers = within(rows[0]).queryAllByRole('columnheader')
-    expect(headers.length).toBe(5)
+    expect(headers.length).toBe(6)
 
+    const topRowCells = (column) => {
+      const topRowCells = within(rows[1]).queryAllByRole('cell')
+      return topRowCells[column]
+    }
+
+
+    // Click on "Date Submitted" column and check that the top column is correct for:
+    // * ascending order
     await act(async () => {
-      await fireEvent.click(within(headers[4]).getByRole('button'))
+      await fireEvent.click(within(headers[headerPosition["Date Submitted"]]).getByRole('button'))
     })
-
-    // Assert - rows are now sorted by submission timestamp in ascending order
-    const cellsFromUpdatedDataRow1 = within(rows[1]).queryAllByRole('cell')
-    expect(cellsFromUpdatedDataRow1.length).toBe(5)
-    within(cellsFromUpdatedDataRow1[0]).getByText('ea001565-1cd6-4e43-b446-932ac1918081')
-    within(cellsFromUpdatedDataRow1[1]).getByText('Submitted')
-    within(cellsFromUpdatedDataRow1[2]).getByText(/Jan 28, 2022/)
-    within(cellsFromUpdatedDataRow1[4]).getByText(/Jan 27, 2022/)
-
-    const cellsFromUpdatedDataRow2 = within(rows[2]).queryAllByRole('cell')
-    expect(cellsFromUpdatedDataRow2.length).toBe(5)
-    within(cellsFromUpdatedDataRow2[0]).getByText('b7234aae-6f43-405e-bb3a-71f924e09825')
-    within(cellsFromUpdatedDataRow2[1]).getByText('Failed')
-    within(cellsFromUpdatedDataRow2[2]).getByText(/Jul 14, 2022/)
-    within(cellsFromUpdatedDataRow2[4]).getByText(/Jul 14, 2022/)
-
-    // Act - click on sort button on Status column
+    within(topRowCells(headerPosition["Date Submitted"])).getByText(/Jul 10, 2021/)
+    
+    // * descending order
     await act(async () => {
-      await fireEvent.click(within(headers[1]).getByRole('button'))
+      await fireEvent.click(within(headers[3]).getByRole('button'))
     })
+    within(topRowCells(headerPosition["Date Submitted"])).getByText(/Jan 1, 2022/)
 
-    // Assert that sort by Status worked
-    const updatedDataRow1Cells = within(rows[1]).queryAllByRole('cell')
-    expect(updatedDataRow1Cells.length).toBe(5)
-    within(updatedDataRow1Cells[0]).getByText('b7234aae-6f43-405e-bb3a-71f924e09825')
-    within(updatedDataRow1Cells[1]).getByText('Failed')
-    within(updatedDataRow1Cells[2]).getByText(/Jul 14, 2022/)
-    within(updatedDataRow1Cells[4]).getByText(/Jul 14, 2022/)
 
-    const updatedDataRow2Cells = within(rows[2]).queryAllByRole('cell')
-    expect(updatedDataRow2Cells.length).toBe(5)
-    within(updatedDataRow2Cells[0]).getByText('ea001565-1cd6-4e43-b446-932ac1918081')
-    within(updatedDataRow2Cells[1]).getByText('Submitted')
-    within(updatedDataRow2Cells[2]).getByText(/Jan 28, 2022/)
-    within(updatedDataRow2Cells[4]).getByText(/Jan 27, 2022/)
+    // Click on "Status" column and check that the top column is correct for:
+    // * ascending order
+    await act(async () => {
+      await fireEvent.click(within(headers[headerPosition["Status"]]).getByRole('button'))
+    })
+    within(topRowCells(headerPosition["Status"])).getByText(/Success/)
+    
+    // * descending order
+    await act(async () => {
+      await fireEvent.click(within(headers[headerPosition["Status"]]).getByRole('button'))
+    })
+    within(topRowCells(headerPosition["Status"])).getByText(/Failed with 1 errors/)
+
+
+    // Click on "Duration" column and check that the top column is correct for:
+    // * ascending order
+    await act(async () => {
+      await fireEvent.click(within(headers[headerPosition["Duration"]]).getByRole('button'))
+    })
+    within(topRowCells(headerPosition["Duration"])).getByText("1 day 1 hour 1 minute 1 second")
+    
+    // * descending order
+    await act(async () => {
+      await fireEvent.click(within(headers[headerPosition["Duration"]]).getByRole('button'))
+    })
+    within(topRowCells(headerPosition["Duration"])).getByText("1 month 1 day 1 hour 1 minute 1 second")
+
   })
 })
