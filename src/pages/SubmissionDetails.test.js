@@ -1,9 +1,10 @@
 import '@testing-library/jest-dom'
 
-import { Ajax } from 'src/libs/ajax'
-import { SubmissionDetails } from 'src/pages/SubmissionDetails'
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import { h } from 'react-hyperscript-helpers'
+import { Ajax } from 'src/libs/ajax'
+import { SubmissionDetails } from 'src/pages/SubmissionDetails'
+
 
 jest.mock('src/libs/ajax')
 
@@ -15,7 +16,6 @@ jest.mock('src/libs/config', () => ({
 }))
 
 describe('Submission Details page', () => {
-
   // SubmissionDetails component uses AutoSizer to determine the right size for table to be displayed. As a result we need to
   // mock out the height and width so that when AutoSizer asks for the width and height of "browser" it can use the mocked
   // values and render the component properly. Without this the tests will be break.
@@ -27,15 +27,15 @@ describe('Submission Details page', () => {
     runs: [
       {
         run_id: 'ea001565-1cd6-4e43-b446-932ac1918081',
-        state: 'Submitted',
-        submission_date: '2022-01-27T22:27:15.591Z',
+        state: 'COMPLETE',
+        submission_date: '2022-11-23 15:03:28.202094',
         workflow_url: 'https://abc.wdl',
-        last_modified_timestamp: '2022-01-28T22:30:05.291Z',
+        last_modified_timestamp: '2022-11-23 15:04:15.359591',
         workflow_params: '[{"parameter_name":"workflow_input_foo","parameter_type":"String","source":{"type":"literal","entity_attribute":"helloworld"}},{"parameter_name":"workflow_input_foo_rating","parameter_type":"Int","source":{"type":"entity_lookup","entity_attribute":"entity_field_foo_rating"}}]'
       },
       {
         run_id: 'b7234aae-6f43-405e-bb3a-71f924e09825',
-        state: 'Failed',
+        state: 'SYSTEM_ERROR',
         submission_date: '2022-07-14T22:22:15.591Z',
         workflow_url: 'https://xyz.wdl',
         last_modified_timestamp: '2022-07-14T23:14:25.791Z',
@@ -43,6 +43,8 @@ describe('Submission Details page', () => {
       }
     ]
   }
+
+  const submissionId = 'e8347247-4738-4ad1-a591-56c119f93f58'
 
   beforeAll(() => {
     Object.defineProperty(HTMLElement.prototype, 'offsetHeight', { configurable: true, value: 1000 })
@@ -95,24 +97,23 @@ describe('Submission Details page', () => {
     within(headers[4]).getByText('Data')
     within(headers[5]).getByText('Logs')
 
-    // check data rows are rendered as expected
-    const cellsFromDataRow1 = within(rows[1]).queryAllByRole('cell')
-    expect(cellsFromDataRow1.length).toBe(6)
-    within(cellsFromDataRow1[0]).getByText('b7234aae-6f43-405e-bb3a-71f924e09825')
-    within(cellsFromDataRow1[1]).getByText('Failed')
-    within(cellsFromDataRow1[2]).getByText(/Jul 14, 2022/)
-    // TODO: Add 'within for 'duration' once WM-1461 is complete
-    within(cellsFromDataRow1[4]).getByText('View inputs')
-    // Oct 18, 2022, 10:44 AM
-    // 22:27:15.591Z
 
-    const cellsFromDataRow2 = within(rows[2]).queryAllByRole('cell')
+    const cellsFromDataRow2 = within(rows[1]).queryAllByRole('cell')
     expect(cellsFromDataRow2.length).toBe(6)
     within(cellsFromDataRow2[0]).getByText('ea001565-1cd6-4e43-b446-932ac1918081')
-    within(cellsFromDataRow2[1]).getByText('Submitted')
-    within(cellsFromDataRow2[2]).getByText(/Jan 27, 2022, 5:27 PM/)
-    // TODO: Add 'within for 'duration' once WM-1461 is complete
+    within(cellsFromDataRow2[1]).getByText('COMPLETE')
+    within(cellsFromDataRow2[2]).getByText('Nov 23, 2022, 3:03 PM')
+    within(cellsFromDataRow2[3]).getByText('47 seconds')
     within(cellsFromDataRow2[4]).getByText('View inputs')
+
+    // check data rows are rendered as expected
+    const cellsFromDataRow1 = within(rows[2]).queryAllByRole('cell')
+    expect(cellsFromDataRow1.length).toBe(6)
+    within(cellsFromDataRow1[0]).getByText('b7234aae-6f43-405e-bb3a-71f924e09825')
+    within(cellsFromDataRow1[1]).getByText('Failed with error')
+    within(cellsFromDataRow1[2]).getByText(/Jul 14, 2022/)
+    within(cellsFromDataRow1[3]).getByText('52 minutes 10 seconds')
+    within(cellsFromDataRow1[4]).getByText('View inputs')
   })
 
 
@@ -134,20 +135,20 @@ describe('Submission Details page', () => {
     })
 
     // Assert - rows are now sorted by submission timestamp in ascending order
-    const cellsFromUpdatedDataRow1 = within(rows[1]).queryAllByRole('cell')
+    const cellsFromUpdatedDataRow1 = within(rows[2]).queryAllByRole('cell')
     expect(cellsFromUpdatedDataRow1.length).toBe(6)
     within(cellsFromUpdatedDataRow1[0]).getByText('ea001565-1cd6-4e43-b446-932ac1918081')
-    within(cellsFromUpdatedDataRow1[1]).getByText('Submitted')
-    within(cellsFromUpdatedDataRow1[2]).getByText(/Jan 27, 2022, 5:27 PM/)
-    // TODO: Add 'within for 'duration' once WM-1461 is complete
+    within(cellsFromUpdatedDataRow1[1]).getByText('COMPLETE')
+    within(cellsFromUpdatedDataRow1[2]).getByText('Nov 23, 2022, 3:03 PM')
+    within(cellsFromUpdatedDataRow1[3]).getByText('47 seconds')
     within(cellsFromUpdatedDataRow1[4]).getByText(/View inputs/)
 
-    const cellsFromUpdatedDataRow2 = within(rows[2]).queryAllByRole('cell')
+    const cellsFromUpdatedDataRow2 = within(rows[1]).queryAllByRole('cell')
     expect(cellsFromUpdatedDataRow2.length).toBe(6)
     within(cellsFromUpdatedDataRow2[0]).getByText('b7234aae-6f43-405e-bb3a-71f924e09825')
-    within(cellsFromUpdatedDataRow2[1]).getByText('Failed')
+    within(cellsFromUpdatedDataRow2[1]).getByText('Failed with error')
     within(cellsFromUpdatedDataRow2[2]).getByText(/Jul 14, 2022/)
-    // TODO: Add 'within for 'duration' once WM-1461 is complete
+    within(cellsFromUpdatedDataRow2[3]).getByText('52 minutes 10 seconds')
     within(cellsFromUpdatedDataRow2[4]).getByText(/View inputs/)
 
     // Act - click on sort button on Status column
@@ -156,19 +157,29 @@ describe('Submission Details page', () => {
     })
 
     // Assert that sort by Status worked
-    const updatedDataRow1Cells = within(rows[1]).queryAllByRole('cell')
+    const updatedDataRow1Cells = within(rows[2]).queryAllByRole('cell')
     expect(updatedDataRow1Cells.length).toBe(6)
     within(updatedDataRow1Cells[0]).getByText('b7234aae-6f43-405e-bb3a-71f924e09825')
-    within(updatedDataRow1Cells[1]).getByText('Failed')
+    within(updatedDataRow1Cells[1]).getByText('Failed with error')
     within(updatedDataRow1Cells[2]).getByText(/Jul 14, 2022/)
+    within(updatedDataRow1Cells[3]).getByText('52 minutes 10 seconds')
     within(updatedDataRow1Cells[4]).getByText(/View inputs/)
 
-    const updatedDataRow2Cells = within(rows[2]).queryAllByRole('cell')
+    const updatedDataRow2Cells = within(rows[1]).queryAllByRole('cell')
     expect(updatedDataRow2Cells.length).toBe(6)
     within(updatedDataRow2Cells[0]).getByText('ea001565-1cd6-4e43-b446-932ac1918081')
-    within(updatedDataRow2Cells[1]).getByText('Submitted')
-    within(updatedDataRow2Cells[2]).getByText(/Jan 27, 2022, 5:27 PM/)
+    within(updatedDataRow2Cells[1]).getByText('COMPLETE')
+    within(updatedDataRow2Cells[2]).getByText('Nov 23, 2022, 3:03 PM')
+    within(updatedDataRow2Cells[3]).getByText('47 seconds')
     within(updatedDataRow2Cells[4]).getByText(/View inputs/)
   })
 
+  it('display run set id', async () => {
+    // Act
+    await act(async () => {
+      await render(h(SubmissionDetails, { submissionId }))
+    })
+
+    await screen.getByText(/Submission e8347247-4738-4ad1-a591-56c119f93f58/)
+  })
 })

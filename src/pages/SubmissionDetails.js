@@ -16,7 +16,6 @@ import * as Utils from 'src/libs/utils'
 
 export const SubmissionDetails = ({ submissionId }) => {
   // State
-  console.log(`submissionId = ${submissionId}`)
   const [sort, setSort] = useState({ field: 'submission_date', direction: 'desc' })
   const [pageNumber, setPageNumber] = useState(1)
   const [itemsPerPage, setItemsPerPage] = useState(50)
@@ -46,8 +45,8 @@ export const SubmissionDetails = ({ submissionId }) => {
   const lastPageIndex = firstPageIndex + itemsPerPage
   const paginatedPreviousRuns = sortedPreviousRuns.slice(firstPageIndex, lastPageIndex)
 
-  let rowWidth = 100
-  let rowHeight = 200
+  const rowWidth = 100
+  const rowHeight = 200
   return h(Fragment, [
     headerBar(),
     div({ style: { margin: '4em' } }, [
@@ -58,7 +57,7 @@ export const SubmissionDetails = ({ submissionId }) => {
         }, ['Submit a new workflow'])
       ]),
       div([
-        h(TextCell, [(h(Link, { onClick: () => Nav.goToPath('submission-history') }, ['Submission History'])),' > Submission ' + submissionId])
+        h(TextCell, [(h(Link, { onClick: () => Nav.goToPath('submission-history') }, ['Submission History'])), ' >', ` Submission ${submissionId}`])
       ]),
       div({
         style: {
@@ -91,10 +90,10 @@ export const SubmissionDetails = ({ submissionId }) => {
                   const failureStates = ['SYSTEM_ERROR', 'EXECUTOR_ERROR']
                   if (failureStates.includes(paginatedPreviousRuns[rowIndex].state)) {
                     return div({ style: { width: '100%', textAlign: 'center' } }, [
-                      div({ style: { marginBottom: '1rem', fontWeight: 'bold' } }, [h(TextCell, {}, [icon('warning-standard', { size: 18, color: 'red' }),['   Failed with error']])]),
+                      div({ style: { marginBottom: '1rem', fontWeight: 'bold' } }, [h(TextCell, {}, [icon('warning-standard', { size: 18, color: 'red' }), ['   Failed with error']])]),
                       h(Link, { style: {}, onClick: () => setViewErrorsId(rowIndex) }, ['View'])
                     ])
-                  } else {return h(TextCell, [paginatedPreviousRuns[rowIndex].state])}
+                  } else { return h(TextCell, [paginatedPreviousRuns[rowIndex].state]) }
                 }
               },
               {
@@ -140,7 +139,7 @@ export const SubmissionDetails = ({ submissionId }) => {
                 headerRenderer: () => 'Logs',
                 cellRenderer: ({ rowIndex }) => {
                   return div({ style: { width: '100%', textAlign: 'center' } }, [
-                    h(Link, { disabled: 'true', onClick: () => setViewInputsId(rowIndex) }, ['View workflow log file'])
+                    h(Link, { disabled: true, onClick: () => setViewInputsId(rowIndex) }, ['View workflow log file'])
                   ])
                 }
               }
