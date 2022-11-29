@@ -70,18 +70,18 @@ export const SubmitWorkflow = () => {
         h2(['Submit a workflow']),
         h(ButtonOutline, {
           onClick: () => Nav.goToPath('submission-history')
-        }, ['View submission history'])
+        }, ['Submission history'])
       ]),
-      div(['Submit your Terra workflows with the Cromwell engine. Full featured workflow submissions coming soon!']),
+      div(['Run a workflow in Terra using Cromwell engine. Full feature workflow submission coming soon.']),
       div({ style: { marginTop: '2rem' } }, [
         !showInputsPage && h(Fragment, [
-          h(WorkflowSource, { workflowUrl, setWorkflowUrl }),
-          div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
-            h(ButtonPrimary, {
-              disabled: !workflowUrl,
-              onClick: () => setShowInputsPage(true)
-            }, ['Use workflow'])
-          ]),
+          // h(WorkflowSource, { workflowUrl, setWorkflowUrl }),
+          // div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
+          //   h(ButtonPrimary, {
+          //     disabled: !workflowUrl,
+          //     onClick: () => setShowInputsPage(true)
+          //   }, ['Use workflow'])
+          // ]),
           h(SavedWorkflows, { runsData, setWorkflowUrl, setShowInputsPage })
         ]),
         showInputsPage && h(Fragment, [
