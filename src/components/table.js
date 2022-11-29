@@ -63,16 +63,16 @@ export const paginator = ({
 
             _.map(num => paginatorButton(
               _.merge({
-                key: num,
-                'aria-current': currentPage === num ? 'page' : undefined,
-                style: {
-                  minWidth: '2rem',
-                  backgroundColor: currentPage === num ? colors.accent() : undefined,
-                  color: currentPage === num ? 'white' : colors.accent(),
-                  border: currentPage === num ? colors.accent() : undefined
-                }
-              },
-              getPageItemProps({ pageValue: num, onPageChange: setPageNumber })),
+                  key: num,
+                  'aria-current': currentPage === num ? 'page' : undefined,
+                  style: {
+                    minWidth: '2rem',
+                    backgroundColor: currentPage === num ? colors.accent() : undefined,
+                    color: currentPage === num ? 'white' : colors.accent(),
+                    border: currentPage === num ? colors.accent() : undefined
+                  }
+                },
+                getPageItemProps({ pageValue: num, onPageChange: setPageNumber })),
               num), pages
             ),
 
@@ -92,13 +92,13 @@ export const paginator = ({
           setItemsPerPage && h(IdContainer, [id => h(Fragment, [
             label({ htmlFor: id }, ['Items per page:']),
             select({
-              id,
-              style: { marginLeft: '0.5rem' },
-              onChange: e => setItemsPerPage(parseInt(e.target.value, 10)),
-              value: itemsPerPage
-            },
-            _.map(i => option({ value: i }, i),
-              itemsPerPageOptions))
+                id,
+                style: { marginLeft: '0.5rem' },
+                onChange: e => setItemsPerPage(parseInt(e.target.value, 10)),
+                value: itemsPerPage
+              },
+              _.map(i => option({ value: i }, i),
+                itemsPerPageOptions))
           ])])
         ])
       ]
@@ -256,21 +256,21 @@ export const FlexTable = ({
         display: 'flex'
       },
       role: 'row'
-     }, //_.map(([i, { size, headerRenderer, field }]) => {
-    //   return div({
-    //     key: i,
-    //     role: 'columnheader',
-    //     // ARIA row and column indexes start with 1 rather than 0 https://www.digitala11y.com/aria-colindexproperties/
-    //     'aria-rowindex': 1, // The header row is 1
-    //     'aria-colindex': i + 1, // The first column is 1
-    //     'aria-sort': ariaSort(sort, field),
-    //     style: {
-    //       ...styles.flexCell(size),
-    //       ...(variant === 'light' ? {} : styles.header(i * 1, columns.length, { border })),
-    //       ...(styleHeader ? styleHeader({ columnIndex: i }) : {})
-    //     }
-    //   }, [headerRenderer({ columnIndex: i })])
-    /* }, Utils.toIndexPairs(columns))*/),
+    }, _.map(([i, { size, headerRenderer, field }]) => {
+      return div({
+        key: i,
+        role: 'columnheader',
+        // ARIA row and column indexes start with 1 rather than 0 https://www.digitala11y.com/aria-colindexproperties/
+        'aria-rowindex': 1, // The header row is 1
+        'aria-colindex': i + 1, // The first column is 1
+        'aria-sort': ariaSort(sort, field),
+        style: {
+          ...styles.flexCell(size),
+          ...(variant === 'light' ? {} : styles.header(i * 1, columns.length, { border })),
+          ...(styleHeader ? styleHeader({ columnIndex: i }) : {})
+        }
+      }, [headerRenderer({ columnIndex: i })])
+    }, Utils.toIndexPairs(columns))),
     h(RVGrid, {
       ref: body,
       role: 'rowgroup',
@@ -332,7 +332,7 @@ FlexTable.propTypes = {
   noContentRenderer: PropTypes.func,
   columns: PropTypes.arrayOf(PropTypes.shape({
     field: PropTypes.string,
-    headerRenderer: PropTypes.func,
+    headerRenderer: PropTypes.func.isRequired,
     cellRenderer: PropTypes.func.isRequired,
     size: PropTypes.shape({
       basis: PropTypes.number, // flex-basis in px, default 0
