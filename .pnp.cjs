@@ -63,6 +63,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["react", "npm:17.0.2"],\
             ["react-app-rewired", "virtual:fb20b3957fc03094516f4839bd921e6cbe6fbbbdf6e579aef6a9e0d78799f936b29bbbdf85e777033619e8c90d7b9339b4056e75490ce5faba123bfbab64860f#npm:2.2.1"],\
             ["react-dom", "virtual:fb20b3957fc03094516f4839bd921e6cbe6fbbbdf6e579aef6a9e0d78799f936b29bbbdf85e777033619e8c90d7b9339b4056e75490ce5faba123bfbab64860f#npm:17.0.2"],\
+            ["react-dropzone", "virtual:fb20b3957fc03094516f4839bd921e6cbe6fbbbdf6e579aef6a9e0d78799f936b29bbbdf85e777033619e8c90d7b9339b4056e75490ce5faba123bfbab64860f#npm:14.2.3"],\
             ["react-hyperscript-helpers", "virtual:fb20b3957fc03094516f4839bd921e6cbe6fbbbdf6e579aef6a9e0d78799f936b29bbbdf85e777033619e8c90d7b9339b4056e75490ce5faba123bfbab64860f#npm:1.2.0"],\
             ["react-json-view", "virtual:fb20b3957fc03094516f4839bd921e6cbe6fbbbdf6e579aef6a9e0d78799f936b29bbbdf85e777033619e8c90d7b9339b4056e75490ce5faba123bfbab64860f#npm:1.21.3"],\
             ["react-modal", "virtual:fb20b3957fc03094516f4839bd921e6cbe6fbbbdf6e579aef6a9e0d78799f936b29bbbdf85e777033619e8c90d7b9339b4056e75490ce5faba123bfbab64860f#npm:3.15.1"],\
@@ -5932,6 +5933,15 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "linkType": "HARD"\
         }]\
       ]],\
+      ["attr-accept", [\
+        ["npm:2.2.2", {\
+          "packageLocation": "./.yarn/cache/attr-accept-npm-2.2.2-b9cd0d8eac-496f724935.zip/node_modules/attr-accept/",\
+          "packageDependencies": [\
+            ["attr-accept", "npm:2.2.2"]\
+          ],\
+          "linkType": "HARD"\
+        }]\
+      ]],\
       ["autoprefixer", [\
         ["npm:10.4.13", {\
           "packageLocation": "./.yarn/cache/autoprefixer-npm-10.4.13-261edbcee5-dcb1cb7ae9.zip/node_modules/autoprefixer/",\
@@ -7120,6 +7130,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["react", "npm:17.0.2"],\
             ["react-app-rewired", "virtual:fb20b3957fc03094516f4839bd921e6cbe6fbbbdf6e579aef6a9e0d78799f936b29bbbdf85e777033619e8c90d7b9339b4056e75490ce5faba123bfbab64860f#npm:2.2.1"],\
             ["react-dom", "virtual:fb20b3957fc03094516f4839bd921e6cbe6fbbbdf6e579aef6a9e0d78799f936b29bbbdf85e777033619e8c90d7b9339b4056e75490ce5faba123bfbab64860f#npm:17.0.2"],\
+            ["react-dropzone", "virtual:fb20b3957fc03094516f4839bd921e6cbe6fbbbdf6e579aef6a9e0d78799f936b29bbbdf85e777033619e8c90d7b9339b4056e75490ce5faba123bfbab64860f#npm:14.2.3"],\
             ["react-hyperscript-helpers", "virtual:fb20b3957fc03094516f4839bd921e6cbe6fbbbdf6e579aef6a9e0d78799f936b29bbbdf85e777033619e8c90d7b9339b4056e75490ce5faba123bfbab64860f#npm:1.2.0"],\
             ["react-json-view", "virtual:fb20b3957fc03094516f4839bd921e6cbe6fbbbdf6e579aef6a9e0d78799f936b29bbbdf85e777033619e8c90d7b9339b4056e75490ce5faba123bfbab64860f#npm:1.21.3"],\
             ["react-modal", "virtual:fb20b3957fc03094516f4839bd921e6cbe6fbbbdf6e579aef6a9e0d78799f936b29bbbdf85e777033619e8c90d7b9339b4056e75490ce5faba123bfbab64860f#npm:3.15.1"],\
@@ -9523,6 +9534,16 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packagePeers": [\
             "@types/webpack",\
             "webpack"\
+          ],\
+          "linkType": "HARD"\
+        }]\
+      ]],\
+      ["file-selector", [\
+        ["npm:0.6.0", {\
+          "packageLocation": "./.yarn/cache/file-selector-npm-0.6.0-04259af1f7-7d051b6e5d.zip/node_modules/file-selector/",\
+          "packageDependencies": [\
+            ["file-selector", "npm:0.6.0"],\
+            ["tslib", "npm:2.4.1"]\
           ],\
           "linkType": "HARD"\
         }]\
@@ -15661,6 +15682,31 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "linkType": "HARD"\
         }]\
       ]],\
+      ["react-dropzone", [\
+        ["npm:14.2.3", {\
+          "packageLocation": "./.yarn/cache/react-dropzone-npm-14.2.3-b5d5b11ea4-174b744d5c.zip/node_modules/react-dropzone/",\
+          "packageDependencies": [\
+            ["react-dropzone", "npm:14.2.3"]\
+          ],\
+          "linkType": "SOFT"\
+        }],\
+        ["virtual:fb20b3957fc03094516f4839bd921e6cbe6fbbbdf6e579aef6a9e0d78799f936b29bbbdf85e777033619e8c90d7b9339b4056e75490ce5faba123bfbab64860f#npm:14.2.3", {\
+          "packageLocation": "./.yarn/__virtual__/react-dropzone-virtual-bc66f36976/0/cache/react-dropzone-npm-14.2.3-b5d5b11ea4-174b744d5c.zip/node_modules/react-dropzone/",\
+          "packageDependencies": [\
+            ["react-dropzone", "virtual:fb20b3957fc03094516f4839bd921e6cbe6fbbbdf6e579aef6a9e0d78799f936b29bbbdf85e777033619e8c90d7b9339b4056e75490ce5faba123bfbab64860f#npm:14.2.3"],\
+            ["@types/react", null],\
+            ["attr-accept", "npm:2.2.2"],\
+            ["file-selector", "npm:0.6.0"],\
+            ["prop-types", "npm:15.8.1"],\
+            ["react", "npm:17.0.2"]\
+          ],\
+          "packagePeers": [\
+            "@types/react",\
+            "react"\
+          ],\
+          "linkType": "HARD"\
+        }]\
+      ]],\
       ["react-error-overlay", [\
         ["npm:6.0.11", {\
           "packageLocation": "./.yarn/cache/react-error-overlay-npm-6.0.11-021cdeaa92-ce7b44c38f.zip/node_modules/react-error-overlay/",\
@@ -17798,6 +17844,13 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageLocation": "./.yarn/cache/tslib-npm-2.4.0-9cb6dc5030-8c4aa6a3c5.zip/node_modules/tslib/",\
           "packageDependencies": [\
             ["tslib", "npm:2.4.0"]\
+          ],\
+          "linkType": "HARD"\
+        }],\
+        ["npm:2.4.1", {\
+          "packageLocation": "./.yarn/cache/tslib-npm-2.4.1-36f0ed04db-19480d6e03.zip/node_modules/tslib/",\
+          "packageDependencies": [\
+            ["tslib", "npm:2.4.1"]\
           ],\
           "linkType": "HARD"\
         }]\

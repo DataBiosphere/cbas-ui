@@ -3898,6 +3898,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"attr-accept@npm:^2.2.2":
+  version: 2.2.2
+  resolution: "attr-accept@npm:2.2.2"
+  checksum: 496f7249354ab53e522510c1dc8f67a1887382187adde4dc205507d2f014836a247073b05e9d9ea51e2e9c7f71b0d2aa21730af80efa9af2d68303e5f0565c4d
+  languageName: node
+  linkType: hard
+
 "autoprefixer@npm:*":
   version: 10.4.13
   resolution: "autoprefixer@npm:10.4.13"
@@ -4833,6 +4840,7 @@ __metadata:
     react: 17.0.2
     react-app-rewired: ^2.2.1
     react-dom: 17.0.2
+    react-dropzone: ^14.2.3
     react-hyperscript-helpers: ^1.2.0
     react-json-view: ^1.21.3
     react-modal: ^3.14.3
@@ -6759,6 +6767,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"file-selector@npm:^0.6.0":
+  version: 0.6.0
+  resolution: "file-selector@npm:0.6.0"
+  dependencies:
+    tslib: ^2.4.0
+  checksum: 7d051b6e5d793f3c6e2ab287ba5e7c2c6a0971bccc9d56e044c8047ba483e18f60fc0b5771c951dc707c0d15f4f36ccb4f1f1aaf385d21ec8f7700dadf8325ba
+  languageName: node
+  linkType: hard
+
 "filelist@npm:^1.0.1":
   version: 1.0.4
   resolution: "filelist@npm:1.0.4"
@@ -7031,7 +7048,7 @@ __metadata:
 
 "fsevents@patch:fsevents@^2.3.2#~builtin<compat/fsevents>, fsevents@patch:fsevents@~2.3.2#~builtin<compat/fsevents>":
   version: 2.3.2
-  resolution: "fsevents@patch:fsevents@npm%3A2.3.2#~builtin<compat/fsevents>::version=2.3.2&hash=df0bf1"
+  resolution: "fsevents@patch:fsevents@npm%3A2.3.2#~builtin<compat/fsevents>::version=2.3.2&hash=18f3a7"
   dependencies:
     node-gyp: latest
   conditions: os=darwin
@@ -11445,6 +11462,19 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-dropzone@npm:^14.2.3":
+  version: 14.2.3
+  resolution: "react-dropzone@npm:14.2.3"
+  dependencies:
+    attr-accept: ^2.2.2
+    file-selector: ^0.6.0
+    prop-types: ^15.8.1
+  peerDependencies:
+    react: ">= 16.8 || 18.0.0"
+  checksum: 174b744d5ca898cf3d84ec1aeb6cef5211c446697e45dc8ece8287a03d291f8d07253206d5a1247ef156fd385d65e7de666d4d5c2986020b8543b8f2434e8b40
+  languageName: node
+  linkType: hard
+
 "react-error-overlay@npm:^6.0.11":
   version: 6.0.11
   resolution: "react-error-overlay@npm:6.0.11"
@@ -11976,25 +12006,27 @@ __metadata:
 
 "resolve@patch:resolve@^1.1.7#~builtin<compat/resolve>, resolve@patch:resolve@^1.14.2#~builtin<compat/resolve>, resolve@patch:resolve@^1.19.0#~builtin<compat/resolve>, resolve@patch:resolve@^1.20.0#~builtin<compat/resolve>, resolve@patch:resolve@^1.22.0#~builtin<compat/resolve>":
   version: 1.22.1
-  resolution: "resolve@patch:resolve@npm%3A1.22.1#~builtin<compat/resolve>::version=1.22.1&hash=c3c19d"
+  resolution: "resolve@patch:resolve@npm%3A1.22.1#~builtin<compat/resolve>::version=1.22.1&hash=07638b"
   dependencies:
     is-core-module: ^2.9.0
     path-parse: ^1.0.7
     supports-preserve-symlinks-flag: ^1.0.0
   bin:
     resolve: bin/resolve
+  checksum: 5656f4d0bedcf8eb52685c1abdf8fbe73a1603bb1160a24d716e27a57f6cecbe2432ff9c89c2bd57542c3a7b9d14b1882b73bfe2e9d7849c9a4c0b8b39f02b8b
   languageName: node
   linkType: hard
 
 "resolve@patch:resolve@^2.0.0-next.3#~builtin<compat/resolve>":
   version: 2.0.0-next.4
-  resolution: "resolve@patch:resolve@npm%3A2.0.0-next.4#~builtin<compat/resolve>::version=2.0.0-next.4&hash=c3c19d"
+  resolution: "resolve@patch:resolve@npm%3A2.0.0-next.4#~builtin<compat/resolve>::version=2.0.0-next.4&hash=07638b"
   dependencies:
     is-core-module: ^2.9.0
     path-parse: ^1.0.7
     supports-preserve-symlinks-flag: ^1.0.0
   bin:
     resolve: bin/resolve
+  checksum: 4bf9f4f8a458607af90518ff73c67a4bc1a38b5a23fef2bb0ccbd45e8be89820a1639b637b0ba377eb2be9eedfb1739a84cde24fe4cd670c8207d8fea922b011
   languageName: node
   linkType: hard
 
@@ -13210,6 +13242,13 @@ __metadata:
   version: 2.4.0
   resolution: "tslib@npm:2.4.0"
   checksum: 8c4aa6a3c5a754bf76aefc38026134180c053b7bd2f81338cb5e5ebf96fefa0f417bff221592bf801077f5bf990562f6264fecbc42cd3309b33872cb6fc3b113
+  languageName: node
+  linkType: hard
+
+"tslib@npm:^2.4.0":
+  version: 2.4.1
+  resolution: "tslib@npm:2.4.1"
+  checksum: 19480d6e0313292bd6505d4efe096a6b31c70e21cf08b5febf4da62e95c265c8f571f7b36fcc3d1a17e068032f59c269fab3459d6cd3ed6949eafecf64315fca
   languageName: node
   linkType: hard
 
