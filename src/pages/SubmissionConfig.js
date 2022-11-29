@@ -41,6 +41,7 @@ export const SubmissionConfig = () => {
         isClearable: false,
         value: dataTable.name,
         onChange: ({ value }) => setDatatable({ name: value }),
+        placeholder: 'None selected',
         styles: {},
         options: ['Covid19_DataTable', 'Some Other DataTable']
       }),
