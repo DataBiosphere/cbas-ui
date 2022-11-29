@@ -24,6 +24,7 @@
     "qs": "^6.10.1",
     "react": "17.0.2",
     "react-dom": "17.0.2",
+    "react-dropzone": "^14.2.3",
     "react-hyperscript-helpers": "^1.2.0",
     "react-json-view": "^1.21.3",
     "react-modal": "^3.14.3",
