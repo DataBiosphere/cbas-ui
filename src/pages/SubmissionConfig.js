@@ -42,7 +42,7 @@ export const SubmissionConfig = () => {
         value: dataTable.name,
         onChange: ({ value }) => setDatatable({ name: value }),
         placeholder: 'None selected',
-        styles: {},
+        styles: { container: old => ({ ...old, display: 'inline-block', width: 200, marginLeft: '0.5rem' }) },
         options: ['Covid19_DataTable', 'Some Other DataTable']
       }),
       h(StepButtons, {
