@@ -324,4 +324,13 @@ const makeBaseSpinner = ({ outerStyles = {}, innerStyles = {} }) => div(
   ]
 )
 
+export const GroupedSelect = ({ value, options, ...props }) => {
+  useLabelAssert('GroupedSelect', { ...props, allowId: true })
+
+  const flattenedOptions = _.flatMap('options', options)
+  const findValue = target => _.find({ value: target }, flattenedOptions)
+
+  return h(BaseSelect, { value, newOptions: options, findValue, ...props })
+}
+
 export const spinnerOverlay = makeBaseSpinner({})
