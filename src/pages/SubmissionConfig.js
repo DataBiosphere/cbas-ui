@@ -1,32 +1,58 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { a, div, h, h2, span } from 'react-hyperscript-helpers'
+import ReactJson from 'react-json-view'
 import { ButtonPrimary, headerBar, Link, Select } from 'src/components/common'
 import StepButtons from 'src/components/StepButtons'
 import { Ajax } from 'src/libs/ajax'
+import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
 import { useCancellation, useOnMount } from 'src/libs/react-utils'
 import * as Utils from 'src/libs/utils'
 
 
-const methodId = '64b5bc5e-85cf-4aff-b522-01471b88b950' // TODO: get this from the previous page
-
-export const SubmissionConfig = () => {
+export const SubmissionConfig = ({ methodId }) => {
   const [activeTab, setActiveTab] = useState({ key: 'select-data' })
-  const [selectedTable, setSelectedTable] = useState({ name: null })
-  const [methodsData, setMethodsData] = useState({})
   const [dataTables, setDataTables] = useState()
+  const [methodsData, setMethodsData] = useState({})
+
+  // Options chosen on this page:
+  const [selectedTable, setSelectedTable] = useState()
+  const [selectedDataTableRows, setSelectedDataTableRows] = useState()
+  const [configuredInputDefinition, setConfiguredInputDefinition] = useState()
+  const [configuredOutputDefinition, setConfiguredOutputDefinition] = useState()
+
+  // TODO: These should probably be moved to the modal:
+  const [runSetName, setRunSetName] = useState()
+  const [runSetDescription, setRunSetDescription] = useState()
 
   const signal = useCancellation()
 
   useOnMount(() => {
     const loadMethodsData = async () => {
       try {
-        const allMethods = await Ajax(signal).Cbas.methods.get()
+        const methodsResponse = await Ajax(signal).Cbas.methods.get()
+        const allMethods = methodsResponse.methods
         const selectedMethod = _.head(_.filter(m => m.method_id === methodId, allMethods))
-        setMethodsData(selectedMethod) // TODO: this doesn't feel "safe"
+        if (selectedMethod) {
+          setMethodsData(selectedMethod)
+        } else {
+          notify('error', 'Error loading methods data', { detail: 'Method not found.' })
+        }
       } catch (error) {
         notify('error', 'Error loading methods data', { detail: await (error instanceof Response ? error.text() : error) })
+      }
+    }
+
+    const loadRunSet = async () => {
+      try {
+        const runSet = await Ajax(signal).Cbas.runSets.getForMethod(methodId, 1)
+        const newRunSetData = runSet.run_sets[0]
+        setSelectedTable(newRunSetData.record_type)
+        setConfiguredInputDefinition(JSON.parse(newRunSetData.input_definition))
+        setConfiguredOutputDefinition(JSON.parse(newRunSetData.output_definition))
+      } catch (error) {
+        notify('error', 'Error loading run set data', { detail: await (error instanceof Response ? error.text() : error) })
       }
     }
 
@@ -38,8 +64,14 @@ export const SubmissionConfig = () => {
       }
     }
 
+    // TODO: Replace with more sensible defaults:
+    setSelectedDataTableRows(['FOO1', 'FOO2', 'FOO3'])
+    setRunSetName('New run set name')
+    setRunSetDescription('New run set description')
+
     loadMethodsData()
     loadTablesData()
+    loadRunSet()
   })
 
   const renderSummary = () => {
@@ -70,12 +102,16 @@ export const SubmissionConfig = () => {
         isDisabled: false,
         'aria-label': 'Select a data table',
         isClearable: false,
-        value: selectedTable.name,
-        onChange: ({ value }) => setSelectedTable({ name: value }),
+        value: selectedTable ? selectedTable : null,
+        onChange: ({ value }) => setSelectedTable(value),
         placeholder: 'None selected',
         styles: { container: old => ({ ...old, display: 'inline-block', width: 200 }) },
         options: _.map(d => d.name, dataTables)
       }),
+      div({ style: { lineHeight: 2.0 } }, [
+        div([span({ style: { fontWeight: 'bold' } }, ['New run set name (TODO: Move to modal): ']), runSetName ? runSetName : 'Run set name required']),
+        div([span({ style: { fontWeight: 'bold' } }, ['New run set description (TODO: Move to modal): ']), runSetDescription ? runSetDescription : 'Run set description required'])
+      ]),
       h(StepButtons, {
         tabs: [
           { key: 'select-data', title: 'Select Data', isValid: () => true },
@@ -88,22 +124,68 @@ export const SubmissionConfig = () => {
           style: { marginLeft: '1rem' },
           // disabled: !!Utils.computeWorkspaceError(ws) || !!noLaunchReason || currentSnapRedacted || !!snapshotReferenceError,
           // tooltip: Utils.computeWorkspaceError(ws) || noLaunchReason || (currentSnapRedacted && 'Workflow version was redacted.'),
-          onClick: () => window.alert(`submitting`)
+          onClick: () => submitRun()
         }, ['Submit'])
       })
     ])
   }
 
   const renderDataSelector = () => {
-    return 'data selector'
+    return selectedDataTableRows ? h(ReactJson, {
+      style: { whiteSpace: 'pre-wrap' },
+      name: false,
+      collapsed: 4,
+      enableClipboard: false,
+      displayDataTypes: false,
+      displayObjectSize: false,
+      src: { selectedDataTableRows }
+    }) : 'No data table rows selected...'
   }
 
   const renderInputs = () => {
-    return 'inputs'
+    return configuredInputDefinition ? h(ReactJson, {
+      style: { whiteSpace: 'pre-wrap' },
+      name: false,
+      collapsed: 4,
+      enableClipboard: false,
+      displayDataTypes: false,
+      displayObjectSize: false,
+      src: configuredInputDefinition
+    }) : 'No configured input definition...'
   }
 
   const renderOutputs = () => {
-    return 'outputs'
+    return configuredOutputDefinition ? h(ReactJson, {
+      style: { whiteSpace: 'pre-wrap' },
+      name: false,
+      collapsed: 4,
+      enableClipboard: false,
+      displayDataTypes: false,
+      displayObjectSize: false,
+      src: configuredOutputDefinition
+    }) : 'No previous run set data...'
+  }
+
+  const submitRun = async () => {
+    try {
+      const runSetsPayload = {
+        run_set_name: runSetName,
+        run_set_description: runSetDescription,
+        method_id: methodId,
+        workflow_input_definitions: configuredInputDefinition,
+        workflow_output_definitions: configuredOutputDefinition,
+        wds_records: {
+          record_type: selectedTable,
+          record_ids: selectedDataTableRows
+        }
+      }
+
+      await Ajax(signal).Cbas.runSets.post(runSetsPayload)
+      notify('success', 'Workflow successfully submitted', { message: 'You may check on the progress of workflow on this page anytime.', timeout: 5000 })
+      Nav.goToPath('submission-history')
+    } catch (error) {
+      notify('error', 'Error submitting workflow', { detail: await (error instanceof Response ? error.text() : error) })
+    }
   }
 
   return h(Fragment, [
@@ -138,7 +220,7 @@ export const SubmissionConfig = () => {
 export const navPaths = [
   {
     name: 'submission-config',
-    path: '/submission-config',
+    path: '/submission-config/:methodId',
     component: SubmissionConfig,
     public: true
   }

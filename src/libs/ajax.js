@@ -69,41 +69,17 @@ const Cbas = signal => ({
     get: async () => {
       const res = await fetchCbas(`run_sets`, { signal, method: 'GET' })
       return res.json()
+    },
+    getForMethod: async (methodId, pageSize) => {
+      const keyParams = qs.stringify({ method_id: methodId, page_size: pageSize }, { arrayFormat: 'repeat' })
+      const res = await fetchCbas(`run_sets?${keyParams}`, { signal, method: 'GET' })
+      return res.json()
     }
   },
   methods: {
     get: async () => {
-      const resJson = await (() => [
-        {
-          method_id: '64b5bc5e-85cf-4aff-b522-01471b88b950',
-          name: 'fastq_to_ubam-test',
-          description: 'our first target workflow',
-          source: 'github',
-          source_url: 'https://raw.githubusercontent.com/broadinstitute/viral-pipelines/master/pipes/WDL/workflows/fastq_to_ubam.wdl',
-          created: '2017-07-21T17:32:28Z',
-          last_run: '2017-07-21T17:32:28Z'
-        },
-        {
-          method_id: 'e77003d2-091a-46ac-bee3-51634c8ab61d',
-          name: 'assemble_refbased',
-          description: 'our second target workflow',
-          source: 'github',
-          source_url: 'https://raw.githubusercontent.com/broadinstitute/viral-pipelines/master/pipes/WDL/workflows/assemble_refbased.wdl',
-          created: '2017-07-21T17:32:28Z',
-          last_run: '2017-07-21T17:32:28Z'
-        },
-        {
-          method_id: '1486add2-70ae-4add-b843-a1f6bdbcebca',
-          name: 'sarscov2_nextstraing',
-          description: 'our third target workflow',
-          source: 'github',
-          source_url: 'https://google.com',
-          created: '2017-07-21T17:32:28Z',
-          last_run: '2017-07-21T17:32:28Z'
-        }
-      ])()
-
-      return resJson
+      const res = await fetchCbas('methods', { signal, method: 'GET' })
+      return res.json()
     }
   }
 })
@@ -158,6 +134,12 @@ const Wds = signal => ({
           attributes: [],
           count: 1,
           primaryKey: 'sys_name'
+        },
+        {
+          name: 'FOO',
+          attributes: [],
+          count: 3,
+          primaryKey: 'FOO_ID'
         }
       ])()
       return resJson

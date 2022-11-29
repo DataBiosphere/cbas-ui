@@ -1,12 +1,11 @@
 import * as clipboard from 'clipboard-polyfill/text'
 import _ from 'lodash/fp'
 import { useState } from 'react'
-import { a, div, h, h3, img } from 'react-hyperscript-helpers'
+import { a, div, h, h3 } from 'react-hyperscript-helpers'
 import RSelect, { components as RSelectComponents } from 'react-select'
 import { centeredSpinner, containsUnlabelledIcon, icon } from 'src/components/icons'
 import Interactive from 'src/components/Interactive'
 import TooltipTrigger from 'src/components/TooltipTrigger'
-import cromwellLogoWhite from 'src/images/cromwell-logo-white.svg'
 import headerLeftHexes from 'src/images/header-left-hexes.svg'
 import headerRightHexes from 'src/images/header-right-hexes.svg'
 import colors, { terraSpecial } from 'src/libs/colors'
@@ -186,7 +185,6 @@ export const headerBar = () => {
         }, [
           topBarLogo(),
           div({ style: { display: 'flex', alignItems: 'center', marginLeft: '1rem' } }, [
-            img({ src: cromwellLogoWhite, alt: '', style: styles.image }),
             h3({
               style: { color: 'white', fontWeight: 600, padding: '0px', marginLeft: '0.5rem' }
             }, ['SUBMIT WORKFLOWS WITH CROMWELL'])
