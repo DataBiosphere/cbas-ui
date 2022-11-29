@@ -79,9 +79,11 @@ export const SavedWorkflows = ({ runsData, setWorkflowUrl, setShowInputsPage }) 
     return div({ style: { ...styles.card, ...styles.longCard } }, [
       // name,
         div({ style: { ...styles.innerContent, display: 'flex', alignItems: 'center' } }, [
-          div({ style: { ...styles.longTitle } }, [`${name}`]),
-          //div({ style: { flex: 'none', width: 130 } }, ['Source: ', repoLink])
-        ])
+          div({ style: { ...styles.longTitle, width: 20 } }, [`${name}`]),
+          div({ style: { width: 400 } }, ['Last updated: ', lastRun]),
+          div({ style: { flex: 'none', width: 275 } }, ['Source: ', source])
+        ]),
+      div({ style: { ...styles.innerContent, display: 'flex', alignItems: 'center', paddingTop: '1.5rem' } }, [description])
       ])
   })
 
