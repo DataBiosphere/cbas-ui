@@ -3,7 +3,7 @@ import '@testing-library/jest-dom'
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import { h } from 'react-hyperscript-helpers'
 import { Ajax } from 'src/libs/ajax'
-import { SubmissionHistory } from 'src/pages/SubmissionHistory'
+import { SubmissionHistory } from 'src/pages/SubmissionHistory/SubmissionHistory'
 
 // Necessary to mock the AJAX module.
 jest.mock('src/libs/ajax')
