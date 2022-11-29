@@ -256,21 +256,21 @@ export const FlexTable = ({
         display: 'flex'
       },
       role: 'row'
-    }, _.map(([i, { size, headerRenderer, field }]) => {
-      return div({
-        key: i,
-        role: 'columnheader',
-        // ARIA row and column indexes start with 1 rather than 0 https://www.digitala11y.com/aria-colindexproperties/
-        'aria-rowindex': 1, // The header row is 1
-        'aria-colindex': i + 1, // The first column is 1
-        'aria-sort': ariaSort(sort, field),
-        style: {
-          ...styles.flexCell(size),
-          ...(variant === 'light' ? {} : styles.header(i * 1, columns.length, { border })),
-          ...(styleHeader ? styleHeader({ columnIndex: i }) : {})
-        }
-      }, [headerRenderer({ columnIndex: i })])
-    }, Utils.toIndexPairs(columns))),
+     }, //_.map(([i, { size, headerRenderer, field }]) => {
+    //   return div({
+    //     key: i,
+    //     role: 'columnheader',
+    //     // ARIA row and column indexes start with 1 rather than 0 https://www.digitala11y.com/aria-colindexproperties/
+    //     'aria-rowindex': 1, // The header row is 1
+    //     'aria-colindex': i + 1, // The first column is 1
+    //     'aria-sort': ariaSort(sort, field),
+    //     style: {
+    //       ...styles.flexCell(size),
+    //       ...(variant === 'light' ? {} : styles.header(i * 1, columns.length, { border })),
+    //       ...(styleHeader ? styleHeader({ columnIndex: i }) : {})
+    //     }
+    //   }, [headerRenderer({ columnIndex: i })])
+    /* }, Utils.toIndexPairs(columns))*/),
     h(RVGrid, {
       ref: body,
       role: 'rowgroup',
@@ -332,7 +332,7 @@ FlexTable.propTypes = {
   noContentRenderer: PropTypes.func,
   columns: PropTypes.arrayOf(PropTypes.shape({
     field: PropTypes.string,
-    headerRenderer: PropTypes.func.isRequired,
+    headerRenderer: PropTypes.func,
     cellRenderer: PropTypes.func.isRequired,
     size: PropTypes.shape({
       basis: PropTypes.number, // flex-basis in px, default 0

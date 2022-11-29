@@ -32,8 +32,8 @@ export const SubmitWorkflow = () => {
 
     const loadRunsData = async () => {
       try {
-        const runs = await Ajax(signal).Cbas.runs.get()
-        setRunsData(runs.runs)
+        const runs = await Ajax(signal).Cbas.methods.get()
+        setRunsData(runs.methods)
       } catch (error) {
         notify('error', 'Error loading saved workflows', { detail: await (error instanceof Response ? error.text() : error) })
       }

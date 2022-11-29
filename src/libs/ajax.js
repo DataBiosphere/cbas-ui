@@ -73,6 +73,7 @@ const Cbas = signal => ({
   },
   methods: {
     get: async () => {
+      // TODO: Replace with: await fetchCbas('methods', { signal, method: 'GET' })
       const resJson = await (() => [
         {
           method_id: '64b5bc5e-85cf-4aff-b522-01471b88b950',
@@ -103,6 +104,7 @@ const Cbas = signal => ({
         }
       ])()
 
+      // TODO: Replace with res.json()
       return resJson
     }
   }
