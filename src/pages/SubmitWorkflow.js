@@ -57,7 +57,7 @@ export const SubmitWorkflow = () => {
 
       await Ajax(signal).Cbas.runSets.post(runSetsPayload)
       notify('success', 'Workflow successfully submitted', { message: 'You may check on the progress of workflow on this page anytime.', timeout: 5000 })
-      Nav.goToPath('previous-runs')
+      Nav.goToPath('submission-history')
     } catch (error) {
       notify('error', 'Error submitting workflow', { detail: await (error instanceof Response ? error.text() : error) })
     }
@@ -69,8 +69,8 @@ export const SubmitWorkflow = () => {
       div({ style: { display: 'flex', marginTop: '1rem', justifyContent: 'space-between' } }, [
         h2(['Submit a workflow']),
         h(ButtonOutline, {
-          onClick: () => Nav.goToPath('previous-runs')
-        }, ['View previous runs'])
+          onClick: () => Nav.goToPath('submission-history')
+        }, ['View submission history'])
       ]),
       div(['Submit your Terra workflows with the Cromwell engine. Full featured workflow submissions coming soon!']),
       div({ style: { marginTop: '2rem' } }, [

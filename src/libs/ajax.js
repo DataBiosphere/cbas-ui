@@ -55,14 +55,19 @@ const Cbas = signal => ({
     return res.json()
   },
   runs: {
-    get: async () => {
-      const res = await fetchCbas(`runs`, { signal, method: 'GET' })
+    get: async submissionId => {
+      const keyParams = qs.stringify({ run_set_id: submissionId })
+      const res = await fetchCbas(`runs?${keyParams}`, { signal, method: 'GET' })
       return res.json()
     }
   },
   runSets: {
     post: async payload => {
       const res = await fetchCbas(`run_sets`, _.mergeAll([{ signal, method: 'POST' }, jsonBody(payload)]))
+      return res.json()
+    },
+    get: async () => {
+      const res = await fetchCbas(`run_sets`, { signal, method: 'GET' })
       return res.json()
     }
   }
