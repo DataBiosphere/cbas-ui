@@ -84,7 +84,7 @@ describe('SubmissionHistory page', () => {
     Object.defineProperty(HTMLElement.prototype, 'offsetWidth', originalOffsetWidth)
   })
 
-  it('should display no content message when there are no previous runs', async () => {
+  it('should display no content message when there are no previous run sets', async () => {
     // Arrange
     const getRunSetsMethod = jest.fn(() => Promise.resolve([]))
     await Ajax.mockImplementation(() => {
@@ -111,7 +111,7 @@ describe('SubmissionHistory page', () => {
     within(rows[0]).findByText('Nothing here yet! Your previously run submissions will be displayed here.')
   })
 
-  it('should correctly display previous 2 runs', async () => {
+  it('should correctly display previous 2 run sets', async () => {
     // Act
     await act(async () => {
       await render(h(SubmissionHistory))
