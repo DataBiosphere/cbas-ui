@@ -3,11 +3,11 @@ import { Fragment, useState } from 'react'
 import { a, div, h, h2, span } from 'react-hyperscript-helpers'
 import { ButtonPrimary, headerBar, Link, Select } from 'src/components/common'
 import StepButtons from 'src/components/StepButtons'
-import * as Utils from 'src/libs/utils'
-import { terraSpecial } from 'src/libs/colors'
 import { Ajax } from 'src/libs/ajax'
-import { useCancellation, useOnMount } from 'src/libs/react-utils'
 import { notify } from 'src/libs/notifications'
+import { useCancellation, useOnMount } from 'src/libs/react-utils'
+import * as Utils from 'src/libs/utils'
+
 
 const methodId = '64b5bc5e-85cf-4aff-b522-01471b88b950' // TODO: get this from the previous page
 // const wdlUrl = 'https://raw.githubusercontent.com/broadinstitute/viral-pipelines/master/pipes/WDL/workflows/fastq_to_ubam.wdl'
@@ -24,7 +24,7 @@ export const SubmissionConfig = () => {
     const loadMethodsData = async () => {
       try {
         const allMethods = await Ajax(signal).Cbas.methods.get()
-        const selectedMethod = _.head(_.filter(m => m.method_id===methodId, allMethods))
+        const selectedMethod = _.head(_.filter(m => m.method_id === methodId, allMethods))
         setMethodsData(selectedMethod) // TODO: this doesn't feel "safe"
       } catch (error) {
         notify('error', 'Error loading methods data', { detail: await (error instanceof Response ? error.text() : error) })
@@ -35,7 +35,7 @@ export const SubmissionConfig = () => {
       try {
         setDataTables(await Ajax(signal).Wds.types.get())
       } catch (error) {
-        notify('error', 'Error loading tables data', { detail: await (error instanceof Response ? error.text() : error) }) 
+        notify('error', 'Error loading tables data', { detail: await (error instanceof Response ? error.text() : error) })
       }
     }
 
@@ -108,13 +108,15 @@ export const SubmissionConfig = () => {
   }
 
   return h(Fragment, [
-    div({style: {
-      borderBottom: '2px solid rgb(116, 174, 67)', 
-      boxShadow: 'rgb(0 0 0 / 26%) 0px 2px 5px 0px, rgb(0 0 0 / 16%) 0px 2px 10px 0px',
-      position: 'relative'
-    }}, [
+    div({
+      style: {
+        borderBottom: '2px solid rgb(116, 174, 67)',
+        boxShadow: 'rgb(0 0 0 / 26%) 0px 2px 5px 0px, rgb(0 0 0 / 16%) 0px 2px 10px 0px',
+        position: 'relative'
+      }
+    }, [
       headerBar(),
-      renderSummary(),
+      renderSummary()
     ]),
     div({
       style: {
