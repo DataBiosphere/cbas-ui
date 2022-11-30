@@ -73,16 +73,9 @@ export const SubmitWorkflow = () => {
         }, ['Submission history'])
       ]),
       div(['Run a workflow in Terra using Cromwell engine. Full feature workflow submission coming soon.']),
-      div({ style: { marginTop: '2rem' } }, [
+      div({ style: { marginTop: '3rem' } }, [
         !showInputsPage && h(Fragment, [
-          // h(WorkflowSource, { workflowUrl, setWorkflowUrl }),
-          // div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
-          //   h(ButtonPrimary, {
-          //     disabled: !workflowUrl,
-          //     onClick: () => setShowInputsPage(true)
-          //   }, ['Use workflow'])
-          // ]),
-          h(SavedWorkflows, { runsData, setWorkflowUrl, setShowInputsPage })
+          h(SavedWorkflows,  { runsData, setWorkflowUrl, setShowInputsPage })
         ]),
         showInputsPage && h(Fragment, [
           h(WorkflowInputs, { workflowUrl, recordType, setRecordType, recordId, setRecordId, workflowInputsDefinition, setWorkflowInputsDefinition, workflowOutputsDefinition, setWorkflowOutputsDefinition }),
