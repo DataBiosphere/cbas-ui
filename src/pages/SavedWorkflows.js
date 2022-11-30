@@ -1,11 +1,6 @@
-
-import colors from 'src/libs/colors'
 import * as Style from 'src/libs/style'
 import _ from 'lodash/fp'
-import { useState } from 'react'
-import { div, h, h3 } from 'react-hyperscript-helpers'
-
-import { TextCell } from 'src/components/table'
+import { div, h } from 'react-hyperscript-helpers'
 import { memoWithName } from 'src/libs/react-utils'
 import * as Utils from 'src/libs/utils'
 
@@ -66,11 +61,9 @@ const styles = {
 
 export const SavedWorkflows = ({ runsData }) => {
 
-
   const WorkflowCard = memoWithName('WorkflowCard', ({ name, lastRun, description, source }) => {
 
     return div({ style: {  ...styles.card, ...styles.mediumCard } }, [
-      // name,
         div({ style: { paddingTop: '0.75rem', ...styles.innerContent, display: 'flex', alignItems: 'center' } }, [
           div({ style: { ...styles.longTitle, width: 15, paddingRight: '1.5rem' } }, [`${name}`]),
           div({ style: { width: 300 } }, ['Version: (HARDCODED)']),
