@@ -70,6 +70,39 @@ const Cbas = signal => ({
       const res = await fetchCbas(`run_sets`, { signal, method: 'GET' })
       return res.json()
     }
+  },
+  methods: {
+    get: async () => {
+      return [
+        {
+          "method_id": "64b5bc5e-85cf-4aff-b522-01471b88b950",
+          "name": "fastq_to_ubam-test",
+          "description": "our first target workflow",
+          "source": "github",
+          "source_url": "https://raw.githubusercontent.com/broadinstitute/viral-pipelines/master/pipes/WDL/workflows/fastq_to_ubam.wdl",
+          "created": "2017-07-21T17:32:28Z",
+          "last_run": "2017-07-21T17:32:28Z"
+        },
+        {
+          "method_id": "e77003d2-091a-46ac-bee3-51634c8ab61d",
+          "name": "assemble_refbased",
+          "description": "our second target workflow",
+          "source": "github",
+          "source_url": "https://raw.githubusercontent.com/broadinstitute/viral-pipelines/master/pipes/WDL/workflows/assemble_refbased.wdl",
+          "created": "2017-07-21T17:32:28Z",
+          "last_run": "2017-07-21T17:32:28Z"
+        },
+        {
+          "method_id": "1486add2-70ae-4add-b843-a1f6bdbcebca",
+          "name": "sarscov2_nextstraing",
+          "description": "our third target workflow",
+          "source": "github",
+          "source_url": "https://google.com",
+          "created": "2017-07-21T17:32:28Z",
+          "last_run": "2017-07-21T17:32:28Z"
+        }
+      ]
+    }
   }
 })
 
@@ -85,9 +118,53 @@ const Cromwell = signal => ({
   }
 })
 
+const Wds = signal => ({
+  types: {
+    get: async () => {
+      console.log('mock WDS endpoint')
+      return [
+        {
+          "name": "Covid19_DataTable",
+          "attributes": [
+            {
+              "name": "assemble_refbased_mock_call_10_input_file_optional",
+              "datatype": "STRING"
+            },
+            {
+              "name": "assemble_refbased_mock_call_12_input_bool_default_1",
+              "datatype": "BOOLEAN"
+            },
+            {
+              "name": "assemble_refbased_mock_call_12_input_int_default_1",
+              "datatype": "NUMBER"
+            },
+            {
+              "name": "assemble_refbased_mock_input_file_array",
+              "datatype": "ARRAY_OF_STRING"
+            },
+            {
+              "name": "assemble_refbased_mock_output_float_array",
+              "datatype": "ARRAY_OF_NUMBER"
+            },
+          ],
+          "count": 1,
+          "primaryKey": "sys_name"
+        },
+        {
+          "name": "SomeOtherDataset",
+          "attributes": [],
+          "count": 1,
+          "primaryKey": "sys_name"
+        }
+      ]
+    }
+  }
+})
+
 export const Ajax = signal => {
   return {
     Cbas: Cbas(signal),
-    Cromwell: Cromwell(signal)
+    Cromwell: Cromwell(signal),
+    Wds: Wds(signal)
   }
 }
