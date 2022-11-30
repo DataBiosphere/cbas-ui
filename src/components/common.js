@@ -186,7 +186,6 @@ export const headerBar = () => {
         }, [
           topBarLogo(),
           div({ style: { display: 'flex', alignItems: 'center', marginLeft: '1rem' } }, [
-            img({ src: cromwellLogoWhite, alt: '', style: styles.image }),
             h3({
               style: { color: 'white', fontWeight: 600, padding: '0px', marginLeft: '0.5rem' }
             }, ['SUBMIT WORKFLOWS WITH CROMWELL'])
