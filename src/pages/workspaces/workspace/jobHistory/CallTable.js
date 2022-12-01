@@ -21,7 +21,6 @@ const CallTable = ({ namespace, name, submissionId, workflowId, callName, callOb
   const filteredCallObjects = _.flow(
     _.filter(({ executionStatus, backendStatus }) => {
       const status = collapseCromwellStatus(executionStatus, backendStatus).label()
-
       return (_.isEmpty(statusFilter) || statusFilter.includes(status))
     }),
     _.sortBy(sort.field),
