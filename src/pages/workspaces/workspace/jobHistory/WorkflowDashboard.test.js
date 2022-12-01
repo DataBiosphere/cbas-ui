@@ -14,9 +14,6 @@ jest.mock('src/libs/config', () => ({
   getConfig: jest.fn().mockReturnValue({})
 }))
 
-// jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(1500)
-// jest.spyOn(HTMLElement.prototype, 'offsetWidth', 'get').mockReturnValue(1500)
-
 
 const workspaceDashboardProps = {
   namespace: 'example-billing-project',
