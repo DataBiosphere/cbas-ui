@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-expressions */
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { h } from 'react-hyperscript-helpers'
 import { Ajax } from 'src/libs/ajax'
@@ -14,6 +14,9 @@ jest.mock('src/libs/config', () => ({
   getConfig: jest.fn().mockReturnValue({})
 }))
 
+// jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(1500)
+// jest.spyOn(HTMLElement.prototype, 'offsetWidth', 'get').mockReturnValue(1500)
+
 
 const workspaceDashboardProps = {
   namespace: 'example-billing-project',
@@ -21,6 +24,9 @@ const workspaceDashboardProps = {
   submissionId: 'subId',
   workflowId: 'workId'
 }
+
+const end = new Date();
+const start = new Date(end.getMilliseconds() - 1000000)
 
 const workspaceDashboardMetadata = {
   workflowName: 'fileChecksum',
@@ -48,7 +54,16 @@ const workspaceDashboardMetadata = {
     workflowUrl: '',
     labels: '{}'
   },
-  calls: {},
+  calls: {
+    testOne: [{
+      start,
+      executionStatus: 'Running',
+      shardIndex: 3,
+      attempt: 2,
+      backendStatus: 'Running',
+      end
+    }]
+  },
   outputs: {},
   actualWorkflowLanguage: 'WDL',
   status: 'Aborted',
@@ -151,6 +166,50 @@ describe('WorkspaceDashboard - Dashboard render smoke test', () => {
       expect(clipboardButton).toBeDefined
       await user.click(clipboardButton)
       expect(navigator.clipboard.writeText).toHaveBeenCalled
+    })
+  })
+
+  it('shows the workflow calls', async () => {
+    const callData = workspaceDashboardMetadata.calls.testOne[0]
+    render(h(WorkflowDashboard, workspaceDashboardProps))
+    await waitFor(() => {
+      const callCollapse = screen.getByText('Calls')
+      expect(callCollapse).toBeDefined
+      const countString = screen.getByText('Total Call Status Counts')
+      expect(countString).toBeDefined
+      const totalRunningString = screen.getByText(/1 running/)
+      expect(totalRunningString).toBeDefined
+      const collapseTestOneString = screen.getByText(/^testOne/)
+      expect(collapseTestOneString).toBeDefined
+      const testOneTable = screen.getByRole(/table/)
+      expect(testOneTable).toBeDefined
+      const rows = within(testOneTable).queryAllByRole(/^row$/)
+      expect(rows.length).toEqual(2)
+      const columnHeaders = ['Index', 'Attempt', 'Status', 'Start', 'End']
+      columnHeaders.forEach(label => {
+        const columnHeader = within(rows[0]).getByText(label)
+        expect(columnHeader).toBeDefined()
+        const key = label.toLowerCase()
+        let value
+
+        switch (key) {
+          case 'start':
+          case 'end':
+            const time = callData[key]
+            value = makeCompleteDate(time)
+            break
+          case 'index':
+            value = callData.shardIndex
+            break
+          case 'status':
+            value = 'Running'
+            break
+          default:
+            value = callData[key]
+        }
+        const cellData = within(rows[1]).getAllByText(value)
+        expect(cellData).toBeDefined
+      })
     })
   })
 

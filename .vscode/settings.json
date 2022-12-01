@@ -19,5 +19,6 @@
   "vsintellicode.features.apiExamplests": "enabled",
   "vsintellicode.features.python.deepLearning": "disabled",
   "vsintellicode.python.completionsEnabled": false,
-  "vsintellicode.sql.completionsEnabled": false
+  "vsintellicode.sql.completionsEnabled": false,
+  "jest.jestCommandLine": "yarn test"
 }
