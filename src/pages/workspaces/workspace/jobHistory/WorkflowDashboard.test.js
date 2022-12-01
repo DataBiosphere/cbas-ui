@@ -22,7 +22,7 @@ const workspaceDashboardProps = {
   workflowId: 'workId'
 }
 
-const end = new Date();
+const end = new Date()
 const start = new Date(end.getMilliseconds() - 1000000)
 
 const workspaceDashboardMetadata = {
@@ -44,6 +44,7 @@ const workspaceDashboardMetadata = {
   actualWorkflowLanguageVersion: 'draft-2',
   submittedFiles: {
     workflow:
+      // eslint-disable-next-line no-template-curly-in-string
       'task md5 {\n    File inputFile \n    command {\n        echo "`date`: Running checksum on ${inputFile}..."\n        md5sum ${inputFile} > md5sum.txt\n        echo "`date`: Checksum is complete."\n    }\n    output {\n        File result = "md5sum.txt"\n    }\n    runtime {\n        docker: \'ubuntu:18.04\'\n        preemptible: true\n    }\n}\n\nworkflow fileChecksum {\n    File inputFile\n    call md5 { input: inputFile=inputFile}\n}\n\n',
     root: '',
     options: '{\n\n}',
