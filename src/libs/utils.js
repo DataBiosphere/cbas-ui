@@ -1,3 +1,5 @@
+import { formatDuration, intervalToDuration } from 'date-fns'
+import { differenceInSeconds, parseJSON } from 'date-fns/fp'
 import _ from 'lodash/fp'
 import { div } from 'react-hyperscript-helpers'
 
@@ -6,6 +8,22 @@ export const newTabLinkProps = { target: '_blank', rel: 'noopener noreferrer' } 
 
 const completeDateFormat = new Intl.DateTimeFormat('default', { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: 'numeric' })
 export const makeCompleteDate = dateString => completeDateFormat.format(new Date(dateString))
+
+/**
+ * Returns difference in seconds between current time and supplied JSON formatted date (which is assumed to be older).
+ */
+export const differenceFromNowInSeconds = jsonDateString => {
+  return differenceInSeconds(parseJSON(jsonDateString), Date.now())
+}
+
+export const differenceFromDatesInSeconds = (jsonDateStringStart, jsonDateStringEnd) => {
+  return differenceInSeconds(parseJSON(jsonDateStringStart), parseJSON(jsonDateStringEnd))
+}
+
+export const customFormatDuration = seconds => {
+  const durations = intervalToDuration({ start: 0, end: seconds * 1000 }) // this function expects milliseconds
+  return formatDuration(durations)
+}
 
 export const subscribable = () => {
   let subscribers = []
