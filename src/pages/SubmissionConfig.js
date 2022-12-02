@@ -10,7 +10,6 @@ import * as Utils from 'src/libs/utils'
 
 
 const methodId = '64b5bc5e-85cf-4aff-b522-01471b88b950' // TODO: get this from the previous page
-// const wdlUrl = 'https://raw.githubusercontent.com/broadinstitute/viral-pipelines/master/pipes/WDL/workflows/fastq_to_ubam.wdl'
 
 export const SubmissionConfig = () => {
   const [activeTab, setActiveTab] = useState({ key: 'select-data' })
