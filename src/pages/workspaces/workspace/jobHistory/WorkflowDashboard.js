@@ -147,18 +147,6 @@ export const WorkflowDashboard = ({ namespace, name, submissionId, workflowId })
               div({ style: styles.sectionTableLabel }, ['End:']), div([end ? makeCompleteDate(end) : 'N/A'])
             ])
           ])
-          //NOTE: Was told this isn't being added anymore, is that true?
-          // makeSection('Links', [
-          //   div({ id: 'links', style: { display: 'flex', flexFlow: 'row wrap', marginTop: '0.5rem', lineHeight: '2rem' } }, [
-          //     h(Link, { onClick: () => Nav.goToPath('previous-runs') }, 'See Previous Runs')
-
-          //     //  Q4-2022 Disable log-viewing
-          //     // h(Link, {
-          //     //   onClick: () => setShowLog(true),
-          //     //   style: { display: 'flex', marginLeft: '1rem', alignItems: 'center' }
-          //     // }, [icon('fileAlt', { size: 18 }), ' View execution log'])
-          //   ])
-          // ])
         ]),
         failures && h(Collapse,
           {
