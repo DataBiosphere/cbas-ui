@@ -18,7 +18,8 @@ export const codeFont = { fontFamily: 'Courier New' }
 
 export const elements = {
   card: {
-    title: { color: colors.accent(), fontSize: 16, overflow: 'hidden' },
+    title: { color: colors.accent(), fontSize: 16, overflow: 'hidden', fontWeight: 'bold' },
+    mediumTitle: { fontSize: 20, color: colors.accent(), overflow: 'hidden', fontWeight: 'bold' },
     container: {
       display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
       borderRadius: 5, padding: '1rem', wordWrap: 'break-word',

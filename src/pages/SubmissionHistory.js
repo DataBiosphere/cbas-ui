@@ -22,8 +22,6 @@ export const SubmissionHistory = () => {
 
   const signal = useCancellation()
 
-  const LOREM_IPSUM = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.'
-
   const terminalStates = ['ERROR', 'COMPLETE']
 
   const runSetDuration = ({
@@ -132,8 +130,8 @@ export const SubmissionHistory = () => {
                     return div([
                       h(
                         Link,
-                        { onClick: () => { window.alert('this will go to the Submission Details page') }, style: { fontWeight: 'bold' } },
-                        [paginatedPreviousRunSets[rowIndex].runset_name || 'pathogenic-genomic-surveillance/fastq_to_ubam [HARDCODED]']
+                        { onClick: () => { Nav.goToPath('submission-details', { submissionId: paginatedPreviousRunSets[rowIndex].run_set_id }) }, style: { fontWeight: 'bold' } },
+                        [paginatedPreviousRunSets[rowIndex].run_set_name || 'No name']
                       ),
                       h(
                         TextCell,
@@ -178,7 +176,7 @@ export const SubmissionHistory = () => {
                   headerRenderer: () => h(Sortable, { sort, field: 'comment', onSort: setSort }, ['Comment']),
                   cellRenderer: ({ rowIndex }) => {
                     return div({ style: { width: '100%', textAlign: 'left' } }, [
-                      h(TextCell, { style: { whiteSpace: 'normal' } }, [paginatedPreviousRunSets[rowIndex].user_comment || LOREM_IPSUM]),
+                      h(TextCell, { style: { whiteSpace: 'normal' } }, [paginatedPreviousRunSets[rowIndex].run_set_description || 'No Description']),
                       h(Link, { style: { display: 'block', marginTop: '1em', textDecoration: 'underline' }, onClick: () => window.alert('Comment editing disabled') }, ['Edit'])
                     ])
                   }

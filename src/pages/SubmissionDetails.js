@@ -76,10 +76,23 @@ export const SubmissionDetails = ({ submissionId }) => {
             columns: [
               {
                 size: { basis: 350 },
-                field: 'run_id',
-                headerRenderer: () => h(Sortable, { sort, field: 'run_id', onSort: setSort }, ['Run ID']),
+                field: 'record_id',
+                headerRenderer: () => h(Sortable, { sort, field: 'record_id', onSort: setSort }, ['Record Entry']),
                 cellRenderer: ({ rowIndex }) => {
-                  return h(TextCell, [paginatedPreviousRuns[rowIndex].run_id])
+                  return h(TextCell, [paginatedPreviousRuns[rowIndex].record_id])
+                }
+              },
+              {
+                size: { basis: 350 },
+                field: 'engine_id',
+                headerRenderer: () => h(Sortable, { sort, field: 'engine_id', onSort: setSort }, ['Engine Details']),
+                cellRenderer: ({ rowIndex }) => {
+                  // link to workflow-dashboard / :workflowId
+                  return h(
+                    Link,
+                    { onClick: () => { Nav.goToPath('workflow-dashboard', { workflowId: paginatedPreviousRuns[rowIndex].engine_id }) }, style: { fontWeight: 'bold' } },
+                    ['Workflow Dashboard']
+                  )
                 }
               },
               {
