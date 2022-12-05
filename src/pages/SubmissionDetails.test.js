@@ -27,6 +27,7 @@ describe('Submission Details page', () => {
     runs: [
       {
         run_id: 'ea001565-1cd6-4e43-b446-932ac1918081',
+        record_id: '00000000-0000-0000-0000-000000000001',
         state: 'COMPLETE',
         submission_date: '2022-11-23 15:03:28.202094',
         workflow_url: 'https://abc.wdl',
@@ -35,6 +36,7 @@ describe('Submission Details page', () => {
       },
       {
         run_id: 'b7234aae-6f43-405e-bb3a-71f924e09825',
+        record_id: '00000000-0000-0000-0000-000000000002',
         state: 'SYSTEM_ERROR',
         submission_date: '2022-07-14T22:22:15.591Z',
         workflow_url: 'https://xyz.wdl',
@@ -82,38 +84,43 @@ describe('Submission Details page', () => {
     const table = screen.getByRole('table')
 
     // Assert
-    expect(table).toHaveAttribute('aria-colcount', '6')
+    expect(table).toHaveAttribute('aria-colcount', '7')
     expect(table).toHaveAttribute('aria-rowcount', '3')
 
     const rows = within(table).queryAllByRole('row')
     expect(rows.length).toBe(3)
 
     const headers = within(rows[0]).queryAllByRole('columnheader')
-    expect(headers.length).toBe(6)
-    within(headers[0]).getByText('Run ID')
-    within(headers[1]).getByText('Status')
-    within(headers[2]).getByText('Submission date')
-    within(headers[3]).getByText('Duration')
-    within(headers[4]).getByText('Data')
-    within(headers[5]).getByText('Logs')
+    expect(headers.length).toBe(7)
+    within(headers[0]).getByText('Record Entry')
+    within(headers[1]).getByText('Engine Details')
+    within(headers[2]).getByText('Status')
+    within(headers[3]).getByText('Submission date')
+    within(headers[4]).getByText('Duration')
+    within(headers[5]).getByText('Data')
+    within(headers[6]).getByText('Logs')
 
 
     const cellsFromDataRow2 = within(rows[1]).queryAllByRole('cell')
-    expect(cellsFromDataRow2.length).toBe(6)
-    within(cellsFromDataRow2[0]).getByText('ea001565-1cd6-4e43-b446-932ac1918081')
-    within(cellsFromDataRow2[1]).getByText('COMPLETE')
-    within(cellsFromDataRow2[2]).getByText('Nov 23, 2022, 3:03 PM')
-    within(cellsFromDataRow2[3]).getByText('47 seconds')
-    within(cellsFromDataRow2[4]).getByText('View inputs')
+    expect(cellsFromDataRow2.length).toBe(7)
+    within(cellsFromDataRow2[0]).getByText('00000000-0000-0000-0000-000000000001')
+    within(cellsFromDataRow2[1]).getByText('Workflow Dashboard')
+    within(cellsFromDataRow2[2]).getByText('COMPLETE')
+    within(cellsFromDataRow2[3]).getByText('Nov 23, 2022, 3:03 PM')
+    within(cellsFromDataRow2[4]).getByText('47 seconds')
+    within(cellsFromDataRow2[5]).getByText('View inputs')
+    within(cellsFromDataRow2[6]).getByText('View workflow log file')
 
     // check data rows are rendered as expected
     const cellsFromDataRow1 = within(rows[2]).queryAllByRole('cell')
-    expect(cellsFromDataRow1.length).toBe(6)
-    within(cellsFromDataRow1[0]).getByText('b7234aae-6f43-405e-bb3a-71f924e09825')
-    within(cellsFromDataRow1[1]).getByText('Failed with error')
-    within(cellsFromDataRow1[2]).getByText(/Jul 14, 2022/)
-    within(cellsFromDataRow1[3]).getByText('52 minutes 10 seconds')
-    within(cellsFromDataRow1[4]).getByText('View inputs')
+    expect(cellsFromDataRow1.length).toBe(7)
+    within(cellsFromDataRow1[0]).getByText('00000000-0000-0000-0000-000000000002')
+    within(cellsFromDataRow1[1]).getByText('Workflow Dashboard')
+    within(cellsFromDataRow1[2]).getByText('Failed with error')
+    within(cellsFromDataRow1[3]).getByText(/Jul 14, 2022/)
+    within(cellsFromDataRow1[4]).getByText('52 minutes 10 seconds')
+    within(cellsFromDataRow1[5]).getByText('View inputs')
+    within(cellsFromDataRow1[6]).getByText('View workflow log file')
   })
 
 
@@ -126,52 +133,39 @@ describe('Submission Details page', () => {
     const table = screen.getByRole('table')
     const rows = within(table).queryAllByRole('row')
     expect(rows.length).toBe(3)
-
     const headers = within(rows[0]).queryAllByRole('columnheader')
-    expect(headers.length).toBe(6)
 
+    // Columns sorted by in this test:
+    within(headers[3]).getByText('Submission date')
+    within(headers[2]).getByText('Status')
+
+    // Make sure column with index 3 is still submission date:
     await act(async () => {
-      await fireEvent.click(within(headers[2]).getByRole('button'))
+      await fireEvent.click(within(headers[3]).getByRole('button'))
     })
 
     // Assert - rows are now sorted by submission timestamp in ascending order
     const cellsFromUpdatedDataRow1 = within(rows[2]).queryAllByRole('cell')
-    expect(cellsFromUpdatedDataRow1.length).toBe(6)
-    within(cellsFromUpdatedDataRow1[0]).getByText('ea001565-1cd6-4e43-b446-932ac1918081')
-    within(cellsFromUpdatedDataRow1[1]).getByText('COMPLETE')
-    within(cellsFromUpdatedDataRow1[2]).getByText('Nov 23, 2022, 3:03 PM')
-    within(cellsFromUpdatedDataRow1[3]).getByText('47 seconds')
-    within(cellsFromUpdatedDataRow1[4]).getByText(/View inputs/)
+    expect(cellsFromUpdatedDataRow1.length).toBe(7)
+    within(cellsFromUpdatedDataRow1[0]).getByText('00000000-0000-0000-0000-000000000001')
 
     const cellsFromUpdatedDataRow2 = within(rows[1]).queryAllByRole('cell')
-    expect(cellsFromUpdatedDataRow2.length).toBe(6)
-    within(cellsFromUpdatedDataRow2[0]).getByText('b7234aae-6f43-405e-bb3a-71f924e09825')
-    within(cellsFromUpdatedDataRow2[1]).getByText('Failed with error')
-    within(cellsFromUpdatedDataRow2[2]).getByText(/Jul 14, 2022/)
-    within(cellsFromUpdatedDataRow2[3]).getByText('52 minutes 10 seconds')
-    within(cellsFromUpdatedDataRow2[4]).getByText(/View inputs/)
+    expect(cellsFromUpdatedDataRow2.length).toBe(7)
+    within(cellsFromUpdatedDataRow2[0]).getByText('00000000-0000-0000-0000-000000000002')
 
     // Act - click on sort button on Status column
     await act(async () => {
-      await fireEvent.click(within(headers[1]).getByRole('button'))
+      await fireEvent.click(within(headers[2]).getByRole('button'))
     })
 
     // Assert that sort by Status worked
     const updatedDataRow1Cells = within(rows[2]).queryAllByRole('cell')
-    expect(updatedDataRow1Cells.length).toBe(6)
-    within(updatedDataRow1Cells[0]).getByText('b7234aae-6f43-405e-bb3a-71f924e09825')
-    within(updatedDataRow1Cells[1]).getByText('Failed with error')
-    within(updatedDataRow1Cells[2]).getByText(/Jul 14, 2022/)
-    within(updatedDataRow1Cells[3]).getByText('52 minutes 10 seconds')
-    within(updatedDataRow1Cells[4]).getByText(/View inputs/)
+    expect(updatedDataRow1Cells.length).toBe(7)
+    within(updatedDataRow1Cells[0]).getByText('00000000-0000-0000-0000-000000000002')
 
     const updatedDataRow2Cells = within(rows[1]).queryAllByRole('cell')
-    expect(updatedDataRow2Cells.length).toBe(6)
-    within(updatedDataRow2Cells[0]).getByText('ea001565-1cd6-4e43-b446-932ac1918081')
-    within(updatedDataRow2Cells[1]).getByText('COMPLETE')
-    within(updatedDataRow2Cells[2]).getByText('Nov 23, 2022, 3:03 PM')
-    within(updatedDataRow2Cells[3]).getByText('47 seconds')
-    within(updatedDataRow2Cells[4]).getByText(/View inputs/)
+    expect(updatedDataRow2Cells.length).toBe(7)
+    within(updatedDataRow2Cells[0]).getByText('00000000-0000-0000-0000-000000000001')
   })
 
   it('display run set id', async () => {
