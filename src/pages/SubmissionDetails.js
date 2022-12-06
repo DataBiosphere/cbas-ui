@@ -30,8 +30,8 @@ export const SubmissionDetails = ({ submissionId }) => {
   useOnMount(() => {
     const loadRunsData = async () => {
       try {
-        // const runs = await Ajax(signal).Cbas.runs.get(submissionId)
-        // setRunsData(runs?.runs)
+        const runs = await Ajax(signal).Cbas.runs.get(submissionId)
+        setRunsData(runs?.runs)
       } catch (error) {
         notify('error', 'Error loading previous runs', { detail: await (error instanceof Response ? error.text() : error) })
       }

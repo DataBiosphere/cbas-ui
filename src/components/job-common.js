@@ -167,25 +167,8 @@ export const Breadcrumbs = ({ breadcrumbPathObj, pageId }) => {
 
 //NOTE: Write tests for this
 export const HeaderSection = ({ title, breadcrumbPathObj, button }) => {
-  return div({ id: 'header-section', style: { display: 'flex' } }, [
-    div(
-      {
-        style: {
-          width: '62%',
-          justifyContent: 'space-around'
-        }
-      }, [PageHeader({ breadcrumbPathObj, title })]
-    ),
-    div(
-      {
-        style: {
-          width: '20%',
-          display: 'flex',
-          justifyContent: 'flex-end',
-          marginTop: '18.76px'
-        },
-        isRendered: !isEmpty(button)
-      }, [button]
-    )
+  return div({ id: 'header-section', style: { display: 'flex', justifyContent: 'space-between', alignItems: 'center' } }, [
+    h(PageHeader, { breadcrumbPathObj, title }),
+    button
   ])
 }

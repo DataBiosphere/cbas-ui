@@ -177,7 +177,7 @@ export const WorkflowDashboard = ({ namespace, name, submissionId, runId }) => {
               }
             },
             [
-              div({ style: { display: 'flex', justifyContent: 'space-between' } }, [
+              div({ style: { display: 'flex', justifyContent: 'flex-start' } }, [
                 makeSection(
                   'Workflow Status',
                   [
