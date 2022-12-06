@@ -39,7 +39,6 @@ export const SubmissionDetails = ({ submissionId }) => {
     loadRunsData()
   })
 
-
   const sortedPreviousRuns = _.orderBy(sort.field, sort.direction, runsData)
 
   const firstPageIndex = (pageNumber - 1) * itemsPerPage
