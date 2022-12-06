@@ -1,6 +1,6 @@
 import '@testing-library/jest-dom'
 
-import { act, fireEvent, render, screen, within } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { h } from 'react-hyperscript-helpers'
 import { Ajax } from 'src/libs/ajax'
 import { SubmissionDetails } from 'src/pages/SubmissionDetails'
@@ -170,10 +170,10 @@ describe('Submission Details page', () => {
 
   it('display run set id', async () => {
     // Act
-    await act(async () => {
-      await render(h(SubmissionDetails, { submissionId }))
+    render(h(SubmissionDetails, { submissionId }))
+    await waitFor(() => {
+      const text = screen.getByText(/Submission e8347247-4738-4ad1-a591-56c119f93f58/)
+      expect(text).toBeDefined()
     })
-
-    await screen.getByText(/Submission e8347247-4738-4ad1-a591-56c119f93f58/)
   })
 })

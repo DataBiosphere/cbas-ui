@@ -131,19 +131,16 @@ export const SubmitNewWorkflowButton = h(ButtonOutline, {
 
 export const breadcrumbHistoryCaret = icon('angle-right', { size: 10, style: { margin: '0 0.25rem' } })
 
-//NOTE: write tests for this
-export const PageHeader = ({ breadcrumbPathObj, title }) => {
+export const PageHeader = ({ breadcrumbPathObjects, title }) => {
   const pageId = kebabCase(title)
-
   return div({ id: `${pageId}-header-container` }, [
     h1({/*Make adjustments if needed */}, [title]),
-    !isEmpty(breadcrumbPathObj) && h(Breadcrumbs, { breadcrumbPathObj, pageId })
+    h(Breadcrumbs, { isRendered: !isEmpty(breadcrumbPathObjects), breadcrumbPathObjects, pageId })
   ])
 }
 
-//NOTE: write tests for this
-export const Breadcrumbs = ({ breadcrumbPathObj, pageId }) => {
-  const links = breadcrumbPathObj.map(({ label, path, params }, index) => {
+export const Breadcrumbs = ({ breadcrumbPathObjects, pageId }) => {
+  const links = breadcrumbPathObjects.map(({ label, path, params }, index) => {
     const attributes = { key: `${kebabCase(label)}-breadcrumb-link` }
     let component
     if (!isNil(path)) {
@@ -155,7 +152,7 @@ export const Breadcrumbs = ({ breadcrumbPathObj, pageId }) => {
 
     const children = [component]
 
-    if (index < breadcrumbPathObj.length - 1) {
+    if (index < breadcrumbPathObjects.length - 1) {
       children.push(breadcrumbHistoryCaret)
     }
 
@@ -165,10 +162,9 @@ export const Breadcrumbs = ({ breadcrumbPathObj, pageId }) => {
   return div({ id: `${pageId}-breadcrumbs-container` }, links)
 }
 
-//NOTE: Write tests for this
-export const HeaderSection = ({ title, breadcrumbPathObj, button }) => {
+export const HeaderSection = ({ title, breadcrumbPathObjects, button }) => {
   return div({ id: 'header-section', style: { display: 'flex', justifyContent: 'space-between', alignItems: 'center' } }, [
-    h(PageHeader, { breadcrumbPathObj, title }),
+    h(PageHeader, { breadcrumbPathObjects, title }),
     button
   ])
 }

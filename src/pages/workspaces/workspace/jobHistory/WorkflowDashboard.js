@@ -93,7 +93,7 @@ export const WorkflowDashboard = ({ namespace, name, submissionId, runId }) => {
   })
 
   const header = useMemo(() => {
-    const breadcrumbPathObj = [
+    const breadcrumbPathObjects = [
       {
         label: 'Submission History',
         path: 'submission-history'
@@ -108,7 +108,7 @@ export const WorkflowDashboard = ({ namespace, name, submissionId, runId }) => {
       }
     ]
 
-    return h(HeaderSection, { breadcrumbPathObj, button: SubmitNewWorkflowButton, title: 'Run details' })
+    return h(HeaderSection, { breadcrumbPathObjects, button: SubmitNewWorkflowButton, title: 'Run details' })
   }, [workflow, submissionId])
 
   /*
@@ -135,7 +135,7 @@ export const WorkflowDashboard = ({ namespace, name, submissionId, runId }) => {
 
   const callNames = sortBy(callName => min(map('start', calls[callName])), keys(calls))
 
-  return div({ id: 'workflow-dashboard-page' }, [
+  return div({ 'data-testid': 'dashboard-container', id: 'workflow-dashboard-page' }, [
     Navbar('RUN WORKFLOWS WITH CROMWELL'),
     //Loading state (spinner)
     cond(

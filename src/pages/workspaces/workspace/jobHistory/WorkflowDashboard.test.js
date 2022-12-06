@@ -125,15 +125,6 @@ describe('WorkspaceDashboard - Dashboard render smoke test', () => {
     })
   })
 
-  it('shows the time taken to fetch the workflow metadata', async () => {
-    // Act
-    render(h(WorkflowDashboard, workspaceDashboardProps))
-    await waitFor(() => {
-      const fetchTime = screen.getByText(/Workflow metadata fetched in \d+ms/)
-      expect(fetchTime).toBeDefined
-    })
-  })
-
   it('shows the workflow status', async () => {
     render(h(WorkflowDashboard, workspaceDashboardProps))
     await waitFor(() => {
@@ -167,13 +158,13 @@ describe('WorkspaceDashboard - Dashboard render smoke test', () => {
     })
   })
 
-  it('shows the workflow calls', async () => {
+  it('shows the workflow tasks', async () => {
     const callData = workspaceDashboardMetadata.calls.testOne[0]
     render(h(WorkflowDashboard, workspaceDashboardProps))
     await waitFor(() => {
-      const callCollapse = screen.getByText('Calls')
+      const callCollapse = screen.getByText('Tasks')
       expect(callCollapse).toBeDefined
-      const countString = screen.getByText('Total Call Status Counts')
+      const countString = screen.getByText('Total Task Status Counts')
       expect(countString).toBeDefined
       const totalRunningString = screen.getByText(/1 running/)
       expect(totalRunningString).toBeDefined

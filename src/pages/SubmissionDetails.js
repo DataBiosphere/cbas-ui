@@ -47,7 +47,7 @@ export const SubmissionDetails = ({ submissionId }) => {
   const paginatedPreviousRuns = sortedPreviousRuns.slice(firstPageIndex, lastPageIndex)
 
   const header = useMemo(() => {
-    const breadcrumbPathObj = [
+    const breadcrumbPathObjects = [
       {
         label: 'Submission History',
         path: 'submission-history'
@@ -57,7 +57,7 @@ export const SubmissionDetails = ({ submissionId }) => {
       }
     ]
 
-    return h(HeaderSection, { breadcrumbPathObj, title: 'Submission Details' })
+    return h(HeaderSection, { breadcrumbPathObjects, title: 'Submission Details' })
   }, [submissionId])
 
   const rowWidth = 100
