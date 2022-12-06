@@ -3,7 +3,7 @@ import { Fragment, useState } from 'react'
 import { div, h, h1 } from 'react-hyperscript-helpers'
 import ReactJson from 'react-json-view'
 import { AutoSizer } from 'react-virtualized'
-import { ButtonOutline, ButtonPrimary, headerBar, Link } from 'src/components/common'
+import { ButtonOutline, ButtonPrimary, Link, Navbar } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import { FlexTable, paginator, Sortable, tableHeight, TextCell } from 'src/components/table'
@@ -48,7 +48,7 @@ export const SubmissionDetails = ({ submissionId }) => {
   const rowWidth = 100
   const rowHeight = 200
   return h(Fragment, [
-    headerBar(),
+    Navbar(),
     div({ style: { margin: '4em' } }, [
       div({ style: { display: 'flex', marginTop: '0.5rem', justifyContent: 'space-between' } }, [
         h1(['Submission Details']),

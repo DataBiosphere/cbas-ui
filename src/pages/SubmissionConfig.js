@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { a, div, h, h2, span } from 'react-hyperscript-helpers'
 import ReactJson from 'react-json-view'
-import { ButtonPrimary, headerBar, Link, Select } from 'src/components/common'
+import { ButtonPrimary, Navbar, Link, Select } from 'src/components/common'
 import StepButtons from 'src/components/StepButtons'
 import { Ajax } from 'src/libs/ajax'
 import * as Nav from 'src/libs/nav'
@@ -196,7 +196,7 @@ export const SubmissionConfig = ({ methodId }) => {
         position: 'relative'
       }
     }, [
-      headerBar(),
+      Navbar(),
       renderSummary()
     ]),
     div({

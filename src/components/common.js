@@ -1,7 +1,7 @@
 import * as clipboard from 'clipboard-polyfill/text'
-import _ from 'lodash/fp'
+import { find, flow, isEmpty, isNil, isObject, kebabCase, map, merge, uniqueId } from 'lodash/fp'
 import { useState } from 'react'
-import { a, div, h, h3 } from 'react-hyperscript-helpers'
+import { a, div, h, h1, h3, span } from 'react-hyperscript-helpers'
 import RSelect, { components as RSelectComponents } from 'react-select'
 import { centeredSpinner, containsUnlabelledIcon, icon } from 'src/components/icons'
 import Interactive from 'src/components/Interactive'
@@ -11,9 +11,12 @@ import headerRightHexes from 'src/images/header-right-hexes.svg'
 import colors, { terraSpecial } from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
 import { topBarLogo } from 'src/libs/logos'
+import * as Nav from 'src/libs/nav'
 import { forwardRefWithName, useLabelAssert, useUniqueId } from 'src/libs/react-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
+
+import { breadcrumbHistoryCaret } from './job-common'
 
 
 const styles = {
@@ -74,7 +77,7 @@ export const Clickable = forwardRefWithName('Clickable', ({ href, as = (!!href ?
   //
   // Note that TooltipTrigger does this same check with its own children, but since we'll be passing it an
   // Interactive element, we need to do the check here instead.
-  const useAsLabel = _.isNil(useTooltipAsLabel) ? containsUnlabelledIcon({ children, ...props }) : useTooltipAsLabel
+  const useAsLabel = isNil(useTooltipAsLabel) ? containsUnlabelledIcon({ children, ...props }) : useTooltipAsLabel
 
   // If we determined that we need to use the tooltip as a label, assert that we have a tooltip.
   // Do the check here and pass empty properties, to bypass the check logic in useLabelAssert() which doesn't take into account the icon's properties.
@@ -90,7 +93,7 @@ export const Clickable = forwardRefWithName('Clickable', ({ href, as = (!!href ?
 })
 
 export const Link = forwardRefWithName('Link', ({ disabled, variant, children, baseColor = colors.accent, ...props }, ref) => {
-  return h(Clickable, _.merge({
+  return h(Clickable, merge({
     ref,
     style: { // 0.72 is the min to meet ANDI's contrast requirement
       color: disabled ? colors.dark(0.72) : baseColor(variant === 'light' ? 0.3 : 1),
@@ -120,12 +123,12 @@ export const makeDocLink = (href, title, size) => {
 }
 
 export const IdContainer = ({ children }) => {
-  const [id] = useState(() => _.uniqueId('element-'))
+  const [id] = useState(() => uniqueId('element-'))
   return children(id)
 }
 
 export const ButtonPrimary = ({ disabled, danger = false, children, ...props }) => {
-  return h(Clickable, _.merge({
+  return h(Clickable, merge({
     disabled,
     style: {
       ...styles.button,
@@ -139,7 +142,7 @@ export const ButtonPrimary = ({ disabled, danger = false, children, ...props }) 
 }
 
 export const ButtonSecondary = ({ disabled, children, ...props }) => {
-  return h(Clickable, _.merge({
+  return h(Clickable, merge({
     disabled,
     style: {
       ...styles.button,
@@ -151,7 +154,7 @@ export const ButtonSecondary = ({ disabled, children, ...props }) => {
 }
 
 export const ButtonOutline = ({ disabled, children, ...props }) => {
-  return h(ButtonPrimary, _.merge({
+  return h(ButtonPrimary, merge({
     disabled,
     style: {
       border: `1px solid ${disabled ? colors.dark(0.4) : colors.accent()}`,
@@ -162,7 +165,7 @@ export const ButtonOutline = ({ disabled, children, ...props }) => {
   }, props), [children])
 }
 
-export const headerBar = () => {
+export const Navbar = () => {
   return div({
     role: 'banner',
     style: { flex: 'none', display: 'flex', flexFlow: 'column nowrap' }
@@ -200,7 +203,7 @@ export const ClipboardButton = ({ text, onClick, children, ...props }) => {
   return h(Link, {
     tooltip: copied ? 'Copied to clipboard' : 'Copy to clipboard',
     ...props,
-    onClick: _.flow(
+    onClick: flow(
       withErrorReporting('Error copying to clipboard'),
       Utils.withBusyState(setCopied)
     )(async e => {
@@ -212,11 +215,11 @@ export const ClipboardButton = ({ text, onClick, children, ...props }) => {
 }
 
 const BaseSelect = ({ value, newOptions, id, findValue, ...props }) => {
-  const newValue = props.isMulti ? _.map(findValue, value) : findValue(value)
+  const newValue = props.isMulti ? map(findValue, value) : findValue(value)
   const myId = useUniqueId()
   const inputId = id || myId
 
-  return h(RSelect, _.merge({
+  return h(RSelect, merge({
     inputId,
     ...commonSelectProps,
     getOptionLabel: ({ value, label }) => label || value.toString(),
@@ -235,14 +238,14 @@ const BaseSelect = ({ value, newOptions, id, findValue, ...props }) => {
 export const Select = ({ value, options, ...props }) => {
   useLabelAssert('Select', { ...props, allowId: true })
 
-  const newOptions = options && !_.isObject(options[0]) ? _.map(value => ({ value }), options) : options
-  const findValue = target => _.find({ value: target }, newOptions)
+  const newOptions = options && !isObject(options[0]) ? map(value => ({ value }), options) : options
+  const findValue = target => find({ value: target }, newOptions)
 
   return h(BaseSelect, { value, newOptions, findValue, ...props })
 }
 
 const commonSelectProps = {
-  theme: base => _.merge(base, {
+  theme: base => merge(base, {
     colors: {
       primary: colors.accent(),
       neutral20: colors.dark(0.55),
@@ -251,12 +254,12 @@ const commonSelectProps = {
     spacing: { controlHeight: 36 }
   }),
   styles: {
-    control: (base, { isDisabled }) => _.merge(base, {
+    control: (base, { isDisabled }) => merge(base, {
       backgroundColor: isDisabled ? colors.dark(0.25) : 'white',
       boxShadow: 'none'
     }),
     singleValue: base => ({ ...base, color: colors.dark() }),
-    option: (base, { isSelected, isFocused, isDisabled }) => _.merge(base, {
+    option: (base, { isSelected, isFocused, isDisabled }) => merge(base, {
       fontWeight: isSelected ? 600 : undefined,
       backgroundColor: isFocused ? colors.dark(0.15) : 'white',
       color: isDisabled ? undefined : colors.dark(),
@@ -264,13 +267,13 @@ const commonSelectProps = {
     }),
     clearIndicator: base => ({ ...base, paddingRight: 0 }),
     indicatorSeparator: () => ({ display: 'none' }),
-    dropdownIndicator: (base, { selectProps: { isClearable } }) => _.merge(base, { paddingLeft: isClearable ? 0 : undefined }),
+    dropdownIndicator: (base, { selectProps: { isClearable } }) => merge(base, { paddingLeft: isClearable ? 0 : undefined }),
     multiValueLabel: base => ({ ...base, maxWidth: '100%' }),
-    multiValueRemove: base => _.merge(base, { ':hover': { backgroundColor: 'unset' } }),
+    multiValueRemove: base => merge(base, { ':hover': { backgroundColor: 'unset' } }),
     placeholder: base => ({ ...base, color: colors.dark(0.8) })
   },
   components: {
-    Option: ({ children, selectProps, ...props }) => h(RSelectComponents.Option, _.merge(props, {
+    Option: ({ children, selectProps, ...props }) => h(RSelectComponents.Option, merge(props, {
       selectProps,
       innerProps: {
         role: 'option',
@@ -282,7 +285,7 @@ const commonSelectProps = {
         props.isSelected && icon('check', { size: 14, style: { flex: 'none', marginLeft: '0.5rem', color: colors.dark(0.5) } })
       ])
     ]),
-    Menu: ({ children, selectProps, ...props }) => h(RSelectComponents.Menu, _.merge(props, {
+    Menu: ({ children, selectProps, ...props }) => h(RSelectComponents.Menu, merge(props, {
       selectProps,
       innerProps: {
         role: 'listbox',
@@ -321,5 +324,39 @@ const makeBaseSpinner = ({ outerStyles = {}, innerStyles = {} }) => div(
     })
   ]
 )
+
+//NOTE: write tests for this
+export const PageHeader = ({ breadcrumbPathObj, title }) => {
+  const pageId = kebabCase(title)
+
+  return div({ id: `${pageId}-header-container` }, [
+    h1({/*Make adjustments if needed */}, [title]),
+    !isEmpty(breadcrumbPathObj) && h(Breadcrumbs, { breadcrumbPathObj, pageId })
+  ])
+}
+
+//NOTE: write tests for this
+export const Breadcrumbs = ({ breadcrumbPathObj, pageId }) => {
+  const links = breadcrumbPathObj.map(({ label, path, params }, index) => {
+    const attributes = { key: `${kebabCase(label)}-breadcrumb-link` }
+    let component
+    if (!isNil(path)) {
+      attributes.onClick = () => Nav.goToPath(path, params)
+      component = h(Link, { ...attributes }, [label])
+    } else {
+      component = span({ ...attributes }, [label])
+    }
+
+    const children = [component]
+
+    if (index < breadcrumbPathObj.length - 1) {
+      children.push(breadcrumbHistoryCaret)
+    }
+
+    return span({ key: `${kebabCase(label)}-breadcrumb-link` }, children)
+  })
+
+  return div({ id: `${pageId}-breadcrumbs-container` }, links)
+}
 
 export const spinnerOverlay = makeBaseSpinner({})
