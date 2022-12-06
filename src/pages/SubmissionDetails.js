@@ -1,20 +1,21 @@
-import _ from 'lodash/fp'
-import { Fragment, useState } from 'react'
-import { div, h, h1 } from 'react-hyperscript-helpers'
+import { isEmpty, orderBy } from 'lodash/fp'
+import { useMemo, useState } from 'react'
+import { div, h } from 'react-hyperscript-helpers'
 import ReactJson from 'react-json-view'
 import { AutoSizer } from 'react-virtualized'
-import { ButtonOutline, ButtonPrimary, Link, Navbar } from 'src/components/common'
+import { ButtonPrimary, Link, Navbar } from 'src/components/common'
 import { icon } from 'src/components/icons'
+import { HeaderSection } from 'src/components/job-common'
 import Modal from 'src/components/Modal'
 import { FlexTable, paginator, Sortable, tableHeight, TextCell } from 'src/components/table'
 import { Ajax } from 'src/libs/ajax'
-import * as Nav from 'src/libs/nav'
+import { goToPath } from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
 import { useCancellation, useOnMount } from 'src/libs/react-utils'
-import * as Utils from 'src/libs/utils'
+import { customFormatDuration, differenceFromDatesInSeconds, differenceFromNowInSeconds, makeCompleteDate } from 'src/libs/utils'
 
 
-export const SubmissionDetails = ({ submissionId }) => {
+export default function SubmissionDetails({ submissionId }) {
   // State
   const [sort, setSort] = useState({ field: 'submission_date', direction: 'desc' })
   const [pageNumber, setPageNumber] = useState(1)
@@ -30,7 +31,7 @@ export const SubmissionDetails = ({ submissionId }) => {
     const loadRunsData = async () => {
       try {
         const runs = await Ajax(signal).Cbas.runs.get(submissionId)
-        setRunsData(runs.runs)
+        setRunsData(runs?.runs)
       } catch (error) {
         notify('error', 'Error loading previous runs', { detail: await (error instanceof Response ? error.text() : error) })
       }
@@ -39,26 +40,32 @@ export const SubmissionDetails = ({ submissionId }) => {
     loadRunsData()
   })
 
-  const sortedPreviousRuns = _.orderBy(sort.field, sort.direction, runsData)
+  const sortedPreviousRuns = orderBy(sort.field, sort.direction, runsData)
 
   const firstPageIndex = (pageNumber - 1) * itemsPerPage
   const lastPageIndex = firstPageIndex + itemsPerPage
   const paginatedPreviousRuns = sortedPreviousRuns.slice(firstPageIndex, lastPageIndex)
 
+  const header = useMemo(() => {
+    const breadcrumbPathObj = [
+      {
+        label: 'Submission History',
+        path: 'submission-history'
+      },
+      {
+        label: `Submission ${submissionId}`
+      }
+    ]
+
+    return h(HeaderSection, { breadcrumbPathObj, title: 'Submission Details' })
+  }, [submissionId])
+
   const rowWidth = 100
   const rowHeight = 200
-  return h(Fragment, [
-    Navbar(),
-    div({ style: { margin: '4em' } }, [
-      div({ style: { display: 'flex', marginTop: '0.5rem', justifyContent: 'space-between' } }, [
-        h1(['Submission Details']),
-        h(ButtonOutline, {
-          onClick: () => Nav.goToPath('root')
-        }, ['Submit a new workflow'])
-      ]),
-      div([
-        h(TextCell, [(h(Link, { onClick: () => Nav.goToPath('submission-history') }, ['Submission History'])), ' >', ` Submission ${submissionId}`])
-      ]),
+  return div({ id: 'submission-details-page' }, [
+    Navbar('SUBMIT WORKFLOWS WITH CROMWELL'),
+    div({ style: { padding: '1rem 2rem 2rem' } }, [
+      header,
       div({
         style: {
           marginTop: '1em', height: tableHeight({ actualRows: paginatedPreviousRuns.length, maxRows: 12.5, heightPerRow: 250 }), minHeight: '10em'
@@ -90,7 +97,7 @@ export const SubmissionDetails = ({ submissionId }) => {
                   // link to workflow-dashboard / :workflowId
                   return h(
                     Link,
-                    { onClick: () => { Nav.goToPath('workflow-dashboard', { workflowId: paginatedPreviousRuns[rowIndex].engine_id }) }, style: { fontWeight: 'bold' } },
+                    { onClick: () => { goToPath('workflow-dashboard', { workflowId: paginatedPreviousRuns[rowIndex].engine_id }) }, style: { fontWeight: 'bold' } },
                     ['Workflow Dashboard']
                   )
                 }
@@ -114,7 +121,7 @@ export const SubmissionDetails = ({ submissionId }) => {
                 field: 'submission_date',
                 headerRenderer: () => h(Sortable, { sort, field: 'submission_date', onSort: setSort }, ['Submission date']),
                 cellRenderer: ({ rowIndex }) => {
-                  return h(TextCell, [Utils.makeCompleteDate(paginatedPreviousRuns[rowIndex].submission_date)])
+                  return h(TextCell, [makeCompleteDate(paginatedPreviousRuns[rowIndex].submission_date)])
                 }
               },
               {
@@ -125,14 +132,14 @@ export const SubmissionDetails = ({ submissionId }) => {
                   const terminalStates = ['COMPLETE', 'CANCELED', 'SYSTEM_ERROR', 'ABORTED', 'EXECUTOR_ERROR']
                   let durationSeconds
                   if (terminalStates.includes(paginatedPreviousRuns[rowIndex].state)) {
-                    durationSeconds = Utils.differenceFromDatesInSeconds(
+                    durationSeconds = differenceFromDatesInSeconds(
                       paginatedPreviousRuns[rowIndex].submission_date,
                       paginatedPreviousRuns[rowIndex].last_modified_timestamp
                     )
                   } else {
-                    durationSeconds = Utils.differenceFromNowInSeconds(paginatedPreviousRuns[rowIndex].submission_date)
+                    durationSeconds = differenceFromNowInSeconds(paginatedPreviousRuns[rowIndex].submission_date)
                   }
-                  return h(TextCell, [Utils.customFormatDuration(durationSeconds)])
+                  return h(TextCell, [customFormatDuration(durationSeconds)])
                 }
               },
               {
@@ -160,7 +167,7 @@ export const SubmissionDetails = ({ submissionId }) => {
           })
         ])
       ]),
-      !_.isEmpty(sortedPreviousRuns) && div({ style: { bottom: 0, position: 'absolute', marginBottom: '1.5rem', right: '4rem' } }, [
+      !isEmpty(sortedPreviousRuns) && div({ style: { bottom: 0, position: 'absolute', marginBottom: '1.5rem', right: '4rem' } }, [
         paginator({
           filteredDataLength: sortedPreviousRuns.length,
           unfilteredDataLength: sortedPreviousRuns.length,
@@ -192,7 +199,7 @@ export const SubmissionDetails = ({ submissionId }) => {
           enableClipboard: true,
           displayDataTypes: false,
           displayObjectSize: false,
-          src: _.isEmpty(paginatedPreviousRuns[viewInputsId].workflow_params) ? {} : JSON.parse(paginatedPreviousRuns[viewInputsId].workflow_params)
+          src: isEmpty(paginatedPreviousRuns[viewInputsId].workflow_params) ? {} : JSON.parse(paginatedPreviousRuns[viewInputsId].workflow_params)
         })
       ]),
       (viewOutputsId !== undefined) && h(Modal, {
@@ -213,7 +220,7 @@ export const SubmissionDetails = ({ submissionId }) => {
           enableClipboard: true,
           displayDataTypes: false,
           displayObjectSize: false,
-          src: _.isEmpty(paginatedPreviousRuns[viewOutputsId].workflow_outputs) ?
+          src: isEmpty(paginatedPreviousRuns[viewOutputsId].workflow_outputs) ?
             {} :
             JSON.parse(paginatedPreviousRuns[viewOutputsId].workflow_outputs)
         })

@@ -63,7 +63,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["react", "npm:17.0.2"],\
             ["react-app-rewired", "virtual:fb20b3957fc03094516f4839bd921e6cbe6fbbbdf6e579aef6a9e0d78799f936b29bbbdf85e777033619e8c90d7b9339b4056e75490ce5faba123bfbab64860f#npm:2.2.1"],\
             ["react-dom", "virtual:fb20b3957fc03094516f4839bd921e6cbe6fbbbdf6e579aef6a9e0d78799f936b29bbbdf85e777033619e8c90d7b9339b4056e75490ce5faba123bfbab64860f#npm:17.0.2"],\
-            ["react-hyperscript-helpers", "virtual:fb20b3957fc03094516f4839bd921e6cbe6fbbbdf6e579aef6a9e0d78799f936b29bbbdf85e777033619e8c90d7b9339b4056e75490ce5faba123bfbab64860f#npm:1.2.0"],\
+            ["react-hyperscript-helpers", "virtual:fb20b3957fc03094516f4839bd921e6cbe6fbbbdf6e579aef6a9e0d78799f936b29bbbdf85e777033619e8c90d7b9339b4056e75490ce5faba123bfbab64860f#npm:2.0.0"],\
             ["react-json-view", "virtual:fb20b3957fc03094516f4839bd921e6cbe6fbbbdf6e579aef6a9e0d78799f936b29bbbdf85e777033619e8c90d7b9339b4056e75490ce5faba123bfbab64860f#npm:1.21.3"],\
             ["react-modal", "virtual:fb20b3957fc03094516f4839bd921e6cbe6fbbbdf6e579aef6a9e0d78799f936b29bbbdf85e777033619e8c90d7b9339b4056e75490ce5faba123bfbab64860f#npm:3.15.1"],\
             ["react-notifications-component", "virtual:fb20b3957fc03094516f4839bd921e6cbe6fbbbdf6e579aef6a9e0d78799f936b29bbbdf85e777033619e8c90d7b9339b4056e75490ce5faba123bfbab64860f#npm:3.4.1"],\
@@ -7053,7 +7053,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["react", "npm:17.0.2"],\
             ["react-app-rewired", "virtual:fb20b3957fc03094516f4839bd921e6cbe6fbbbdf6e579aef6a9e0d78799f936b29bbbdf85e777033619e8c90d7b9339b4056e75490ce5faba123bfbab64860f#npm:2.2.1"],\
             ["react-dom", "virtual:fb20b3957fc03094516f4839bd921e6cbe6fbbbdf6e579aef6a9e0d78799f936b29bbbdf85e777033619e8c90d7b9339b4056e75490ce5faba123bfbab64860f#npm:17.0.2"],\
-            ["react-hyperscript-helpers", "virtual:fb20b3957fc03094516f4839bd921e6cbe6fbbbdf6e579aef6a9e0d78799f936b29bbbdf85e777033619e8c90d7b9339b4056e75490ce5faba123bfbab64860f#npm:1.2.0"],\
+            ["react-hyperscript-helpers", "virtual:fb20b3957fc03094516f4839bd921e6cbe6fbbbdf6e579aef6a9e0d78799f936b29bbbdf85e777033619e8c90d7b9339b4056e75490ce5faba123bfbab64860f#npm:2.0.0"],\
             ["react-json-view", "virtual:fb20b3957fc03094516f4839bd921e6cbe6fbbbdf6e579aef6a9e0d78799f936b29bbbdf85e777033619e8c90d7b9339b4056e75490ce5faba123bfbab64860f#npm:1.21.3"],\
             ["react-modal", "virtual:fb20b3957fc03094516f4839bd921e6cbe6fbbbdf6e579aef6a9e0d78799f936b29bbbdf85e777033619e8c90d7b9339b4056e75490ce5faba123bfbab64860f#npm:3.15.1"],\
             ["react-notifications-component", "virtual:fb20b3957fc03094516f4839bd921e6cbe6fbbbdf6e579aef6a9e0d78799f936b29bbbdf85e777033619e8c90d7b9339b4056e75490ce5faba123bfbab64860f#npm:3.4.1"],\
@@ -15563,17 +15563,17 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         }]\
       ]],\
       ["react-hyperscript-helpers", [\
-        ["npm:1.2.0", {\
-          "packageLocation": "./.yarn/cache/react-hyperscript-helpers-npm-1.2.0-925e814e85-8f56055ece.zip/node_modules/react-hyperscript-helpers/",\
+        ["npm:2.0.0", {\
+          "packageLocation": "./.yarn/cache/react-hyperscript-helpers-npm-2.0.0-9bd26a282f-1950554f41.zip/node_modules/react-hyperscript-helpers/",\
           "packageDependencies": [\
-            ["react-hyperscript-helpers", "npm:1.2.0"]\
+            ["react-hyperscript-helpers", "npm:2.0.0"]\
           ],\
           "linkType": "SOFT"\
         }],\
-        ["virtual:fb20b3957fc03094516f4839bd921e6cbe6fbbbdf6e579aef6a9e0d78799f936b29bbbdf85e777033619e8c90d7b9339b4056e75490ce5faba123bfbab64860f#npm:1.2.0", {\
-          "packageLocation": "./.yarn/__virtual__/react-hyperscript-helpers-virtual-842581af6c/0/cache/react-hyperscript-helpers-npm-1.2.0-925e814e85-8f56055ece.zip/node_modules/react-hyperscript-helpers/",\
+        ["virtual:fb20b3957fc03094516f4839bd921e6cbe6fbbbdf6e579aef6a9e0d78799f936b29bbbdf85e777033619e8c90d7b9339b4056e75490ce5faba123bfbab64860f#npm:2.0.0", {\
+          "packageLocation": "./.yarn/__virtual__/react-hyperscript-helpers-virtual-49a444045d/0/cache/react-hyperscript-helpers-npm-2.0.0-9bd26a282f-1950554f41.zip/node_modules/react-hyperscript-helpers/",\
           "packageDependencies": [\
-            ["react-hyperscript-helpers", "virtual:fb20b3957fc03094516f4839bd921e6cbe6fbbbdf6e579aef6a9e0d78799f936b29bbbdf85e777033619e8c90d7b9339b4056e75490ce5faba123bfbab64860f#npm:1.2.0"],\
+            ["react-hyperscript-helpers", "virtual:fb20b3957fc03094516f4839bd921e6cbe6fbbbdf6e579aef6a9e0d78799f936b29bbbdf85e777033619e8c90d7b9339b4056e75490ce5faba123bfbab64860f#npm:2.0.0"],\
             ["@types/react", null],\
             ["react", "npm:17.0.2"]\
           ],\

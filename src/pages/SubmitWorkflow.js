@@ -21,7 +21,7 @@ const styles = {
   }
 }
 
-export const SubmitWorkflow = () => {
+export default function SubmitWorkflow() {
   // State
   const [cbasStatus, setCbasStatus] = useState()
   const [runsData, setRunsData] = useState()

@@ -1,18 +1,18 @@
+
 import { concat, countBy, every, filter, flattenDepth, flow, includes, isEmpty, keys, map, min, sortBy, toPairs, values } from 'lodash/fp'
 import { Fragment, useMemo, useRef, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import ReactJson from 'react-json-view'
 import Collapse from 'src/components/Collapse'
-import { ButtonOutline, ClipboardButton, Link, Navbar, PageHeader } from 'src/components/common'
+import { ClipboardButton, Link, Navbar } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
 import {
-  collapseCromwellStatus, collapseStatus, makeSection, makeStatusLine, statusType
+  collapseCromwellStatus, collapseStatus, HeaderSection, makeSection, makeStatusLine, statusType, SubmitNewWorkflowButton
 } from 'src/components/job-common'
 //  Q4-2022 Disable log-viewing
 //import UriViewer from 'src/components/UriViewer'
 import WDLViewer from 'src/components/WDLViewer'
 import { Ajax } from 'src/libs/ajax'
-import { goToPath } from 'src/libs/nav'
 import { useCancellation, useOnMount } from 'src/libs/react-utils'
 import { codeFont, elements } from 'src/libs/style'
 import { cond, makeCompleteDate, newTabLinkProps } from 'src/libs/utils'
@@ -54,50 +54,8 @@ const statusCell = ({ calls }) => {
   )
 }
 
-const HeaderSection = ({ submissionId, workflowName }) => {
-  const breadcrumbPathObj = [
-    {
-      label: 'Submission History',
-      path: 'submission-history'
-    },
-    {
-      label: `Submission ${submissionId}`,
-      path: `submission-details`,
-      params: { submissionId }
-    },
-    {
-      label: workflowName
-    }
-  ]
 
-  return div({ id: 'header-section', style: { display: 'flex', padding: '1rem 2rem 2rem' } }, [
-    div(
-      {
-        style: {
-          width: '62%',
-          justifyContent: 'space-around',
-          marginBottom: '40px'
-        }
-      }, [PageHeader({ breadcrumbPathObj, title: 'Run details' })]
-    ),
-    div(
-      {
-        style: {
-          width: '20%',
-          display: 'flex',
-          justifyContent: 'flex-end',
-          marginTop: '18.76px'
-        }
-      }, [
-        h(ButtonOutline, {
-          onClick: () => goToPath('root')
-        }, ['Submit a new workflow'])
-      ]
-    )
-  ])
-}
-
-export const WorkflowDashboard = ({ namespace, name, submissionId, runId }) => {
+export default function WorkflowDashboard({ namespace, name, submissionId, runId }) {
   /*
    * State setup
    */
@@ -120,64 +78,7 @@ export const WorkflowDashboard = ({ namespace, name, submissionId, runId }) => {
       ]
       const excludeKey = []
 
-      // const metadata = await Ajax(signal).Cromwell.workflows(runId).metadata({ includeKey, excludeKey })
-      const metadata = {
-  workflowName: 'fileChecksum',
-  workflowProcessingEvents: [
-    {
-      cromwellId: 'cromid-18d9b68',
-      description: 'PickedUp',
-      timestamp: '2022-11-16T15:48:23.135Z',
-      cromwellVersion: '85-3f4b998-SNAP'
-    },
-    {
-      cromwellId: 'cromid-18d9b68',
-      description: 'Finished',
-      timestamp: '2022-11-16T15:48:24.859Z',
-      cromwellVersion: '85-3f4b998-SNAP'
-    }
-  ],
-  actualWorkflowLanguageVersion: 'draft-2',
-  submittedFiles: {
-    workflow:
-      // eslint-disable-next-line no-template-curly-in-string
-      'task md5 {\n    File inputFile \n    command {\n        echo "`date`: Running checksum on ${inputFile}..."\n        md5sum ${inputFile} > md5sum.txt\n        echo "`date`: Checksum is complete."\n    }\n    output {\n        File result = "md5sum.txt"\n    }\n    runtime {\n        docker: \'ubuntu:18.04\'\n        preemptible: true\n    }\n}\n\nworkflow fileChecksum {\n    File inputFile\n    call md5 { input: inputFile=inputFile}\n}\n\n',
-    root: '',
-    options: '{\n\n}',
-    inputs: '{"fileChecksum.inputFile":"https://coaexternalstorage.blob.core.windows.net/cromwell/user-inputs/inputFile.txt"}',
-    workflowUrl: '',
-    labels: '{}'
-  },
-  calls: {
-    testOne: [{
-      start,
-      executionStatus: 'Running',
-      shardIndex: 3,
-      attempt: 2,
-      backendStatus: 'Running',
-      end
-    }]
-  },
-  outputs: {},
-  actualWorkflowLanguage: 'WDL',
-  status: 'Aborted',
-  failures: [
-    {
-      message: 'InjectionManagerFactory not found.',
-      causedBy: []
-    }
-  ],
-  end: '2022-11-16T18:48:24.858Z',
-  start: '2022-11-16T19:48:23.195Z',
-  id: '5d96fd3c-1a89-40ae-8095-c364181cda46',
-  inputs: {
-    'fileChecksum.inputFile': 'https://coaexternalstorage.blob.core.windows.net/cromwell/user-inputs/inputFile.txt'
-  },
-  labels: {
-    'cromwell-workflow-id': 'cromwell-5d96fd3c-1a89-40ae-8095-c364181cda46'
-  },
-  submission: '2022-11-16T15:48:22.506Z'
-}
+      const metadata = await Ajax(signal).Cromwell.workflows(runId).metadata({ includeKey, excludeKey })
       setWorkflow(metadata)
 
       if (includes(collapseStatus(metadata.status), [statusType.running, statusType.submitted])) {
@@ -191,7 +92,24 @@ export const WorkflowDashboard = ({ namespace, name, submissionId, runId }) => {
     }
   })
 
-  const header = useMemo(() => h(HeaderSection, { submissionId, workflowName: workflow?.workflowName }), [submissionId, workflow])
+  const header = useMemo(() => {
+    const breadcrumbPathObj = [
+      {
+        label: 'Submission History',
+        path: 'submission-history'
+      },
+      {
+        label: `Submission ${submissionId}`,
+        path: `submission-details`,
+        params: { submissionId }
+      },
+      {
+        label: workflow?.workflowName
+      }
+    ]
+
+    return h(HeaderSection, { breadcrumbPathObj, button: SubmitNewWorkflowButton, title: 'Run details' })
+  }, [workflow, submissionId])
 
   /*
    * Page render
@@ -217,106 +135,140 @@ export const WorkflowDashboard = ({ namespace, name, submissionId, runId }) => {
 
   const callNames = sortBy(callName => min(map('start', calls[callName])), keys(calls))
 
-  return div({ style: elements.pageContentContainer }, [
-    Navbar(),
-    div({ style: { flex: 1, display: 'flex', flexDirection: 'column' } }, [
-      //Loading state (spinner)
-      cond(
-        [workflow === undefined, () => h(Fragment, [
-          div({ style: { fontStyle: 'italic', marginBottom: '1rem' } }, ['Fetching workflow metadata...']),
-          centeredSpinner()
-        ])],
-        [metadataArchiveStatus === 'ArchivedAndDeleted', () => h(Fragment, [
+  return div({ id: 'workflow-dashboard-page' }, [
+    Navbar('RUN WORKFLOWS WITH CROMWELL'),
+    //Loading state (spinner)
+    cond(
+      [
+        workflow === undefined,
+        () => h(Fragment, [div({ style: { fontStyle: 'italic', marginBottom: '1rem' } }, ['Fetching workflow metadata...']), centeredSpinner()])
+      ],
+      [
+        metadataArchiveStatus === 'ArchivedAndDeleted',
+        () => h(Fragment, [
           div({ style: { lineHeight: '24px', marginTop: '0.5rem', ...elements.sectionHeader } }, ' Run Details Archived'),
           div({ style: { lineHeight: '24px', marginTop: '0.5rem' } }, [
-            'This run\'s details have been archived. Please refer to the ',
-            h(Link, {
-              href: 'https://support.terra.bio/hc/en-us/articles/360060601631',
-              ...newTabLinkProps
-            }, [icon('pop-out', { size: 18 }), ' Run Details Archived']),
+            "This run's details have been archived. Please refer to the ",
+            h(
+              Link,
+              {
+                href: 'https://support.terra.bio/hc/en-us/articles/360060601631',
+                ...newTabLinkProps
+              },
+              [icon('pop-out', { size: 18 }), ' Run Details Archived']
+            ),
             ' support article for details on how to access the archive.'
           ])
-        ])],
-        () => h(Fragment, [
-          header,
-          div({ style: {
-            id: 'details-container',
+        ])
+      ],
+      () => h(Fragment, {}, [
+        div({ style: { padding: '1rem 2rem 2rem' } }, [header]),
+        div({
+          style: {
+            id: 'details-colored-container',
             backgroundColor: 'rgb(222, 226, 232)'
-          } }, [
-            div({
-              id: `details-content`,
+          }
+        }, [
+          div(
+            {
+              id: `details-colored-container-content`,
               style: {
                 padding: '1rem 2rem 2rem'
               }
-            }, [
+            },
+            [
               div({ style: { display: 'flex', justifyContent: 'space-between' } }, [
-                makeSection('Workflow Status', [
-                  div({ style: { lineHeight: '24px', marginTop: '0.5rem' } }, [makeStatusLine(style => collapseStatus(status).icon(style), status)])
-                ], {}),
+                makeSection(
+                  'Workflow Status',
+                  [
+                    div({ style: { lineHeight: '24px', marginTop: '0.5rem' } }, [
+                      makeStatusLine(style => collapseStatus(status).icon(style), status)
+                    ])
+                  ],
+                  {}
+                ),
                 makeSection('Workflow Timing', [
                   div({ style: { marginTop: '0.5rem', display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '0.5rem' } }, [
-                    div({ style: styles.sectionTableLabel }, ['Start:']), div([start ? makeCompleteDate(start) : 'N/A']),
-                    div({ style: styles.sectionTableLabel }, ['End:']), div([end ? makeCompleteDate(end) : 'N/A'])
+                    div({ style: styles.sectionTableLabel }, ['Start:']),
+                    div([start ? makeCompleteDate(start) : 'N/A']),
+                    div({ style: styles.sectionTableLabel }, ['End:']),
+                    div([end ? makeCompleteDate(end) : 'N/A'])
                   ])
                 ])
               ]),
-              failures && h(Collapse,
-                {
-                  style: { marginBottom: '1rem' },
-                  initialOpenState: true,
-                  title: div({ style: elements.sectionHeader }, [
-                    'Workflow-Level Failures',
-                    h(ClipboardButton, {
-                      text: JSON.stringify(failures, null, 2),
-                      style: { marginLeft: '0.5rem' },
-                      onClick: e => e.stopPropagation() // this stops the collapse when copying
+              failures &&
+                h(Collapse,
+                  {
+                    style: { marginBottom: '1rem' },
+                    initialOpenState: true,
+                    title: div({ style: elements.sectionHeader }, [
+                      'Workflow-Level Failures',
+                      h(ClipboardButton, {
+                        text: JSON.stringify(failures, null, 2),
+                        style: { marginLeft: '0.5rem' },
+                        onClick: e => e.stopPropagation() // this stops the collapse when copying
+                      })
+                    ])
+                  },
+                  [
+                    h(ReactJson, {
+                      style: { whiteSpace: 'pre-wrap' },
+                      name: false,
+                      collapsed: 4,
+                      enableClipboard: false,
+                      displayDataTypes: false,
+                      displayObjectSize: false,
+                      src: restructureFailures(failures)
                     })
-                  ])
-                }, [h(ReactJson, {
-                  style: { whiteSpace: 'pre-wrap' },
-                  name: false,
-                  collapsed: 4,
-                  enableClipboard: false,
-                  displayDataTypes: false,
-                  displayObjectSize: false,
-                  src: restructureFailures(failures)
-                })]
-              ),
+                  ]
+                ),
               h(Collapse,
                 {
-                  title: div({ style: elements.sectionHeader }, ['Calls']),
+                  title: div({ style: elements.sectionHeader }, ['Tasks']),
                   initialOpenState: true
-                }, [
-                  div({ style: { marginLeft: '1rem' } },
-                    [makeSection('Total Task Status Counts', [
-                      !isEmpty(calls) ? statusCell(workflow) : div({ style: { marginTop: '0.5rem' } }, ['No calls have been started by this workflow.'])
+                },
+                [
+                  div({ style: { marginLeft: '1rem' } }, [
+                    makeSection('Total Task Status Counts', [
+                      !isEmpty(calls) ? statusCell(workflow) :
+                        div({ style: { marginTop: '0.5rem' } }, ['No calls have been started by this workflow.'])
                     ]),
-                    !isEmpty(calls) && makeSection('Task Lists', [
-                      map(callName => {
-                        return h(Collapse, {
-                          key: callName,
-                          style: { marginLeft: '1rem', marginTop: '0.5rem' },
-                          title: div({ style: { ...codeFont, ...elements.sectionHeader } }, [`${callName} × ${calls[callName].length}`]),
-                          initialOpenState: !every({ executionStatus: 'Done' }, calls[callName])
-                        }, [
-                          h(CallTable, { namespace, name, submissionId, workflowId: runId, callName, callObjects: calls[callName] })
-                        ])
-                      }, callNames)
-                    ],
-                    { style: { overflow: 'visible' } })]
-                  )
+                    !isEmpty(calls) &&
+                      makeSection(
+                        'Task Lists',
+                        [
+                          map(callName => {
+                            return h(
+                              Collapse,
+                              {
+                                key: callName,
+                                style: { marginLeft: '1rem', marginTop: '0.5rem' },
+                                title: div({ style: { ...codeFont, ...elements.sectionHeader } }, [`${callName} × ${calls[callName].length}`]),
+                                initialOpenState: !every({ executionStatus: 'Done' }, calls[callName])
+                              },
+                              [h(CallTable, { namespace, name, submissionId, workflowId: runId, callName, callObjects: calls[callName] })]
+                            )
+                          }, callNames)
+                        ],
+                        { style: { overflow: 'visible' } }
+                      )
+                  ])
                 ]
               ),
-              wdl && h(Collapse, {
-                title: div({ style: elements.sectionHeader }, ['Submitted workflow script'])
-              }, [h(WDLViewer, { wdl })])
-            ])
-          ])
-          //  Q4-2022 Disable log-viewing
-          //showLog && h(UriViewer, { workspace, uri: workflowLog, onDismiss: () => setShowLog(false) })
-        ])
-      )
-    ])
+              wdl && h(Collapse,
+                {
+                  title: div({ style: elements.sectionHeader }, ['Submitted workflow script'])
+                },
+                [h(WDLViewer, { wdl })]
+              )
+            ]
+          )
+        ]
+        )
+        //  Q4-2022 Disable log-viewing
+        //showLog && h(UriViewer, { workspace, uri: workflowLog, onDismiss: () => setShowLog(false) })
+      ])
+    )
   ])
 }
 

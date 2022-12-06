@@ -1,9 +1,13 @@
+import { isEmpty, isNil, kebabCase } from 'lodash/fp'
 import { Fragment } from 'react'
-import { div, h, h4 } from 'react-hyperscript-helpers'
+import { div, h, h1, h4, span } from 'react-hyperscript-helpers'
 import { icon } from 'src/components/icons'
 import { TooltipCell } from 'src/components/table'
 import colors from 'src/libs/colors'
+import { goToPath } from 'src/libs/nav'
 import * as Style from 'src/libs/style'
+
+import { ButtonOutline, Link } from './common'
 
 
 const iconSize = 24
@@ -110,7 +114,7 @@ export const makeCromwellStatusLine = (executionStatus, backendStatus) => {
   )
 }
 
-export const makeSection = (label, children, { style = {} } = {},) => div({
+export const makeSection = (label, children, { style = {} } = {}) => div({
   style: {
     flex: '0 0 33%', padding: '0 0.5rem 0.5rem', marginTop: '1rem',
     whiteSpace: 'pre', textOverflow: 'ellipsis', overflow: 'hidden',
@@ -121,4 +125,67 @@ export const makeSection = (label, children, { style = {} } = {},) => div({
   h(Fragment, children)
 ])
 
+export const SubmitNewWorkflowButton = h(ButtonOutline, {
+  onClick: () => goToPath('root')
+}, ['Submit a new workflow'])
+
 export const breadcrumbHistoryCaret = icon('angle-right', { size: 10, style: { margin: '0 0.25rem' } })
+
+//NOTE: write tests for this
+export const PageHeader = ({ breadcrumbPathObj, title }) => {
+  const pageId = kebabCase(title)
+
+  return div({ id: `${pageId}-header-container` }, [
+    h1({/*Make adjustments if needed */}, [title]),
+    !isEmpty(breadcrumbPathObj) && h(Breadcrumbs, { breadcrumbPathObj, pageId })
+  ])
+}
+
+//NOTE: write tests for this
+export const Breadcrumbs = ({ breadcrumbPathObj, pageId }) => {
+  const links = breadcrumbPathObj.map(({ label, path, params }, index) => {
+    const attributes = { key: `${kebabCase(label)}-breadcrumb-link` }
+    let component
+    if (!isNil(path)) {
+      attributes.onClick = () => goToPath(path, params)
+      component = h(Link, { ...attributes }, [label])
+    } else {
+      component = span({ ...attributes }, [label])
+    }
+
+    const children = [component]
+
+    if (index < breadcrumbPathObj.length - 1) {
+      children.push(breadcrumbHistoryCaret)
+    }
+
+    return span({ key: `${kebabCase(label)}-breadcrumb-link` }, children)
+  })
+
+  return div({ id: `${pageId}-breadcrumbs-container` }, links)
+}
+
+//NOTE: Write tests for this
+export const HeaderSection = ({ title, breadcrumbPathObj, button }) => {
+  return div({ id: 'header-section', style: { display: 'flex' } }, [
+    div(
+      {
+        style: {
+          width: '62%',
+          justifyContent: 'space-around'
+        }
+      }, [PageHeader({ breadcrumbPathObj, title })]
+    ),
+    div(
+      {
+        style: {
+          width: '20%',
+          display: 'flex',
+          justifyContent: 'flex-end',
+          marginTop: '18.76px'
+        },
+        isRendered: !isEmpty(button)
+      }, [button]
+    )
+  ])
+}

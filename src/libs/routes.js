@@ -1,14 +1,14 @@
-import _ from 'lodash/fp'
+import { flatten, map } from 'lodash/fp'
 import { compile, pathToRegexp } from 'path-to-regexp'
 import { routeHandlersStore } from 'src/libs/state'
-import * as SubmissionConfig from 'src/pages/SubmissionConfig'
-import * as SubmissionDetails from 'src/pages/SubmissionDetails'
-import * as SubmissionHistory from 'src/pages/SubmissionHistory'
-import * as SubmitWorkflow from 'src/pages/SubmitWorkflow'
-import * as WorkspaceDashboard from 'src/pages/workspaces/workspace/jobHistory/WorkflowDashboard.js'
+import SubmissionConfig from 'src/pages/SubmissionConfig'
+import SubmissionDetails from 'src/pages/SubmissionDetails'
+import SubmissionHistory from 'src/pages/SubmissionHistory'
+import SubmitWorkflow from 'src/pages/SubmitWorkflow'
+import WorkspaceDashboard from 'src/pages/workspaces/workspace/jobHistory/WorkflowDashboard.js'
 
 
-const routes = _.flatten([
+const routes = flatten([
   SubmissionDetails.navPaths,
   SubmissionHistory.navPaths,
   SubmissionConfig.navPaths,
@@ -16,12 +16,12 @@ const routes = _.flatten([
   WorkspaceDashboard.navPaths
 ])
 
-const handlers = _.map(({ path, encode = encodeURIComponent, ...data }) => {
+const handlers = map(({ path, encode = encodeURIComponent, ...data }) => {
   const keys = [] // mutated by pathToRegexp
   const regex = pathToRegexp(path, keys)
   return {
     regex,
-    keys: _.map('name', keys),
+    keys: map('name', keys),
     makePath: compile(path, { encode }),
     ...data
   }

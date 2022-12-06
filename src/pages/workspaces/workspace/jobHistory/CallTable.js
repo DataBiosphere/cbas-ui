@@ -94,7 +94,7 @@ const CallTable = ({ namespace, name, submissionId, workflowId, callName, callOb
           {
             size: { basis: 200, grow: 2 },
             field: 'callCachingResult',
-            headerRenderer: () => h(Sortable, { sort, field: 'callCachingResult', onSort: setSort }, ['Call Caching Result']),
+            headerRenderer: () => h(Sortable, { sort, field: 'callCachingResult', onSort: setSort }, ['Task Caching Result']),
             cellRenderer: ({ rowIndex }) => {
               const { shardIndex: index, callCaching: { effectiveCallCachingMode, result } = {} } = filteredCallObjects[rowIndex]
               if (effectiveCallCachingMode === 'ReadAndWriteCache' || effectiveCallCachingMode === 'ReadCache') {

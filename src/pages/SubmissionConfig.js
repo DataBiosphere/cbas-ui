@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { a, div, h, h2, span } from 'react-hyperscript-helpers'
 import ReactJson from 'react-json-view'
-import { ButtonPrimary, Navbar, Link, Select } from 'src/components/common'
+import { ButtonPrimary, Link, Navbar, Select } from 'src/components/common'
 import StepButtons from 'src/components/StepButtons'
 import { Ajax } from 'src/libs/ajax'
 import * as Nav from 'src/libs/nav'
@@ -11,7 +11,7 @@ import { useCancellation, useOnMount } from 'src/libs/react-utils'
 import * as Utils from 'src/libs/utils'
 
 
-export const SubmissionConfig = ({ methodId }) => {
+export default function SubmissionConfig({ methodId }) {
   const [activeTab, setActiveTab] = useState({ key: 'select-data' })
   const [dataTables, setDataTables] = useState()
   const [methodsData, setMethodsData] = useState({})

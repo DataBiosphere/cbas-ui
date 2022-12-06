@@ -1,7 +1,7 @@
 import * as clipboard from 'clipboard-polyfill/text'
-import { find, flow, isEmpty, isNil, isObject, kebabCase, map, merge, uniqueId } from 'lodash/fp'
+import { find, flow, isNil, isObject, map, merge, uniqueId } from 'lodash/fp'
 import { useState } from 'react'
-import { a, div, h, h1, h3, span } from 'react-hyperscript-helpers'
+import { a, div, h, h3 } from 'react-hyperscript-helpers'
 import RSelect, { components as RSelectComponents } from 'react-select'
 import { centeredSpinner, containsUnlabelledIcon, icon } from 'src/components/icons'
 import Interactive from 'src/components/Interactive'
@@ -11,12 +11,9 @@ import headerRightHexes from 'src/images/header-right-hexes.svg'
 import colors, { terraSpecial } from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
 import { topBarLogo } from 'src/libs/logos'
-import * as Nav from 'src/libs/nav'
 import { forwardRefWithName, useLabelAssert, useUniqueId } from 'src/libs/react-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-
-import { breadcrumbHistoryCaret } from './job-common'
 
 
 const styles = {
@@ -165,7 +162,7 @@ export const ButtonOutline = ({ disabled, children, ...props }) => {
   }, props), [children])
 }
 
-export const Navbar = () => {
+export const Navbar = title => {
   return div({
     role: 'banner',
     style: { flex: 'none', display: 'flex', flexFlow: 'column nowrap' }
@@ -190,7 +187,7 @@ export const Navbar = () => {
           div({ style: { display: 'flex', alignItems: 'center', marginLeft: '1rem' } }, [
             h3({
               style: { color: 'white', fontWeight: 600, padding: '0px', marginLeft: '0.5rem' }
-            }, ['SUBMIT WORKFLOWS WITH CROMWELL'])
+            }, [title])
           ])
         ])
       ])
@@ -324,39 +321,5 @@ const makeBaseSpinner = ({ outerStyles = {}, innerStyles = {} }) => div(
     })
   ]
 )
-
-//NOTE: write tests for this
-export const PageHeader = ({ breadcrumbPathObj, title }) => {
-  const pageId = kebabCase(title)
-
-  return div({ id: `${pageId}-header-container` }, [
-    h1({/*Make adjustments if needed */}, [title]),
-    !isEmpty(breadcrumbPathObj) && h(Breadcrumbs, { breadcrumbPathObj, pageId })
-  ])
-}
-
-//NOTE: write tests for this
-export const Breadcrumbs = ({ breadcrumbPathObj, pageId }) => {
-  const links = breadcrumbPathObj.map(({ label, path, params }, index) => {
-    const attributes = { key: `${kebabCase(label)}-breadcrumb-link` }
-    let component
-    if (!isNil(path)) {
-      attributes.onClick = () => Nav.goToPath(path, params)
-      component = h(Link, { ...attributes }, [label])
-    } else {
-      component = span({ ...attributes }, [label])
-    }
-
-    const children = [component]
-
-    if (index < breadcrumbPathObj.length - 1) {
-      children.push(breadcrumbHistoryCaret)
-    }
-
-    return span({ key: `${kebabCase(label)}-breadcrumb-link` }, children)
-  })
-
-  return div({ id: `${pageId}-breadcrumbs-container` }, links)
-}
 
 export const spinnerOverlay = makeBaseSpinner({})
