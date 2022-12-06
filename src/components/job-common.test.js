@@ -9,6 +9,12 @@ import { HeaderSection, PageHeader } from './job-common'
 jest.mock('src/libs/nav')
 
 describe('Job Common Components - Page Header', () => {
+  beforeEach(() => {
+    goToPath.mockImplementation(() => {
+      return () => {}
+    })
+  })
+
   it('renders header text for provided text', async () => {
     const props = { title: 'Test Header' }
     render(h(PageHeader, props))
@@ -35,10 +41,6 @@ describe('Job Common Components - Page Header', () => {
       breadcrumbPathObjects
     }
 
-    goToPath.mockImplementation(() => {
-      return () => {}
-    })
-
     render(h(PageHeader, props))
     const user = userEvent.setup();
     await waitFor(async () => {
@@ -62,12 +64,15 @@ describe('Job Common Components - Header Section', () => {
       button: span({}, [buttonText])
     }
 
+    const user = userEvent.setup()
     render(h(HeaderSection, props))
-    waitFor(() => {
+    waitFor(async () => {
       const header = screen.getByText(props.title)
       expect(header).toBeDefined()
       const button = screen.getByText(buttonText)
       expect(button).toBeDefined()
+      await user.click(button)
+      expect(goToPath).toHaveBeenCalled()
     })
   })
 })
