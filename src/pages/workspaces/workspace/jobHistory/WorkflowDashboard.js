@@ -55,7 +55,7 @@ const statusCell = ({ calls }) => {
 }
 
 
-export default function WorkflowDashboard({ namespace, name, submissionId, runId }) {
+export const WorkflowDashboard = ({ namespace, name, submissionId, runId }) => {
   /*
    * State setup
    */

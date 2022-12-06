@@ -11,7 +11,7 @@ import { useCancellation, useOnMount } from 'src/libs/react-utils'
 import * as Utils from 'src/libs/utils'
 
 
-export default function SubmissionConfig({ methodId }) {
+export const SubmissionConfig = ({ methodId }) => {
   const [activeTab, setActiveTab] = useState({ key: 'select-data' })
   const [dataTables, setDataTables] = useState()
   const [methodsData, setMethodsData] = useState({})

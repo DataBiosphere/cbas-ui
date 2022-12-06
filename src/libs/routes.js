@@ -1,11 +1,11 @@
 import { flatten, map } from 'lodash/fp'
 import { compile, pathToRegexp } from 'path-to-regexp'
 import { routeHandlersStore } from 'src/libs/state'
-import SubmissionConfig from 'src/pages/SubmissionConfig'
-import SubmissionDetails from 'src/pages/SubmissionDetails'
-import SubmissionHistory from 'src/pages/SubmissionHistory'
-import SubmitWorkflow from 'src/pages/SubmitWorkflow'
-import WorkspaceDashboard from 'src/pages/workspaces/workspace/jobHistory/WorkflowDashboard.js'
+import * as SubmissionConfig from 'src/pages/SubmissionConfig'
+import * as SubmissionDetails from 'src/pages/SubmissionDetails'
+import * as SubmissionHistory from 'src/pages/SubmissionHistory'
+import * as SubmitWorkflow from 'src/pages/SubmitWorkflow'
+import * as WorkflowDashboard from 'src/pages/workspaces/workspace/jobHistory/WorkflowDashboard.js'
 
 
 const routes = flatten([
@@ -13,7 +13,7 @@ const routes = flatten([
   SubmissionHistory.navPaths,
   SubmissionConfig.navPaths,
   SubmitWorkflow.navPaths,
-  WorkspaceDashboard.navPaths
+  WorkflowDashboard.navPaths
 ])
 
 const handlers = map(({ path, encode = encodeURIComponent, ...data }) => {

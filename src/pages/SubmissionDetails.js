@@ -15,7 +15,7 @@ import { useCancellation, useOnMount } from 'src/libs/react-utils'
 import { customFormatDuration, differenceFromDatesInSeconds, differenceFromNowInSeconds, makeCompleteDate } from 'src/libs/utils'
 
 
-export default function SubmissionDetails({ submissionId }) {
+export const SubmissionDetails = ({ submissionId }) => {
   // State
   const [sort, setSort] = useState({ field: 'submission_date', direction: 'desc' })
   const [pageNumber, setPageNumber] = useState(1)
@@ -30,8 +30,8 @@ export default function SubmissionDetails({ submissionId }) {
   useOnMount(() => {
     const loadRunsData = async () => {
       try {
-        const runs = await Ajax(signal).Cbas.runs.get(submissionId)
-        setRunsData(runs?.runs)
+        // const runs = await Ajax(signal).Cbas.runs.get(submissionId)
+        // setRunsData(runs?.runs)
       } catch (error) {
         notify('error', 'Error loading previous runs', { detail: await (error instanceof Response ? error.text() : error) })
       }
