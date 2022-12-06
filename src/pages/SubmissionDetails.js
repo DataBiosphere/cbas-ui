@@ -1,13 +1,14 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
-import { div, h, h1 } from 'react-hyperscript-helpers'
+import { div, h, h1, h2, h3 } from 'react-hyperscript-helpers'
 import ReactJson from 'react-json-view'
 import { AutoSizer } from 'react-virtualized'
-import { ButtonOutline, ButtonPrimary, headerBar, Link } from 'src/components/common'
+import { ButtonOutline, ButtonPrimary, headerBar, Link, Select } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import { FlexTable, paginator, Sortable, tableHeight, TextCell } from 'src/components/table'
 import { Ajax } from 'src/libs/ajax'
+import colors from 'src/libs/colors'
 import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
 import { useCancellation, useOnMount } from 'src/libs/react-utils'
@@ -46,10 +47,16 @@ export const SubmissionDetails = ({ submissionId }) => {
   const paginatedPreviousRuns = sortedPreviousRuns.slice(firstPageIndex, lastPageIndex)
 
   const rowWidth = 100
-  const rowHeight = 200
+  const rowHeight = 50
   return h(Fragment, [
-    headerBar(),
-    div({ style: { margin: '4em' } }, [
+    div({
+      style: {
+        borderBottom: '2px solid rgb(116, 174, 67)',
+        boxShadow: 'rgb(0 0 0 / 26%) 0px 2px 5px 0px, rgb(0 0 0 / 16%) 0px 2px 10px 0px',
+        position: 'relative'
+      }
+    }, [
+      headerBar(),
       div({ style: { display: 'flex', marginTop: '0.5rem', justifyContent: 'space-between' } }, [
         h1(['Submission Details']),
         h(ButtonOutline, {
@@ -57,13 +64,42 @@ export const SubmissionDetails = ({ submissionId }) => {
         }, ['Submit a new workflow'])
       ]),
       div([
-        h(TextCell, [(h(Link, { onClick: () => Nav.goToPath('submission-history') }, ['Submission History'])), ' >', ` Submission ${submissionId}`])
-      ]),
+        h(TextCell, [(h(Link, { onClick: () => Nav.goToPath('submission-history') }, ['Submission History'])), ' >', ` Submission ${submissionId}`]),
+        h2(['workflow_name(HARDCODED)']),
+        h3(['Submission date: ' + submissionId.submission_date]),
+        h3(['Duration: ']),
+        h3(['Submitted by: '])
+      ])
+      ]
+    ),
+    div({ style: { margin: '4em' } }, [
+      // div({ style: { display: 'flex', marginTop: '0.5rem', justifyContent: 'space-between' } }, [
+      //   h1(['Submission Details']),
+      //   h(ButtonOutline, {
+      //     onClick: () => Nav.goToPath('root')
+      //   }, ['Submit a new workflow'])
+      // ]),
+      // div([
+      //   h(TextCell, [(h(Link, { onClick: () => Nav.goToPath('submission-history') }, ['Submission History'])), ' >', ` Submission ${submissionId}`]),
+      //   div([h3(['Submission date: '])], h3(['Duration: ']))
+      // ]),
       div({
         style: {
           marginTop: '1em', height: tableHeight({ actualRows: paginatedPreviousRuns.length, maxRows: 12.5, heightPerRow: 250 }), minHeight: '10em'
         }
       }, [
+        div([h2(['Workflows'])]),
+        div([h3(['Filter by: '])]),
+        h(Select, {
+          isDisabled: false,
+          'aria-label': 'Select a data table',
+          isClearable: false,
+          value: null,
+          //onChange: ({ value }) => setSelectedTable(value),
+          placeholder: 'None selected',
+          styles: { container: old => ({ ...old, display: 'inline-block', width: 200, marginBottom: '1.5rem' }) },
+          //options: _.map(d => d.name, dataTables)
+        }),
         h(AutoSizer, [
           ({ width, height }) => h(FlexTable, {
             'aria-label': 'previous runs',
@@ -77,26 +113,26 @@ export const SubmissionDetails = ({ submissionId }) => {
               {
                 size: { basis: 350 },
                 field: 'record_id',
-                headerRenderer: () => h(Sortable, { sort, field: 'record_id', onSort: setSort }, ['Record Entry']),
+                headerRenderer: () => h(Sortable, { sort, field: 'record_id', onSort: setSort }, ['Workflow name']),
                 cellRenderer: ({ rowIndex }) => {
                   return h(TextCell, [paginatedPreviousRuns[rowIndex].record_id])
                 }
               },
+              // {
+              //   size: { basis: 350 },
+              //   field: 'engine_id',
+              //   headerRenderer: () => h(Sortable, { sort, field: 'engine_id', onSort: setSort }, ['Engine Details']),
+              //   cellRenderer: ({ rowIndex }) => {
+              //     // link to workflow-dashboard / :workflowId
+              //     return h(
+              //       Link,
+              //       { onClick: () => { Nav.goToPath('workflow-dashboard', { workflowId: paginatedPreviousRuns[rowIndex].engine_id }) }, style: { fontWeight: 'bold' } },
+              //       ['Workflow Dashboard']
+              //     )
+              //   }
+              // },
               {
-                size: { basis: 350 },
-                field: 'engine_id',
-                headerRenderer: () => h(Sortable, { sort, field: 'engine_id', onSort: setSort }, ['Engine Details']),
-                cellRenderer: ({ rowIndex }) => {
-                  // link to workflow-dashboard / :workflowId
-                  return h(
-                    Link,
-                    { onClick: () => { Nav.goToPath('workflow-dashboard', { workflowId: paginatedPreviousRuns[rowIndex].engine_id }) }, style: { fontWeight: 'bold' } },
-                    ['Workflow Dashboard']
-                  )
-                }
-              },
-              {
-                size: { basis: 220, grow: 0 },
+                size: { basis: 600, grow: 0 },
                 field: 'state',
                 headerRenderer: () => h(Sortable, { sort, field: 'state', onSort: setSort }, ['Status']),
                 cellRenderer: ({ rowIndex }) => {
@@ -109,16 +145,16 @@ export const SubmissionDetails = ({ submissionId }) => {
                   } else { return h(TextCell, [paginatedPreviousRuns[rowIndex].state]) }
                 }
               },
+              // {
+              //   size: { basis: 300, grow: 0 },
+              //   field: 'submission_date',
+              //   headerRenderer: () => h(Sortable, { sort, field: 'submission_date', onSort: setSort }, ['Submission date']),
+              //   cellRenderer: ({ rowIndex }) => {
+              //     return h(TextCell, [Utils.makeCompleteDate(paginatedPreviousRuns[rowIndex].submission_date)])
+              //   }
+              // },
               {
-                size: { basis: 300, grow: 0 },
-                field: 'submission_date',
-                headerRenderer: () => h(Sortable, { sort, field: 'submission_date', onSort: setSort }, ['Submission date']),
-                cellRenderer: ({ rowIndex }) => {
-                  return h(TextCell, [Utils.makeCompleteDate(paginatedPreviousRuns[rowIndex].submission_date)])
-                }
-              },
-              {
-                size: { basis: 300, grow: 0 },
+                size: { basis: 600, grow: 0 },
                 field: 'duration',
                 headerRenderer: () => h(Sortable, { sort, field: 'duration', onSort: setSort }, ['Duration']),
                 cellRenderer: ({ rowIndex }) => {
@@ -136,27 +172,29 @@ export const SubmissionDetails = ({ submissionId }) => {
                 }
               },
               {
-                size: { basis: 155, grow: 0 },
-                field: 'workflow_params',
-                headerRenderer: () => 'Data',
+                size: { basis: 550, grow: 0 },
+                field: 'run_id',
+                headerRenderer: () => 'Run ID',
                 cellRenderer: ({ rowIndex }) => {
                   return div({ style: { width: '100%', textAlign: 'left' } }, [
-                    h(Link, { style: { display: 'inline-block', marginBottom: '1rem', textDecoration: 'underline' }, onClick: () => setViewInputsId(rowIndex) }, ['View inputs']),
-                    h(Link, { style: { display: 'inline-block', marginTop: '1rem', textDecoration: 'underline' }, onClick: () => setViewOutputsId(rowIndex) }, ['View outputs'])
+                    h(Link, { style: { display: 'inline-block', textDecoration: 'underline' }, onClick: () => setViewInputsId(rowIndex) }, [paginatedPreviousRuns[rowIndex].run_id]),
                   ])
                 }
               },
-              {
-                size: { basis: 250, grow: 0 },
-                field: 'logs',
-                headerRenderer: () => 'Logs',
-                cellRenderer: ({ rowIndex }) => {
-                  return div({ style: { width: '100%', textAlign: 'center' } }, [
-                    h(Link, { disabled: true, onClick: () => setViewInputsId(rowIndex) }, ['View workflow log file'])
-                  ])
-                }
-              }
-            ]
+              // {
+              //   size: { basis: 250, grow: 0 },
+              //   field: 'logs',
+              //   headerRenderer: () => 'Logs',
+              //   cellRenderer: ({ rowIndex }) => {
+              //     return div({ style: { width: '100%', textAlign: 'center' } }, [
+              //       h(Link, { disabled: true, onClick: () => setViewInputsId(rowIndex) }, ['View workflow log file'])
+              //     ])
+              //   }
+              // }
+            ],
+            styleCell: ({ rowIndex }) => {
+              return rowIndex % 2 && { backgroundColor: colors.light(0.2) }
+            }
           })
         ])
       ]),
