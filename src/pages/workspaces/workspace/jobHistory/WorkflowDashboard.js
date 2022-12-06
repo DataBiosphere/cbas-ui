@@ -1,4 +1,4 @@
-import _ from 'lodash/fp'
+import { concat, countBy, every, filter, flattenDepth, flow, includes, isEmpty, keys, map, min, sortBy, toPairs, values } from 'lodash/fp'
 import { Fragment, useRef, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import ReactJson from 'react-json-view'
@@ -12,10 +12,9 @@ import {
 //import UriViewer from 'src/components/UriViewer'
 import WDLViewer from 'src/components/WDLViewer'
 import { Ajax } from 'src/libs/ajax'
-import * as Nav from 'src/libs/nav'
 import { useCancellation, useOnMount } from 'src/libs/react-utils'
-import * as Style from 'src/libs/style'
-import * as Utils from 'src/libs/utils'
+import { codeFont, elements } from 'src/libs/style'
+import { cond, makeCompleteDate, newTabLinkProps } from 'src/libs/utils'
 import CallTable from 'src/pages/workspaces/workspace/jobHistory/CallTable'
 
 
@@ -24,10 +23,10 @@ const styles = {
 }
 
 // Note: this can take a while with large data inputs. Consider memoization if the page ever needs re-rendering.
-const groupCallStatuses = _.flow(
-  _.values,
-  _.flattenDepth(1),
-  _.countBy(a => {
+const groupCallStatuses = flow(
+  values,
+  flattenDepth(1),
+  countBy(a => {
     const collapsedStatus = collapseCromwellStatus(a.executionStatus, a.backendStatus)
     return collapsedStatus !== statusType.unknown ? collapsedStatus.id : collapsedStatus.label(a.executionStatus)
   })
@@ -39,7 +38,7 @@ const statusCell = ({ calls }) => {
   const { ...unknownStatuses } = statusGroups
 
   const makeRow = (count, status, labelOverride) => {
-    const seeMore = !!status.moreInfoLink ? h(Link, { href: status.moreInfoLink, style: { marginLeft: '0.50rem' }, ...Utils.newTabLinkProps },
+    const seeMore = !!status.moreInfoLink ? h(Link, { href: status.moreInfoLink, style: { marginLeft: '0.50rem' }, ...newTabLinkProps },
       [status.moreInfoLabel, icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })]) : ''
     return !!count && div({ style: { display: 'flex', alignItems: 'center', marginTop: '0.25rem' } }, [
       status.icon(),
@@ -47,14 +46,14 @@ const statusCell = ({ calls }) => {
       seeMore
     ])
   }
-  return h(Fragment, _.concat(
+  return h(Fragment, concat(
     ['submitted', 'waitingForQuota', 'running', 'succeeded', 'failed'].filter(
       s => statusGroups[s]).map(s => makeRow(statusGroups[s], statusType[s])),
-    _.map(([label, count]) => makeRow(count, statusType.unknown, label), _.toPairs(unknownStatuses)))
+    map(([label, count]) => makeRow(count, statusType.unknown, label), toPairs(unknownStatuses)))
   )
 }
 
-const WorkflowDashboard = (({ namespace, name, submissionId, workflowId }, _ref) => {
+export const WorkflowDashboard = ({ namespace, name, submissionId, workflowId }) => {
   /*
    * State setup
    */
@@ -83,7 +82,7 @@ const WorkflowDashboard = (({ namespace, name, submissionId, workflowId }, _ref)
       setWorkflow(metadata)
       setFetchTime(Date.now() - timeBefore)
 
-      if (_.includes(collapseStatus(metadata.status), [statusType.running, statusType.submitted])) {
+      if (includes(collapseStatus(metadata.status), [statusType.running, statusType.submitted])) {
         stateRefreshTimer.current = setTimeout(loadWorkflow, 60000)
       }
     }
@@ -103,34 +102,35 @@ const WorkflowDashboard = (({ namespace, name, submissionId, workflowId }, _ref)
   const { metadataArchiveStatus, calls, end, failures, start, status, workflowLog, workflowRoot, submittedFiles: { workflow: wdl } = {} } = workflow || {}
 
   const restructureFailures = failuresArray => {
-    const filtered = _.filter(({ message }) => !_.isEmpty(message) && !message.startsWith('Will not start job'), failuresArray)
+    const filtered = filter(({ message }) => !isEmpty(message) && !message.startsWith('Will not start job'), failuresArray)
     const sizeDiff = failuresArray.length - filtered.length
     const newMessage = sizeDiff > 0 ? [{
       message: `${sizeDiff} jobs were queued in Cromwell but never sent to the cloud backend due to failures elsewhere in the workflow`
     }] : []
     const simplifiedFailures = [...filtered, ...newMessage]
 
-    return _.map(({ message, causedBy }) => ({
+    return map(({ message, causedBy }) => ({
       message,
-      ...(!_.isEmpty(causedBy) ? { causedBy: restructureFailures(causedBy) } : {})
+      ...(!isEmpty(causedBy) ? { causedBy: restructureFailures(causedBy) } : {})
     }), simplifiedFailures)
   }
 
-  const callNames = _.sortBy(callName => _.min(_.map('start', calls[callName])), _.keys(calls))
+  const callNames = sortBy(callName => min(map('start', calls[callName])), keys(calls))
 
-  return div({ style: { padding: '1rem 2rem 2rem', flex: 1, display: 'flex', flexDirection: 'column' } }, [
-    Utils.cond(
+  return div({ 'data-testid': 'dashboard-container', style: { padding: '1rem 2rem 2rem', flex: 1, display: 'flex', flexDirection: 'column' } }, [
+    //Loading state (spinner)
+    cond(
       [workflow === undefined, () => h(Fragment, [
         div({ style: { fontStyle: 'italic', marginBottom: '1rem' } }, ['Fetching workflow metadata...']),
         centeredSpinner()
       ])],
       [metadataArchiveStatus === 'ArchivedAndDeleted', () => h(Fragment, [
-        div({ style: { lineHeight: '24px', marginTop: '0.5rem', ...Style.elements.sectionHeader } }, ' Workflow Details Archived'),
+        div({ style: { lineHeight: '24px', marginTop: '0.5rem', ...elements.sectionHeader } }, ' Workflow Details Archived'),
         div({ style: { lineHeight: '24px', marginTop: '0.5rem' } }, [
           'This workflow\'s details have been archived. Please refer to the ',
           h(Link, {
             href: 'https://support.terra.bio/hc/en-us/articles/360060601631',
-            ...Utils.newTabLinkProps
+            ...newTabLinkProps
           }, [icon('pop-out', { size: 18 }), ' Workflow Details Archived']),
           ' support article for details on how to access the archive.'
         ])
@@ -143,19 +143,8 @@ const WorkflowDashboard = (({ namespace, name, submissionId, workflowId }, _ref)
           ]),
           makeSection('Workflow Timing', [
             div({ style: { marginTop: '0.5rem', display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '0.5rem' } }, [
-              div({ style: styles.sectionTableLabel }, ['Start:']), div([start ? Utils.makeCompleteDate(start) : 'N/A']),
-              div({ style: styles.sectionTableLabel }, ['End:']), div([end ? Utils.makeCompleteDate(end) : 'N/A'])
-            ])
-          ]),
-          makeSection('Links', [
-            div({ style: { display: 'flex', flexFlow: 'row wrap', marginTop: '0.5rem', lineHeight: '2rem' } }, [
-              h(Link, { onClick: () => Nav.goToPath('previous-runs') }, 'See Previous Runs')
-
-              //  Q4-2022 Disable log-viewing
-              // h(Link, {
-              //   onClick: () => setShowLog(true),
-              //   style: { display: 'flex', marginLeft: '1rem', alignItems: 'center' }
-              // }, [icon('fileAlt', { size: 18 }), ' View execution log'])
+              div({ style: styles.sectionTableLabel }, ['Start:']), div([start ? makeCompleteDate(start) : 'N/A']),
+              div({ style: styles.sectionTableLabel }, ['End:']), div([end ? makeCompleteDate(end) : 'N/A'])
             ])
           ])
         ]),
@@ -163,7 +152,7 @@ const WorkflowDashboard = (({ namespace, name, submissionId, workflowId }, _ref)
           {
             style: { marginBottom: '1rem' },
             initialOpenState: true,
-            title: div({ style: Style.elements.sectionHeader }, [
+            title: div({ style: elements.sectionHeader }, [
               'Workflow-Level Failures',
               h(ClipboardButton, {
                 text: JSON.stringify(failures, null, 2),
@@ -183,20 +172,20 @@ const WorkflowDashboard = (({ namespace, name, submissionId, workflowId }, _ref)
         ),
         h(Collapse,
           {
-            title: div({ style: Style.elements.sectionHeader }, ['Calls']),
+            title: div({ style: elements.sectionHeader }, ['Calls']),
             initialOpenState: true
           }, [
             div({ style: { marginLeft: '1rem' } },
               [makeSection('Total Call Status Counts', [
-                !_.isEmpty(calls) ? statusCell(workflow) : div({ style: { marginTop: '0.5rem' } }, ['No calls have been started by this workflow.'])
+                !isEmpty(calls) ? statusCell(workflow) : div({ style: { marginTop: '0.5rem' } }, ['No calls have been started by this workflow.'])
               ]),
-              !_.isEmpty(calls) && makeSection('Call Lists', [
-                _.map(callName => {
+              !isEmpty(calls) && makeSection('Call Lists', [
+                map(callName => {
                   return h(Collapse, {
                     key: callName,
                     style: { marginLeft: '1rem', marginTop: '0.5rem' },
-                    title: div({ style: { ...Style.codeFont, ...Style.elements.sectionHeader } }, [`${callName} × ${calls[callName].length}`]),
-                    initialOpenState: !_.every({ executionStatus: 'Done' }, calls[callName])
+                    title: div({ style: { ...codeFont, ...elements.sectionHeader } }, [`${callName} × ${calls[callName].length}`]),
+                    initialOpenState: !every({ executionStatus: 'Done' }, calls[callName])
                   }, [
                     h(CallTable, { namespace, name, submissionId, workflowId, callName, callObjects: calls[callName] })
                   ])
@@ -207,14 +196,14 @@ const WorkflowDashboard = (({ namespace, name, submissionId, workflowId }, _ref)
           ]
         ),
         wdl && h(Collapse, {
-          title: div({ style: Style.elements.sectionHeader }, ['Submitted workflow script'])
+          title: div({ style: elements.sectionHeader }, ['Submitted workflow script'])
         }, [h(WDLViewer, { wdl })])
         //  Q4-2022 Disable log-viewing
         //showLog && h(UriViewer, { workspace, uri: workflowLog, onDismiss: () => setShowLog(false) })
       ])
     )
   ])
-})
+}
 
 export const navPaths = [
   {
