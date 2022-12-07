@@ -26,14 +26,4 @@ module.exports = function(app) {
       }
     })
   )
-  app.use(
-    '/wds*',
-    createProxyMiddleware({
-      target: 'http://localhost:8001', // WDS
-      changeOrigin: true,
-      pathRewrite: {
-        '^/wds': '/'
-      }
-    })
-  )
 }
