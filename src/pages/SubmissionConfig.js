@@ -83,7 +83,7 @@ export const SubmissionConfig = ({ methodId }) => {
         notify('error', 'Error loading tables data', { detail: await (error instanceof Response ? error.text() : error) })
       }
     }
-    
+
     // TODO: Replace with more sensible defaults:
     setSelectedDataTableRows(['FOO1', 'FOO2', 'FOO3'])
     setRunSetName('New run set name')
