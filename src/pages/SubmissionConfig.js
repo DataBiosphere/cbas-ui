@@ -84,8 +84,6 @@ export const SubmissionConfig = ({ methodId }) => {
       }
     }
 
-    // TODO: Replace with more sensible defaults:
-    setSelectedDataTableRows(['FOO1', 'FOO2', 'FOO3'])
     setRunSetName('New run set name')
     setRunSetDescription('New run set description')
 
@@ -196,7 +194,7 @@ export const SubmissionConfig = ({ methodId }) => {
         workflow_output_definitions: configuredOutputDefinition,
         wds_records: {
           record_type: selectedTableName,
-          record_ids: selectedDataTableRows
+          record_ids: _.keys(selectedDataTableRows)
         }
       }
 
@@ -313,7 +311,9 @@ const renderGrid = props => {
             return h(Checkbox, {
               'aria-label': id || 'id-pending',
               checked,
-              onChange: () => setSelectedDataTableRows((checked ? _.unset([id]) : _.set([id], thisRecord))(selectedDataTableRows))
+              onChange: () => {
+                setSelectedDataTableRows((checked ? _.unset([id]) : _.set([id], thisRecord))(selectedDataTableRows))
+              }
             })
           }
         },
