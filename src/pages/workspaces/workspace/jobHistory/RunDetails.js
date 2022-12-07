@@ -55,7 +55,7 @@ const statusCell = ({ calls }) => {
 }
 
 
-export const WorkflowDashboard = ({ namespace, name, submissionId, runId }) => {
+export const RunDetails = ({ namespace, name, submissionId, workflowId }) => {
   /*
    * State setup
    */
@@ -78,7 +78,7 @@ export const WorkflowDashboard = ({ namespace, name, submissionId, runId }) => {
       ]
       const excludeKey = []
 
-      const metadata = await Ajax(signal).Cromwell.workflows(runId).metadata({ includeKey, excludeKey })
+      const metadata = await Ajax(signal).Cromwell.workflows(workflowId).metadata({ includeKey, excludeKey })
       setWorkflow(metadata)
 
       if (includes(collapseStatus(metadata.status), [statusType.running, statusType.submitted])) {
@@ -135,7 +135,7 @@ export const WorkflowDashboard = ({ namespace, name, submissionId, runId }) => {
 
   const callNames = sortBy(callName => min(map('start', calls[callName])), keys(calls))
 
-  return div({ 'data-testid': 'dashboard-container', id: 'workflow-dashboard-page' }, [
+  return div({ 'data-testid': 'run-details-container', id: 'run-details-page' }, [
     Navbar('RUN WORKFLOWS WITH CROMWELL'),
     //Loading state (spinner)
     cond(
@@ -246,7 +246,7 @@ export const WorkflowDashboard = ({ namespace, name, submissionId, runId }) => {
                                 title: div({ style: { ...codeFont, ...elements.sectionHeader } }, [`${callName} × ${calls[callName].length}`]),
                                 initialOpenState: !every({ executionStatus: 'Done' }, calls[callName])
                               },
-                              [h(CallTable, { namespace, name, submissionId, workflowId: runId, callName, callObjects: calls[callName] })]
+                              [h(CallTable, { namespace, name, submissionId, workflowId, callName, callObjects: calls[callName] })]
                             )
                           }, callNames)
                         ],
@@ -274,9 +274,9 @@ export const WorkflowDashboard = ({ namespace, name, submissionId, runId }) => {
 
 export const navPaths = [
   {
-    name: 'workflow-dashboard',
-    path: '/submission-monitoring/:submissionId/:runId',
-    component: WorkflowDashboard,
+    name: 'run-details',
+    path: '/submission-monitoring/:submissionId/:workflowId',
+    component: RunDetails,
     title: ({ name }) => `${name} - Run Details`
   }
 ]

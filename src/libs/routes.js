@@ -5,7 +5,7 @@ import * as SubmissionConfig from 'src/pages/SubmissionConfig'
 import * as SubmissionDetails from 'src/pages/SubmissionDetails'
 import * as SubmissionHistory from 'src/pages/SubmissionHistory'
 import * as SubmitWorkflow from 'src/pages/SubmitWorkflow'
-import * as WorkflowDashboard from 'src/pages/workspaces/workspace/jobHistory/WorkflowDashboard.js'
+import * as RunDetails from 'src/pages/workspaces/workspace/jobHistory/RunDetails.js'
 
 
 const routes = flatten([
@@ -13,7 +13,7 @@ const routes = flatten([
   SubmissionHistory.navPaths,
   SubmissionConfig.navPaths,
   SubmitWorkflow.navPaths,
-  WorkflowDashboard.navPaths
+  RunDetails.navPaths
 ])
 
 const handlers = map(({ path, encode = encodeURIComponent, ...data }) => {

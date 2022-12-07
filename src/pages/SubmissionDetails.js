@@ -94,11 +94,11 @@ export const SubmissionDetails = ({ submissionId }) => {
                 field: 'engine_id',
                 headerRenderer: () => h(Sortable, { sort, field: 'engine_id', onSort: setSort }, ['Engine Details']),
                 cellRenderer: ({ rowIndex }) => {
-                  // link to workflow-dashboard / :workflowId
+                  // link to run-details / :workflowId
                   return h(
                     Link,
-                    { onClick: () => { goToPath('workflow-dashboard', { workflowId: paginatedPreviousRuns[rowIndex].engine_id }) }, style: { fontWeight: 'bold' } },
-                    ['Workflow Dashboard']
+                    { onClick: () => { goToPath('run-details', { workflowId: paginatedPreviousRuns[rowIndex].engine_id }, submissionId) }, style: { fontWeight: 'bold' } },
+                    ['Run Details']
                   )
                 }
               },

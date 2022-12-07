@@ -13,7 +13,7 @@ import { useCancellation, useOnMount } from 'src/libs/react-utils'
 import * as Utils from 'src/libs/utils'
 
 
-export const SubmissionHistory = () =>{
+export const SubmissionHistory = () => {
   // State
   const [sort, setSort] = useState({ field: 'submission_timestamp', direction: 'desc' })
   const [pageNumber, setPageNumber] = useState(1)
