@@ -24,6 +24,8 @@ export const SubmissionDetails = ({ submissionId }) => {
   const [viewOutputsId, setViewOutputsId] = useState()
   const [viewErrorsId, setViewErrorsId] = useState()
   const [runsData, setRunsData] = useState()
+  const [runSetData, setRunSetData] = useState()
+  const [submissionTimestamp, setSubmissionTimestamp] = useState()
 
   const signal = useCancellation()
 
@@ -37,10 +39,25 @@ export const SubmissionDetails = ({ submissionId }) => {
       }
     }
 
+    // TODO: "Prework" for the next ticket
+    const loadSubmissionData = async () => {
+      try {
+        const runSetData = await Ajax(signal).Cbas.runSets.get()
+        setRunSetData(runSetData.run_sets)
+        setSubmissionTimestamp(JSON.parse(runSetData.submission_timestamp))
+      } catch (error) {
+        notify('error', 'Error loading run set data', { detail: await (error instanceof Response ? error.text() : error) })
+      }
+    }
+
     loadRunsData()
+    loadSubmissionData()
   })
 
+
   const sortedPreviousRuns = _.orderBy(sort.field, sort.direction, runsData)
+  // TODO: "Prework" for the next ticket
+  const specifyRunSet = _.filter(r => r.run_set_id === submissionId, runSetData)
 
   const firstPageIndex = (pageNumber - 1) * itemsPerPage
   const lastPageIndex = firstPageIndex + itemsPerPage
@@ -57,32 +74,26 @@ export const SubmissionDetails = ({ submissionId }) => {
       }
     }, [
       headerBar(),
-      div({ style: { display: 'flex', marginTop: '0.5rem', justifyContent: 'space-between' } }, [
+      div({ style: { marginLeft: '4em', display: 'flex', marginTop: '0.5rem', justifyContent: 'space-between' } }, [
         h1(['Submission Details']),
-        h(ButtonOutline, {
+        h(ButtonOutline, { style: {margin: '2em'},
           onClick: () => Nav.goToPath('root')
         }, ['Submit a new workflow'])
       ]),
-      div([
+      div( {style: {marginLeft: '4em',}}, [
         h(TextCell, [(h(Link, { onClick: () => Nav.goToPath('submission-history') }, ['Submission History'])), ' >', ` Submission ${submissionId}`]),
         h2(['workflow_name(HARDCODED)']),
-        h3(['Submission date: ' + submissionId.submission_date]),
+        h3([`Submission date: ${submissionTimestamp}`]),
         h3(['Duration: ']),
         h3(['Submitted by: '])
       ])
       ]
     ),
-    div({ style: { margin: '4em' } }, [
-      // div({ style: { display: 'flex', marginTop: '0.5rem', justifyContent: 'space-between' } }, [
-      //   h1(['Submission Details']),
-      //   h(ButtonOutline, {
-      //     onClick: () => Nav.goToPath('root')
-      //   }, ['Submit a new workflow'])
-      // ]),
-      // div([
-      //   h(TextCell, [(h(Link, { onClick: () => Nav.goToPath('submission-history') }, ['Submission History'])), ' >', ` Submission ${submissionId}`]),
-      //   div([h3(['Submission date: '])], h3(['Duration: ']))
-      // ]),
+    div({ style: { backgroundColor: 'rgb(235, 236, 238)',
+        display: 'flex',
+        flex: '1 1 auto',
+        flexDirection: 'column',
+        padding: '1rem 3rem' } }, [
       div({
         style: {
           marginTop: '1em', height: tableHeight({ actualRows: paginatedPreviousRuns.length, maxRows: 12.5, heightPerRow: 250 }), minHeight: '10em'
@@ -95,10 +106,8 @@ export const SubmissionDetails = ({ submissionId }) => {
           'aria-label': 'Select a data table',
           isClearable: false,
           value: null,
-          //onChange: ({ value }) => setSelectedTable(value),
           placeholder: 'None selected',
           styles: { container: old => ({ ...old, display: 'inline-block', width: 200, marginBottom: '1.5rem' }) },
-          //options: _.map(d => d.name, dataTables)
         }),
         h(AutoSizer, [
           ({ width, height }) => h(FlexTable, {
@@ -118,19 +127,6 @@ export const SubmissionDetails = ({ submissionId }) => {
                   return h(TextCell, [paginatedPreviousRuns[rowIndex].record_id])
                 }
               },
-              // {
-              //   size: { basis: 350 },
-              //   field: 'engine_id',
-              //   headerRenderer: () => h(Sortable, { sort, field: 'engine_id', onSort: setSort }, ['Engine Details']),
-              //   cellRenderer: ({ rowIndex }) => {
-              //     // link to workflow-dashboard / :workflowId
-              //     return h(
-              //       Link,
-              //       { onClick: () => { Nav.goToPath('workflow-dashboard', { workflowId: paginatedPreviousRuns[rowIndex].engine_id }) }, style: { fontWeight: 'bold' } },
-              //       ['Workflow Dashboard']
-              //     )
-              //   }
-              // },
               {
                 size: { basis: 600, grow: 0 },
                 field: 'state',
@@ -139,20 +135,14 @@ export const SubmissionDetails = ({ submissionId }) => {
                   const failureStates = ['SYSTEM_ERROR', 'EXECUTOR_ERROR']
                   if (failureStates.includes(paginatedPreviousRuns[rowIndex].state)) {
                     return div({ style: { width: '100%', textAlign: 'center' } }, [
-                      div({ style: { marginBottom: '1rem', fontWeight: 'bold' } }, [h(TextCell, {}, [icon('warning-standard', { size: 18, color: 'red' }), ['   Failed with error']])]),
-                      h(Link, { style: {}, onClick: () => setViewErrorsId(rowIndex) }, ['View'])
+                      h(Link, { style: {fontWeight: 'bold'}, onClick: () => setViewErrorsId(rowIndex) }, [[icon('warning-standard', { size: 18, color: 'red' })], ['      Error(s)']])
                     ])
-                  } else { return h(TextCell, [paginatedPreviousRuns[rowIndex].state]) }
+                  } else if (paginatedPreviousRuns[rowIndex].state === 'COMPLETE') {
+                    return div({ style: { width: '100%', textAlign: 'center' } }, [
+                      div({ style: { fontWeight: 'bold' } }, [h(TextCell, {}, [icon('check', { size: 18, style: { color: colors.success() } }), ['   Succeeded']])])
+                    ]) }
                 }
               },
-              // {
-              //   size: { basis: 300, grow: 0 },
-              //   field: 'submission_date',
-              //   headerRenderer: () => h(Sortable, { sort, field: 'submission_date', onSort: setSort }, ['Submission date']),
-              //   cellRenderer: ({ rowIndex }) => {
-              //     return h(TextCell, [Utils.makeCompleteDate(paginatedPreviousRuns[rowIndex].submission_date)])
-              //   }
-              // },
               {
                 size: { basis: 600, grow: 0 },
                 field: 'duration',
@@ -181,16 +171,6 @@ export const SubmissionDetails = ({ submissionId }) => {
                   ])
                 }
               },
-              // {
-              //   size: { basis: 250, grow: 0 },
-              //   field: 'logs',
-              //   headerRenderer: () => 'Logs',
-              //   cellRenderer: ({ rowIndex }) => {
-              //     return div({ style: { width: '100%', textAlign: 'center' } }, [
-              //       h(Link, { disabled: true, onClick: () => setViewInputsId(rowIndex) }, ['View workflow log file'])
-              //     ])
-              //   }
-              // }
             ],
             styleCell: ({ rowIndex }) => {
               return rowIndex % 2 && { backgroundColor: colors.light(0.2) }
@@ -213,7 +193,7 @@ export const SubmissionDetails = ({ submissionId }) => {
         })
       ]),
       (viewInputsId !== undefined) && h(Modal, {
-        title: 'Inputs Definition JSON',
+        title: 'TODO',
         width: 600,
         onDismiss: () => setViewInputsId(undefined),
         showCancel: false,
@@ -223,15 +203,15 @@ export const SubmissionDetails = ({ submissionId }) => {
             onClick: () => setViewInputsId(undefined)
           }, ['OK'])
       }, [
-        h(ReactJson, {
+        h(TextCell, {
           style: { whiteSpace: 'pre-wrap', wordBreak: 'break-word' },
           name: false,
           collapsed: 4,
           enableClipboard: true,
           displayDataTypes: false,
           displayObjectSize: false,
-          src: _.isEmpty(paginatedPreviousRuns[viewInputsId].workflow_params) ? {} : JSON.parse(paginatedPreviousRuns[viewInputsId].workflow_params)
-        })
+          src: "Link to workflow details!"//_.isEmpty(paginatedPreviousRuns[viewInputsId].workflow_params) ? {} : JSON.parse(paginatedPreviousRuns[viewInputsId].workflow_params)
+        }, ["Link to workflow details!"])
       ]),
       (viewOutputsId !== undefined) && h(Modal, {
         title: 'Outputs Definition JSON',
