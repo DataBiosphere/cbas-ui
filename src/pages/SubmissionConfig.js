@@ -32,56 +32,47 @@ export const SubmissionConfig = ({ methodId }) => {
   // TODO: These should probably be moved to the modal:
   const [runSetName, setRunSetName] = useState()
   const [runSetDescription, setRunSetDescription] = useState()
+
+  // TODO: this should probably be moved to a scope more local to the data selector
   const [sort, setSort] = useState({ field: 'name', direction: 'asc' })
 
   const signal = useCancellation()
 
-  useOnMount(() => {
-    const loadMethodsData = async () => {
-      try {
-        const methodsResponse = await Ajax(signal).Cbas.methods.get()
-        const allMethods = methodsResponse.methods
-        const selectedMethod = _.head(_.filter(m => m.method_id === methodId, allMethods))
-        if (selectedMethod) {
-          setMethodsData(selectedMethod)
-        } else {
-          notify('error', 'Error loading methods data', { detail: 'Method not found.' })
-        }
-      } catch (error) {
-        notify('error', 'Error loading methods data', { detail: await (error instanceof Response ? error.text() : error) })
+  const loadMethodsData = async () => {
+    try {
+      const methodsResponse = await Ajax(signal).Cbas.methods.get()
+      const allMethods = methodsResponse.methods
+      const selectedMethod = _.head(_.filter(m => m.method_id === methodId, allMethods))
+      if (selectedMethod) {
+        setMethodsData(selectedMethod)
+      } else {
+        notify('error', 'Error loading methods data', { detail: 'Method not found.' })
       }
+    } catch (error) {
+      notify('error', 'Error loading methods data', { detail: await (error instanceof Response ? error.text() : error) })
     }
+  }
 
-    const loadRunSet = async () => {
-      try {
-        const runSet = await Ajax(signal).Cbas.runSets.getForMethod(methodId, 1)
-        const newRunSetData = runSet.run_sets[0]
-        setSelectedTableName(newRunSetData.record_type)
-        loadRecordsData(newRunSetData.record_type)
-        setConfiguredInputDefinition(JSON.parse(newRunSetData.input_definition))
-        setConfiguredOutputDefinition(JSON.parse(newRunSetData.output_definition))
-      } catch (error) {
-        notify('error', 'Error loading run set data', { detail: await (error instanceof Response ? error.text() : error) })
-      }
+  const loadRunSet = async () => {
+    try {
+      const runSet = await Ajax(signal).Cbas.runSets.getForMethod(methodId, 1)
+      const newRunSetData = runSet.run_sets[0]
+      setSelectedTableName(newRunSetData.record_type)
+      loadRecordsData(newRunSetData.record_type)
+      setConfiguredInputDefinition(JSON.parse(newRunSetData.input_definition))
+      setConfiguredOutputDefinition(JSON.parse(newRunSetData.output_definition))
+    } catch (error) {
+      notify('error', 'Error loading run set data', { detail: await (error instanceof Response ? error.text() : error) })
     }
+  }
 
-    const loadTablesData = async () => {
-      try {
-        setDataTables(await Ajax(signal).Wds.types.get())
-      } catch (error) {
-        notify('error', 'Error loading tables data', { detail: await (error instanceof Response ? error.text() : error) })
-      }
+  const loadTablesData = async () => {
+    try {
+      setDataTables(await Ajax(signal).Wds.types.get())
+    } catch (error) {
+      notify('error', 'Error loading tables data', { detail: await (error instanceof Response ? error.text() : error) })
     }
-
-    // TODO: Replace with more sensible defaults:
-    setSelectedDataTableRows(['FOO1'])
-    setRunSetName('New run set name')
-    setRunSetDescription('New run set description')
-
-    loadMethodsData()
-    loadTablesData()
-    loadRunSet()
-  })
+  }
 
   const loadRecordsData = async recordType => {
     try {
@@ -91,6 +82,17 @@ export const SubmissionConfig = ({ methodId }) => {
       notify('error', 'Error loading WDS records', { detail: await (error instanceof Response ? error.text() : error) })
     }
   }
+
+  useOnMount(() => {
+    // TODO: Replace with more sensible defaults:
+    setSelectedDataTableRows(['FOO1', 'FOO2', 'FOO3'])
+    setRunSetName('New run set name')
+    setRunSetDescription('New run set description')
+
+    loadMethodsData()
+    loadTablesData()
+    loadRunSet()
+  })
 
   const renderSummary = () => {
     return div({ style: { margin: '4em' } }, [
