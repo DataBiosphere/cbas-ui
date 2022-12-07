@@ -42,7 +42,7 @@ describe('Job Common Components - Page Header', () => {
     }
 
     render(h(PageHeader, props))
-    const user = userEvent.setup();
+    const user = userEvent.setup()
     await waitFor(async () => {
       const historyLink = screen.getByText(breadcrumbPathObjects[0].label)
       expect(historyLink).toBeDefined()
