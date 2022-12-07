@@ -1,0 +1,11 @@
+[
+  {
+    "method_id": "64b5bc5e-85cf-4aff-b522-01471b88b950",
+    "name": "fastq_to_ubam",
+    "description": "our target workflow",
+    "source": "github",
+    "source_url": "https://raw.githubusercontent.com/broadinstitute/viral-pipelines/master/pipes/WDL/workflows/fastq_to_ubam.wdl",
+    "created": "2017-07-21T17:32:28Z",
+    "last_run": "2017-07-21T17:32:28Z"
+  }
+]
