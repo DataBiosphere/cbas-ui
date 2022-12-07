@@ -2,9 +2,15 @@ import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { a, div, h, h2, span } from 'react-hyperscript-helpers'
 import ReactJson from 'react-json-view'
-import { ButtonPrimary, headerBar, Link, Select } from 'src/components/common'
+import { AutoSizer } from 'react-virtualized'
+import { ButtonPrimary, Checkbox, Clickable, headerBar, Link, Select } from 'src/components/common'
+import { HeaderOptions, renderDataCell } from 'src/components/data/data-utils'
+import { icon } from 'src/components/icons'
+import { MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
 import StepButtons from 'src/components/StepButtons'
+import { GridTable, HeaderCell, Resizable } from 'src/components/table'
 import { Ajax } from 'src/libs/ajax'
+import colors from 'src/libs/colors'
 import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
 import { useCancellation, useOnMount } from 'src/libs/react-utils'
@@ -15,9 +21,10 @@ export const SubmissionConfig = ({ methodId }) => {
   const [activeTab, setActiveTab] = useState({ key: 'select-data' })
   const [dataTables, setDataTables] = useState()
   const [methodsData, setMethodsData] = useState({})
+  const [recordsData, setRecordsData] = useState({})
 
   // Options chosen on this page:
-  const [selectedTable, setSelectedTable] = useState()
+  const [selectedTableName, setSelectedTableName] = useState()
   const [selectedDataTableRows, setSelectedDataTableRows] = useState()
   const [configuredInputDefinition, setConfiguredInputDefinition] = useState()
   const [configuredOutputDefinition, setConfiguredOutputDefinition] = useState()
@@ -25,6 +32,7 @@ export const SubmissionConfig = ({ methodId }) => {
   // TODO: These should probably be moved to the modal:
   const [runSetName, setRunSetName] = useState()
   const [runSetDescription, setRunSetDescription] = useState()
+  const [sort, setSort] = useState({ field: 'name', direction: 'asc' })
 
   const signal = useCancellation()
 
@@ -48,7 +56,8 @@ export const SubmissionConfig = ({ methodId }) => {
       try {
         const runSet = await Ajax(signal).Cbas.runSets.getForMethod(methodId, 1)
         const newRunSetData = runSet.run_sets[0]
-        setSelectedTable(newRunSetData.record_type)
+        setSelectedTableName(newRunSetData.record_type)
+        loadRecordsData(newRunSetData.record_type)
         setConfiguredInputDefinition(JSON.parse(newRunSetData.input_definition))
         setConfiguredOutputDefinition(JSON.parse(newRunSetData.output_definition))
       } catch (error) {
@@ -65,7 +74,7 @@ export const SubmissionConfig = ({ methodId }) => {
     }
 
     // TODO: Replace with more sensible defaults:
-    setSelectedDataTableRows(['FOO1', 'FOO2', 'FOO3'])
+    setSelectedDataTableRows(['FOO1'])
     setRunSetName('New run set name')
     setRunSetDescription('New run set description')
 
@@ -73,6 +82,15 @@ export const SubmissionConfig = ({ methodId }) => {
     loadTablesData()
     loadRunSet()
   })
+
+  const loadRecordsData = async recordType => {
+    try {
+      const searchResult = await Ajax(signal).Wds.search.post(recordType)
+      setRecordsData(searchResult.records)
+    } catch (error) {
+      notify('error', 'Error loading WDS records', { detail: await (error instanceof Response ? error.text() : error) })
+    }
+  }
 
   const renderSummary = () => {
     return div({ style: { margin: '4em' } }, [
@@ -102,8 +120,11 @@ export const SubmissionConfig = ({ methodId }) => {
         isDisabled: false,
         'aria-label': 'Select a data table',
         isClearable: false,
-        value: selectedTable ? selectedTable : null,
-        onChange: ({ value }) => setSelectedTable(value),
+        value: selectedTableName ? selectedTableName : null,
+        onChange: ({ value }) => {
+          setSelectedTableName(value)
+          loadRecordsData(value)
+        },
         placeholder: 'None selected',
         styles: { container: old => ({ ...old, display: 'inline-block', width: 200 }) },
         options: _.map(d => d.name, dataTables)
@@ -131,14 +152,11 @@ export const SubmissionConfig = ({ methodId }) => {
   }
 
   const renderDataSelector = () => {
-    return selectedDataTableRows ? h(ReactJson, {
-      style: { whiteSpace: 'pre-wrap' },
-      name: false,
-      collapsed: 4,
-      enableClipboard: false,
-      displayDataTypes: false,
-      displayObjectSize: false,
-      src: { selectedDataTableRows }
+    return selectedTableName && dataTables && recordsData.length ? renderGrid({
+      recordsData,
+      selectedDataTableRows, setSelectedDataTableRows,
+      selectedDataTable: _.keyBy('name', dataTables)[selectedTableName],
+      sort, setSort
     }) : 'No data table rows selected...'
   }
 
@@ -175,7 +193,7 @@ export const SubmissionConfig = ({ methodId }) => {
         workflow_input_definitions: configuredInputDefinition,
         workflow_output_definitions: configuredOutputDefinition,
         wds_records: {
-          record_type: selectedTable,
+          record_type: selectedTableName,
           record_ids: selectedDataTableRows
         }
       }
@@ -215,6 +233,137 @@ export const SubmissionConfig = ({ methodId }) => {
       )
     ])
   ])
+}
+
+const renderGrid = props => {
+  const {
+    recordsData,
+    selectedDataTableRows, setSelectedDataTableRows,
+    selectedDataTable,
+    sort, setSort
+  } = props
+
+  const selectAll = () => {
+    console.log('TODO: implement selectAll')
+  }
+
+  const selectPage = () => {
+    console.log('TODO: implement selectPage')
+  }
+
+  const deselectPage = () => {
+    console.log('TODO: implement deselectPage')
+  }
+
+  const selectNone = () => {
+    console.log('TODO: implement selectNone')
+  }
+
+  const pageSelected = () => {
+    const recordIds = _.map('id', recordsData)
+    const selectedIds = _.keys(selectedDataTableRows)
+    return recordsData.length && _.every(k => _.includes(k, selectedIds), recordIds)
+  }
+
+  const resizeColumn = (delta, columnName) => {
+    window.alert(`column resizing currently disabled (${delta}, ${columnName}`)
+  }
+
+  const columnWidth = 300
+
+  return h(AutoSizer, [({ width, height }) => {
+    return h(GridTable, {
+      'aria-label': `${selectedDataTable.name} data table`,
+      width,
+      height,
+      // // Keeping these properties here as a reminder: can we use them?
+      // noContentMessage: DEFAULT,
+      // noContentRenderer: DEFAULT,
+      rowCount: recordsData.length,
+      columns: [
+        {
+          width: 70,
+          headerRenderer: () => {
+            return h(Fragment, [
+              h(Checkbox, {
+                checked: () => pageSelected(),
+                disabled: !recordsData.length,
+                onChange: () => pageSelected() ? deselectPage : selectPage,
+                'aria-label': 'Select all'
+              }),
+              h(MenuTrigger, {
+                closeOnClick: true,
+                content: h(Fragment, [
+                  h(MenuButton, { onClick: selectPage }, ['Page']),
+                  h(MenuButton, { onClick: selectAll }, [`All (${recordsData.length})`]),
+                  h(MenuButton, { onClick: selectNone }, ['None'])
+                ]),
+                side: 'bottom'
+              }, [
+                h(Clickable, { 'aria-label': '"Select All" options' }, [icon('caretDown')])
+              ])
+            ])
+          },
+          cellRenderer: ({ rowIndex }) => {
+            const thisRecord = recordsData[rowIndex]
+            const { id } = thisRecord
+            const checked = _.has([id], selectedDataTableRows)
+            return h(Checkbox, {
+              'aria-label': id || 'id-pending',
+              checked,
+              onChange: () => setSelectedDataTableRows((checked ? _.unset([id]) : _.set([id], thisRecord))(selectedDataTableRows))
+            })
+          }
+        },
+        {
+          field: 'id',
+          width: columnWidth,
+          headerRenderer: () => h(Resizable, {
+            width: columnWidth, // TODO: read this from state after resizing
+            onWidthChange: delta => resizeColumn(delta, 'id')
+          }, [
+            h(HeaderOptions, { sort, field: 'id', onSort: setSort },
+              [h(HeaderCell, ['ID'])])
+          ]),
+          cellRenderer: ({ rowIndex }) => {
+            const { id: recordId } = recordsData[rowIndex]
+            return h(Fragment, [
+              renderDataCell(recordId),
+              div({ style: { flexGrow: 1 } })
+            ])
+          }
+        },
+        ..._.map(({ name: attributeName }) => {
+          const thisWidth = columnWidth // TODO: read this from state after resizing
+          const [, columnNamespace, columnName] = /(.+:)?(.+)/.exec(attributeName)
+          return {
+            field: attributeName,
+            width: thisWidth,
+            headerRenderer: () => h(Resizable, {
+              width: thisWidth,
+              onWidthChange: delta => resizeColumn(delta, 'id')
+            }, [
+              h(HeaderOptions, {
+                sort,
+                field: attributeName,
+                onSort: setSort
+              }, [
+                h(HeaderCell, [
+                  !!columnNamespace && span({ style: { fontStyle: 'italic', color: colors.dark(0.75), paddingRight: '0.2rem' } }, [columnNamespace]),
+                  columnName
+                ])
+              ])
+            ]),
+            cellRenderer: ({ rowIndex }) => {
+              return h(Fragment, [
+                String(recordsData[rowIndex].attributes[attributeName])
+              ])
+            }
+          }
+        }, selectedDataTable.attributes)
+      ]
+    }, [])
+  }])
 }
 
 export const navPaths = [

@@ -48,6 +48,7 @@ export const fetchOk = _.flow(withInstrumentation, withCancellation, withErrorRe
 
 const fetchCbas = withUrlPrefix(`${getConfig().cbasUrlRoot}/api/batch/v1/`, fetchOk)
 const fetchCromwell = withUrlPrefix(`${getConfig().cbasUrlRoot}/cromwell/api/workflows/v1/`, fetchOk)
+const fetchWds = withUrlPrefix(`${getConfig().cbasUrlRoot}/wds/`, fetchOk)
 
 const Cbas = signal => ({
   status: async () => {
@@ -96,53 +97,25 @@ const Cromwell = signal => ({
   }
 })
 
+// TODO: how to get these values?
+const wdsInstanceId = '15f36863-30a5-4cab-91f7-52be439f1175'
+const wdsApiVersion = 'v0.2'
+const searchPayload = {}
+
 const Wds = signal => ({
   types: {
     get: async () => {
-      console.log('mock WDS endpoint')
-      console.log(`log ${signal} to avoid linter errors while we mock some data`)
-      const resJson = await (() => [
-        {
-          name: 'Covid19_DataTable',
-          attributes: [
-            {
-              name: 'assemble_refbased_mock_call_10_input_file_optional',
-              datatype: 'STRING'
-            },
-            {
-              name: 'assemble_refbased_mock_call_12_input_bool_default_1',
-              datatype: 'BOOLEAN'
-            },
-            {
-              name: 'assemble_refbased_mock_call_12_input_int_default_1',
-              datatype: 'NUMBER'
-            },
-            {
-              name: 'assemble_refbased_mock_input_file_array',
-              datatype: 'ARRAY_OF_STRING'
-            },
-            {
-              name: 'assemble_refbased_mock_output_float_array',
-              datatype: 'ARRAY_OF_NUMBER'
-            }
-          ],
-          count: 1,
-          primaryKey: 'sys_name'
-        },
-        {
-          name: 'SomeOtherDataset',
-          attributes: [],
-          count: 1,
-          primaryKey: 'sys_name'
-        },
-        {
-          name: 'FOO',
-          attributes: [],
-          count: 3,
-          primaryKey: 'FOO_ID'
-        }
-      ])()
-      return resJson
+      const res = await fetchWds(`${wdsInstanceId}/types/${wdsApiVersion}`, { signal, method: 'GET' })
+      return res.json()
+    }
+  },
+  search: {
+    post: async wdsType => {
+      const res = await fetchWds(
+        `${wdsInstanceId}/search/${wdsApiVersion}/${wdsType}`,
+        _.mergeAll([{ signal, method: 'POST' }, jsonBody(searchPayload)])
+      )
+      return res.json()
     }
   }
 })
