@@ -84,7 +84,7 @@ export const SubmissionDetails = ({ submissionId }) => {
       div({ style: { marginLeft: '4em' } }, [
         h(TextCell, [(h(Link, { onClick: () => Nav.goToPath('submission-history') }, ['Submission History'])), ' >', ` Submission ${submissionId}`]),
         h2(['workflow_name(HARDCODED)']),
-        h3([`Submission date: ${submissionTimestamp}`]),
+        h3([`Submission date: `]),
         h3(['Duration: ']),
         h3(['Submitted by: '])
       ])
