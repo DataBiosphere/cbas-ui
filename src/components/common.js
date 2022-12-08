@@ -1,6 +1,7 @@
 import * as clipboard from 'clipboard-polyfill/text'
 import _ from 'lodash/fp'
 import { useState } from 'react'
+import FocusLock from 'react-focus-lock'
 import { a, div, h, h3 } from 'react-hyperscript-helpers'
 import RSelect, { components as RSelectComponents } from 'react-select'
 import { centeredSpinner, containsUnlabelledIcon, icon } from 'src/components/icons'
@@ -162,6 +163,23 @@ export const ButtonOutline = ({ disabled, children, ...props }) => {
   }, props), [children])
 }
 
+export const Checkbox = ({ checked, onChange, disabled, ...props }) => {
+  useLabelAssert('Checkbox', { ...props, allowId: true })
+  return h(Interactive, _.merge({
+    as: 'span',
+    className: 'fa-layers fa-fw',
+    role: 'checkbox',
+    'aria-checked': checked,
+    onClick: () => !disabled && onChange?.(!checked),
+    style: { verticalAlign: 'middle' },
+    disabled
+  }, props), [
+    icon('squareSolid', { style: { color: Utils.cond([disabled, () => colors.light(1.2)], [checked, () => colors.accent()], () => 'white') } }), // bg
+    !disabled && icon('squareLight', { style: { color: checked ? colors.accent(1.2) : colors.dark(0.75) } }), // border
+    checked && icon('check', { size: 8, style: { color: disabled ? colors.dark(0.75) : 'white' } }) // check
+  ])
+}
+
 export const headerBar = () => {
   return div({
     role: 'banner',
@@ -321,5 +339,22 @@ const makeBaseSpinner = ({ outerStyles = {}, innerStyles = {} }) => div(
     })
   ]
 )
+
+export const FocusTrapper = ({ children, onBreakout, ...props }) => {
+  return h(FocusLock, {
+    returnFocus: true,
+    lockProps: _.merge({
+      tabIndex: 0,
+      style: { outline: 'none' },
+      onKeyDown: e => {
+        if (e.key === 'Escape') {
+          onBreakout()
+          e.stopPropagation()
+        }
+      }
+    }, props)
+  }, [children])
+}
+
 
 export const spinnerOverlay = makeBaseSpinner({})
