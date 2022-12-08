@@ -47,7 +47,7 @@ const withUrlPrefix = _.curry((prefix, wrappedFetch) => (path, ...args) => {
 export const fetchOk = _.flow(withInstrumentation, withCancellation, withErrorRejection)(fetch)
 
 const fetchCbas = withUrlPrefix(`${getConfig().cbasUrlRoot}/api/batch/v1/`, fetchOk)
-const fetchCromwell = withUrlPrefix(`${getConfig().cbasUrlRoot}/cromwell/api/workflows/v1/`, fetchOk)
+const fetchCromwell = withUrlPrefix(`${getConfig().cbasUrlRoot}/../cromwell/api/workflows/v1/`, fetchOk)
 const fetchWds = withUrlPrefix(`${getConfig().cbasUrlRoot}/wds/`, fetchOk)
 
 const Cbas = signal => ({
