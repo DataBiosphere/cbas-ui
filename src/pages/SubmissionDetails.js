@@ -24,8 +24,8 @@ export const SubmissionDetails = ({ submissionId }) => {
   const [viewOutputsId, setViewOutputsId] = useState()
   const [viewErrorsId, setViewErrorsId] = useState()
   const [runsData, setRunsData] = useState()
-  const [runSetData, setRunSetData] = useState()
-  const [submissionTimestamp, setSubmissionTimestamp] = useState()
+  //const [runSetData, setRunSetData] = useState()
+  //const [submissionTimestamp, setSubmissionTimestamp] = useState()
 
   const signal = useCancellation()
 
@@ -40,18 +40,18 @@ export const SubmissionDetails = ({ submissionId }) => {
     }
 
     // TODO: "Prework" for the next ticket
-    const loadSubmissionData = async () => {
-      try {
-        const runSetData = await Ajax(signal).Cbas.runSets.get()
-        setRunSetData(runSetData.run_sets)
-        setSubmissionTimestamp(JSON.parse(runSetData.submission_timestamp))
-      } catch (error) {
-        notify('error', 'Error loading run set data', { detail: await (error instanceof Response ? error.text() : error) })
-      }
-    }
+    // const loadSubmissionData = async () => {
+    //   try {
+    //     const runSetData = await Ajax(signal).Cbas.runSets.get()
+    //     setRunSetData(runSetData.run_sets)
+    //     setSubmissionTimestamp(JSON.parse(runSetData.submission_timestamp))
+    //   } catch (error) {
+    //     notify('error', 'Error loading run set data', { detail: await (error instanceof Response ? error.text() : error) })
+    //   }
+    // }
 
     loadRunsData()
-    loadSubmissionData()
+    //loadSubmissionData()
   })
 
 
@@ -95,7 +95,9 @@ export const SubmissionDetails = ({ submissionId }) => {
         display: 'flex',
         flex: '1 1 auto',
         flexDirection: 'column',
-        padding: '1rem 3rem' } }, [
+        padding: '1rem 3rem'
+      }
+    }, [
       div({
         style: {
           marginTop: '1em', height: tableHeight({ actualRows: paginatedPreviousRuns.length, maxRows: 12.5, heightPerRow: 250 }), minHeight: '10em'
@@ -109,7 +111,7 @@ export const SubmissionDetails = ({ submissionId }) => {
           isClearable: false,
           value: null,
           placeholder: 'None selected',
-          styles: { container: old => ({ ...old, display: 'inline-block', width: 200, marginBottom: '1.5rem' }) },
+          styles: { container: old => ({ ...old, display: 'inline-block', width: 200, marginBottom: '1.5rem' }) }
         }),
         h(AutoSizer, [
           ({ width, height }) => h(FlexTable, {
@@ -137,12 +139,13 @@ export const SubmissionDetails = ({ submissionId }) => {
                   const failureStates = ['SYSTEM_ERROR', 'EXECUTOR_ERROR']
                   if (failureStates.includes(paginatedPreviousRuns[rowIndex].state)) {
                     return div({ style: { width: '100%', textAlign: 'center' } }, [
-                      h(Link, { style: {fontWeight: 'bold'}, onClick: () => setViewErrorsId(rowIndex) }, [[icon('warning-standard', { size: 18, color: 'red' })], ['      Error(s)']])
+                      h(Link, { style: { fontWeight: 'bold' }, onClick: () => setViewErrorsId(rowIndex) }, [[icon('warning-standard', { size: 18, color: 'red' })], ['      Error(s)']])
                     ])
                   } else if (paginatedPreviousRuns[rowIndex].state === 'COMPLETE') {
                     return div({ style: { width: '100%', textAlign: 'center' } }, [
                       div({ style: { fontWeight: 'bold' } }, [h(TextCell, {}, [icon('check', { size: 18, style: { color: colors.success() } }), ['   Succeeded']])])
-                    ]) }
+                    ])
+                  }
                 }
               },
               {
@@ -168,8 +171,8 @@ export const SubmissionDetails = ({ submissionId }) => {
                 field: 'run_id',
                 headerRenderer: () => 'Run ID',
                 cellRenderer: ({ rowIndex }) => {
-                  return div({ style: { width: '100%', textAlign: 'left' } }, [
-                    h(Link, { style: { display: 'inline-block', textDecoration: 'underline' }, onClick: () => setViewInputsId(rowIndex) }, [paginatedPreviousRuns[rowIndex].run_id]),
+                  return div({ style: { width: '100%', textAlign: 'left' } } [
+                    h(Link, { style: { display: 'inline-block', textDecoration: 'underline' }, onClick: () => setViewInputsId(rowIndex) }, [paginatedPreviousRuns[rowIndex].run_id])
                   ])
                 }
               },
@@ -212,8 +215,8 @@ export const SubmissionDetails = ({ submissionId }) => {
           enableClipboard: true,
           displayDataTypes: false,
           displayObjectSize: false,
-          src: "Link to workflow details!"//_.isEmpty(paginatedPreviousRuns[viewInputsId].workflow_params) ? {} : JSON.parse(paginatedPreviousRuns[viewInputsId].workflow_params)
-        }, ["Link to workflow details!"])
+          src: 'Link to workflow details!'//_.isEmpty(paginatedPreviousRuns[viewInputsId].workflow_params) ? {} : JSON.parse(paginatedPreviousRuns[viewInputsId].workflow_params)
+        }, ['Link to workflow details!'])
       ]),
       (viewOutputsId !== undefined) && h(Modal, {
         title: 'Outputs Definition JSON',
