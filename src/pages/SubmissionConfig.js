@@ -19,13 +19,13 @@ import * as Utils from 'src/libs/utils'
 
 export const SubmissionConfig = ({ methodId }) => {
   const [activeTab, setActiveTab] = useState({ key: 'select-data' })
-  const [dataTables, setDataTables] = useState()
-  const [methodsData, setMethodsData] = useState({})
-  const [recordsData, setRecordsData] = useState({})
+  const [recordTypes, setRecordTypes] = useState()
+  const [method, setMethod] = useState({})
+  const [records, setRecords] = useState({})
 
   // Options chosen on this page:
-  const [selectedTableName, setSelectedTableName] = useState()
-  const [selectedDataTableRows, setSelectedDataTableRows] = useState()
+  const [selectedRecordType, setSelectedRecordType] = useState()
+  const [selectedRecords, setSelectedRecords] = useState()
   const [configuredInputDefinition, setConfiguredInputDefinition] = useState()
   const [configuredOutputDefinition, setConfiguredOutputDefinition] = useState()
 
@@ -41,7 +41,7 @@ export const SubmissionConfig = ({ methodId }) => {
   const loadRecordsData = async recordType => {
     try {
       const searchResult = await Ajax(signal).Wds.search.post(recordType)
-      setRecordsData(searchResult.records)
+      setRecords(searchResult.records)
     } catch (error) {
       notify('error', 'Error loading WDS records', { detail: await (error instanceof Response ? error.text() : error) })
     }
@@ -54,7 +54,7 @@ export const SubmissionConfig = ({ methodId }) => {
         const allMethods = methodsResponse.methods
         const selectedMethod = _.head(_.filter(m => m.method_id === methodId, allMethods))
         if (selectedMethod) {
-          setMethodsData(selectedMethod)
+          setMethod(selectedMethod)
         } else {
           notify('error', 'Error loading methods data', { detail: 'Method not found.' })
         }
@@ -67,7 +67,7 @@ export const SubmissionConfig = ({ methodId }) => {
       try {
         const runSet = await Ajax(signal).Cbas.runSets.getForMethod(methodId, 1)
         const newRunSetData = runSet.run_sets[0]
-        setSelectedTableName(newRunSetData.record_type)
+        setSelectedRecordType(newRunSetData.record_type)
         loadRecordsData(newRunSetData.record_type)
         setConfiguredInputDefinition(JSON.parse(newRunSetData.input_definition))
         setConfiguredOutputDefinition(JSON.parse(newRunSetData.output_definition))
@@ -78,7 +78,7 @@ export const SubmissionConfig = ({ methodId }) => {
 
     const loadTablesData = async () => {
       try {
-        setDataTables(await Ajax(signal).Wds.types.get())
+        setRecordTypes(await Ajax(signal).Wds.types.get())
       } catch (error) {
         notify('error', 'Error loading tables data', { detail: await (error instanceof Response ? error.text() : error) })
       }
@@ -95,14 +95,14 @@ export const SubmissionConfig = ({ methodId }) => {
   const renderSummary = () => {
     return div({ style: { margin: '4em' } }, [
       div({ style: { display: 'flex', marginTop: '1rem', justifyContent: 'space-between' } }, [
-        h2([methodsData.name])
+        h2([method.name])
       ]),
       div({ style: { lineHeight: 2.0 } }, [
         div([
           span({ style: { fontWeight: 'bold' } }, ['Workflow source link: ']),
           a(
-            { href: methodsData.source_url },
-            [methodsData.source_url]
+            { href: method.source_url },
+            [method.source_url]
           )
         ]),
         div([span({ style: { fontWeight: 'bold' } }, ['Version: ']), '1.14 <TODO: WHERE DOES THIS COME FROM?>']),
@@ -120,14 +120,14 @@ export const SubmissionConfig = ({ methodId }) => {
         isDisabled: false,
         'aria-label': 'Select a data table',
         isClearable: false,
-        value: selectedTableName ? selectedTableName : null,
+        value: selectedRecordType ? selectedRecordType : null,
         onChange: ({ value }) => {
-          setSelectedTableName(value)
+          setSelectedRecordType(value)
           loadRecordsData(value)
         },
         placeholder: 'None selected',
         styles: { container: old => ({ ...old, display: 'inline-block', width: 200 }) },
-        options: _.map(d => d.name, dataTables)
+        options: _.map(t => t.name, recordTypes)
       }),
       div({ style: { lineHeight: 2.0 } }, [
         div([span({ style: { fontWeight: 'bold' } }, ['New run set name (TODO: Move to modal): ']), runSetName ? runSetName : 'Run set name required']),
@@ -151,11 +151,11 @@ export const SubmissionConfig = ({ methodId }) => {
     ])
   }
 
-  const renderDataSelector = () => {
-    return selectedTableName && dataTables && recordsData.length ? renderGrid({
-      recordsData,
-      selectedDataTableRows, setSelectedDataTableRows,
-      selectedDataTable: _.keyBy('name', dataTables)[selectedTableName],
+  const renderRecordSelector = () => {
+    return selectedRecordType && recordTypes && records.length ? renderGrid({
+      records,
+      selectedRecords, setSelectedRecords,
+      selectedDataTable: _.keyBy('name', recordTypes)[selectedRecordType],
       sort, setSort
     }) : 'No data table rows selected...'
   }
@@ -193,8 +193,8 @@ export const SubmissionConfig = ({ methodId }) => {
         workflow_input_definitions: configuredInputDefinition,
         workflow_output_definitions: configuredOutputDefinition,
         wds_records: {
-          record_type: selectedTableName,
-          record_ids: _.keys(selectedDataTableRows)
+          record_type: selectedRecordType,
+          record_ids: _.keys(selectedRecords)
         }
       }
 
@@ -227,7 +227,7 @@ export const SubmissionConfig = ({ methodId }) => {
       }
     }, [
       Utils.switchCase(activeTab.key || 'select-data',
-        ['select-data', () => renderDataSelector()],
+        ['select-data', () => renderRecordSelector()],
         ['inputs', () => renderInputs()],
         ['outputs', () => renderOutputs()]
       )
@@ -237,8 +237,8 @@ export const SubmissionConfig = ({ methodId }) => {
 
 const renderGrid = props => {
   const {
-    recordsData,
-    selectedDataTableRows, setSelectedDataTableRows,
+    records,
+    selectedRecords, setSelectedRecords,
     selectedDataTable,
     sort, setSort
   } = props
@@ -260,9 +260,9 @@ const renderGrid = props => {
   }
 
   const pageSelected = () => {
-    const recordIds = _.map('id', recordsData)
-    const selectedIds = _.keys(selectedDataTableRows)
-    return recordsData.length && _.every(k => _.includes(k, selectedIds), recordIds)
+    const recordIds = _.map('id', records)
+    const selectedIds = _.keys(selectedRecords)
+    return records.length && _.every(k => _.includes(k, selectedIds), recordIds)
   }
 
   const resizeColumn = (delta, columnName) => {
@@ -279,7 +279,7 @@ const renderGrid = props => {
       // // Keeping these properties here as a reminder: can we use them?
       // noContentMessage: DEFAULT,
       // noContentRenderer: DEFAULT,
-      rowCount: recordsData.length,
+      rowCount: records.length,
       columns: [
         {
           width: 70,
@@ -287,7 +287,7 @@ const renderGrid = props => {
             return h(Fragment, [
               h(Checkbox, {
                 checked: () => pageSelected(),
-                disabled: !recordsData.length,
+                disabled: !records.length,
                 onChange: () => pageSelected() ? deselectPage : selectPage,
                 'aria-label': 'Select all'
               }),
@@ -295,7 +295,7 @@ const renderGrid = props => {
                 closeOnClick: true,
                 content: h(Fragment, [
                   h(MenuButton, { onClick: selectPage }, ['Page']),
-                  h(MenuButton, { onClick: selectAll }, [`All (${recordsData.length})`]),
+                  h(MenuButton, { onClick: selectAll }, [`All (${records.length})`]),
                   h(MenuButton, { onClick: selectNone }, ['None'])
                 ]),
                 side: 'bottom'
@@ -305,14 +305,14 @@ const renderGrid = props => {
             ])
           },
           cellRenderer: ({ rowIndex }) => {
-            const thisRecord = recordsData[rowIndex]
+            const thisRecord = records[rowIndex]
             const { id } = thisRecord
-            const checked = _.has([id], selectedDataTableRows)
+            const checked = _.has([id], selectedRecords)
             return h(Checkbox, {
               'aria-label': id || 'id-pending',
               checked,
               onChange: () => {
-                setSelectedDataTableRows((checked ? _.unset([id]) : _.set([id], thisRecord))(selectedDataTableRows))
+                setSelectedRecords((checked ? _.unset([id]) : _.set([id], thisRecord))(selectedRecords))
               }
             })
           }
@@ -328,7 +328,7 @@ const renderGrid = props => {
               [h(HeaderCell, ['ID'])])
           ]),
           cellRenderer: ({ rowIndex }) => {
-            const { id: recordId } = recordsData[rowIndex]
+            const { id: recordId } = records[rowIndex]
             return h(Fragment, [
               renderDataCell(recordId),
               div({ style: { flexGrow: 1 } })
@@ -358,7 +358,7 @@ const renderGrid = props => {
             ]),
             cellRenderer: ({ rowIndex }) => {
               return h(Fragment, [
-                String(recordsData[rowIndex].attributes[attributeName])
+                String(records[rowIndex].attributes[attributeName])
               ])
             }
           }
