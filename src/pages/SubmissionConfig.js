@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import { Fragment, useState } from 'react'
+import { Fragment, useState, useEffect } from 'react'
 import { a, div, h, h2, span } from 'react-hyperscript-helpers'
 import ReactJson from 'react-json-view'
 import { AutoSizer } from 'react-virtualized'
@@ -39,6 +39,7 @@ export const SubmissionConfig = ({ methodId }) => {
   const signal = useCancellation()
 
   const loadRecordsData = async recordType => {
+    console.log('loadRecordsData')
     try {
       const searchResult = await Ajax(signal).Wds.search.post(recordType)
       setRecords(searchResult.records)
@@ -49,6 +50,7 @@ export const SubmissionConfig = ({ methodId }) => {
 
   useOnMount(() => {
     const loadMethodsData = async () => {
+      console.log('loadMethodsData called')
       try {
         const methodsResponse = await Ajax(signal).Cbas.methods.get()
         const allMethods = methodsResponse.methods
@@ -65,15 +67,22 @@ export const SubmissionConfig = ({ methodId }) => {
 
     const loadRunSet = async () => {
       try {
-        const runSet = await Ajax(signal).Cbas.runSets.getForMethod(methodId, 1)
-        const newRunSetData = runSet.run_sets[0]
-        setSelectedRecordType(newRunSetData.record_type)
-        loadRecordsData(newRunSetData.record_type)
-        setConfiguredInputDefinition(JSON.parse(newRunSetData.input_definition))
-        setConfiguredOutputDefinition(JSON.parse(newRunSetData.output_definition))
+        console.log('loadRunSet called')
+        // const runSet = await Ajax(signal).Cbas.runSets.getForMethod(methodId, 1)
+        await Ajax(signal).Cbas.runSets.getForMethod(methodId, 1)
+          .then(runSet => {
+            console.log('Cbas.runSets.getForMethod called', runSet)
+            const newRunSetData = runSet.run_sets[0]
+            console.log("WHY CAN'T WE MAKE IT HERE?")
+            loadRecordsData(newRunSetData.record_type)
+            setSelectedRecordType(newRunSetData.record_type)
+            setConfiguredInputDefinition(JSON.parse(newRunSetData.input_definition))
+            setConfiguredOutputDefinition(JSON.parse(newRunSetData.output_definition))
+          })
       } catch (error) {
         notify('error', 'Error loading run set data', { detail: await (error instanceof Response ? error.text() : error) })
       }
+      return "foo"
     }
 
     const loadTablesData = async () => {
@@ -83,17 +92,17 @@ export const SubmissionConfig = ({ methodId }) => {
         notify('error', 'Error loading tables data', { detail: await (error instanceof Response ? error.text() : error) })
       }
     }
-
     setRunSetName('New run set name')
     setRunSetDescription('New run set description')
 
     loadMethodsData()
     loadTablesData()
     loadRunSet()
+    console.log('useOnMount finished.')
   })
 
   const renderSummary = () => {
-    return div({ style: { margin: '4em' } }, [
+    return div({ style: { margin: '4em' }, 'data-testid': 'my-dropdown' }, [
       div({ style: { display: 'flex', marginTop: '1rem', justifyContent: 'space-between' } }, [
         h2([method.name])
       ]),
@@ -152,6 +161,7 @@ export const SubmissionConfig = ({ methodId }) => {
   }
 
   const renderRecordSelector = () => {
+    console.log('renderRecordSelector', selectedRecordType, recordTypes, records.length)
     return selectedRecordType && recordTypes && records.length ? renderGrid({
       records,
       selectedRecords, setSelectedRecords,
@@ -236,6 +246,7 @@ export const SubmissionConfig = ({ methodId }) => {
 }
 
 const renderGrid = props => {
+  console.log('################### renderGrid')
   const {
     records,
     selectedRecords, setSelectedRecords,
