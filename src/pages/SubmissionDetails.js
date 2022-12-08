@@ -107,7 +107,7 @@ export const SubmissionDetails = ({ submissionId }) => {
         div([h3(['Filter by: '])]),
         h(Select, {
           isDisabled: false,
-          'aria-label': 'Select a data table',
+          'aria-label': 'Filter selection',
           isClearable: false,
           value: null,
           placeholder: 'None selected',
