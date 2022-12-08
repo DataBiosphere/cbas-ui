@@ -57,7 +57,7 @@ export const SubmissionDetails = ({ submissionId }) => {
 
   const sortedPreviousRuns = _.orderBy(sort.field, sort.direction, runsData)
   // TODO: "Prework" for the next ticket
-  const specifyRunSet = _.filter(r => r.run_set_id === submissionId, runSetData)
+  //const specifyRunSet = _.filter(r => r.run_set_id === submissionId, runSetData)
 
   const firstPageIndex = (pageNumber - 1) * itemsPerPage
   const lastPageIndex = firstPageIndex + itemsPerPage
@@ -76,20 +76,22 @@ export const SubmissionDetails = ({ submissionId }) => {
       headerBar(),
       div({ style: { marginLeft: '4em', display: 'flex', marginTop: '0.5rem', justifyContent: 'space-between' } }, [
         h1(['Submission Details']),
-        h(ButtonOutline, { style: {margin: '2em'},
+        h(ButtonOutline, {
+          style: { margin: '2em' },
           onClick: () => Nav.goToPath('root')
         }, ['Submit a new workflow'])
       ]),
-      div( {style: {marginLeft: '4em',}}, [
+      div({ style: { marginLeft: '4em' } }, [
         h(TextCell, [(h(Link, { onClick: () => Nav.goToPath('submission-history') }, ['Submission History'])), ' >', ` Submission ${submissionId}`]),
         h2(['workflow_name(HARDCODED)']),
         h3([`Submission date: ${submissionTimestamp}`]),
         h3(['Duration: ']),
         h3(['Submitted by: '])
       ])
-      ]
-    ),
-    div({ style: { backgroundColor: 'rgb(235, 236, 238)',
+    ]),
+    div({
+      style: {
+        backgroundColor: 'rgb(235, 236, 238)',
         display: 'flex',
         flex: '1 1 auto',
         flexDirection: 'column',
