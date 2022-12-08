@@ -8,7 +8,7 @@ import { HeaderOptions, renderDataCell } from 'src/components/data/data-utils'
 import { icon } from 'src/components/icons'
 import { MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
 import StepButtons from 'src/components/StepButtons'
-import { GridTable, HeaderCell, Resizable } from 'src/components/table'
+import { FlexTable, SimpleTable, Sortable, TextCell, GridTable, HeaderCell, Resizable } from 'src/components/table'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import * as Nav from 'src/libs/nav'
@@ -161,7 +161,7 @@ export const SubmissionConfig = ({ methodId }) => {
   }
 
   const renderInputs = () => {
-    return configuredInputDefinition ? h(ReactJson, {
+    return configuredInputDefinition ? h(renderInputTable, {
       style: { whiteSpace: 'pre-wrap' },
       name: false,
       collapsed: 4,
@@ -366,6 +366,84 @@ const renderGrid = props => {
       ]
     }, [])
   }])
+}
+
+
+const renderInputTable = ({ 
+  which, 
+  inputsOutputs: data, 
+  config, 
+  errors, 
+  onChange, 
+  onSetDefaults, 
+  onBrowse, 
+  suggestions, 
+  availableSnapshots, 
+  readOnly
+}) => {
+  const [sort, setSort] = useState({ field: 'taskVariable', direction: 'asc' })
+  const [selectedInputSources, setSelectedInputSources] = useState({})
+
+  const inputSourceTypes = ['Use Default', 'Type a Value', 'Fetch from Data Table']
+
+  return h(FlexTable, {
+    'aria-label': `workflow ${which}`,
+    rowCount: 3, // sortedData.length,
+    noContentMessage: `No matching ${which}.`,
+    sort, readOnly,
+    columns: [
+      {
+        size: { basis: 350, grow: 0 },
+        field: 'taskVariable',
+        headerRenderer: () => h(Sortable, { sort, field: 'taskVariable', onSort: setSort }, [h(HeaderCell, ['Task name'])]),
+        cellRenderer: ({ rowIndex }) => {
+          return h(TextCell, { style: { fontWeight: 500 } }, [`column 1, row ${rowIndex}`])
+        }
+      },
+      {
+        size: { basis: 360, grow: 0 },
+        field: 'workflowVariable',
+        headerRenderer: () => h(Sortable, { sort, field: 'workflowVariable', onSort: setSort }, [h(HeaderCell, ['Variable'])]),
+        cellRenderer: ({ rowIndex }) => {
+          return h(TextCell, {}, [`column 2, row ${rowIndex}`])
+        }
+      },
+      {
+        size: { basis: 160, grow: 0 },
+        headerRenderer: () => h(HeaderCell, ['Type']),
+        cellRenderer: ({ rowIndex }) => {
+          return h(TextCell, {}, [`column 3, row ${rowIndex}`])
+        }
+      },
+      {
+        size: { basis: 160, grow: 0 },
+        headerRenderer: () => h(HeaderCell, ['Input sources']),
+        cellRenderer: ({ rowIndex }) => {
+          return h(Select, {
+            isDisabled: false,
+            'aria-label': 'Select an Option',
+            isClearable: false,
+            value: null,
+            onChange: ({ value }) => {
+              setSelectedInputSources(_.set(rowIndex, value, selectedInputSources))
+            },
+            placeholder: 'None selected',
+            styles: { container: old => ({ ...old, display: 'inline-block', width: 200 }) },
+            options: inputSourceTypes
+          })
+        }
+      },
+      {
+        headerRenderer: () => h(Fragment, [
+          h(HeaderCell, ['Attribute'])
+        ]),
+        cellRenderer: ({ rowIndex }) => {
+          // TODO
+          return rowIndex
+        }
+      }
+    ]
+  })
 }
 
 export const navPaths = [
