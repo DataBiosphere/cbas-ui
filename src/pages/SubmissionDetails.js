@@ -175,7 +175,7 @@ export const SubmissionDetails = ({ submissionId }) => {
                     h(Link, { style: { display: 'inline-block', textDecoration: 'underline' }, onClick: () => setViewInputsId(rowIndex) }, [paginatedPreviousRuns[rowIndex].run_id])
                   ])
                 }
-              },
+              }
             ],
             styleCell: ({ rowIndex }) => {
               return rowIndex % 2 && { backgroundColor: colors.light(0.2) }
