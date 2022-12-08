@@ -24,8 +24,8 @@ export const SubmissionDetails = ({ submissionId }) => {
   const [viewOutputsId, setViewOutputsId] = useState()
   const [viewErrorsId, setViewErrorsId] = useState()
   const [runsData, setRunsData] = useState()
-  //const [runSetData, setRunSetData] = useState()
-  //const [submissionTimestamp, setSubmissionTimestamp] = useState()
+  const [runSetData, setRunSetData] = useState()
+  const [submissionTimestamp, setSubmissionTimestamp] = useState()
 
   const signal = useCancellation()
 
@@ -39,25 +39,24 @@ export const SubmissionDetails = ({ submissionId }) => {
       }
     }
 
-    // TODO: "Prework" for the next ticket
-    // const loadSubmissionData = async () => {
-    //   try {
-    //     const runSetData = await Ajax(signal).Cbas.runSets.get()
-    //     setRunSetData(runSetData.run_sets)
-    //     setSubmissionTimestamp(JSON.parse(runSetData.submission_timestamp))
-    //   } catch (error) {
-    //     notify('error', 'Error loading run set data', { detail: await (error instanceof Response ? error.text() : error) })
-    //   }
-    // }
+    const loadSubmissionData = async () => {
+      try {
+        const runSetData = await Ajax(signal).Cbas.runSets.get()
+        setRunSetData(runSetData.run_sets)
+        setSubmissionTimestamp(JSON.parse(runSetData.submission_timestamp))
+      } catch (error) {
+        notify('error', 'Error loading run set data', { detail: await (error instanceof Response ? error.text() : error) })
+      }
+    }
 
     loadRunsData()
-    //loadSubmissionData()
+    loadSubmissionData()
   })
 
+  console.log(submissionTimestamp)
 
   const sortedPreviousRuns = _.orderBy(sort.field, sort.direction, runsData)
-  // TODO: "Prework" for the next ticket
-  //const specifyRunSet = _.filter(r => r.run_set_id === submissionId, runSetData)
+  const specifyRunSet = _.filter(r => r.run_set_id === submissionId, runSetData)
 
   const firstPageIndex = (pageNumber - 1) * itemsPerPage
   const lastPageIndex = firstPageIndex + itemsPerPage
