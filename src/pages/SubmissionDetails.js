@@ -40,6 +40,7 @@ export const SubmissionDetails = ({ submissionId }) => {
   })
 
   const sortedPreviousRuns = _.orderBy(sort.field, sort.direction, runsData)
+  const specifyRunSet = _.filter(r => r.run_set_id === submissionId, runSetData)
 
   const firstPageIndex = (pageNumber - 1) * itemsPerPage
   const lastPageIndex = firstPageIndex + itemsPerPage
