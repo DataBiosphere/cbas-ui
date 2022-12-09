@@ -25,6 +25,9 @@ export const SubmissionDetails = ({ submissionId }) => {
   const [viewErrorsId, setViewErrorsId] = useState()
   const [runsData, setRunsData] = useState()
 
+  const [runSetData, setRunSetData] = useState()
+  const [methodsData, setMethodsData] = useState()
+
   const signal = useCancellation()
 
   useOnMount(() => {
@@ -36,11 +39,37 @@ export const SubmissionDetails = ({ submissionId }) => {
         notify('error', 'Error loading previous runs', { detail: await (error instanceof Response ? error.text() : error) })
       }
     }
+
+    const loadRunSetData = async () => {
+      try {
+        const getRunSets = await Ajax(signal).Cbas.runSets.get()
+        const allRunSets = getRunSets.run_sets
+        setRunSetData(allRunSets)
+      } catch (error) {
+        notify('error', 'Error getting run set data', { detail: await (error instanceof Response ? error.text() : error) })
+      }
+    }
+
+    const loadMethodsData = async () => {
+      try {
+        const methodsResponse = await Ajax(signal).Cbas.methods.get()
+        const allMethods = methodsResponse.methods
+        setMethodsData(allMethods)
+      } catch (error) {
+        notify('error', 'Error loading methods data', { detail: await (error instanceof Response ? error.text() : error) })
+      }
+    }
+
     loadRunsData()
+    loadRunSetData()
+    loadMethodsData()
   })
 
-  const sortedPreviousRuns = _.orderBy(sort.field, sort.direction, runsData)
   const specifyRunSet = _.filter(r => r.run_set_id === submissionId, runSetData)
+  const methodId = specifyRunSet[0]?.method_id
+  const getSpecificMethod = _.filter(m => m.method_id === methodId, methodsData)
+
+  const sortedPreviousRuns = _.orderBy(sort.field, sort.direction, runsData)
 
   const firstPageIndex = (pageNumber - 1) * itemsPerPage
   const lastPageIndex = firstPageIndex + itemsPerPage
@@ -66,10 +95,10 @@ export const SubmissionDetails = ({ submissionId }) => {
       ]),
       div({ style: { marginLeft: '4em' } }, [
         h(TextCell, [(h(Link, { onClick: () => Nav.goToPath('submission-history') }, ['Submission History'])), ' >', ` Submission ${submissionId}`]),
-        h2(['workflow_name(HARDCODED)']),
-        h3(['Submission date: ' + submissionId.submission_date]),
+        h2(['workflow: ', getSpecificMethod[0]?.name]),
+        h3([`Submission date: `, makeCompleteDate(Date(specifyRunSet[0]?.submission_timestamp))]),
         h3(['Duration: ']),
-        h3(['Submitted by: '])
+        h3(['Submitted by: Batch Teams (HARDCODED)'])
       ])
     ]),
     div({
