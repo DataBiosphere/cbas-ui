@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import { Fragment, useState, useEffect } from 'react'
+import { Fragment, useState } from 'react'
 import { a, div, h, h2, span } from 'react-hyperscript-helpers'
 import ReactJson from 'react-json-view'
 import { AutoSizer } from 'react-virtualized'
@@ -65,7 +65,6 @@ export const SubmissionConfig = ({ methodId }) => {
 
     const loadRunSet = async () => {
       try {
-        // const runSet = await Ajax(signal).Cbas.runSets.getForMethod(methodId, 1)
         const runSet = await Ajax(signal).Cbas.runSets.getForMethod(methodId, 1)
         const newRunSetData = runSet.run_sets[0]
         setSelectedRecordType(newRunSetData.record_type)
@@ -75,7 +74,6 @@ export const SubmissionConfig = ({ methodId }) => {
       } catch (error) {
         notify('error', 'Error loading run set data', { detail: await (error instanceof Response ? error.text() : error) })
       }
-      return "foo"
     }
 
     const loadTablesData = async () => {
@@ -85,6 +83,7 @@ export const SubmissionConfig = ({ methodId }) => {
         notify('error', 'Error loading tables data', { detail: await (error instanceof Response ? error.text() : error) })
       }
     }
+
     setRunSetName('New run set name')
     setRunSetDescription('New run set description')
 
@@ -94,7 +93,7 @@ export const SubmissionConfig = ({ methodId }) => {
   })
 
   const renderSummary = () => {
-    return div({ style: { margin: '4em' }, 'data-testid': 'my-dropdown' }, [
+    return div({ style: { margin: '4em' } }, [
       div({ style: { display: 'flex', marginTop: '1rem', justifyContent: 'space-between' } }, [
         h2([method.name])
       ]),
