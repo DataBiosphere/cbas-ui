@@ -39,7 +39,6 @@ export const SubmissionConfig = ({ methodId }) => {
   const signal = useCancellation()
 
   const loadRecordsData = async recordType => {
-    console.log('loadRecordsData')
     try {
       const searchResult = await Ajax(signal).Wds.search.post(recordType)
       setRecords(searchResult.records)
@@ -50,7 +49,6 @@ export const SubmissionConfig = ({ methodId }) => {
 
   useOnMount(() => {
     const loadMethodsData = async () => {
-      console.log('loadMethodsData called')
       try {
         const methodsResponse = await Ajax(signal).Cbas.methods.get()
         const allMethods = methodsResponse.methods
@@ -67,13 +65,10 @@ export const SubmissionConfig = ({ methodId }) => {
 
     const loadRunSet = async () => {
       try {
-        console.log('loadRunSet called')
         // const runSet = await Ajax(signal).Cbas.runSets.getForMethod(methodId, 1)
         await Ajax(signal).Cbas.runSets.getForMethod(methodId, 1)
           .then(runSet => {
-            console.log('Cbas.runSets.getForMethod called', runSet)
             const newRunSetData = runSet.run_sets[0]
-            console.log("WHY CAN'T WE MAKE IT HERE?")
             loadRecordsData(newRunSetData.record_type)
             setSelectedRecordType(newRunSetData.record_type)
             setConfiguredInputDefinition(JSON.parse(newRunSetData.input_definition))
@@ -98,7 +93,6 @@ export const SubmissionConfig = ({ methodId }) => {
     loadMethodsData()
     loadTablesData()
     loadRunSet()
-    console.log('useOnMount finished.')
   })
 
   const renderSummary = () => {
@@ -161,7 +155,6 @@ export const SubmissionConfig = ({ methodId }) => {
   }
 
   const renderRecordSelector = () => {
-    console.log('renderRecordSelector', selectedRecordType, recordTypes, records.length)
     return selectedRecordType && recordTypes && records.length ? renderGrid({
       records,
       selectedRecords, setSelectedRecords,
@@ -246,7 +239,6 @@ export const SubmissionConfig = ({ methodId }) => {
 }
 
 const renderGrid = props => {
-  console.log('################### renderGrid')
   const {
     records,
     selectedRecords, setSelectedRecords,
