@@ -12,6 +12,7 @@ import colors from 'src/libs/colors'
 import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
 import { useCancellation, useOnMount } from 'src/libs/react-utils'
+import { makeCompleteDate } from 'src/libs/utils'
 import * as Utils from 'src/libs/utils'
 
 
@@ -24,8 +25,9 @@ export const SubmissionDetails = ({ submissionId }) => {
   const [viewOutputsId, setViewOutputsId] = useState()
   const [viewErrorsId, setViewErrorsId] = useState()
   const [runsData, setRunsData] = useState()
+
   const [runSetData, setRunSetData] = useState()
-  const [submissionTimestamp, setSubmissionTimestamp] = useState()
+  const [methodsData, setMethodsData] = useState()
 
   const signal = useCancellation()
 
@@ -34,29 +36,47 @@ export const SubmissionDetails = ({ submissionId }) => {
       try {
         const runs = await Ajax(signal).Cbas.runs.get(submissionId)
         setRunsData(runs.runs)
+        console.log(runs.runs)
       } catch (error) {
         notify('error', 'Error loading previous runs', { detail: await (error instanceof Response ? error.text() : error) })
       }
     }
 
-    const loadSubmissionData = async () => {
+    const loadRunSetData = async () => {
       try {
-        const runSetData = await Ajax(signal).Cbas.runSets.get()
-        setRunSetData(runSetData.run_sets)
-        setSubmissionTimestamp(JSON.parse(runSetData.submission_timestamp))
+        const getRunSets = await Ajax(signal).Cbas.runSets.get()
+        const allRunSets = getRunSets.run_sets
+        setRunSetData(allRunSets)
       } catch (error) {
-        notify('error', 'Error loading run set data', { detail: await (error instanceof Response ? error.text() : error) })
+        notify('error', 'Error getting run set data', { detail: await (error instanceof Response ? error.text() : error) })
+      }
+    }
+
+    const loadMethodsData = async () => {
+      try {
+        const methodsResponse = await Ajax(signal).Cbas.methods.get()
+        const allMethods = methodsResponse.methods
+        setMethodsData(allMethods)
+      } catch (error) {
+        notify('error', 'Error loading methods data', { detail: await (error instanceof Response ? error.text() : error) })
       }
     }
 
     loadRunsData()
-    loadSubmissionData()
+    loadRunSetData()
+    loadMethodsData()
   })
 
-  console.log(submissionTimestamp)
+  const specifyRunSet = _.filter(r => r.run_set_id === submissionId, runSetData)
+  const methodId = specifyRunSet[0]?.method_id
+  const getSpecificMethod = _.filter(m => m.method_id === methodId, methodsData)
 
   const sortedPreviousRuns = _.orderBy(sort.field, sort.direction, runsData)
-  const specifyRunSet = _.filter(r => r.run_set_id === submissionId, runSetData)
+
+  //console.log(getSpecificMethod[0]?.name)
+  // console.log(typeof specifyRunSet[0]?.submission_timestamp)
+  // console.log(specifyRunSet[0]?.method_id)
+  // console.log(getSpecificMethod[0]?.method_id)
 
   const firstPageIndex = (pageNumber - 1) * itemsPerPage
   const lastPageIndex = firstPageIndex + itemsPerPage
@@ -82,10 +102,10 @@ export const SubmissionDetails = ({ submissionId }) => {
       ]),
       div({ style: { marginLeft: '4em' } }, [
         h(TextCell, [(h(Link, { onClick: () => Nav.goToPath('submission-history') }, ['Submission History'])), ' >', ` Submission ${submissionId}`]),
-        h2(['workflow_name(HARDCODED)']),
-        h3([`Submission date: `]),
+        h2(['workflow: ', getSpecificMethod[0]?.name]),
+        h3([`Submission date: `, makeCompleteDate(Date(specifyRunSet[0]?.submission_timestamp))]),
         h3(['Duration: ']),
-        h3(['Submitted by: '])
+        h3(['Submitted by: Batch Teams (HARDCODED)'])
       ])
     ]),
     div({
