@@ -66,14 +66,12 @@ export const SubmissionConfig = ({ methodId }) => {
     const loadRunSet = async () => {
       try {
         // const runSet = await Ajax(signal).Cbas.runSets.getForMethod(methodId, 1)
-        await Ajax(signal).Cbas.runSets.getForMethod(methodId, 1)
-          .then(runSet => {
-            const newRunSetData = runSet.run_sets[0]
-            loadRecordsData(newRunSetData.record_type)
-            setSelectedRecordType(newRunSetData.record_type)
-            setConfiguredInputDefinition(JSON.parse(newRunSetData.input_definition))
-            setConfiguredOutputDefinition(JSON.parse(newRunSetData.output_definition))
-          })
+        const runSet = await Ajax(signal).Cbas.runSets.getForMethod(methodId, 1)
+        const newRunSetData = runSet.run_sets[0]
+        setSelectedRecordType(newRunSetData.record_type)
+        loadRecordsData(newRunSetData.record_type)
+        setConfiguredInputDefinition(JSON.parse(newRunSetData.input_definition))
+        setConfiguredOutputDefinition(JSON.parse(newRunSetData.output_definition))
       } catch (error) {
         notify('error', 'Error loading run set data', { detail: await (error instanceof Response ? error.text() : error) })
       }
