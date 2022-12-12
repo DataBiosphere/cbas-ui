@@ -152,7 +152,7 @@ describe('SubmissionConfig records selector', () => {
   })
 
   it('should initially populate the record selector with records determined by the previously executed run set', async () => {
-    // Arrange
+    // ** ARRANGE **
     const mockRunSetResponse = jest.fn(() => Promise.resolve(runSetResponse))
     const mockMethodsResponse = jest.fn(() => Promise.resolve(methodsResponse))
     const mockSearchResponse = jest.fn(recordType => Promise.resolve(searchResponses[recordType]))
@@ -179,15 +179,16 @@ describe('SubmissionConfig records selector', () => {
       }
     })
 
+    // ** ACT **
     render(h(SubmissionConfig))
 
+    // ** ASSERT **
     await waitFor(() => {
       expect(mockRunSetResponse).toHaveBeenCalledTimes(1)
       expect(mockMethodsResponse).toHaveBeenCalledTimes(1)
       expect(mockTypesResponse).toHaveBeenCalledTimes(1)
       expect(mockSearchResponse).toHaveBeenCalledTimes(0)
     })
-
     const table = await screen.findByRole('table')
 
     // after the initial render (not before), records data should have been retrieved once
@@ -205,7 +206,7 @@ describe('SubmissionConfig records selector', () => {
     expect(cells.length).toBe(4)
   })
   it('should repopulate the record selector when the dropdown selection changes', async () => {
-    // Arrange
+    // ** ARRANGE **
     const mockRunSetResponse = jest.fn(() => Promise.resolve(runSetResponse))
     const mockMethodsResponse = jest.fn(() => Promise.resolve(methodsResponse))
     const mockSearchResponse = jest.fn(recordType => Promise.resolve(searchResponses[recordType]))
@@ -232,54 +233,50 @@ describe('SubmissionConfig records selector', () => {
       }
     })
 
-    // Needed: a way to wait for initialization to be done
-
-    // don't use "act" unless we see warning spam from the test
-    // "act" is a way of telling the test that some async things may be happening
+    // ** ACT **
     render(h(SubmissionConfig))
 
+    // ** ASSERT **
     await waitFor(() => {
       expect(mockRunSetResponse).toHaveBeenCalledTimes(1)
       expect(mockMethodsResponse).toHaveBeenCalledTimes(1)
       expect(mockTypesResponse).toHaveBeenCalledTimes(1)
       expect(mockSearchResponse).toHaveBeenCalledTimes(0)
     })
-
     const table = await screen.findByRole('table')
-
     // after the initial render (not before), records data should have been retrieved once
     await waitFor(() => {
       expect(mockSearchResponse).toHaveBeenCalledTimes(1)
     })
 
+    // ** ACT **
     const dropdown = await screen.findByRole('combobox')
     await act(async () => {
       await selectEvent.select(dropdown, ['BAR'])
     })
 
+    // ** ASSERT **
     // selecting a dropdown option should trigger a re-render, and a second call to records data
     await waitFor(() => {
       expect(mockSearchResponse).toHaveBeenCalledTimes(2)
     })
-
     const rowsBAR = within(table).queryAllByRole('row')
     expect(rowsBAR.length).toBe(3)
-
     const headers = within(rowsBAR[0]).queryAllByRole('columnheader')
     expect(headers.length).toBe(4)
-
     const cells = within(rowsBAR[1]).queryAllByRole('cell')
     expect(cells.length).toBe(4)
 
+    // ** ACT **
     await act(async () => {
       await selectEvent.select(dropdown, ['FOO'])
     })
 
+    // ** ASSERT **
     // selecting a dropdown option should (again) trigger a re-render, and a third call to records data
     await waitFor(() => {
       expect(mockSearchResponse).toHaveBeenCalledTimes(3)
     })
-
     const rowsFOO = within(table).queryAllByRole('row')
     expect(rowsFOO.length).toBe(5)
   })
