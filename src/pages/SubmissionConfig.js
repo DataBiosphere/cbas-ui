@@ -424,8 +424,9 @@ const renderInputTable = ({
                 setSelectedInputSources(_.set(rowIndex, value, selectedInputSources))
               },
               placeholder: 'None selected',
-              styles: { container: old => ({ ...old, display: 'inline-block', width: 200 }) },
-              options: inputSourceTypes
+              styles: { container: old => ({ ...old, display: 'inline-block', width: 200 }), menuPortal: base => ({ ...base, zIndex: 9999 })},
+              options: inputSourceTypes,
+              menuPortalTarget: document.body // https://stackoverflow.com/questions/55830799/how-to-change-zindex-in-react-select-drowpdown
             })
           }
         },
