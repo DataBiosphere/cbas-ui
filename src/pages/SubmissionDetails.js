@@ -30,6 +30,22 @@ export const SubmissionDetails = ({ submissionId }) => {
 
   const signal = useCancellation()
 
+
+  const duration = (runSet) => {
+    const terminalStates = ['COMPLETE', 'CANCELED', 'SYSTEM_ERROR', 'ABORTED', 'EXECUTOR_ERROR']
+
+    let durationSeconds
+    if (terminalStates.includes(runSet[0].state)) {
+      durationSeconds = Utils.differenceFromDatesInSeconds(
+        runSet[0]?.submission_timestamp,
+        runSet[0]?.timestamp.last_modified_timestamp
+      )
+    } else {
+      durationSeconds = Utils.differenceFromNowInSeconds(runSet[0]?.submission_timestamp)
+    }
+    return h(TextCell, [Utils.customFormatDuration(durationSeconds)])
+  }
+
   useOnMount(() => {
     const loadRunsData = async () => {
       try {
@@ -44,7 +60,8 @@ export const SubmissionDetails = ({ submissionId }) => {
       try {
         const getRunSets = await Ajax(signal).Cbas.runSets.get()
         const allRunSets = getRunSets.run_sets
-        setRunSetData(allRunSets)
+        setRunSetData(_.filter(r => r.run_set_id === submissionId, allRunSets))
+        setRunsData(_.map(r => _.merge(r, { duration: duration(r) })), runsData)
       } catch (error) {
         notify('error', 'Error getting run set data', { detail: await (error instanceof Response ? error.text() : error) })
       }
@@ -68,8 +85,17 @@ export const SubmissionDetails = ({ submissionId }) => {
   const specifyRunSet = _.filter(r => r.run_set_id === submissionId, runSetData)
   const methodId = specifyRunSet[0]?.method_id
   const getSpecificMethod = _.filter(m => m.method_id === methodId, methodsData)
-
   const sortedPreviousRuns = _.orderBy(sort.field, sort.direction, runsData)
+
+
+  // console.log(specifyRunSet[0]?.submission_timestamp)
+  // console.log(Date(specifyRunSet[0]?.submission_timestamp))
+  // console.log(Date("2022-12-08T23:29:18.439+00:00"))
+  console.log(Utils.customFormatDuration(duration(specifyRunSet[0])))
+
+  //console.log(typeof specifyRunSet[0]?.submission_timestamp)
+  // console.log(specifyRunSet[0]?.method_id)
+  // console.log(getSpecificMethod[0]?.method_id)
 
   const firstPageIndex = (pageNumber - 1) * itemsPerPage
   const lastPageIndex = firstPageIndex + itemsPerPage
@@ -96,8 +122,8 @@ export const SubmissionDetails = ({ submissionId }) => {
       div({ style: { marginLeft: '4em' } }, [
         h(TextCell, [(h(Link, { onClick: () => Nav.goToPath('submission-history') }, ['Submission History'])), ' >', ` Submission ${submissionId}`]),
         h2(['workflow: ', getSpecificMethod[0]?.name]),
-        h3([`Submission date: `, makeCompleteDate(Date(specifyRunSet[0]?.submission_timestamp))]),
-        h3(['Duration: ']),
+        h3(['Submission date: ', specifyRunSet[0] && Utils.makeCompleteDate(specifyRunSet[0].submission_timestamp)]),
+        h3(['Duration: ', duration(specifyRunSet)]),
         h3(['Submitted by: Batch Teams (HARDCODED)'])
       ])
     ]),
