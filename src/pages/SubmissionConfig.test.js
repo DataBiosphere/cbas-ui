@@ -110,9 +110,6 @@ describe('SubmissionConfig records selector', () => {
     Object.defineProperty(HTMLElement.prototype, 'offsetWidth', { configurable: true, value: 800 })
   })
 
-  beforeEach(() => {    
-  })
-
   afterEach(() => {
     jest.clearAllMocks()
   })
@@ -156,11 +153,67 @@ describe('SubmissionConfig records selector', () => {
     // "act" is a way of telling the test that some async things may be happening
     const { getByTestId, getByLabelText } = render(h(SubmissionConfig))
 
+    await waitFor(() => {
+      expect(mockRunSetResponse).toHaveBeenCalledTimes(1)
+      expect(mockMethodsResponse).toHaveBeenCalledTimes(1)
+      expect(mockTypesResponse).toHaveBeenCalledTimes(1)
+      expect(mockSearchResponse).toHaveBeenCalledTimes(1)
+    })
+
+    const table = await screen.findByRole('table')
+    
+    const rows = within(table).queryAllByRole('row')
+    expect(rows.length).toBe(5)
+
+    const headers = within(rows[0]).queryAllByRole('columnheader')
+    expect(headers.length).toBe(4)
+
+    const cells = within(rows[1]).queryAllByRole('cell')
+    expect(cells.length).toBe(4)
+  })
+
+  it('should rpopulate the record selector when the dropdown selection changes', async () => {
+    // Arrange
+    const mockRunSetResponse = jest.fn(() => Promise.resolve(runSetResponse))
+    const mockMethodsResponse = jest.fn(() => Promise.resolve(methodsResponse))
+    const mockSearchResponse = jest.fn(() => Promise.resolve(searchResponse))
+    const mockTypesResponse = jest.fn(() => Promise.resolve(typesResponse))
+
+    await Ajax.mockImplementation(() => {
+      return {
+        Cbas: {
+          runSets: {
+            getForMethod: mockRunSetResponse
+          },
+          methods: {
+            get: mockMethodsResponse
+          }
+        },
+        Wds: {
+          search: {
+            post: mockSearchResponse
+          },
+          types: {
+            get: mockTypesResponse
+          }
+        }
+      }
+    })
+
+    // Needed: a way to wait for initialization to be done
+    
+    // don't use "act" unless we see warning spam from the test
+    // "act" is a way of telling the test that some async things may be happening
+    const { getByTestId, getByLabelText } = render(h(SubmissionConfig))
+
 
     // render(h(SubmissionConfig))
     // findByText, queryByText, ... (there's a cheat sheet) ... all expect to be awaited. (there is a default timeout)
     const dropdown = await screen.findByRole('combobox')
-    await selectEvent.select(dropdown, ['FOO'])
+    
+    await act(async () => {
+      await selectEvent.select(dropdown, ['FOO'])
+    })
 
     await waitFor(() => {
       expect(mockRunSetResponse).toHaveBeenCalledTimes(1)
@@ -170,12 +223,14 @@ describe('SubmissionConfig records selector', () => {
     })
 
     const table = await screen.findByRole('table')
+    
     const rows = within(table).queryAllByRole('row')
     expect(rows.length).toBe(5)
-  })
 
-  it('should re-populate the record selector when the dropdown selection changes', async () => {
-    render(h(SubmissionConfig))
-    return true
+    const headers = within(rows[0]).queryAllByRole('columnheader')
+    expect(headers.length).toBe(4)
+
+    const cells = within(rows[1]).queryAllByRole('cell')
+    expect(cells.length).toBe(4)
   })
 })
