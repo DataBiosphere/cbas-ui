@@ -73,6 +73,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["react-paginating", "virtual:fb20b3957fc03094516f4839bd921e6cbe6fbbbdf6e579aef6a9e0d78799f936b29bbbdf85e777033619e8c90d7b9339b4056e75490ce5faba123bfbab64860f#npm:1.4.0"],\
             ["react-scripts", "virtual:fb20b3957fc03094516f4839bd921e6cbe6fbbbdf6e579aef6a9e0d78799f936b29bbbdf85e777033619e8c90d7b9339b4056e75490ce5faba123bfbab64860f#npm:5.0.0"],\
             ["react-select", "virtual:fb20b3957fc03094516f4839bd921e6cbe6fbbbdf6e579aef6a9e0d78799f936b29bbbdf85e777033619e8c90d7b9339b4056e75490ce5faba123bfbab64860f#npm:5.6.1"],\
+            ["react-select-event", "npm:5.5.1"],\
             ["react-textarea-autosize", "virtual:fb20b3957fc03094516f4839bd921e6cbe6fbbbdf6e579aef6a9e0d78799f936b29bbbdf85e777033619e8c90d7b9339b4056e75490ce5faba123bfbab64860f#npm:8.3.4"],\
             ["react-virtualized", "virtual:fb20b3957fc03094516f4839bd921e6cbe6fbbbdf6e579aef6a9e0d78799f936b29bbbdf85e777033619e8c90d7b9339b4056e75490ce5faba123bfbab64860f#npm:9.22.3"],\
             ["source-map-explorer", "npm:2.5.2"],\
@@ -7074,6 +7075,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["react-paginating", "virtual:fb20b3957fc03094516f4839bd921e6cbe6fbbbdf6e579aef6a9e0d78799f936b29bbbdf85e777033619e8c90d7b9339b4056e75490ce5faba123bfbab64860f#npm:1.4.0"],\
             ["react-scripts", "virtual:fb20b3957fc03094516f4839bd921e6cbe6fbbbdf6e579aef6a9e0d78799f936b29bbbdf85e777033619e8c90d7b9339b4056e75490ce5faba123bfbab64860f#npm:5.0.0"],\
             ["react-select", "virtual:fb20b3957fc03094516f4839bd921e6cbe6fbbbdf6e579aef6a9e0d78799f936b29bbbdf85e777033619e8c90d7b9339b4056e75490ce5faba123bfbab64860f#npm:5.6.1"],\
+            ["react-select-event", "npm:5.5.1"],\
             ["react-textarea-autosize", "virtual:fb20b3957fc03094516f4839bd921e6cbe6fbbbdf6e579aef6a9e0d78799f936b29bbbdf85e777033619e8c90d7b9339b4056e75490ce5faba123bfbab64860f#npm:8.3.4"],\
             ["react-virtualized", "virtual:fb20b3957fc03094516f4839bd921e6cbe6fbbbdf6e579aef6a9e0d78799f936b29bbbdf85e777033619e8c90d7b9339b4056e75490ce5faba123bfbab64860f#npm:9.22.3"],\
             ["source-map-explorer", "npm:2.5.2"],\
@@ -15985,6 +15987,16 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             "@types/react",\
             "react-dom",\
             "react"\
+          ],\
+          "linkType": "HARD"\
+        }]\
+      ]],\
+      ["react-select-event", [\
+        ["npm:5.5.1", {\
+          "packageLocation": "./.yarn/cache/react-select-event-npm-5.5.1-27708661c2-af0e43927e.zip/node_modules/react-select-event/",\
+          "packageDependencies": [\
+            ["react-select-event", "npm:5.5.1"],\
+            ["@testing-library/dom", "npm:8.19.0"]\
           ],\
           "linkType": "HARD"\
         }]\

@@ -20,8 +20,8 @@ import * as Utils from 'src/libs/utils'
 export const SubmissionConfig = ({ methodId }) => {
   const [activeTab, setActiveTab] = useState({ key: 'select-data' })
   const [recordTypes, setRecordTypes] = useState()
-  const [method, setMethod] = useState({})
-  const [records, setRecords] = useState({})
+  const [method, setMethod] = useState()
+  const [records, setRecords] = useState([])
 
   // Options chosen on this page:
   const [selectedRecordType, setSelectedRecordType] = useState()
@@ -47,62 +47,64 @@ export const SubmissionConfig = ({ methodId }) => {
     }
   }
 
+  const loadMethodsData = async () => {
+    try {
+      const methodsResponse = await Ajax(signal).Cbas.methods.get()
+      const allMethods = methodsResponse.methods
+      const selectedMethod = _.head(_.filter(m => m.method_id === methodId, allMethods))
+      if (selectedMethod) {
+        setMethod(selectedMethod)
+      } else {
+        notify('error', 'Error loading methods data', { detail: 'Method not found.' })
+      }
+    } catch (error) {
+      notify('error', 'Error loading methods data', { detail: await (error instanceof Response ? error.text() : error) })
+    }
+  }
+
+  const loadRunSet = async () => {
+    try {
+      const runSet = await Ajax(signal).Cbas.runSets.getForMethod(methodId, 1)
+      const newRunSetData = runSet.run_sets[0]
+      setConfiguredInputDefinition(JSON.parse(newRunSetData.input_definition))
+      setConfiguredOutputDefinition(JSON.parse(newRunSetData.output_definition))
+      return newRunSetData.record_type
+    } catch (error) {
+      notify('error', 'Error loading run set data', { detail: await (error instanceof Response ? error.text() : error) })
+    }
+  }
+
+  const loadTablesData = async () => {
+    try {
+      setRecordTypes(await Ajax(signal).Wds.types.get())
+    } catch (error) {
+      notify('error', 'Error loading tables data', { detail: await (error instanceof Response ? error.text() : error) })
+    }
+  }
+
   useOnMount(() => {
-    const loadMethodsData = async () => {
-      try {
-        const methodsResponse = await Ajax(signal).Cbas.methods.get()
-        const allMethods = methodsResponse.methods
-        const selectedMethod = _.head(_.filter(m => m.method_id === methodId, allMethods))
-        if (selectedMethod) {
-          setMethod(selectedMethod)
-        } else {
-          notify('error', 'Error loading methods data', { detail: 'Method not found.' })
-        }
-      } catch (error) {
-        notify('error', 'Error loading methods data', { detail: await (error instanceof Response ? error.text() : error) })
-      }
-    }
-
-    const loadRunSet = async () => {
-      try {
-        const runSet = await Ajax(signal).Cbas.runSets.getForMethod(methodId, 1)
-        const newRunSetData = runSet.run_sets[0]
-        setSelectedRecordType(newRunSetData.record_type)
-        loadRecordsData(newRunSetData.record_type)
-        setConfiguredInputDefinition(JSON.parse(newRunSetData.input_definition))
-        setConfiguredOutputDefinition(JSON.parse(newRunSetData.output_definition))
-      } catch (error) {
-        notify('error', 'Error loading run set data', { detail: await (error instanceof Response ? error.text() : error) })
-      }
-    }
-
-    const loadTablesData = async () => {
-      try {
-        setRecordTypes(await Ajax(signal).Wds.types.get())
-      } catch (error) {
-        notify('error', 'Error loading tables data', { detail: await (error instanceof Response ? error.text() : error) })
-      }
-    }
-
     setRunSetName('New run set name')
     setRunSetDescription('New run set description')
 
     loadMethodsData()
     loadTablesData()
-    loadRunSet()
+    loadRunSet().then(recordType => {
+      setSelectedRecordType(recordType)
+      loadRecordsData(recordType)
+    })
   })
 
   const renderSummary = () => {
     return div({ style: { margin: '4em' } }, [
       div({ style: { display: 'flex', marginTop: '1rem', justifyContent: 'space-between' } }, [
-        h2([method.name])
+        h2([method ? method.name : 'loading'])
       ]),
       div({ style: { lineHeight: 2.0 } }, [
         div([
           span({ style: { fontWeight: 'bold' } }, ['Workflow source link: ']),
           a(
-            { href: method.source_url },
-            [method.source_url]
+            { href: method ? method.source_url : 'loading' },
+            [method ? method.source_url : 'loading']
           )
         ]),
         div([span({ style: { fontWeight: 'bold' } }, ['Version: ']), '1.14 <TODO: WHERE DOES THIS COME FROM?>']),
@@ -152,10 +154,10 @@ export const SubmissionConfig = ({ methodId }) => {
   }
 
   const renderRecordSelector = () => {
-    return selectedRecordType && recordTypes && records.length ? renderGrid({
+    return recordTypes && records.length ? renderGrid({
       records,
       selectedRecords, setSelectedRecords,
-      selectedDataTable: _.keyBy('name', recordTypes)[selectedRecordType],
+      selectedDataTable: _.keyBy('name', recordTypes)[selectedRecordType || records[0].type],
       sort, setSort
     }) : 'No data table rows selected...'
   }
