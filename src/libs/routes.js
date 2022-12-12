@@ -1,11 +1,11 @@
 import { flatten, map } from 'lodash/fp'
 import { compile, pathToRegexp } from 'path-to-regexp'
 import { routeHandlersStore } from 'src/libs/state'
+import * as RunDetails from 'src/pages/RunDetails.js'
 import * as SubmissionConfig from 'src/pages/SubmissionConfig'
 import * as SubmissionDetails from 'src/pages/SubmissionDetails'
 import * as SubmissionHistory from 'src/pages/SubmissionHistory'
 import * as SubmitWorkflow from 'src/pages/SubmitWorkflow'
-import * as RunDetails from 'src/pages/RunDetails.js'
 
 
 const routes = flatten([
