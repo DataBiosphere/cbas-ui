@@ -44,7 +44,8 @@
     "setenv": "echo REACT_APP_VERSION=$(git rev-parse HEAD) REACT_APP_BUILD_TIMESTAMP=$(date -u \"+%s000\")",
     "start": "env $(yarn setenv) react-app-rewired start",
     "test": "react-app-rewired test",
-    "postinstall": "husky install"
+    "postinstall": "husky install",
+    "yarn:install": "yarn set version 3.x; yarn install"
   },
   "devDependencies": {
     "@testing-library/dom": "^8.17.1",

@@ -5,7 +5,7 @@ import * as SubmissionConfig from 'src/pages/SubmissionConfig'
 import * as SubmissionDetails from 'src/pages/SubmissionDetails'
 import * as SubmissionHistory from 'src/pages/SubmissionHistory'
 import * as SubmitWorkflow from 'src/pages/SubmitWorkflow'
-import * as RunDetails from 'src/pages/workspaces/workspace/jobHistory/RunDetails.js'
+import * as RunDetails from 'src/pages/RunDetails.js'
 
 
 const routes = flatten([

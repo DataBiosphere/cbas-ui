@@ -4,7 +4,8 @@ import userEvent from '@testing-library/user-event'
 import { h } from 'react-hyperscript-helpers'
 import { Ajax } from 'src/libs/ajax'
 import { makeCompleteDate } from 'src/libs/utils'
-import { RunDetails } from 'src/pages/workspaces/workspace/jobHistory/RunDetails'
+
+import { RunDetails } from './RunDetails'
 
 
 jest.mock('src/libs/ajax')
