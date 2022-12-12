@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import { Fragment, useState } from 'react'
+import { Fragment, useEffect, useState } from 'react'
 import { div, h, h1, h2, h3 } from 'react-hyperscript-helpers'
 import ReactJson from 'react-json-view'
 import { AutoSizer } from 'react-virtualized'
@@ -12,7 +12,6 @@ import colors from 'src/libs/colors'
 import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
 import { useCancellation, useOnMount } from 'src/libs/react-utils'
-import { makeCompleteDate } from 'src/libs/utils'
 import * as Utils from 'src/libs/utils'
 
 
@@ -31,20 +30,15 @@ export const SubmissionDetails = ({ submissionId }) => {
 
   const signal = useCancellation()
 
-
-  const duration = (runSet) => {
-    const terminalStates = ['COMPLETE', 'CANCELED', 'SYSTEM_ERROR', 'ABORTED', 'EXECUTOR_ERROR']
-
-    let durationSeconds
-    if (terminalStates.includes(runSet[0].state)) {
-      durationSeconds = Utils.differenceFromDatesInSeconds(
-        runSet[0]?.submission_timestamp,
-        runSet[0]?.timestamp.last_modified_timestamp
-      )
-    } else {
-      durationSeconds = Utils.differenceFromNowInSeconds(runSet[0]?.submission_timestamp)
-    }
-    return h(TextCell, [Utils.customFormatDuration(durationSeconds)])
+  const terminalStates = ['ERROR', 'COMPLETE']
+  const duration = ({
+    state,
+    submission_timestamp: submitted,
+    last_modified_timestamp: modified
+  }) => {
+    return terminalStates.includes(state) ?
+      Utils.differenceFromDatesInSeconds(submitted, modified) :
+      Utils.differenceFromNowInSeconds(submitted)
   }
 
   useOnMount(() => {
@@ -61,8 +55,7 @@ export const SubmissionDetails = ({ submissionId }) => {
       try {
         const getRunSets = await Ajax(signal).Cbas.runSets.get()
         const allRunSets = getRunSets.run_sets
-        setRunSetData(_.filter(r => r.run_set_id === submissionId, allRunSets))
-        setRunsData(_.map(r => _.merge(r, { duration: duration(r) })), runsData)
+        setRunSetData(_.map(r => _.merge(r, { duration: duration(r) }), allRunSets))
       } catch (error) {
         notify('error', 'Error getting run set data', { detail: await (error instanceof Response ? error.text() : error) })
       }
@@ -87,16 +80,6 @@ export const SubmissionDetails = ({ submissionId }) => {
   const methodId = specifyRunSet[0]?.method_id
   const getSpecificMethod = _.filter(m => m.method_id === methodId, methodsData)
   const sortedPreviousRuns = _.orderBy(sort.field, sort.direction, runsData)
-
-
-  // console.log(specifyRunSet[0]?.submission_timestamp)
-  // console.log(Date(specifyRunSet[0]?.submission_timestamp))
-  // console.log(Date("2022-12-08T23:29:18.439+00:00"))
-  console.log(Utils.customFormatDuration(duration(specifyRunSet[0])))
-
-  //console.log(typeof specifyRunSet[0]?.submission_timestamp)
-  // console.log(specifyRunSet[0]?.method_id)
-  // console.log(getSpecificMethod[0]?.method_id)
 
   const firstPageIndex = (pageNumber - 1) * itemsPerPage
   const lastPageIndex = firstPageIndex + itemsPerPage
@@ -124,7 +107,7 @@ export const SubmissionDetails = ({ submissionId }) => {
         h(TextCell, [(h(Link, { onClick: () => Nav.goToPath('submission-history') }, ['Submission History'])), ' >', ` Submission ${submissionId}`]),
         h2(['workflow: ', getSpecificMethod[0]?.name]),
         h3(['Submission date: ', specifyRunSet[0] && Utils.makeCompleteDate(specifyRunSet[0].submission_timestamp)]),
-        h3(['Duration: ', duration(specifyRunSet)]),
+        h3(['Duration: ', specifyRunSet[0] && Utils.customFormatDuration(duration(specifyRunSet[0]))]),
         h3(['Submitted by: Batch Teams (HARDCODED)'])
       ])
     ]),
@@ -210,7 +193,7 @@ export const SubmissionDetails = ({ submissionId }) => {
                 field: 'run_id',
                 headerRenderer: () => 'Run ID',
                 cellRenderer: ({ rowIndex }) => {
-                  return div({ style: { width: '100%', textAlign: 'left' } } [
+                  return div({ style: { width: '100%', textAlign: 'left' } }, [
                     h(Link, { style: { display: 'inline-block', textDecoration: 'underline' }, onClick: () => setViewInputsId(rowIndex) }, [paginatedPreviousRuns[rowIndex].run_id])
                   ])
                 }
