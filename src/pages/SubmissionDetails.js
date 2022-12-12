@@ -24,8 +24,6 @@ export const SubmissionDetails = ({ submissionId }) => {
   const [viewOutputsId, setViewOutputsId] = useState()
   const [viewErrorsId, setViewErrorsId] = useState()
   const [runsData, setRunsData] = useState()
-  //const [runSetData, setRunSetData] = useState()
-  //const [submissionTimestamp, setSubmissionTimestamp] = useState()
 
   const signal = useCancellation()
 
@@ -38,26 +36,11 @@ export const SubmissionDetails = ({ submissionId }) => {
         notify('error', 'Error loading previous runs', { detail: await (error instanceof Response ? error.text() : error) })
       }
     }
-
-    // TODO: "Prework" for the next ticket
-    // const loadSubmissionData = async () => {
-    //   try {
-    //     const runSetData = await Ajax(signal).Cbas.runSets.get()
-    //     setRunSetData(runSetData.run_sets)
-    //     setSubmissionTimestamp(JSON.parse(runSetData.submission_timestamp))
-    //   } catch (error) {
-    //     notify('error', 'Error loading run set data', { detail: await (error instanceof Response ? error.text() : error) })
-    //   }
-    // }
-
     loadRunsData()
-    //loadSubmissionData()
   })
 
 
   const sortedPreviousRuns = _.orderBy(sort.field, sort.direction, runsData)
-  // TODO: "Prework" for the next ticket
-  //const specifyRunSet = _.filter(r => r.run_set_id === submissionId, runSetData)
 
   const firstPageIndex = (pageNumber - 1) * itemsPerPage
   const lastPageIndex = firstPageIndex + itemsPerPage
@@ -126,7 +109,7 @@ export const SubmissionDetails = ({ submissionId }) => {
               {
                 size: { basis: 350 },
                 field: 'record_id',
-                headerRenderer: () => h(Sortable, { sort, field: 'record_id', onSort: setSort }, ['Workflow name']),
+                headerRenderer: () => h(Sortable, { sort, field: 'record_id', onSort: setSort }, ['ID']),
                 cellRenderer: ({ rowIndex }) => {
                   return h(TextCell, [paginatedPreviousRuns[rowIndex].record_id])
                 }
@@ -149,7 +132,7 @@ export const SubmissionDetails = ({ submissionId }) => {
                 }
               },
               {
-                size: { basis: 600, grow: 0 },
+                size: { basis: 500, grow: 0 },
                 field: 'duration',
                 headerRenderer: () => h(Sortable, { sort, field: 'duration', onSort: setSort }, ['Duration']),
                 cellRenderer: ({ rowIndex }) => {
@@ -169,10 +152,11 @@ export const SubmissionDetails = ({ submissionId }) => {
               {
                 size: { basis: 550, grow: 0 },
                 field: 'run_id',
-                headerRenderer: () => 'Run ID',
+                headerRenderer: () => h(Sortable, { sort, field: 'run_id', onSort: setSort }, ['Run ID']),
                 cellRenderer: ({ rowIndex }) => {
-                  return div({ style: { width: '100%', textAlign: 'left' } } [
-                    h(Link, { style: { display: 'inline-block', textDecoration: 'underline' }, onClick: () => setViewInputsId(rowIndex) }, [paginatedPreviousRuns[rowIndex].run_id])
+                  return div({ style: { width: '100%', textAlign: 'left' } }, [
+                    h(Link, { onClick: () => { Nav.goToPath('workflow-dashboard', { workflowId: paginatedPreviousRuns[rowIndex].engine_id }) }, style: { fontWeight: 'bold' } },
+                      [paginatedPreviousRuns[rowIndex].run_id])
                   ])
                 }
               }
