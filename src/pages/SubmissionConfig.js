@@ -165,6 +165,7 @@ export const SubmissionConfig = ({ methodId }) => {
   const renderInputs = () => {
     return configuredInputDefinition ? h(renderInputTable, {
       selectedDataTable: _.keyBy('name', recordTypes)[selectedRecordType],
+      selectedRecords,
       method,
       configuredInputDefinition, setConfiguredInputDefinition
     }) : 'No configured input definition...'
@@ -369,12 +370,15 @@ const renderGrid = props => {
 
 const renderInputTable = ({ 
   selectedDataTable,
+  selectedRecords,
   method,
   configuredInputDefinition, setConfiguredInputDefinition
 }) => {
   const [sort, setSort] = useState({ field: 'taskVariable', direction: 'asc' })
-  console.log('configuredInputDefinition', configuredInputDefinition)
+  const dataTableAttributes = _.keyBy('name', selectedDataTable.attributes)
   
+  console.log('dataTableAttributes', dataTableAttributes)
+  console.log('configuredInputDefinition', configuredInputDefinition)
   const inputSourceLabels = {
     default: 'Use Default', 
     xxxxxxx: 'Type a Value', // TODO
@@ -416,7 +420,7 @@ const renderInputTable = ({
           }
         },
         {
-          size: { basis: 200, grow: 0 },
+          size: { basis: 350, grow: 0 },
           headerRenderer: () => h(HeaderCell, ['Input sources']),
           cellRenderer: ({ rowIndex }) => {
             return h(Select, {
@@ -432,7 +436,7 @@ const renderInputTable = ({
               placeholder: 'Select',
               options: _.values(inputSourceLabels),
               // ** https://stackoverflow.com/questions/55830799/how-to-change-zindex-in-react-select-drowpdown
-              styles: { container: old => ({ ...old, display: 'inline-block', width: 200 }), menuPortal: base => ({ ...base, zIndex: 9999 })},
+              styles: { container: old => ({ ...old, display: 'inline-block'}), menuPortal: base => ({ ...base, zIndex: 9999 })},
               menuPortalTarget: document.body
             })
           }
@@ -442,7 +446,29 @@ const renderInputTable = ({
             h(HeaderCell, ['Attribute'])
           ]),
           cellRenderer: ({ rowIndex }) => {
-            // TODO
+            const source = _.get(`${rowIndex}.source`, configuredInputDefinition)
+            if (source.type === 'record_lookup') { 
+              return h(TextCell, {}, [
+                // Select with dataTableAttributes as options
+                h(Select, {
+                  isDisabled: false,
+                  'aria-label': 'Select an Attribute',
+                  isClearable: false,
+                  value: _.get(`${rowIndex}.source.record_attribute`, configuredInputDefinition) || null,
+                  onChange: ({ value }) => {
+                    const newAttribute = _.get(`${value}.name`, dataTableAttributes)
+                    console.log('newAttribute', newAttribute)
+                    const newConfig = _.set(`${rowIndex}.source.record_attribute`, newAttribute, configuredInputDefinition)
+                    setConfiguredInputDefinition(newConfig)
+                  },
+                  placeholder: 'Select',
+                  options: _.keys(dataTableAttributes),
+                  // ** https://stackoverflow.com/questions/55830799/how-to-change-zindex-in-react-select-drowpdown
+                  styles: { container: old => ({ ...old, display: 'inline-block'}), menuPortal: base => ({ ...base, zIndex: 9999 })},
+                  menuPortalTarget: document.body
+                })
+              ])
+            }
             return h(TextCell, {}, [`column 5, row ${rowIndex}`])
           }
         }
