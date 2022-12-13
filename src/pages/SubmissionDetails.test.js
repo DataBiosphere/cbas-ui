@@ -35,7 +35,7 @@ describe('Submission Details page', () => {
         workflow_params: '[{\'input_name\':\'wf_hello.hello.addressee\',\'input_type\':{\'type\':\'primitive\',\'primitive_type\':\'String\'},\'source\':{\'type\':\'record_lookup\',\'record_attribute\':\'foo_name\'}}]',
         workflow_outputs: '[]',
         submission_date: '2022-07-14T22:22:15.591Z',
-        last_modified_timestamp: '2022-07-14T23:14:25.791Z',
+        last_modified_timestamp: '2022-07-14T23:14:25.791Z'
       },
       {
         run_id: '55b36a53-2ff3-41d0-adc4-abc08aea88ad',
