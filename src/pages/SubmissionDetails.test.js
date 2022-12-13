@@ -52,7 +52,40 @@ describe('Submission Details page', () => {
     ]
   }
 
-  const submissionId = '10000000-0000-0000-0000-000000000001'
+  const runSetData = {
+    run_sets: [
+      {
+        run_set_id: "e8347247-4738-4ad1-a591-56c119f93f58",
+        method_id: "00000000-0000-0000-0000-000000000004",
+        is_template: false,
+        run_set_name: "hello world",
+        run_set_description: "test",
+        state: "COMPLETE",
+        record_type: "FOO",
+        submission_timestamp: "2022-01-01T12:00:00.000+00:00",
+        last_modified_timestamp: "2022-01-02T13:01:01.000+00:00",
+        run_count: 1,
+        error_count: 0,
+        input_definition: "[{\"input_name\":\"wf_hello.hello.addressee\",\"input_type\":{\"type\":\"primitive\",\"primitive_type\":\"String\"},\"source\":{\"type\":\"record_lookup\",\"record_attribute\":\"foo_name\"}}]",
+        output_definition: "[]"
+      }
+    ]
+  }
+
+  const methodData = {
+    methods: [
+      {
+        method_id: "00000000-0000-0000-0000-000000000004",
+        name: "Hello world",
+        description: "Add description",
+        source: "Github",
+        source_url: "https://raw.githubusercontent.com/broadinstitute/cromwell/a40de672c565c4bbd40f57ff96d4ee520dc2b4fc/centaur/src/main/resources/standardTestCases/hello/hello.wdl",
+        created: "2022-12-08T23:28:50.280+00:00"
+      }
+    ]
+  }
+
+  const submissionId = 'e8347247-4738-4ad1-a591-56c119f93f58'
 
   beforeAll(() => {
     Object.defineProperty(HTMLElement.prototype, 'offsetHeight', { configurable: true, value: 1000 })
@@ -153,52 +186,47 @@ describe('Submission Details page', () => {
       await fireEvent.click(within(headers[2]).getByRole('button'))
     })
 
-    // Assert - rows are now sorted by submission timestamp in ascending order
-    const cellsFromUpdatedDataRow1 = within(rows[2]).queryAllByRole('cell')
+    // Assert - rows are now sorted by duration in ascending order
+    const cellsFromUpdatedDataRow1 = within(rows[1]).queryAllByRole('cell')
     expect(cellsFromUpdatedDataRow1.length).toBe(4)
-    within(cellsFromUpdatedDataRow1[0]).getByText('ea001565-1cd6-4e43-b446-932ac1918081')
-    within(cellsFromUpdatedDataRow1[1]).getByText('COMPLETE')
-    within(cellsFromUpdatedDataRow1[2]).getByText('Nov 23, 2022, 3:03 PM')
-    within(cellsFromUpdatedDataRow1[3]).getByText('47 seconds')
-    within(cellsFromUpdatedDataRow1[4]).getByText(/View inputs/)
+    within(cellsFromUpdatedDataRow1[0]).getByText('FOO2')
+    within(cellsFromUpdatedDataRow1[1]).getByText('Error(s)')
+    within(cellsFromUpdatedDataRow1[2]).getByText('52 minutes 10 seconds')
+    within(cellsFromUpdatedDataRow1[3]).getByText('b7234aae-6f43-405e-bb3a-71f924e09825')
 
-    const cellsFromUpdatedDataRow2 = within(rows[1]).queryAllByRole('cell')
+    const cellsFromUpdatedDataRow2 = within(rows[2]).queryAllByRole('cell')
     expect(cellsFromUpdatedDataRow2.length).toBe(4)
-    within(cellsFromUpdatedDataRow2[0]).getByText('b7234aae-6f43-405e-bb3a-71f924e09825')
-    within(cellsFromUpdatedDataRow2[1]).getByText('Failed with error')
-    within(cellsFromUpdatedDataRow2[2]).getByText(/Jul 14, 2022/)
-    within(cellsFromUpdatedDataRow2[3]).getByText('52 minutes 10 seconds')
-    within(cellsFromUpdatedDataRow2[4]).getByText(/View inputs/)
-
-    // Act - click on sort button on Status column
-    await act(async () => {
-      await fireEvent.click(within(headers[1]).getByRole('button'))
-    })
-
-    // Assert that sort by Status worked
-    const updatedDataRow1Cells = within(rows[2]).queryAllByRole('cell')
-    expect(updatedDataRow1Cells.length).toBe(4)
-    within(updatedDataRow1Cells[0]).getByText('b7234aae-6f43-405e-bb3a-71f924e09825')
-    within(updatedDataRow1Cells[1]).getByText('Failed with error')
-    within(updatedDataRow1Cells[2]).getByText(/Jul 14, 2022/)
-    within(updatedDataRow1Cells[3]).getByText('52 minutes 10 seconds')
-    within(updatedDataRow1Cells[4]).getByText(/View inputs/)
-
-    const updatedDataRow2Cells = within(rows[1]).queryAllByRole('cell')
-    expect(updatedDataRow2Cells.length).toBe(4)
-    within(updatedDataRow2Cells[0]).getByText('ea001565-1cd6-4e43-b446-932ac1918081')
-    within(updatedDataRow2Cells[1]).getByText('COMPLETE')
-    within(updatedDataRow2Cells[2]).getByText('Nov 23, 2022, 3:03 PM')
-    within(updatedDataRow2Cells[3]).getByText('47 seconds')
-    within(updatedDataRow2Cells[4]).getByText(/View inputs/)
+    within(cellsFromUpdatedDataRow2[0]).getByText('FOO1')
+    within(cellsFromUpdatedDataRow2[1]).getByText('Succeeded')
+    within(cellsFromUpdatedDataRow2[2]).getByText('37 seconds')
+    within(cellsFromUpdatedDataRow2[3]).getByText('55b36a53-2ff3-41d0-adc4-abc08aea88ad')
   })
 
-  it('display run set id', async () => {
+  it('display run set details', async () => {
+
+    const getRunsSets = jest.fn(() => Promise.resolve(runSetData))
+    const getMethods = jest.fn(() => Promise.resolve(methodData))
+    await Ajax.mockImplementation(() => {
+      return {
+        Cbas: {
+          runSets: {
+            get: getRunsSets
+          },
+          methods: {
+            get: getMethods
+          }
+        }
+      }
+    })
+
     // Act
     await act(async () => {
       await render(h(SubmissionDetails, { submissionId }))
     })
 
     await screen.getByText(/Submission e8347247-4738-4ad1-a591-56c119f93f58/)
+    await screen.getByText(/workflow: Hello world/)
+    await screen.getByText(/Submission date: Jan 1, 2022, 7:00 AM/)
+    await screen.getByText(/Duration: 1 day 1 hour 1 minute 1 second/)
   })
 })
