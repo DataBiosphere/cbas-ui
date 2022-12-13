@@ -165,7 +165,8 @@ export const SubmissionConfig = ({ methodId }) => {
   const renderInputs = () => {
     return configuredInputDefinition ? h(renderInputTable, {
       selectedDataTable: _.keyBy('name', recordTypes)[selectedRecordType],
-      method
+      method,
+      configuredInputDefinition, setConfiguredInputDefinition
     }) : 'No configured input definition...'
   }
 
@@ -368,28 +369,31 @@ const renderGrid = props => {
 
 const renderInputTable = ({ 
   selectedDataTable,
-  method
+  method,
+  configuredInputDefinition, setConfiguredInputDefinition
 }) => {
-  console.log('renderInputTable: selectedDataTable', selectedDataTable)
-  console.log('renderInputTable: method', method)
-
   const [sort, setSort] = useState({ field: 'taskVariable', direction: 'asc' })
-  const [selectedInputSources, setSelectedInputSources] = useState({})
+  console.log('configuredInputDefinition', configuredInputDefinition)
+  
+  const inputSourceLabels = {
+    default: 'Use Default', 
+    xxxxxxx: 'Type a Value', // TODO
+    record_lookup: 'Fetch from Data Table'
+  }
 
-  const inputSourceTypes = ['Use Default', 'Type a Value', 'Fetch from Data Table']
+  const inputSourceTypes = _.invert(inputSourceLabels)
 
   return h(AutoSizer, [({ width, height }) => {
     return h(FlexTable, {
       'aria-label': 'input-table',
-      rowCount: selectedDataTable.attributes.length, // sortedData.length,
-      // noContentMessage: `No matching ${which}.`,
+      rowCount: configuredInputDefinition.length,
       sort, 
       readOnly: false,
       height: height,
       width,
       columns: [
         {
-          size: { basis: 350, grow: 0 },
+          size: { basis: 250, grow: 0 },
           field: 'taskVariable',
           headerRenderer: () => h(Sortable, { sort, field: 'taskVariable', onSort: setSort }, [h(HeaderCell, ['Task name'])]),
           cellRenderer: ({ rowIndex }) => {
@@ -401,32 +405,35 @@ const renderInputTable = ({
           field: 'workflowVariable',
           headerRenderer: () => h(Sortable, { sort, field: 'workflowVariable', onSort: setSort }, [h(HeaderCell, ['Variable'])]),
           cellRenderer: ({ rowIndex }) => {
-            return h(TextCell, {}, [selectedDataTable.attributes[rowIndex].name])
+            return h(TextCell, {}, [configuredInputDefinition[rowIndex].input_name])
           }
         },
         {
           size: { basis: 160, grow: 0 },
           headerRenderer: () => h(HeaderCell, ['Type']),
           cellRenderer: ({ rowIndex }) => {
-            return h(TextCell, {}, [selectedDataTable.attributes[rowIndex].datatype])
+            return h(TextCell, {}, [configuredInputDefinition[rowIndex].input_type.primitive_type]) // TODO: this needs to be more flexible
           }
         },
         {
-          size: { basis: 160, grow: 0 },
+          size: { basis: 200, grow: 0 },
           headerRenderer: () => h(HeaderCell, ['Input sources']),
           cellRenderer: ({ rowIndex }) => {
             return h(Select, {
               isDisabled: false,
               'aria-label': 'Select an Option',
               isClearable: false,
-              value: null,
+              value: _.get(_.get(`${rowIndex}.source.type`, configuredInputDefinition), inputSourceLabels) || null,
               onChange: ({ value }) => {
-                setSelectedInputSources(_.set(rowIndex, value, selectedInputSources))
+                const newType = _.get(value, inputSourceTypes)
+                const newConfig = _.set(`${rowIndex}.source.type`, newType, configuredInputDefinition)
+                setConfiguredInputDefinition(newConfig)
               },
-              placeholder: 'None selected',
+              placeholder: 'Select',
+              options: _.values(inputSourceLabels),
+              // ** https://stackoverflow.com/questions/55830799/how-to-change-zindex-in-react-select-drowpdown
               styles: { container: old => ({ ...old, display: 'inline-block', width: 200 }), menuPortal: base => ({ ...base, zIndex: 9999 })},
-              options: inputSourceTypes,
-              menuPortalTarget: document.body // https://stackoverflow.com/questions/55830799/how-to-change-zindex-in-react-select-drowpdown
+              menuPortalTarget: document.body
             })
           }
         },
