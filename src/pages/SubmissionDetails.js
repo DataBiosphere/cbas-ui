@@ -109,7 +109,7 @@ export const SubmissionDetails = ({ submissionId }) => {
               {
                 size: { basis: 350 },
                 field: 'record_id',
-                headerRenderer: () => h(Sortable, { sort, field: 'record_id', onSort: setSort }, ['ID']),
+                headerRenderer: () => h(Sortable, { sort, field: 'record_id', onSort: setSort }, [' ID']),
                 cellRenderer: ({ rowIndex }) => {
                   return h(TextCell, [paginatedPreviousRuns[rowIndex].record_id])
                 }
