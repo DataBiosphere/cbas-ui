@@ -62,8 +62,8 @@ describe('Submission Details page', () => {
         run_set_description: 'test',
         state: 'COMPLETE',
         record_type: 'FOO',
-        submission_timestamp: '2022-01-01T12:00:00.000Z',
-        last_modified_timestamp: '2022-01-02T13:01:01.000Z',
+        submission_timestamp: '2022-12-08T23:28:50.280+00:00',
+        last_modified_timestamp: '2022-12-09T16:30:50.280+00:00',
         run_count: 1,
         error_count: 0,
         input_definition: '[{\'input_name\':\'wf_hello.hello.addressee\',\'input_type\':{\'type\':\'primitive\',\'primitive_type\':\'String\'},\'source\':{\'type\':\'record_lookup\',\'record_attribute\':\'foo_name\'}}]',
@@ -223,7 +223,7 @@ describe('Submission Details page', () => {
 
     await screen.getByText(/Submission e8347247-4738-4ad1-a591-56c119f93f58/)
     await screen.getByText(/workflow: Hello world/)
-    await screen.getByText(/Submission date: Jan 1, 2022, 7:00 AM/)
-    await screen.getByText(/Duration: 1 day 1 hour 1 minute 1 second/)
+    await screen.getByText(/Submission date: Dec 8, 2022, 6:28 PM/)
+    await screen.getByText(/Duration: 17 hours 2 minutes/)
   })
 })
