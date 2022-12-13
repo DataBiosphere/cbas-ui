@@ -223,7 +223,7 @@ describe('Submission Details page', () => {
 
     await screen.getByText(/Submission e8347247-4738-4ad1-a591-56c119f93f58/)
     await screen.getByText(/workflow: Hello world/)
-    await screen.getByText(/Submission date: Dec 8, 2022, 6:28 PM/)
+    await screen.getByText(/Submission date: Dec 8, 2022/)
     await screen.getByText(/Duration: 17 hours 2 minutes/)
   })
 })
