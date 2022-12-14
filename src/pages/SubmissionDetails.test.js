@@ -216,10 +216,8 @@ describe('Submission Details page', () => {
       }
     })
 
-    // Act
-    await act(async () => {
-      await render(h(SubmissionDetails, { submissionId }))
-    })
+    render(h(SubmissionDetails, { submissionId }))
+
 
     await screen.getByText(/Submission e8347247-4738-4ad1-a591-56c119f93f58/)
     await screen.getByText(/workflow: Hello world/)
