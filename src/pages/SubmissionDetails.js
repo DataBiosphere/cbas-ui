@@ -27,6 +27,7 @@ export const SubmissionDetails = ({ submissionId }) => {
 
   const [runSetData, setRunSetData] = useState()
   const [methodsData, setMethodsData] = useState()
+  const [filteredRuns, setFilterOption] = useState()
 
   const signal = useCancellation()
 
@@ -131,8 +132,13 @@ export const SubmissionDetails = ({ submissionId }) => {
           isDisabled: false,
           'aria-label': 'Filter selection',
           isClearable: false,
-          value: null,
+          value: filteredRuns ? filteredRuns : null,
           placeholder: 'None selected',
+          onChange: ({ value }) => {
+            setFilterOption(value)
+            loadRunsData(value)
+          },
+
           styles: { container: old => ({ ...old, display: 'inline-block', width: 200, marginBottom: '1.5rem' }) }
         }),
         h(AutoSizer, [
