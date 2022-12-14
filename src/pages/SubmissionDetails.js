@@ -42,15 +42,22 @@ export const SubmissionDetails = ({ submissionId }) => {
       Utils.differenceFromNowInSeconds(submitted)
   }
 
-  useOnMount(() => {
-    const loadRunsData = async () => {
-      try {
-        const runs = await Ajax(signal).Cbas.runs.get(submissionId)
-        setRunsData(runs.runs)
-      } catch (error) {
-        notify('error', 'Error loading previous runs', { detail: await (error instanceof Response ? error.text() : error) })
+  const loadRunsData = async filter => {
+    try {
+      const runs = await Ajax(signal).Cbas.runs.get(submissionId)
+      const allRuns = runs.runs
+      if (filter) {
+        setRunsData(_.filter(r => r.error_messages, allRuns))
+      } else {
+        setRunsData(allRuns)
       }
+    } catch (error) {
+      notify('error', 'Error loading previous runs', { detail: await (error instanceof Response ? error.text() : error) })
     }
+  }
+
+  useOnMount(() => {
+
 
     const loadRunSetData = async () => {
       try {
