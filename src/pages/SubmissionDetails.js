@@ -42,7 +42,6 @@ export const SubmissionDetails = ({ submissionId }) => {
       Utils.differenceFromNowInSeconds(submitted)
   }
 
-
   useOnMount(() => {
     const loadRunsData = async () => {
       try {
