@@ -15,6 +15,7 @@ import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
 import { useCancellation, useOnMount } from 'src/libs/react-utils'
 import * as Utils from 'src/libs/utils'
+import { TextInput } from 'src/components/input'
 
 
 export const SubmissionConfig = ({ methodId }) => {
@@ -29,6 +30,8 @@ export const SubmissionConfig = ({ methodId }) => {
   const [configuredInputDefinition, setConfiguredInputDefinition] = useState()
   const [configuredOutputDefinition, setConfiguredOutputDefinition] = useState()
 
+  const [cachedInputSources, setCachedInputSources] = useState()
+
   // TODO: These should probably be moved to the modal:
   const [runSetName, setRunSetName] = useState()
   const [runSetDescription, setRunSetDescription] = useState()
@@ -37,7 +40,6 @@ export const SubmissionConfig = ({ methodId }) => {
   const [sort, setSort] = useState({ field: 'name', direction: 'asc' })
 
   const signal = useCancellation()
-
   const loadRecordsData = async recordType => {
     try {
       const searchResult = await Ajax(signal).Wds.search.post(recordType)
@@ -68,6 +70,7 @@ export const SubmissionConfig = ({ methodId }) => {
       const newRunSetData = runSet.run_sets[0]
       setConfiguredInputDefinition(JSON.parse(newRunSetData.input_definition))
       setConfiguredOutputDefinition(JSON.parse(newRunSetData.output_definition))
+      setCachedInputSources(_.map(definition => _.unset('type', _.get('source', definition)), JSON.parse(newRunSetData.input_definition)))
       return newRunSetData.record_type
     } catch (error) {
       notify('error', 'Error loading run set data', { detail: await (error instanceof Response ? error.text() : error) })
@@ -167,7 +170,8 @@ export const SubmissionConfig = ({ methodId }) => {
       selectedDataTable: _.keyBy('name', recordTypes)[selectedRecordType],
       selectedRecords,
       method,
-      configuredInputDefinition, setConfiguredInputDefinition
+      configuredInputDefinition, setConfiguredInputDefinition,
+      cachedInputSources, setCachedInputSources
     }) : 'No configured input definition...'
   }
 
@@ -372,20 +376,70 @@ const renderInputTable = ({
   selectedDataTable,
   selectedRecords,
   method,
-  configuredInputDefinition, setConfiguredInputDefinition
+  configuredInputDefinition, setConfiguredInputDefinition,
+  cachedInputSources, setCachedInputSources
 }) => {
   const [sort, setSort] = useState({ field: 'taskVariable', direction: 'asc' })
   const dataTableAttributes = _.keyBy('name', selectedDataTable.attributes)
   
-  console.log('dataTableAttributes', dataTableAttributes)
-  console.log('configuredInputDefinition', configuredInputDefinition)
   const inputSourceLabels = {
     default: 'Use Default', 
-    xxxxxxx: 'Type a Value', // TODO
+    literal: 'Type a Value', // TODO
     record_lookup: 'Fetch from Data Table'
   }
-
   const inputSourceTypes = _.invert(inputSourceLabels)
+
+  const parseInputType = inputType => {
+    const { primitive_type, optional_type } = inputType
+    return primitive_type ? primitive_type : `${optional_type.primitive_type} (optional)`
+  }
+
+  const recordLookupSelect = rowIndex => {
+    return h(TextCell, {}, [
+      // Select with dataTableAttributes as options
+      h(Select, {
+        isDisabled: false,
+        'aria-label': 'Select an Attribute',
+        isClearable: false,
+        value: _.get(`${rowIndex}.source.record_attribute`, configuredInputDefinition) || _.get(`${rowIndex}.record_attribute`, cachedInputSources),
+        onChange: ({ value }) => {
+          const newAttribute = _.get(`${value}.name`, dataTableAttributes)
+          const newSource = {
+            type: _.get(`${rowIndex}.source.type`, configuredInputDefinition),
+            record_attribute: newAttribute
+          }
+          const newConfig = _.set(`${rowIndex}.source`, newSource, configuredInputDefinition)
+          setConfiguredInputDefinition(newConfig)
+          setCachedInputSources(_.set(`${rowIndex}.record_attribute`, newSource.record_attribute, cachedInputSources))
+        },
+        placeholder: 'Select',
+        options: _.keys(dataTableAttributes),
+        // ** https://stackoverflow.com/questions/55830799/how-to-change-zindex-in-react-select-drowpdown
+        styles: { container: old => ({ ...old, display: 'inline-block'}), menuPortal: base => ({ ...base, zIndex: 9999 })},
+        menuPortalTarget: document.body
+      })
+    ])
+  }
+
+  const parameterValueSelect = rowIndex => {
+    return h(TextCell, {}, [
+      h(TextInput, {
+        id: `literal-input-${rowIndex}`,
+        style: { display: 'block', width: '100%' },
+        placeholder: 'FOO',
+        defaultValue: _.get(`${rowIndex}.parameter_value`, cachedInputSources) || null,
+        onChange: value => {
+          const newSource = {
+            type: _.get(`${rowIndex}.source.type`, configuredInputDefinition),
+            parameter_value: value
+          }
+          const newConfig = _.set(`${rowIndex}.source`, newSource, configuredInputDefinition)
+          setConfiguredInputDefinition(newConfig)
+          setCachedInputSources(_.set(`${rowIndex}.parameter_value`, newSource.parameter_value, cachedInputSources))
+        }
+      })
+    ])
+  }
 
   return h(AutoSizer, [({ width, height }) => {
     return h(FlexTable, {
@@ -416,7 +470,7 @@ const renderInputTable = ({
           size: { basis: 160, grow: 0 },
           headerRenderer: () => h(HeaderCell, ['Type']),
           cellRenderer: ({ rowIndex }) => {
-            return h(TextCell, {}, [configuredInputDefinition[rowIndex].input_type.primitive_type]) // TODO: this needs to be more flexible
+            return h(TextCell, {}, [parseInputType(configuredInputDefinition[rowIndex].input_type)]) // TODO: this needs to be more flexible
           }
         },
         {
@@ -430,7 +484,12 @@ const renderInputTable = ({
               value: _.get(_.get(`${rowIndex}.source.type`, configuredInputDefinition), inputSourceLabels) || null,
               onChange: ({ value }) => {
                 const newType = _.get(value, inputSourceTypes)
-                const newConfig = _.set(`${rowIndex}.source.type`, newType, configuredInputDefinition)
+                const param = newType === 'record_lookup' ? 'record_attribute' : 'parameter_value'
+                const newSource = {
+                  type: newType,
+                  [param]: _.get(`${rowIndex}.${param}`, cachedInputSources)
+                }
+                const newConfig = _.set(`${rowIndex}.source`, newSource, configuredInputDefinition)
                 setConfiguredInputDefinition(newConfig)
               },
               placeholder: 'Select',
@@ -447,29 +506,11 @@ const renderInputTable = ({
           ]),
           cellRenderer: ({ rowIndex }) => {
             const source = _.get(`${rowIndex}.source`, configuredInputDefinition)
-            if (source.type === 'record_lookup') { 
-              return h(TextCell, {}, [
-                // Select with dataTableAttributes as options
-                h(Select, {
-                  isDisabled: false,
-                  'aria-label': 'Select an Attribute',
-                  isClearable: false,
-                  value: _.get(`${rowIndex}.source.record_attribute`, configuredInputDefinition) || null,
-                  onChange: ({ value }) => {
-                    const newAttribute = _.get(`${value}.name`, dataTableAttributes)
-                    console.log('newAttribute', newAttribute)
-                    const newConfig = _.set(`${rowIndex}.source.record_attribute`, newAttribute, configuredInputDefinition)
-                    setConfiguredInputDefinition(newConfig)
-                  },
-                  placeholder: 'Select',
-                  options: _.keys(dataTableAttributes),
-                  // ** https://stackoverflow.com/questions/55830799/how-to-change-zindex-in-react-select-drowpdown
-                  styles: { container: old => ({ ...old, display: 'inline-block'}), menuPortal: base => ({ ...base, zIndex: 9999 })},
-                  menuPortalTarget: document.body
-                })
-              ])
-            }
-            return h(TextCell, {}, [`column 5, row ${rowIndex}`])
+            return Utils.switchCase(source.type || 'default',
+              ['record_lookup', () => recordLookupSelect(rowIndex)],
+              ['literal', () => parameterValueSelect(rowIndex)],
+              ['outputs', () => h(TextCell, {}, [`column 5, row ${rowIndex}`])]
+            )
           }
         }
       ]
