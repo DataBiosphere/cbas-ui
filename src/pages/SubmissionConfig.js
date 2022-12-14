@@ -6,16 +6,16 @@ import { AutoSizer } from 'react-virtualized'
 import { ButtonPrimary, Checkbox, Clickable, headerBar, Link, Select } from 'src/components/common'
 import { HeaderOptions, renderDataCell } from 'src/components/data/data-utils'
 import { icon } from 'src/components/icons'
+import { TextInput } from 'src/components/input'
 import { MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
 import StepButtons from 'src/components/StepButtons'
-import { FlexTable, SimpleTable, Sortable, TextCell, GridTable, HeaderCell, Resizable } from 'src/components/table'
+import { FlexTable, GridTable, HeaderCell, Resizable, Sortable, TextCell } from 'src/components/table'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
 import { useCancellation, useOnMount } from 'src/libs/react-utils'
 import * as Utils from 'src/libs/utils'
-import { TextInput } from 'src/components/input'
 
 
 export const SubmissionConfig = ({ methodId }) => {
@@ -38,6 +38,9 @@ export const SubmissionConfig = ({ methodId }) => {
 
   // TODO: this should probably be moved to a scope more local to the data selector
   const [sort, setSort] = useState({ field: 'name', direction: 'asc' })
+  const [inputTableSort, setInputTableSort] = useState({ field: 'taskVariable', direction: 'asc' })
+
+  console.log('configuredInputDefinition', configuredInputDefinition)
 
   const signal = useCancellation()
   const loadRecordsData = async recordType => {
@@ -168,10 +171,10 @@ export const SubmissionConfig = ({ methodId }) => {
   const renderInputs = () => {
     return configuredInputDefinition ? h(renderInputTable, {
       selectedDataTable: _.keyBy('name', recordTypes)[selectedRecordType],
-      selectedRecords,
       method,
       configuredInputDefinition, setConfiguredInputDefinition,
-      cachedInputSources, setCachedInputSources
+      cachedInputSources, setCachedInputSources,
+      inputTableSort, setInputTableSort
     }) : 'No configured input definition...'
   }
 
@@ -372,26 +375,25 @@ const renderGrid = props => {
 }
 
 
-const renderInputTable = ({ 
+const renderInputTable = ({
   selectedDataTable,
-  selectedRecords,
   method,
   configuredInputDefinition, setConfiguredInputDefinition,
-  cachedInputSources, setCachedInputSources
+  cachedInputSources, setCachedInputSources,
+  inputTableSort, setInputTableSort
 }) => {
-  const [sort, setSort] = useState({ field: 'taskVariable', direction: 'asc' })
   const dataTableAttributes = _.keyBy('name', selectedDataTable.attributes)
-  
+
   const inputSourceLabels = {
-    default: 'Use Default', 
+    default: 'Use Default',
     literal: 'Type a Value', // TODO
     record_lookup: 'Fetch from Data Table'
   }
   const inputSourceTypes = _.invert(inputSourceLabels)
 
   const parseInputType = inputType => {
-    const { primitive_type, optional_type } = inputType
-    return primitive_type ? primitive_type : `${optional_type.primitive_type} (optional)`
+    const { primitive_type: primitiveType, optional_type: optionalType } = inputType
+    return primitiveType ? primitiveType : `${optionalType.primitive_type} (optional)`
   }
 
   const recordLookupSelect = rowIndex => {
@@ -415,7 +417,7 @@ const renderInputTable = ({
         placeholder: 'Select',
         options: _.keys(dataTableAttributes),
         // ** https://stackoverflow.com/questions/55830799/how-to-change-zindex-in-react-select-drowpdown
-        styles: { container: old => ({ ...old, display: 'inline-block'}), menuPortal: base => ({ ...base, zIndex: 9999 })},
+        styles: { container: old => ({ ...old, display: 'inline-block' }), menuPortal: base => ({ ...base, zIndex: 9999 }) },
         menuPortalTarget: document.body
       })
     ])
@@ -445,23 +447,23 @@ const renderInputTable = ({
     return h(FlexTable, {
       'aria-label': 'input-table',
       rowCount: configuredInputDefinition.length,
-      sort, 
+      sort: inputTableSort,
       readOnly: false,
-      height: height,
+      height,
       width,
       columns: [
         {
           size: { basis: 250, grow: 0 },
           field: 'taskVariable',
-          headerRenderer: () => h(Sortable, { sort, field: 'taskVariable', onSort: setSort }, [h(HeaderCell, ['Task name'])]),
-          cellRenderer: ({ rowIndex }) => {
+          headerRenderer: () => h(Sortable, { sort: inputTableSort, field: 'taskVariable', onSort: setInputTableSort }, [h(HeaderCell, ['Task name'])]),
+          cellRenderer: () => {
             return h(TextCell, { style: { fontWeight: 500 } }, [method.name])
           }
         },
         {
           size: { basis: 360, grow: 0 },
           field: 'workflowVariable',
-          headerRenderer: () => h(Sortable, { sort, field: 'workflowVariable', onSort: setSort }, [h(HeaderCell, ['Variable'])]),
+          headerRenderer: () => h(Sortable, { sort: inputTableSort, field: 'workflowVariable', onSort: setInputTableSort }, [h(HeaderCell, ['Variable'])]),
           cellRenderer: ({ rowIndex }) => {
             return h(TextCell, {}, [configuredInputDefinition[rowIndex].input_name])
           }
@@ -495,7 +497,7 @@ const renderInputTable = ({
               placeholder: 'Select',
               options: _.values(inputSourceLabels),
               // ** https://stackoverflow.com/questions/55830799/how-to-change-zindex-in-react-select-drowpdown
-              styles: { container: old => ({ ...old, display: 'inline-block'}), menuPortal: base => ({ ...base, zIndex: 9999 })},
+              styles: { container: old => ({ ...old, display: 'inline-block' }), menuPortal: base => ({ ...base, zIndex: 9999 }) },
               menuPortalTarget: document.body
             })
           }
@@ -509,7 +511,7 @@ const renderInputTable = ({
             return Utils.switchCase(source.type || 'default',
               ['record_lookup', () => recordLookupSelect(rowIndex)],
               ['literal', () => parameterValueSelect(rowIndex)],
-              ['outputs', () => h(TextCell, {}, [`column 5, row ${rowIndex}`])]
+              ['default', () => h(TextCell, {}, ['Use value from Workflow'])]
             )
           }
         }
