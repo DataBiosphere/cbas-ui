@@ -27,7 +27,7 @@ export const SubmissionDetails = ({ submissionId }) => {
 
   const [runSetData, setRunSetData] = useState()
   const [methodsData, setMethodsData] = useState()
-  const [filteredRuns, setFilterOption] = useState()
+  const [filterOption, setFilterOption] = useState(null)
 
   const signal = useCancellation()
 
@@ -42,15 +42,22 @@ export const SubmissionDetails = ({ submissionId }) => {
       Utils.differenceFromNowInSeconds(submitted)
   }
 
-  useOnMount(() => {
-    const loadRunsData = async () => {
-      try {
-        const runs = await Ajax(signal).Cbas.runs.get(submissionId)
-        setRunsData(runs.runs)
-      } catch (error) {
-        notify('error', 'Error loading previous runs', { detail: await (error instanceof Response ? error.text() : error) })
+  const loadRunsData = async filter => {
+    try {
+      const runs = await Ajax(signal).Cbas.runs.get(submissionId)
+      const allRuns = runs.runs
+      if (filter) {
+        setRunsData(_.filter(r => r.error_messages, allRuns))
+      } else {
+        setRunsData(allRuns)
       }
+    } catch (error) {
+      notify('error', 'Error loading previous runs', { detail: await (error instanceof Response ? error.text() : error) })
     }
+  }
+
+  useOnMount(() => {
+
 
     const loadRunSetData = async () => {
       try {
@@ -81,6 +88,8 @@ export const SubmissionDetails = ({ submissionId }) => {
   const methodId = specifyRunSet[0]?.method_id
   const getSpecificMethod = _.filter(m => m.method_id === methodId, methodsData)
   const sortedPreviousRuns = _.orderBy(sort.field, sort.direction, runsData)
+  //const filteredPreviousRuns = filteredRuns ? filteredRuns : sortedPreviousRuns
+  const filterOptions = ['Error']
 
   const firstPageIndex = (pageNumber - 1) * itemsPerPage
   const lastPageIndex = firstPageIndex + itemsPerPage
@@ -132,14 +141,14 @@ export const SubmissionDetails = ({ submissionId }) => {
           isDisabled: false,
           'aria-label': 'Filter selection',
           isClearable: false,
-          value: filteredRuns ? filteredRuns : null,
+          value: filterOption ? filterOption : null,
           placeholder: 'None selected',
           onChange: ({ value }) => {
+            loadRunsData(filterOption)
             setFilterOption(value)
-            loadRunsData(value)
           },
-
-          styles: { container: old => ({ ...old, display: 'inline-block', width: 200, marginBottom: '1.5rem' }) }
+          styles: { container: old => ({ ...old, display: 'inline-block', width: 200, marginBottom: '1.5rem' }) },
+          options: filterOptions
         }),
         h(AutoSizer, [
           ({ width, height }) => h(FlexTable, {
