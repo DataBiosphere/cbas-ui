@@ -42,22 +42,16 @@ export const SubmissionDetails = ({ submissionId }) => {
       Utils.differenceFromNowInSeconds(submitted)
   }
 
-  const loadRunsData = async filter => {
-    try {
-      const runs = await Ajax(signal).Cbas.runs.get(submissionId)
-      const allRuns = runs.runs
-      if (filter) {
-        setRunsData(_.filter(r => r.error_messages, allRuns))
-      } else {
-        setRunsData(allRuns)
-      }
-    } catch (error) {
-      notify('error', 'Error loading previous runs', { detail: await (error instanceof Response ? error.text() : error) })
-    }
-  }
 
   useOnMount(() => {
-
+    const loadRunsData = async () => {
+      try {
+        const runs = await Ajax(signal).Cbas.runs.get(submissionId)
+        setRunsData(runs.runs)
+      } catch (error) {
+        notify('error', 'Error loading previous runs', { detail: await (error instanceof Response ? error.text() : error) })
+      }
+    }
 
     const loadRunSetData = async () => {
       try {
@@ -88,12 +82,15 @@ export const SubmissionDetails = ({ submissionId }) => {
   const methodId = specifyRunSet[0]?.method_id
   const getSpecificMethod = _.filter(m => m.method_id === methodId, methodsData)
   const sortedPreviousRuns = _.orderBy(sort.field, sort.direction, runsData)
-  //const filteredPreviousRuns = filteredRuns ? filteredRuns : sortedPreviousRuns
   const filterOptions = ['Error']
 
   const firstPageIndex = (pageNumber - 1) * itemsPerPage
   const lastPageIndex = firstPageIndex + itemsPerPage
   const paginatedPreviousRuns = sortedPreviousRuns.slice(firstPageIndex, lastPageIndex)
+
+  // hardcoded to return error_messages since this is the only option we currently want to filter by
+  const filteredPreviousRuns = filterOption ? _.filter(r => r.error_messages, runsData) : paginatedPreviousRuns
+
 
   const rowWidth = 100
   const rowHeight = 50
@@ -141,12 +138,9 @@ export const SubmissionDetails = ({ submissionId }) => {
           isDisabled: false,
           'aria-label': 'Filter selection',
           isClearable: false,
-          value: filterOption ? filterOption : null,
+          value: filterOption,
           placeholder: 'None selected',
-          onChange: ({ value }) => {
-            loadRunsData(filterOption)
-            setFilterOption(value)
-          },
+          onChange: ({ value }) => setFilterOption(value),
           styles: { container: old => ({ ...old, display: 'inline-block', width: 200, marginBottom: '1.5rem' }) },
           options: filterOptions
         }),
@@ -154,7 +148,7 @@ export const SubmissionDetails = ({ submissionId }) => {
           ({ width, height }) => h(FlexTable, {
             'aria-label': 'previous runs',
             width, height, sort,
-            rowCount: paginatedPreviousRuns.length,
+            rowCount: filteredPreviousRuns.length,
             noContentMessage: 'Nothing here yet! Your previously run workflows will be displayed here.',
             hoverHighlight: true,
             rowHeight,
@@ -165,7 +159,7 @@ export const SubmissionDetails = ({ submissionId }) => {
                 field: 'record_id',
                 headerRenderer: () => h(Sortable, { sort, field: 'record_id', onSort: setSort }, [' ID']),
                 cellRenderer: ({ rowIndex }) => {
-                  return h(TextCell, [paginatedPreviousRuns[rowIndex].record_id])
+                  return h(TextCell, [filteredPreviousRuns[rowIndex].record_id])
                 }
               },
               {
@@ -174,11 +168,11 @@ export const SubmissionDetails = ({ submissionId }) => {
                 headerRenderer: () => h(Sortable, { sort, field: 'state', onSort: setSort }, ['Status']),
                 cellRenderer: ({ rowIndex }) => {
                   const failureStates = ['SYSTEM_ERROR', 'EXECUTOR_ERROR']
-                  if (failureStates.includes(paginatedPreviousRuns[rowIndex].state)) {
+                  if (failureStates.includes(filteredPreviousRuns[rowIndex].state)) {
                     return div({ style: { width: '100%', textAlign: 'center' } }, [
                       h(Link, { style: { fontWeight: 'bold' }, onClick: () => setViewErrorsId(rowIndex) }, [[icon('warning-standard', { size: 18, color: 'red' })], ['      Error(s)']])
                     ])
-                  } else if (paginatedPreviousRuns[rowIndex].state === 'COMPLETE') {
+                  } else if (filteredPreviousRuns[rowIndex].state === 'COMPLETE') {
                     return div({ style: { width: '100%', textAlign: 'center' } }, [
                       div({ style: { fontWeight: 'bold' } }, [h(TextCell, {}, [icon('check', { size: 18, style: { color: colors.success() } }), ['   Succeeded']])])
                     ])
@@ -192,13 +186,13 @@ export const SubmissionDetails = ({ submissionId }) => {
                 cellRenderer: ({ rowIndex }) => {
                   const terminalStates = ['COMPLETE', 'CANCELED', 'SYSTEM_ERROR', 'ABORTED', 'EXECUTOR_ERROR']
                   let durationSeconds
-                  if (terminalStates.includes(paginatedPreviousRuns[rowIndex].state)) {
+                  if (terminalStates.includes(filteredPreviousRuns[rowIndex].state)) {
                     durationSeconds = Utils.differenceFromDatesInSeconds(
-                      paginatedPreviousRuns[rowIndex].submission_date,
-                      paginatedPreviousRuns[rowIndex].last_modified_timestamp
+                      filteredPreviousRuns[rowIndex].submission_date,
+                      filteredPreviousRuns[rowIndex].last_modified_timestamp
                     )
                   } else {
-                    durationSeconds = Utils.differenceFromNowInSeconds(paginatedPreviousRuns[rowIndex].submission_date)
+                    durationSeconds = Utils.differenceFromNowInSeconds(filteredPreviousRuns[rowIndex].submission_date)
                   }
                   return h(TextCell, [Utils.customFormatDuration(durationSeconds)])
                 }
@@ -209,8 +203,8 @@ export const SubmissionDetails = ({ submissionId }) => {
                 headerRenderer: () => h(Sortable, { sort, field: 'run_id', onSort: setSort }, ['Run ID']),
                 cellRenderer: ({ rowIndex }) => {
                   return div({ style: { width: '100%', textAlign: 'left' } }, [
-                    h(Link, { onClick: () => { Nav.goToPath('workflow-dashboard', { workflowId: paginatedPreviousRuns[rowIndex].engine_id }) }, style: { fontWeight: 'bold' } },
-                      [paginatedPreviousRuns[rowIndex].run_id])
+                    h(Link, { onClick: () => { Nav.goToPath('workflow-dashboard', { workflowId: filteredPreviousRuns[rowIndex].engine_id }) }, style: { fontWeight: 'bold' } },
+                      [filteredPreviousRuns[rowIndex].run_id])
                   ])
                 }
               }
@@ -274,9 +268,9 @@ export const SubmissionDetails = ({ submissionId }) => {
           enableClipboard: true,
           displayDataTypes: false,
           displayObjectSize: false,
-          src: _.isEmpty(paginatedPreviousRuns[viewOutputsId].workflow_outputs) ?
+          src: _.isEmpty(filteredPreviousRuns[viewOutputsId].workflow_outputs) ?
             {} :
-            JSON.parse(paginatedPreviousRuns[viewOutputsId].workflow_outputs)
+            JSON.parse(filteredPreviousRuns[viewOutputsId].workflow_outputs)
         })
       ]),
       (viewErrorsId !== undefined) && h(Modal, {
@@ -292,7 +286,7 @@ export const SubmissionDetails = ({ submissionId }) => {
       }, [
         h(TextCell, {
           style: { textAlign: 'center', whiteSpace: 'pre-wrap', wordBreak: 'break-word', margin: '3rem', marginBottom: '1rem' }
-        }, [paginatedPreviousRuns[viewErrorsId].error_messages])
+        }, [filteredPreviousRuns[viewErrorsId].error_messages])
       ])
     ])
   ])
