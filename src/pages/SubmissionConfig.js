@@ -26,7 +26,7 @@ export const SubmissionConfig = ({ methodId }) => {
 
   // Options chosen on this page:
   const [selectedRecordType, setSelectedRecordType] = useState()
-  const [selectedRecords, setSelectedRecords] = useState()
+  const [selectedRecords, setSelectedRecords] = useState({})
   const [configuredInputDefinition, setConfiguredInputDefinition] = useState()
   const [configuredOutputDefinition, setConfiguredOutputDefinition] = useState()
 
@@ -148,8 +148,8 @@ export const SubmissionConfig = ({ methodId }) => {
         onChangeTab: v => setActiveTab({ key: v }),
         finalStep: h(ButtonPrimary, {
           style: { marginLeft: '1rem' },
-          // disabled: !!Utils.computeWorkspaceError(ws) || !!noLaunchReason || currentSnapRedacted || !!snapshotReferenceError,
-          // tooltip: Utils.computeWorkspaceError(ws) || noLaunchReason || (currentSnapRedacted && 'Workflow version was redacted.'),
+          disabled: _.isEmpty(selectedRecords),
+          tooltip: _.isEmpty(selectedRecords) ? 'No records selected' : '',
           onClick: () => submitRun()
         }, ['Submit'])
       })
