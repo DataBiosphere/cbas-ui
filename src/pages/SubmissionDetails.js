@@ -134,7 +134,7 @@ export const SubmissionDetails = ({ submissionId }) => {
       }, [
         div([h2(['Workflows'])]),
         div([h3(['Filter by: '])]),
-        h(Select, {}, {
+        h(Select, {
           isDisabled: false,
           'aria-label': 'Filter selection',
           isClearable: false,
@@ -172,7 +172,7 @@ export const SubmissionDetails = ({ submissionId }) => {
                   const failureStates = ['SYSTEM_ERROR', 'EXECUTOR_ERROR']
                   if (failureStates.includes(paginatedPreviousRuns[rowIndex].state)) {
                     return div({ style: { width: '100%', textAlign: 'center' } }, [
-                      h(Link, { style: { fontWeight: 'bold' }, onClick: () => setViewErrorsId(rowIndex) }, [[icon('warning-standard', { size: 18, color: 'red' })], ['      Error(s)']])
+                      h(Link, { key: 'error link', style: { fontWeight: 'bold' }, onClick: () => setViewErrorsId(rowIndex) }, [[icon('warning-standard', { key: 'error',size: 18, style: { color: colors.danger() } })], ['      Error(s)']])
                     ])
                   } else if (paginatedPreviousRuns[rowIndex].state === 'COMPLETE') {
                     return div({ style: { width: '100%', textAlign: 'center' } }, [

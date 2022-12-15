@@ -262,7 +262,6 @@ describe('Submission Details page', () => {
 
     // check data rows are rendered as expected
     const cellsFromDataRow1 = within(rows[1]).queryAllByRole('cell')
-    console.log(cellsFromDataRow1)
     expect(cellsFromDataRow1.length).toBe(4)
     within(cellsFromDataRow1[0]).getByText('FOO2')
     within(cellsFromDataRow1[1]).getByText('Error(s)')
