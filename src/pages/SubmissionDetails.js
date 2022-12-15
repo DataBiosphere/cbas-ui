@@ -30,7 +30,7 @@ export const SubmissionDetails = ({ submissionId }) => {
 
   const signal = useCancellation()
 
-  const terminalStates = ['ERROR', 'COMPLETE']
+  const terminalStates = ['ERROR', 'COMPLETE', 'CANCELED']
   const duration = ({
     state,
     submission_timestamp: submitted,
