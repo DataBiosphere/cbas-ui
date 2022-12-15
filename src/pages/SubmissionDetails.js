@@ -81,16 +81,16 @@ export const SubmissionDetails = ({ submissionId }) => {
   const specifyRunSet = _.filter(r => r.run_set_id === submissionId, runSetData)
   const methodId = specifyRunSet[0]?.method_id
   const getSpecificMethod = _.filter(m => m.method_id === methodId, methodsData)
-  const sortedPreviousRuns = _.orderBy(sort.field, sort.direction, runsData)
+
+  // hardcoded to return error_messages since this is the only option we currently want to filter by
+  const errorStates = ['SYSTEM_ERROR', 'EXECUTOR_ERROR']
+  const filteredPreviousRuns = filterOption ? _.filter(r => errorStates.includes(r.state), runsData) : runsData
+  const sortedPreviousRuns = _.orderBy(sort.field, sort.direction, filteredPreviousRuns)
   const filterOptions = ['Error']
 
   const firstPageIndex = (pageNumber - 1) * itemsPerPage
   const lastPageIndex = firstPageIndex + itemsPerPage
   const paginatedPreviousRuns = sortedPreviousRuns.slice(firstPageIndex, lastPageIndex)
-
-  // hardcoded to return error_messages since this is the only option we currently want to filter by
-  const filteredPreviousRuns = filterOption ? _.filter(r => r.error_messages, runsData) : paginatedPreviousRuns
-
 
   const rowWidth = 100
   const rowHeight = 50
@@ -134,13 +134,15 @@ export const SubmissionDetails = ({ submissionId }) => {
       }, [
         div([h2(['Workflows'])]),
         div([h3(['Filter by: '])]),
-        h(Select, {
+        h(Select, {}, {
           isDisabled: false,
           'aria-label': 'Filter selection',
           isClearable: false,
           value: filterOption,
           placeholder: 'None selected',
-          onChange: ({ value }) => setFilterOption(value),
+          onChange: ({ value }) => {
+            setFilterOption(value)
+          },
           styles: { container: old => ({ ...old, display: 'inline-block', width: 200, marginBottom: '1.5rem' }) },
           options: filterOptions
         }),
@@ -148,7 +150,7 @@ export const SubmissionDetails = ({ submissionId }) => {
           ({ width, height }) => h(FlexTable, {
             'aria-label': 'previous runs',
             width, height, sort,
-            rowCount: filteredPreviousRuns.length,
+            rowCount: paginatedPreviousRuns.length,
             noContentMessage: 'Nothing here yet! Your previously run workflows will be displayed here.',
             hoverHighlight: true,
             rowHeight,
@@ -159,7 +161,7 @@ export const SubmissionDetails = ({ submissionId }) => {
                 field: 'record_id',
                 headerRenderer: () => h(Sortable, { sort, field: 'record_id', onSort: setSort }, [' ID']),
                 cellRenderer: ({ rowIndex }) => {
-                  return h(TextCell, [filteredPreviousRuns[rowIndex].record_id])
+                  return h(TextCell, [paginatedPreviousRuns[rowIndex].record_id])
                 }
               },
               {
@@ -168,11 +170,11 @@ export const SubmissionDetails = ({ submissionId }) => {
                 headerRenderer: () => h(Sortable, { sort, field: 'state', onSort: setSort }, ['Status']),
                 cellRenderer: ({ rowIndex }) => {
                   const failureStates = ['SYSTEM_ERROR', 'EXECUTOR_ERROR']
-                  if (failureStates.includes(filteredPreviousRuns[rowIndex].state)) {
+                  if (failureStates.includes(paginatedPreviousRuns[rowIndex].state)) {
                     return div({ style: { width: '100%', textAlign: 'center' } }, [
                       h(Link, { style: { fontWeight: 'bold' }, onClick: () => setViewErrorsId(rowIndex) }, [[icon('warning-standard', { size: 18, color: 'red' })], ['      Error(s)']])
                     ])
-                  } else if (filteredPreviousRuns[rowIndex].state === 'COMPLETE') {
+                  } else if (paginatedPreviousRuns[rowIndex].state === 'COMPLETE') {
                     return div({ style: { width: '100%', textAlign: 'center' } }, [
                       div({ style: { fontWeight: 'bold' } }, [h(TextCell, {}, [icon('check', { size: 18, style: { color: colors.success() } }), ['   Succeeded']])])
                     ])
@@ -186,13 +188,13 @@ export const SubmissionDetails = ({ submissionId }) => {
                 cellRenderer: ({ rowIndex }) => {
                   const terminalStates = ['COMPLETE', 'CANCELED', 'SYSTEM_ERROR', 'ABORTED', 'EXECUTOR_ERROR']
                   let durationSeconds
-                  if (terminalStates.includes(filteredPreviousRuns[rowIndex].state)) {
+                  if (terminalStates.includes(paginatedPreviousRuns[rowIndex].state)) {
                     durationSeconds = Utils.differenceFromDatesInSeconds(
-                      filteredPreviousRuns[rowIndex].submission_date,
-                      filteredPreviousRuns[rowIndex].last_modified_timestamp
+                      paginatedPreviousRuns[rowIndex].submission_date,
+                      paginatedPreviousRuns[rowIndex].last_modified_timestamp
                     )
                   } else {
-                    durationSeconds = Utils.differenceFromNowInSeconds(filteredPreviousRuns[rowIndex].submission_date)
+                    durationSeconds = Utils.differenceFromNowInSeconds(paginatedPreviousRuns[rowIndex].submission_date)
                   }
                   return h(TextCell, [Utils.customFormatDuration(durationSeconds)])
                 }
@@ -203,8 +205,8 @@ export const SubmissionDetails = ({ submissionId }) => {
                 headerRenderer: () => h(Sortable, { sort, field: 'run_id', onSort: setSort }, ['Run ID']),
                 cellRenderer: ({ rowIndex }) => {
                   return div({ style: { width: '100%', textAlign: 'left' } }, [
-                    h(Link, { onClick: () => { Nav.goToPath('workflow-dashboard', { workflowId: filteredPreviousRuns[rowIndex].engine_id }) }, style: { fontWeight: 'bold' } },
-                      [filteredPreviousRuns[rowIndex].run_id])
+                    h(Link, { onClick: () => { Nav.goToPath('workflow-dashboard', { workflowId: paginatedPreviousRuns[rowIndex].engine_id }) }, style: { fontWeight: 'bold' } },
+                      [paginatedPreviousRuns[rowIndex].run_id])
                   ])
                 }
               }
@@ -268,9 +270,9 @@ export const SubmissionDetails = ({ submissionId }) => {
           enableClipboard: true,
           displayDataTypes: false,
           displayObjectSize: false,
-          src: _.isEmpty(filteredPreviousRuns[viewOutputsId].workflow_outputs) ?
+          src: _.isEmpty(paginatedPreviousRuns[viewOutputsId].workflow_outputs) ?
             {} :
-            JSON.parse(filteredPreviousRuns[viewOutputsId].workflow_outputs)
+            JSON.parse(paginatedPreviousRuns[viewOutputsId].workflow_outputs)
         })
       ]),
       (viewErrorsId !== undefined) && h(Modal, {
@@ -286,7 +288,7 @@ export const SubmissionDetails = ({ submissionId }) => {
       }, [
         h(TextCell, {
           style: { textAlign: 'center', whiteSpace: 'pre-wrap', wordBreak: 'break-word', margin: '3rem', marginBottom: '1rem' }
-        }, [filteredPreviousRuns[viewErrorsId].error_messages])
+        }, [paginatedPreviousRuns[viewErrorsId].error_messages])
       ])
     ])
   ])

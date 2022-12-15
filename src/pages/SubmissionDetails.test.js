@@ -2,6 +2,7 @@ import '@testing-library/jest-dom'
 
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import { h } from 'react-hyperscript-helpers'
+import selectEvent from 'react-select-event'
 import { Ajax } from 'src/libs/ajax'
 import { SubmissionDetails } from 'src/pages/SubmissionDetails'
 
@@ -35,7 +36,8 @@ describe('Submission Details page', () => {
         workflow_params: '[{\'input_name\':\'wf_hello.hello.addressee\',\'input_type\':{\'type\':\'primitive\',\'primitive_type\':\'String\'},\'source\':{\'type\':\'record_lookup\',\'record_attribute\':\'foo_name\'}}]',
         workflow_outputs: '[]',
         submission_date: '2022-07-14T22:22:15.591Z',
-        last_modified_timestamp: '2022-07-14T23:14:25.791Z'
+        last_modified_timestamp: '2022-07-14T23:14:25.791Z',
+        error_messages: ['failed workflow']
       },
       {
         run_id: '55b36a53-2ff3-41d0-adc4-abc08aea88ad',
@@ -225,20 +227,46 @@ describe('Submission Details page', () => {
     await screen.getByText(/Duration: 17 hours 2 minutes/)
   })
 
-  it('show correct workflows when filtered', async () => {
+  it('should correctly set default option', async () => {
     await act(async () => {
       await render(h(SubmissionDetails))
     })
 
+    await screen.getByText(/None selected/)
+  })
+
+
+  it('should correctly select and change results', async () => {
+    await act(async () => {
+      await render(h(SubmissionDetails))
+      const dropdown = screen.getByLabelText('Filter selection')
+      await selectEvent.select(dropdown, ['Error'])
+    })
+
     const table = screen.getByRole('table')
+
+    // Assert
+    expect(table).toHaveAttribute('aria-colcount', '4')
+    expect(table).toHaveAttribute('aria-rowcount', '2')
+
+
     const rows = within(table).queryAllByRole('row')
-    expect(rows.length).toBe(3)
+    expect(rows.length).toBe(2)
 
     const headers = within(rows[0]).queryAllByRole('columnheader')
     expect(headers.length).toBe(4)
+    within(headers[0]).getByText('ID')
+    within(headers[1]).getByText('Status')
+    within(headers[2]).getByText('Duration')
+    within(headers[3]).getByText('Run ID')
 
-    await act(async () => {
-      await fireEvent.click(within(headers[2]).getByRole('button'))
-    })
+    // check data rows are rendered as expected
+    const cellsFromDataRow1 = within(rows[1]).queryAllByRole('cell')
+    console.log(cellsFromDataRow1)
+    expect(cellsFromDataRow1.length).toBe(4)
+    within(cellsFromDataRow1[0]).getByText('FOO2')
+    within(cellsFromDataRow1[1]).getByText('Error(s)')
+    within(cellsFromDataRow1[2]).getByText('52 minutes 10 seconds')
+    within(cellsFromDataRow1[3]).getByText('b7234aae-6f43-405e-bb3a-71f924e09825')
   })
 })
