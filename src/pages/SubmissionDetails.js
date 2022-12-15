@@ -32,6 +32,7 @@ export const SubmissionDetails = ({ submissionId }) => {
   const signal = useCancellation()
 
   const terminalStates = ['ERROR', 'COMPLETE', 'CANCELED']
+
   const duration = ({
     state,
     submission_timestamp: submitted,
@@ -41,7 +42,6 @@ export const SubmissionDetails = ({ submissionId }) => {
       Utils.differenceFromDatesInSeconds(submitted, modified) :
       Utils.differenceFromNowInSeconds(submitted)
   }
-
 
   useOnMount(() => {
     const loadRunsData = async () => {
