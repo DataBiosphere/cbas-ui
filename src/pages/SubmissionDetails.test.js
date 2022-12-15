@@ -224,4 +224,21 @@ describe('Submission Details page', () => {
     await screen.getByText(/Submission date: Dec 8, 2022/)
     await screen.getByText(/Duration: 17 hours 2 minutes/)
   })
+
+  it('show correct workflows when filtered', async () => {
+    await act(async () => {
+      await render(h(SubmissionDetails))
+    })
+
+    const table = screen.getByRole('table')
+    const rows = within(table).queryAllByRole('row')
+    expect(rows.length).toBe(3)
+
+    const headers = within(rows[0]).queryAllByRole('columnheader')
+    expect(headers.length).toBe(4)
+
+    await act(async () => {
+      await fireEvent.click(within(headers[2]).getByRole('button'))
+    })
+  })
 })
