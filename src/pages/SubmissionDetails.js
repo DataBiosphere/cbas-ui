@@ -53,7 +53,7 @@ export const SubmissionDetails = ({ submissionId }) => {
         filterStatement = _.filter(r => r.state === 'COMPLETE')
         break
       default:
-        filterStatement = filter => filter
+        filterStatement = data => data
     }
     return filterStatement
   }
