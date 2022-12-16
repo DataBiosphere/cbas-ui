@@ -27,6 +27,7 @@ export const SubmissionDetails = ({ submissionId }) => {
 
   const [runSetData, setRunSetData] = useState()
   const [methodsData, setMethodsData] = useState()
+  const [filterOption, setFilterOption] = useState(null)
 
   const signal = useCancellation()
 
@@ -40,6 +41,21 @@ export const SubmissionDetails = ({ submissionId }) => {
     return terminalStates.includes(state) ?
       Utils.differenceFromDatesInSeconds(submitted, modified) :
       Utils.differenceFromNowInSeconds(submitted)
+  }
+
+  const getFilter = filter => {
+    let filterStatement
+    switch (filter) {
+      case 'Error':
+        filterStatement = _.filter(r => errorStates.includes(r.state))
+        break
+      case 'Succeeded':
+        filterStatement = _.filter(r => r.state === 'COMPLETE')
+        break
+      default:
+        filterStatement = data => data
+    }
+    return filterStatement
   }
 
   useOnMount(() => {
@@ -80,7 +96,11 @@ export const SubmissionDetails = ({ submissionId }) => {
   const specifyRunSet = _.filter(r => r.run_set_id === submissionId, runSetData)
   const methodId = specifyRunSet[0]?.method_id
   const getSpecificMethod = _.filter(m => m.method_id === methodId, methodsData)
-  const sortedPreviousRuns = _.orderBy(sort.field, sort.direction, runsData)
+
+  const errorStates = ['SYSTEM_ERROR', 'EXECUTOR_ERROR']
+  const filteredPreviousRuns = filterOption ? getFilter(filterOption)(runsData) : runsData
+  const sortedPreviousRuns = _.orderBy(sort.field, sort.direction, filteredPreviousRuns)
+  const filterOptions = ['Error', 'None', 'Succeeded']
 
   const firstPageIndex = (pageNumber - 1) * itemsPerPage
   const lastPageIndex = firstPageIndex + itemsPerPage
@@ -108,8 +128,7 @@ export const SubmissionDetails = ({ submissionId }) => {
         h(TextCell, [(h(Link, { onClick: () => Nav.goToPath('submission-history') }, ['Submission History'])), ' >', ` Submission ${submissionId}`]),
         h2(['workflow: ', getSpecificMethod[0]?.name]),
         h3(['Submission date: ', specifyRunSet[0] && Utils.makeCompleteDate(specifyRunSet[0].submission_timestamp)]),
-        h3(['Duration: ', specifyRunSet[0] && Utils.customFormatDuration(duration(specifyRunSet[0]))]),
-        h3(['Submitted by: Batch Teams (HARDCODED)'])
+        h3(['Duration: ', specifyRunSet[0] && Utils.customFormatDuration(duration(specifyRunSet[0]))])
       ])
     ]),
     div({
@@ -132,9 +151,13 @@ export const SubmissionDetails = ({ submissionId }) => {
           isDisabled: false,
           'aria-label': 'Filter selection',
           isClearable: false,
-          value: null,
+          value: filterOption,
           placeholder: 'None selected',
-          styles: { container: old => ({ ...old, display: 'inline-block', width: 200, marginBottom: '1.5rem' }) }
+          onChange: ({ value }) => {
+            setFilterOption(value)
+          },
+          styles: { container: old => ({ ...old, display: 'inline-block', width: 200, marginBottom: '1.5rem' }) },
+          options: filterOptions
         }),
         h(AutoSizer, [
           ({ width, height }) => h(FlexTable, {
@@ -162,7 +185,7 @@ export const SubmissionDetails = ({ submissionId }) => {
                   const failureStates = ['SYSTEM_ERROR', 'EXECUTOR_ERROR']
                   if (failureStates.includes(paginatedPreviousRuns[rowIndex].state)) {
                     return div({ style: { width: '100%', textAlign: 'center' } }, [
-                      h(Link, { style: { fontWeight: 'bold' }, onClick: () => setViewErrorsId(rowIndex) }, [[icon('warning-standard', { size: 18, color: 'red' })], ['      Error(s)']])
+                      h(Link, { key: 'error link', style: { fontWeight: 'bold' }, onClick: () => setViewErrorsId(rowIndex) }, [[icon('warning-standard', { key: 'error', size: 18, style: { color: colors.danger() } })], ['      Error(s)']])
                     ])
                   } else if (paginatedPreviousRuns[rowIndex].state === 'COMPLETE') {
                     return div({ style: { width: '100%', textAlign: 'center' } }, [
