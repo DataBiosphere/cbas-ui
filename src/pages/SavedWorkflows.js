@@ -61,7 +61,7 @@ const styles = {
   }
 }
 
-export const SavedWorkflows = ({ runsData }) => {
+export const SavedWorkflows = ({ methodsData }) => {
   const WorkflowCard = memoWithName('WorkflowCard', ({ name, lastRun, description, source, methodId }) => {
     return div({ onClick: () => { Nav.goToPath('submission-config', { methodId }) }, style: { ...styles.card, ...styles.mediumCard, cursor: 'pointer' } }, [
       div({ style: { paddingTop: '0.75rem', ...styles.innerContent, display: 'flex', alignItems: 'center' } }, [
@@ -83,7 +83,7 @@ export const SavedWorkflows = ({ runsData }) => {
       methodId: method.method_id,
       key: method.name
     })
-  })(runsData)
+  })(methodsData)
 
   return [workflowCards]
 }

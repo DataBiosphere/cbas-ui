@@ -78,9 +78,20 @@ const Cbas = signal => ({
     }
   },
   methods: {
-    get: async () => {
-      const res = await fetchCbas('methods', { signal, method: 'GET' })
+    getWithoutVersions: async () => {
+      const keyParams = qs.stringify({ show_versions: false })
+      const res = await fetchCbas(`methods?${keyParams}`, { signal, method: 'GET' })
       return res.json()
+    },
+    getById: async ( method_id ) => {
+      const keyParams = qs.stringify({ method_id })
+      const res = await fetchCbas(`methods?${keyParams}`, { signal, method: 'GET' })
+      return await res.json()
+    },
+    getByMethodVersionId: async ( method_version_id ) => {
+      const keyParams = qs.stringify({ method_version_id })
+      const res = await fetchCbas(`methods?${keyParams}`, { signal, method: 'GET' })
+      return await res.json()
     }
   }
 })

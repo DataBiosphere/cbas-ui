@@ -19,6 +19,8 @@ export const SubmissionConfig = ({ methodId }) => {
   const [activeTab, setActiveTab] = useState({ key: 'select-data' })
   const [recordTypes, setRecordTypes] = useState()
   const [method, setMethod] = useState()
+  const [availableMethodVersions, setAvailableMethodVersions] = useState()
+  const [selectedMethodVersion, setSelectedMethodVersion] = useState()
   const [records, setRecords] = useState([])
   const [runSetData, setRunSet] = useState()
 
@@ -49,13 +51,15 @@ export const SubmissionConfig = ({ methodId }) => {
     }
   }
 
-  const loadMethodsData = async () => {
+  const loadMethodsData = async (method_id, method_version_id) => {
     try {
-      const methodsResponse = await Ajax(signal).Cbas.methods.get()
-      const allMethods = methodsResponse.methods
-      const selectedMethod = _.head(_.filter(m => m.method_id === methodId, allMethods))
-      if (selectedMethod) {
-        setMethod(selectedMethod)
+      const methodsResponse = await Ajax(signal).Cbas.methods.getById(method_id)
+      const method = methodsResponse.methods[0]
+      if (method) {
+        setMethod(method)
+        setAvailableMethodVersions(method.method_versions)
+        const selectedVersion = _.filter(mv => mv.method_version_id === method_version_id, method.method_versions)[0]
+        setSelectedMethodVersion(selectedVersion)
       } else {
         notify('error', 'Error loading methods data', { detail: 'Method not found.' })
       }
@@ -71,7 +75,8 @@ export const SubmissionConfig = ({ methodId }) => {
       setRunSet(runSet.run_sets[0])
       setConfiguredInputDefinition(JSON.parse(newRunSetData.input_definition))
       setConfiguredOutputDefinition(JSON.parse(newRunSetData.output_definition))
-      return newRunSetData.record_type
+      setSelectedRecordType(newRunSetData.record_type)
+      return newRunSetData
     } catch (error) {
       notify('error', 'Error loading run set data', { detail: await (error instanceof Response ? error.text() : error) })
     }
@@ -89,36 +94,25 @@ export const SubmissionConfig = ({ methodId }) => {
     //setRunSetName('New run set name')
     //setRunSetDescription('New run set description')
 
-    loadMethodsData()
     loadTablesData()
-    loadRunSet().then(recordType => {
-      setSelectedRecordType(recordType)
-      loadRecordsData(recordType)
+    loadRunSet().then(runSet => {
+      loadMethodsData(runSet.method_id, runSet.method_version_id)
+      loadRecordsData(runSet.record_type)
     })
   })
 
   const renderSummary = () => {
     return div({ style: { margin: '4em' } }, [
       div({ style: { display: 'flex', marginTop: '1rem', justifyContent: 'space-between' } }, [
-        h2([method ? method.name : 'loading'])
+        h2([method ? `Submission Configuration for ${method.name}` : 'loading'])
       ]),
       div({ style: { lineHeight: 2.0 } }, [
+        div([span({ style: { fontWeight: 'bold' } }, ['Workflow Version: ']), selectedMethodVersion ? selectedMethodVersion.name : 'No workflow version selected']),
         div([
-          span({ style: { fontWeight: 'bold' } }, ['Workflow source link: ']),
-          a(
-            { href: method ? method.source_url : 'loading' },
-            [method ? method.source_url : 'loading']
-          )
-        ]),
-        div([span({ style: { fontWeight: 'bold' } }, ['Version: ']), '1.14 <TODO: WHERE DOES THIS COME FROM?>']),
-        h(
-          Link,
-          {
-            style: { textDecoration: 'underline' },
-            onClick: () => { window.alert('TODO: what happens when the user clicks this?') }
-          },
-          ['View Script']
-        )
+          span({ style: { fontWeight: 'bold' } }, ['Workflow source URL: ']),
+          selectedMethodVersion ?
+            h(Link, { href: selectedMethodVersion.url }, [selectedMethodVersion.url]) : 'No workflow version selected'
+        ])
       ]),
       div({ style: { marginTop: '2rem', height: '2rem', fontWeight: 'bold' } }, ['Select a data table']),
       h(Select, {
@@ -223,7 +217,7 @@ export const SubmissionConfig = ({ methodId }) => {
       const runSetsPayload = {
         run_set_name: runSetName,
         run_set_description: runSetDescription,
-        method_id: methodId,
+        method_version_id: selectedMethodVersion.method_version_id,
         workflow_input_definitions: configuredInputDefinition,
         workflow_output_definitions: configuredOutputDefinition,
         wds_records: {
