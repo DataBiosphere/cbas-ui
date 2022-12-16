@@ -57,7 +57,6 @@ export const SubmissionDetails = ({ submissionId }) => {
         break
       default:
         filterStatement = runsData
-        break
     }
     return filterStatement
   }
