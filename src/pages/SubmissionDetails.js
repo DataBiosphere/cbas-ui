@@ -47,16 +47,13 @@ export const SubmissionDetails = ({ submissionId }) => {
     let filterStatement
     switch (filter) {
       case 'Error':
-        filterStatement = _.filter(r => errorStates.includes(r.state), runsData)
-        break
-      case 'None':
-        filterStatement = runsData
+        filterStatement = _.filter(r => errorStates.includes(r.state))
         break
       case 'Succeeded':
-        filterStatement = _.filter(r => r.state === 'COMPLETE', runsData)
+        filterStatement = _.filter(r => r.state === 'COMPLETE')
         break
       default:
-        filterStatement = runsData
+        filterStatement = filter => filter
     }
     return filterStatement
   }
@@ -101,7 +98,7 @@ export const SubmissionDetails = ({ submissionId }) => {
   const getSpecificMethod = _.filter(m => m.method_id === methodId, methodsData)
 
   const errorStates = ['SYSTEM_ERROR', 'EXECUTOR_ERROR']
-  const filteredPreviousRuns = filterOption ? getFilter(filterOption) : runsData
+  const filteredPreviousRuns = filterOption ? getFilter(filterOption)(runsData) : runsData
   const sortedPreviousRuns = _.orderBy(sort.field, sort.direction, filteredPreviousRuns)
   const filterOptions = ['Error', 'None', 'Succeeded']
 
