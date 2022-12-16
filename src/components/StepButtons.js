@@ -23,11 +23,18 @@ const styles = {
     width: 6, height: 6, borderRadius: '100%',
     margin: '0 2px',
     backgroundColor: colors.dark(0.4)
+  },
+  triangle: {
+    width: 6, height: 6, borderRadius: '100%',
+    borderTop: '50px solid transparent',
+    borderLeft: '100px solid',
+    borderBottom: '50px solid transparent',
+    backgroundColor: colors.dark(0.4)
   }
 }
 
 const dots = div({ style: { display: 'flex', margin: '0 0.5rem' } }, [
-  div({ style: styles.dot }), div({ style: styles.dot })
+  div({ style: styles.triangle }), div({ style: styles.triangle })
 ])
 
 const stepButton = ({ key, title, isValid, activeTabKey, onChangeTab }) => h(Clickable, {
