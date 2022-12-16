@@ -96,7 +96,6 @@ export const SubmissionDetails = ({ submissionId }) => {
   const methodId = specifyRunSet[0]?.method_id
   const getSpecificMethod = _.filter(m => m.method_id === methodId, methodsData)
 
-  // hardcoded to return error_messages since this is the only option we currently want to filter by
   const errorStates = ['SYSTEM_ERROR', 'EXECUTOR_ERROR']
   const filteredPreviousRuns = filterOption ? getFilter(filterOption) : runsData
   const sortedPreviousRuns = _.orderBy(sort.field, sort.direction, filteredPreviousRuns)
