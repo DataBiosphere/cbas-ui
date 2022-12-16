@@ -378,14 +378,14 @@ describe('SubmissionConfig inputs definition', () => {
     const table = await screen.findByRole('table')
     const rows = within(table).queryAllByRole('row')
 
-    expect(runSetInputDef.length).toBe(2) // there are 9 variables in the mock data above
+    expect(runSetInputDef.length).toBe(2)
     expect(rows.length).toBe(runSetInputDef.length + 1) // one row for each input definition variabe, plus headers
 
     const headers = within(rows[0]).queryAllByRole('columnheader')
-    expect(headers.length).toBe(5) // five columns
+    expect(headers.length).toBe(5)
 
     const cells = within(rows[1]).queryAllByRole('cell')
-    expect(cells.length).toBe(5) // five columns
+    expect(cells.length).toBe(5)
     within(cells[1]).getByText('target_workflow_1.foo.foo_rating')
     within(cells[2]).getByText('Int')
     within(cells[3]).getByText('Fetch from Data Table')
