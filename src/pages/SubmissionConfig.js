@@ -200,9 +200,11 @@ export const SubmissionConfig = ({ methodId }) => {
         }
       }
 
-      await Ajax(signal).Cbas.runSets.post(runSetsPayload)
+      const runSetObject = await Ajax(signal).Cbas.runSets.post(runSetsPayload)
       notify('success', 'Workflow successfully submitted', { message: 'You may check on the progress of workflow on this page anytime.', timeout: 5000 })
-      Nav.goToPath('submission-history')
+      Nav.goToPath('submission-details', {
+        submissionId: runSetObject.run_set_id
+      })
     } catch (error) {
       notify('error', 'Error submitting workflow', { detail: await (error instanceof Response ? error.text() : error) })
     }
