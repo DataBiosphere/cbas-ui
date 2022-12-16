@@ -47,14 +47,19 @@ export const SubmissionDetails = ({ submissionId }) => {
     let filterStatement
     switch (filter) {
       case 'Error':
-        return filterStatement = _.filter(r => errorStates.includes(r.state), runsData)
+        filterStatement = _.filter(r => errorStates.includes(r.state), runsData)
+        break
       case 'None':
-        return filterStatement = runsData
+        filterStatement = runsData
+        break
       case 'Succeeded':
-        return filterStatement = _.filter(r => r.state === 'COMPLETE', runsData)
+        filterStatement = _.filter(r => r.state === 'COMPLETE', runsData)
+        break
       default:
-        return filterStatement = runsData
+        filterStatement = runsData
+        break
     }
+    return filterStatement
   }
 
   useOnMount(() => {
