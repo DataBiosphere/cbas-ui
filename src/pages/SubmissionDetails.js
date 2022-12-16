@@ -43,6 +43,20 @@ export const SubmissionDetails = ({ submissionId }) => {
       Utils.differenceFromNowInSeconds(submitted)
   }
 
+  const getFilter = filter => {
+    let filterStatement
+    switch (filter) {
+      case 'Error':
+        return filterStatement = _.filter(r => errorStates.includes(r.state), runsData)
+      case 'None':
+        return filterStatement = runsData
+      case 'Succeeded':
+        return filterStatement = _.filter(r => r.state === 'COMPLETE', runsData)
+      default:
+        return filterStatement = runsData
+    }
+  }
+
   useOnMount(() => {
     const loadRunsData = async () => {
       try {
@@ -84,9 +98,9 @@ export const SubmissionDetails = ({ submissionId }) => {
 
   // hardcoded to return error_messages since this is the only option we currently want to filter by
   const errorStates = ['SYSTEM_ERROR', 'EXECUTOR_ERROR']
-  const filteredPreviousRuns = filterOption ? _.filter(r => errorStates.includes(r.state), runsData) : runsData
+  const filteredPreviousRuns = filterOption ? getFilter(filterOption) : runsData
   const sortedPreviousRuns = _.orderBy(sort.field, sort.direction, filteredPreviousRuns)
-  const filterOptions = ['Error']
+  const filterOptions = ['Error', 'None', 'Succeeded']
 
   const firstPageIndex = (pageNumber - 1) * itemsPerPage
   const lastPageIndex = firstPageIndex + itemsPerPage
