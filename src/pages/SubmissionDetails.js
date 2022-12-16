@@ -114,8 +114,7 @@ export const SubmissionDetails = ({ submissionId }) => {
         h(TextCell, [(h(Link, { onClick: () => Nav.goToPath('submission-history') }, ['Submission History'])), ' >', ` Submission ${submissionId}`]),
         h2(['workflow: ', getSpecificMethod[0]?.name]),
         h3(['Submission date: ', specifyRunSet[0] && Utils.makeCompleteDate(specifyRunSet[0].submission_timestamp)]),
-        h3(['Duration: ', specifyRunSet[0] && Utils.customFormatDuration(duration(specifyRunSet[0]))]),
-        h3(['Submitted by: Batch Teams (HARDCODED)'])
+        h3(['Duration: ', specifyRunSet[0] && Utils.customFormatDuration(duration(specifyRunSet[0]))])
       ])
     ]),
     div({
