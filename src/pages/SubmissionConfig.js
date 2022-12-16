@@ -40,8 +40,6 @@ export const SubmissionConfig = ({ methodId }) => {
   const [sort, setSort] = useState({ field: 'name', direction: 'asc' })
   const [inputTableSort, setInputTableSort] = useState({ field: 'taskVariable', direction: 'asc' })
 
-  console.log('configuredInputDefinition', configuredInputDefinition)
-
   const signal = useCancellation()
   const loadRecordsData = async recordType => {
     try {
@@ -397,30 +395,27 @@ const renderInputTable = ({
   }
 
   const recordLookupSelect = rowIndex => {
-    return h(TextCell, {}, [
-      // Select with dataTableAttributes as options
-      h(Select, {
-        isDisabled: false,
-        'aria-label': 'Select an Attribute',
-        isClearable: false,
-        value: _.get(`${rowIndex}.source.record_attribute`, configuredInputDefinition) || _.get(`${rowIndex}.record_attribute`, cachedInputSources),
-        onChange: ({ value }) => {
-          const newAttribute = _.get(`${value}.name`, dataTableAttributes)
-          const newSource = {
-            type: _.get(`${rowIndex}.source.type`, configuredInputDefinition),
-            record_attribute: newAttribute
-          }
-          const newConfig = _.set(`${rowIndex}.source`, newSource, configuredInputDefinition)
-          setConfiguredInputDefinition(newConfig)
-          setCachedInputSources(_.set(`${rowIndex}.record_attribute`, newSource.record_attribute, cachedInputSources))
-        },
-        placeholder: 'Select',
-        options: _.keys(dataTableAttributes),
-        // ** https://stackoverflow.com/questions/55830799/how-to-change-zindex-in-react-select-drowpdown
-        styles: { container: old => ({ ...old, display: 'inline-block' }), menuPortal: base => ({ ...base, zIndex: 9999 }) },
-        menuPortalTarget: document.body
-      })
-    ])
+    return h(Select, {
+      isDisabled: false,
+      'aria-label': 'Select an Attribute',
+      isClearable: false,
+      value: _.get(`${rowIndex}.source.record_attribute`, configuredInputDefinition) || _.get(`${rowIndex}.record_attribute`, cachedInputSources),
+      onChange: ({ value }) => {
+        const newAttribute = _.get(`${value}.name`, dataTableAttributes)
+        const newSource = {
+          type: _.get(`${rowIndex}.source.type`, configuredInputDefinition),
+          record_attribute: newAttribute
+        }
+        const newConfig = _.set(`${rowIndex}.source`, newSource, configuredInputDefinition)
+        setConfiguredInputDefinition(newConfig)
+        setCachedInputSources(_.set(`${rowIndex}.record_attribute`, newSource.record_attribute, cachedInputSources))
+      },
+      placeholder: 'Select Attribute',
+      options: _.keys(dataTableAttributes),
+      // ** https://stackoverflow.com/questions/55830799/how-to-change-zindex-in-react-select-drowpdown
+      styles: { container: old => ({ ...old, display: 'inline-block' }), menuPortal: base => ({ ...base, zIndex: 9999 }) },
+      menuPortalTarget: document.body
+    })
   }
 
   const parameterValueSelect = rowIndex => {
@@ -457,7 +452,7 @@ const renderInputTable = ({
           field: 'taskVariable',
           headerRenderer: () => h(Sortable, { sort: inputTableSort, field: 'taskVariable', onSort: setInputTableSort }, [h(HeaderCell, ['Task name'])]),
           cellRenderer: () => {
-            return h(TextCell, { style: { fontWeight: 500 } }, [method.name])
+            return h(TextCell, { style: { fontWeight: 500 } }, [method ? method.name : 'Loading...'])
           }
         },
         {
@@ -494,7 +489,7 @@ const renderInputTable = ({
                 const newConfig = _.set(`${rowIndex}.source`, newSource, configuredInputDefinition)
                 setConfiguredInputDefinition(newConfig)
               },
-              placeholder: 'Select',
+              placeholder: 'Select Source',
               options: _.values(inputSourceLabels),
               // ** https://stackoverflow.com/questions/55830799/how-to-change-zindex-in-react-select-drowpdown
               styles: { container: old => ({ ...old, display: 'inline-block' }), menuPortal: base => ({ ...base, zIndex: 9999 }) },
