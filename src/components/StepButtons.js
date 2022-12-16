@@ -29,7 +29,6 @@ const styles = {
     borderTop: '50px solid transparent',
     borderLeft: '100px solid',
     borderBottom: '50px solid transparent',
-    backgroundColor: colors.dark(0.4)
   }
 }
 
