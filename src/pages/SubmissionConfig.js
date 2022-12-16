@@ -384,7 +384,7 @@ const renderInputTable = ({
 
   const inputSourceLabels = {
     default: 'Use Default',
-    literal: 'Type a Value', // TODO
+    literal: 'Type a Value',
     record_lookup: 'Fetch from Data Table'
   }
   const inputSourceTypes = _.invert(inputSourceLabels)
