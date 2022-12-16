@@ -23,17 +23,11 @@ const styles = {
     width: 6, height: 6, borderRadius: '100%',
     margin: '0 2px',
     backgroundColor: colors.dark(0.4)
-  },
-  triangle: {
-    width: 6, height: 6, borderRadius: '100%',
-    borderTop: '50px solid transparent',
-    borderLeft: '100px solid',
-    borderBottom: '50px solid transparent',
   }
 }
 
-const dots = div({ style: { display: 'flex', margin: '0 0.5rem' } }, [
-  div({ style: styles.triangle }), div({ style: styles.triangle })
+const triangles = div({ style: { display: 'flex', margin: '0 0.5rem' } }, [
+  div({ style: { transform: 'rotate(-90deg) scaleY(1.5)' } }, [icon('caretDown', { size: 30, color: colors.dark(0.6), width: '100%' })])
 ])
 
 const stepButton = ({ key, title, isValid, activeTabKey, onChangeTab }) => h(Clickable, {
@@ -58,7 +52,7 @@ const StepButtons = ({ tabs, activeTab: activeTabKey, onChangeTab, finalStep }) 
   ..._.map(
     ({ key, title, isValid }) => h(Fragment, [
       stepButton({ key, title, isValid, activeTabKey, onChangeTab }),
-      dots
+      triangles
     ]),
     tabs
   ),
