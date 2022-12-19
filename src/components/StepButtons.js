@@ -26,8 +26,8 @@ const styles = {
   }
 }
 
-const dots = div({ style: { display: 'flex', margin: '0 0.5rem' } }, [
-  div({ style: styles.dot }), div({ style: styles.dot })
+const triangles = div({ style: { display: 'flex', margin: '0 0.5rem' } }, [
+  div({ style: { transform: 'rotate(-90deg) scaleY(1.5)' } }, [icon('caretDown', { size: 30, color: colors.dark(0.6), width: '100%' })])
 ])
 
 const stepButton = ({ key, title, isValid, activeTabKey, onChangeTab }) => h(Clickable, {
@@ -52,7 +52,7 @@ const StepButtons = ({ tabs, activeTab: activeTabKey, onChangeTab, finalStep }) 
   ..._.map(
     ({ key, title, isValid }) => h(Fragment, [
       stepButton({ key, title, isValid, activeTabKey, onChangeTab }),
-      dots
+      triangles
     ]),
     tabs
   ),

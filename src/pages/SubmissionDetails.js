@@ -1,14 +1,15 @@
-import { isEmpty, orderBy } from 'lodash/fp'
+import { filter, isEmpty, map, merge, orderBy } from 'lodash/fp'
 import { useMemo, useState } from 'react'
-import { div, h } from 'react-hyperscript-helpers'
+import { div, h, h2, h3 } from 'react-hyperscript-helpers'
 import ReactJson from 'react-json-view'
 import { AutoSizer } from 'react-virtualized'
-import { ButtonPrimary, Link, Navbar } from 'src/components/common'
+import { ButtonPrimary, Link, Navbar, Select } from 'src/components/common'
 import { icon } from 'src/components/icons'
-import { HeaderSection } from 'src/components/job-common'
+import { HeaderSection, SubmitNewWorkflowButton } from 'src/components/job-common'
 import Modal from 'src/components/Modal'
 import { FlexTable, paginator, Sortable, tableHeight, TextCell } from 'src/components/table'
 import { Ajax } from 'src/libs/ajax'
+import colors from 'src/libs/colors'
 import { goToPath } from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
 import { useCancellation, useOnMount } from 'src/libs/react-utils'
@@ -25,7 +26,38 @@ export const SubmissionDetails = ({ submissionId }) => {
   const [viewErrorsId, setViewErrorsId] = useState()
   const [runsData, setRunsData] = useState()
 
+  const [runSetData, setRunSetData] = useState()
+  const [methodsData, setMethodsData] = useState()
+  const [filterOption, setFilterOption] = useState(null)
+
   const signal = useCancellation()
+
+  const terminalStates = ['ERROR', 'COMPLETE', 'CANCELED']
+
+  const duration = ({
+    state,
+    submission_timestamp: submitted,
+    last_modified_timestamp: modified
+  }) => {
+    return terminalStates.includes(state) ?
+      differenceFromDatesInSeconds(submitted, modified) :
+      differenceFromNowInSeconds(submitted)
+  }
+
+  const getFilter = filterOption => {
+    let filterStatement
+    switch (filterOption) {
+      case 'Error':
+        filterStatement = filter(r => errorStates.includes(r.state))
+        break
+      case 'Succeeded':
+        filterStatement = filter(r => r.state === 'COMPLETE')
+        break
+      default:
+        filterStatement = data => data
+    }
+    return filterStatement
+  }
 
   useOnMount(() => {
     const loadRunsData = async () => {
@@ -37,10 +69,39 @@ export const SubmissionDetails = ({ submissionId }) => {
       }
     }
 
+    const loadRunSetData = async () => {
+      try {
+        const getRunSets = await Ajax(signal).Cbas.runSets.get()
+        const allRunSets = getRunSets.run_sets
+        setRunSetData(map(r => merge(r, { duration: duration(r) }), allRunSets))
+      } catch (error) {
+        notify('error', 'Error getting run set data', { detail: await (error instanceof Response ? error.text() : error) })
+      }
+    }
+
+    const loadMethodsData = async () => {
+      try {
+        const methodsResponse = await Ajax(signal).Cbas.methods.get()
+        const allMethods = methodsResponse.methods
+        setMethodsData(allMethods)
+      } catch (error) {
+        notify('error', 'Error loading methods data', { detail: await (error instanceof Response ? error.text() : error) })
+      }
+    }
+
     loadRunsData()
+    loadRunSetData()
+    loadMethodsData()
   })
 
-  const sortedPreviousRuns = orderBy(sort.field, sort.direction, runsData)
+  const specifyRunSet = filter(r => r.run_set_id === submissionId, runSetData)
+  const methodId = specifyRunSet[0]?.method_id
+  const getSpecificMethod = filter(m => m.method_id === methodId, methodsData)
+
+  const errorStates = ['SYSTEM_ERROR', 'EXECUTOR_ERROR']
+  const filteredPreviousRuns = filterOption ? getFilter(filterOption)(runsData) : runsData
+  const sortedPreviousRuns = orderBy(sort.field, sort.direction, filteredPreviousRuns)
+  const filterOptions = ['Error', 'None', 'Succeeded']
 
   const firstPageIndex = (pageNumber - 1) * itemsPerPage
   const lastPageIndex = firstPageIndex + itemsPerPage
@@ -57,20 +118,57 @@ export const SubmissionDetails = ({ submissionId }) => {
       }
     ]
 
-    return h(HeaderSection, { breadcrumbPathObjects, title: 'Submission Details' })
+    return h(HeaderSection, { breadcrumbPathObjects, title: 'Submission Details', button: SubmitNewWorkflowButton })
   }, [submissionId])
 
   const rowWidth = 100
-  const rowHeight = 200
+  const rowHeight = 50
   return div({ id: 'submission-details-page' }, [
     Navbar('SUBMIT WORKFLOWS WITH CROMWELL'),
-    div({ style: { padding: '1rem 2rem 2rem' } }, [
-      header,
+    div({
+      style: {
+        borderBottom: '2px solid rgb(116, 174, 67)',
+        boxShadow: 'rgb(0 0 0 / 26%) 0px 2px 5px 0px, rgb(0 0 0 / 16%) 0px 2px 10px 0px',
+        position: 'relative'
+      }
+    }, [
+      div({ style: { marginLeft: '4em' } }, [
+        header,
+        div({ style: { marginTop: '2rem' } }, [
+          h2(['workflow: ', getSpecificMethod[0]?.name]),
+          h3(['Submission date: ', specifyRunSet[0] && makeCompleteDate(specifyRunSet[0].submission_timestamp)]),
+          h3(['Duration: ', specifyRunSet[0] && customFormatDuration(duration(specifyRunSet[0]))])
+        ])
+      ])
+    ]),
+    div({
+      style: {
+        backgroundColor: 'rgb(235, 236, 238)',
+        display: 'flex',
+        flex: '1 1 auto',
+        flexDirection: 'column',
+        padding: '1rem 3rem'
+      }
+    }, [
       div({
         style: {
           marginTop: '1em', height: tableHeight({ actualRows: paginatedPreviousRuns.length, maxRows: 12.5, heightPerRow: 250 }), minHeight: '10em'
         }
       }, [
+        div([h2(['Workflows'])]),
+        div([h3(['Filter by: '])]),
+        h(Select, {
+          isDisabled: false,
+          'aria-label': 'Filter selection',
+          isClearable: false,
+          value: filterOption,
+          placeholder: 'None selected',
+          onChange: ({ value }) => {
+            setFilterOption(value)
+          },
+          styles: { container: old => ({ ...old, display: 'inline-block', width: 200, marginBottom: '1.5rem' }) },
+          options: filterOptions
+        }),
         h(AutoSizer, [
           ({ width, height }) => h(FlexTable, {
             'aria-label': 'previous runs',
@@ -84,48 +182,30 @@ export const SubmissionDetails = ({ submissionId }) => {
               {
                 size: { basis: 350 },
                 field: 'record_id',
-                headerRenderer: () => h(Sortable, { sort, field: 'record_id', onSort: setSort }, ['Record Entry']),
+                headerRenderer: () => h(Sortable, { sort, field: 'record_id', onSort: setSort }, [' ID']),
                 cellRenderer: ({ rowIndex }) => {
                   return h(TextCell, [paginatedPreviousRuns[rowIndex].record_id])
                 }
               },
               {
-                size: { basis: 350 },
-                field: 'engine_id',
-                headerRenderer: () => h(Sortable, { sort, field: 'engine_id', onSort: setSort }, ['Engine Details']),
-                cellRenderer: ({ rowIndex }) => {
-                  // link to run-details / :workflowId
-                  return h(
-                    Link,
-                    { onClick: () => { goToPath('run-details', { workflowId: paginatedPreviousRuns[rowIndex].engine_id }, submissionId) }, style: { fontWeight: 'bold' } },
-                    ['Run Details']
-                  )
-                }
-              },
-              {
-                size: { basis: 220, grow: 0 },
+                size: { basis: 600, grow: 0 },
                 field: 'state',
                 headerRenderer: () => h(Sortable, { sort, field: 'state', onSort: setSort }, ['Status']),
                 cellRenderer: ({ rowIndex }) => {
                   const failureStates = ['SYSTEM_ERROR', 'EXECUTOR_ERROR']
                   if (failureStates.includes(paginatedPreviousRuns[rowIndex].state)) {
                     return div({ style: { width: '100%', textAlign: 'center' } }, [
-                      div({ style: { marginBottom: '1rem', fontWeight: 'bold' } }, [h(TextCell, {}, [icon('warning-standard', { size: 18, color: 'red' }), ['   Failed with error']])]),
-                      h(Link, { style: {}, onClick: () => setViewErrorsId(rowIndex) }, ['View'])
+                      h(Link, { key: 'error link', style: { fontWeight: 'bold' }, onClick: () => setViewErrorsId(rowIndex) }, [[icon('warning-standard', { key: 'error', size: 18, style: { color: colors.danger() } })], ['      Error(s)']])
                     ])
-                  } else { return h(TextCell, [paginatedPreviousRuns[rowIndex].state]) }
+                  } else if (paginatedPreviousRuns[rowIndex].state === 'COMPLETE') {
+                    return div({ style: { width: '100%', textAlign: 'center' } }, [
+                      div({ style: { fontWeight: 'bold' } }, [h(TextCell, {}, [icon('check', { size: 18, style: { color: colors.success() } }), ['   Succeeded']])])
+                    ])
+                  }
                 }
               },
               {
-                size: { basis: 300, grow: 0 },
-                field: 'submission_date',
-                headerRenderer: () => h(Sortable, { sort, field: 'submission_date', onSort: setSort }, ['Submission date']),
-                cellRenderer: ({ rowIndex }) => {
-                  return h(TextCell, [makeCompleteDate(paginatedPreviousRuns[rowIndex].submission_date)])
-                }
-              },
-              {
-                size: { basis: 300, grow: 0 },
+                size: { basis: 500, grow: 0 },
                 field: 'duration',
                 headerRenderer: () => h(Sortable, { sort, field: 'duration', onSort: setSort }, ['Duration']),
                 cellRenderer: ({ rowIndex }) => {
@@ -143,27 +223,20 @@ export const SubmissionDetails = ({ submissionId }) => {
                 }
               },
               {
-                size: { basis: 155, grow: 0 },
-                field: 'workflow_params',
-                headerRenderer: () => 'Data',
+                size: { basis: 550, grow: 0 },
+                field: 'run_id',
+                headerRenderer: () => h(Sortable, { sort, field: 'run_id', onSort: setSort }, ['Run ID']),
                 cellRenderer: ({ rowIndex }) => {
                   return div({ style: { width: '100%', textAlign: 'left' } }, [
-                    h(Link, { style: { display: 'inline-block', marginBottom: '1rem', textDecoration: 'underline' }, onClick: () => setViewInputsId(rowIndex) }, ['View inputs']),
-                    h(Link, { style: { display: 'inline-block', marginTop: '1rem', textDecoration: 'underline' }, onClick: () => setViewOutputsId(rowIndex) }, ['View outputs'])
-                  ])
-                }
-              },
-              {
-                size: { basis: 250, grow: 0 },
-                field: 'logs',
-                headerRenderer: () => 'Logs',
-                cellRenderer: ({ rowIndex }) => {
-                  return div({ style: { width: '100%', textAlign: 'center' } }, [
-                    h(Link, { disabled: true, onClick: () => setViewInputsId(rowIndex) }, ['View workflow log file'])
+                    h(Link, { onClick: () => { goToPath('workflow-dashboard', { workflowId: paginatedPreviousRuns[rowIndex].engine_id }) }, style: { fontWeight: 'bold' } },
+                      [paginatedPreviousRuns[rowIndex].run_id])
                   ])
                 }
               }
-            ]
+            ],
+            styleCell: ({ rowIndex }) => {
+              return rowIndex % 2 && { backgroundColor: colors.light(0.2) }
+            }
           })
         ])
       ]),
@@ -182,7 +255,7 @@ export const SubmissionDetails = ({ submissionId }) => {
         })
       ]),
       (viewInputsId !== undefined) && h(Modal, {
-        title: 'Inputs Definition JSON',
+        title: 'TODO',
         width: 600,
         onDismiss: () => setViewInputsId(undefined),
         showCancel: false,
@@ -192,15 +265,15 @@ export const SubmissionDetails = ({ submissionId }) => {
             onClick: () => setViewInputsId(undefined)
           }, ['OK'])
       }, [
-        h(ReactJson, {
+        h(TextCell, {
           style: { whiteSpace: 'pre-wrap', wordBreak: 'break-word' },
           name: false,
           collapsed: 4,
           enableClipboard: true,
           displayDataTypes: false,
           displayObjectSize: false,
-          src: isEmpty(paginatedPreviousRuns[viewInputsId].workflow_params) ? {} : JSON.parse(paginatedPreviousRuns[viewInputsId].workflow_params)
-        })
+          src: 'Link to workflow details!'//_.isEmpty(paginatedPreviousRuns[viewInputsId].workflow_params) ? {} : JSON.parse(paginatedPreviousRuns[viewInputsId].workflow_params)
+        }, ['Link to workflow details!'])
       ]),
       (viewOutputsId !== undefined) && h(Modal, {
         title: 'Outputs Definition JSON',
