@@ -39,7 +39,6 @@ export const SubmissionConfig = ({ methodId }) => {
   const [sort, setSort] = useState({ field: 'name', direction: 'asc' })
 
   const [launching, setLaunching] = useState(undefined)
-  // const [runSet, setRunSetName] = useState(null)
 
 
   const signal = useCancellation()
@@ -90,7 +89,7 @@ export const SubmissionConfig = ({ methodId }) => {
 
   useOnMount(() => {
     //setRunSetName('New run set name')
-    setRunSetDescription('New run set description')
+    //setRunSetDescription('New run set description')
 
     loadMethodsData()
     loadTablesData()
@@ -161,9 +160,6 @@ export const SubmissionConfig = ({ methodId }) => {
         width: 600,
         onDismiss: () => setLaunching(undefined),
         showCancel: true,
-        borderRadius: 5, position: 'relative',
-        padding: '1.5rem 1.25rem', outline: 'none',
-        backgroundColor: 'white',
         okButton:
           h(ButtonPrimary, {
             disabled: false,
@@ -179,7 +175,11 @@ export const SubmissionConfig = ({ methodId }) => {
         ),
         div({ style: { lineHeight: 2.0, marginTop: '1.5rem' } }, [
           span({ style: { fontSize: 16, fontWeight: 'bold' } }, ['Comment ']), '(optional)',
-          h(TextArea, { style: { height: '10rem' }, placeholder: 'Enter comments' })]),
+          h(TextInput, {
+            style: { height: '10rem' },
+            value: runSetDescription,
+            onChange: setRunSetDescription,
+            placeholder: 'Enter comments' })]),
         div({ style: { lineHeight: 2.0, marginTop: '1.5rem' } }, [
           h(TextCell, ['This will launch # workflows']),
           h(TextCell, { style: { marginTop: '1.5rem'} }, ['Running workflows will generate cloud compute charges.'])
