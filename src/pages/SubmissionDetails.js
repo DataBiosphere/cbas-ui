@@ -79,7 +79,7 @@ export const SubmissionDetails = ({ submissionId }) => {
       }
     }
 
-    const loadMethodsData = async (method_version_id) => {
+    const loadMethodsData = async method_version_id => {
       try {
         const methodsResponse = await Ajax(signal).Cbas.methods.getByMethodVersionId(method_version_id)
         const allMethods = methodsResponse.methods
