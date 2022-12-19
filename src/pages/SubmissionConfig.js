@@ -1,14 +1,16 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
-import { a, div, h, h2, span } from 'react-hyperscript-helpers'
+import { a, div, h, h2, h3, span } from 'react-hyperscript-helpers'
 import ReactJson from 'react-json-view'
 import { AutoSizer } from 'react-virtualized'
 import { ButtonPrimary, Checkbox, Clickable, headerBar, Link, Select } from 'src/components/common'
 import { HeaderOptions, renderDataCell } from 'src/components/data/data-utils'
 import { icon } from 'src/components/icons'
+import { TextArea, TextInput } from 'src/components/input'
+import Modal from 'src/components/Modal'
 import { MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
 import StepButtons from 'src/components/StepButtons'
-import { GridTable, HeaderCell, Resizable } from 'src/components/table'
+import { GridTable, HeaderCell, Resizable, TextCell } from 'src/components/table'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import * as Nav from 'src/libs/nav'
@@ -35,6 +37,10 @@ export const SubmissionConfig = ({ methodId }) => {
 
   // TODO: this should probably be moved to a scope more local to the data selector
   const [sort, setSort] = useState({ field: 'name', direction: 'asc' })
+
+  const [launching, setLaunching] = useState(undefined)
+  // const [runSet, setRunSetName] = useState(null)
+
 
   const signal = useCancellation()
 
@@ -147,9 +153,38 @@ export const SubmissionConfig = ({ methodId }) => {
           style: { marginLeft: '1rem' },
           // disabled: !!Utils.computeWorkspaceError(ws) || !!noLaunchReason || currentSnapRedacted || !!snapshotReferenceError,
           // tooltip: Utils.computeWorkspaceError(ws) || noLaunchReason || (currentSnapRedacted && 'Workflow version was redacted.'),
-          onClick: () => submitRun()
+          onClick: () => setLaunching(true) //submitRun()
         }, ['Submit'])
-      })
+      }),
+      (launching !== undefined) && h(Modal, {
+        title: 'Send submission',
+        width: 600,
+        onDismiss: () => setLaunching(undefined),
+        showCancel: false,
+        borderRadius: 5, position: 'relative',
+        padding: '1.5rem 1.25rem', outline: 'none',
+        backgroundColor: 'white',
+        okButton:
+          h(ButtonPrimary, {
+            disabled: false,
+            onClick: () => submitRun()
+          }, ['Submit'])
+      }, [
+        div({ style: { lineHeight: 2.0 } }, [
+          h(TextCell, { style: { marginTop: '1.5rem', fontSize: 16, fontWeight: 'bold' } }, ['Submission name']),
+          h(TextInput, {
+            value: name,
+            onChange: setRunSetName(name),
+            placeholder: 'Enter submission name' })]
+        ),
+        div({ style: { lineHeight: 2.0, marginTop: '1.5rem' } }, [
+          span({ style: { fontSize: 16, fontWeight: 'bold' } }, ['Comment ']), '(optional)',
+          h(TextArea, { style: { height: '10rem' }, placeholder: 'Enter comments' })]),
+        div({ style: { lineHeight: 2.0, marginTop: '1.5rem' } }, [
+          h(TextCell, ['This will launch # workflows']),
+          h(TextCell, { style: { marginTop: '1.5rem'} }, ['Running workflows will generate cloud compute charges.'])
+        ])
+        ])
     ])
   }
 
@@ -208,6 +243,22 @@ export const SubmissionConfig = ({ methodId }) => {
     } catch (error) {
       notify('error', 'Error submitting workflow', { detail: await (error instanceof Response ? error.text() : error) })
     }
+  }
+
+  const submitModal = () => {
+    return h(Modal, {
+      title: 'Submit modal',
+      onDismiss: setLaunching(true),
+      okButton:
+        h(ButtonPrimary, {
+        disabled: false, //TODO: change this to be disabled when there is no submission name
+        onClick: () => {
+          setLaunching(true)
+          submitRun()
+        }
+      }, ['Submit'])
+    }, [div(), div({}, [h(TextCell, ['Comment (optional)']),(h(TextInput, {placeholder: 'Enter comments'}))]), div()]
+    )
   }
 
   return h(Fragment, [
