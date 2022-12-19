@@ -175,8 +175,9 @@ export const SubmissionConfig = ({ methodId }) => {
         ),
         div({ style: { lineHeight: 2.0, marginTop: '1.5rem' } }, [
           span({ style: { fontSize: 16, fontWeight: 'bold' } }, ['Comment ']), '(optional)',
-          h(TextInput, {
-            style: { height: '10rem' },
+          h(TextArea, {
+            style: { height: 200, borderTopLeftRadius: 0, borderTopRightRadius: 0 },
+            'aria-label': 'Enter a comment',
             value: runSetDescription,
             onChange: setRunSetDescription,
             placeholder: 'Enter comments' })]),
