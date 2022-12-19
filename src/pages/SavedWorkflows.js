@@ -66,8 +66,7 @@ export const SavedWorkflows = ({ methodsData }) => {
     return div({ onClick: () => { Nav.goToPath('submission-config', { methodId }) }, style: { ...styles.card, ...styles.mediumCard, cursor: 'pointer' } }, [
       div({ style: { paddingTop: '0.75rem', ...styles.innerContent, display: 'flex', alignItems: 'center' } }, [
         div({ style: { ...styles.longTitle, width: 15, paddingRight: '1.5rem' } }, [`${name}`]),
-        div({ style: { width: 300 } }, ['Version: (HARDCODED)']),
-        div({ style: { width: 300 } }, ['Last updated: ', lastRun ? Utils.makeCompleteDate(lastRun) : 'Never run']),
+        div({ style: { width: 500 } }, ['Last run: ', lastRun.previously_run ? `Version ${lastRun.method_version_name} on ${Utils.makeCompleteDate(lastRun.timestamp)}` : '(Never run)']),
         div({ style: { flex: 'none', width: 275 } }, ['Source: ', source])
       ]),
       div({ style: { ...styles.innerContent, display: 'flex', alignItems: 'center' } }, [description])
