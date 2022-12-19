@@ -140,3 +140,23 @@ export const withBusyState = _.curry((setBusy, fn) => async (...args) => {
     setBusy(false)
   }
 })
+
+/**
+ * Converts a value to a type. Auto-curries.
+ * @param {string} type - 'string', 'number', or 'boolean'
+ * @param value
+ */
+export const convertValue = _.curry((type, value) => {
+  switch (type) {
+    case 'string':
+      // known issue where toString is incorrectly flagged:
+      // eslint-disable-next-line lodash-fp/preferred-alias
+      return _.toString(value)
+    case 'number':
+      return _.toNumber(value)
+    case 'boolean':
+      return !['false', 'no', '0', ''].includes(_.lowerCase(value))
+    default:
+      throw new Error('unknown type for convertValue')
+  }
+})

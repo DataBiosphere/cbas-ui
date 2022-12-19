@@ -1,0 +1,24 @@
+{
+  "eslint.workingDirectories": [
+    "./config",
+    "./hooks",
+    "./jenkins",
+    "./public",
+    "./src",
+    "./conf"
+  ],
+  "emmet.excludeLanguages": [
+    "markdown"
+  ],
+  "search.exclude": {
+    "**/.yarn": true,
+    "**/.pnp.*": true
+  },
+  "eslint.nodePath": ".yarn/sdks",
+  "vsintellicode.features.apiExamples": "disabled",
+  "vsintellicode.features.apiExamplests": "enabled",
+  "vsintellicode.features.python.deepLearning": "disabled",
+  "vsintellicode.python.completionsEnabled": false,
+  "vsintellicode.sql.completionsEnabled": false,
+  "jest.jestCommandLine": "yarn test"
+}

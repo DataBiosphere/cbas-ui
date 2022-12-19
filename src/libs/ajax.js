@@ -47,7 +47,8 @@ const withUrlPrefix = _.curry((prefix, wrappedFetch) => (path, ...args) => {
 export const fetchOk = _.flow(withInstrumentation, withCancellation, withErrorRejection)(fetch)
 
 const fetchCbas = withUrlPrefix(`${getConfig().cbasUrlRoot}/api/batch/v1/`, fetchOk)
-const fetchCromwell = withUrlPrefix(`${getConfig().cbasUrlRoot}/cromwell/api/workflows/v1/`, fetchOk)
+const fetchCromwell = withUrlPrefix(`${getConfig().cromwellUrlRoot}/api/workflows/v1/`, fetchOk)
+const fetchWds = withUrlPrefix(`${getConfig().wdsUrlRoot}/`, fetchOk)
 
 const Cbas = signal => ({
   status: async () => {
@@ -69,6 +70,17 @@ const Cbas = signal => ({
     get: async () => {
       const res = await fetchCbas(`run_sets`, { signal, method: 'GET' })
       return res.json()
+    },
+    getForMethod: async (methodId, pageSize) => {
+      const keyParams = qs.stringify({ method_id: methodId, page_size: pageSize }, { arrayFormat: 'repeat' })
+      const res = await fetchCbas(`run_sets?${keyParams}`, { signal, method: 'GET' })
+      return res.json()
+    }
+  },
+  methods: {
+    get: async () => {
+      const res = await fetchCbas('methods', { signal, method: 'GET' })
+      return res.json()
     }
   }
 })
@@ -85,9 +97,33 @@ const Cromwell = signal => ({
   }
 })
 
+// TODO: how to get these values?
+const wdsInstanceId = '15f36863-30a5-4cab-91f7-52be439f1175'
+const wdsApiVersion = 'v0.2'
+const searchPayload = {}
+
+const Wds = signal => ({
+  types: {
+    get: async () => {
+      const res = await fetchWds(`${wdsInstanceId}/types/${wdsApiVersion}`, { signal, method: 'GET' })
+      return res.json()
+    }
+  },
+  search: {
+    post: async wdsType => {
+      const res = await fetchWds(
+        `${wdsInstanceId}/search/${wdsApiVersion}/${wdsType}`,
+        _.mergeAll([{ signal, method: 'POST' }, jsonBody(searchPayload)])
+      )
+      return res.json()
+    }
+  }
+})
+
 export const Ajax = signal => {
   return {
     Cbas: Cbas(signal),
-    Cromwell: Cromwell(signal)
+    Cromwell: Cromwell(signal),
+    Wds: Wds(signal)
   }
 }

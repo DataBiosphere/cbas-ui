@@ -2,6 +2,7 @@ import '@testing-library/jest-dom'
 
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import { h } from 'react-hyperscript-helpers'
+import selectEvent from 'react-select-event'
 import { Ajax } from 'src/libs/ajax'
 import { SubmissionDetails } from 'src/pages/SubmissionDetails'
 
@@ -17,7 +18,7 @@ jest.mock('src/libs/config', () => ({
 
 describe('Submission Details page', () => {
   // SubmissionDetails component uses AutoSizer to determine the right size for table to be displayed. As a result we need to
-  // mock out the height and width so that when AutoSizer asks for the width and height of "browser" it can use the mocked
+  // mock out the height and width so that when AutoSizer asks for the width and height of 'browser' it can use the mocked
   // values and render the component properly. Without this the tests will be break.
   // (see https://github.com/bvaughn/react-virtualized/issues/493 and https://stackoverflow.com/a/62214834)
   const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'offsetHeight')
@@ -26,20 +27,62 @@ describe('Submission Details page', () => {
   const runsData = {
     runs: [
       {
-        run_id: 'ea001565-1cd6-4e43-b446-932ac1918081',
-        state: 'COMPLETE',
-        submission_date: '2022-11-23 15:03:28.202094',
-        workflow_url: 'https://abc.wdl',
-        last_modified_timestamp: '2022-11-23 15:04:15.359591',
-        workflow_params: '[{"parameter_name":"workflow_input_foo","parameter_type":"String","source":{"type":"literal","entity_attribute":"helloworld"}},{"parameter_name":"workflow_input_foo_rating","parameter_type":"Int","source":{"type":"entity_lookup","entity_attribute":"entity_field_foo_rating"}}]'
+        run_id: 'b7234aae-6f43-405e-bb3a-71f924e09825',
+        engine_id: 'b29e84b1-ad1b-4462-a9a0-7ec849bf30a8',
+        run_set_id: '0cd15673-7342-4cfa-883d-819660184a16',
+        record_id: 'FOO2',
+        workflow_url: 'https://xyz.wdl',
+        state: 'SYSTEM_ERROR',
+        workflow_params: '[{\'input_name\':\'wf_hello.hello.addressee\',\'input_type\':{\'type\':\'primitive\',\'primitive_type\':\'String\'},\'source\':{\'type\':\'record_lookup\',\'record_attribute\':\'foo_name\'}}]',
+        workflow_outputs: '[]',
+        submission_date: '2022-07-14T22:22:15.591Z',
+        last_modified_timestamp: '2022-07-14T23:14:25.791Z',
+        error_messages: ['failed workflow']
       },
       {
-        run_id: 'b7234aae-6f43-405e-bb3a-71f924e09825',
-        state: 'SYSTEM_ERROR',
-        submission_date: '2022-07-14T22:22:15.591Z',
-        workflow_url: 'https://xyz.wdl',
-        last_modified_timestamp: '2022-07-14T23:14:25.791Z',
-        workflow_params: '[{"parameter_name":"workflow_input_foo","parameter_type":"String","source":{"type":"literal","entity_attribute":"helloworld"}},{"parameter_name":"workflow_input_foo_rating","parameter_type":"Int","source":{"type":"entity_lookup","entity_attribute":"entity_field_foo_rating"}}]'
+        run_id: '55b36a53-2ff3-41d0-adc4-abc08aea88ad',
+        engine_id: 'd16721eb-8745-4aa2-b71e-9ade2d6575aa',
+        run_set_id: '0cd15673-7342-4cfa-883d-819660184a16',
+        record_id: 'FOO1',
+        workflow_url: 'https://raw.githubusercontent.com/broadinstitute/cromwell/a40de672c565c4bbd40f57ff96d4ee520dc2b4fc/centaur/src/main/resources/standardTestCases/hello/hello.wdl',
+        state: 'COMPLETE',
+        workflow_params: '[{\'input_name\':\'wf_hello.hello.addressee\',\'input_type\':{\'type\':\'primitive\',\'primitive_type\':\'String\'},\'source\':{\'type\':\'record_lookup\',\'record_attribute\':\'foo_name\'}}]',
+        workflow_outputs: '[]',
+        submission_date: '2022-12-08T23:29:18.675+00:00',
+        last_modified_timestamp: '2022-12-08T23:29:55.695+00:00'
+      }
+    ]
+  }
+
+  const runSetData = {
+    run_sets: [
+      {
+        run_set_id: 'e8347247-4738-4ad1-a591-56c119f93f58',
+        method_id: '00000000-0000-0000-0000-000000000004',
+        is_template: false,
+        run_set_name: 'hello world',
+        run_set_description: 'test',
+        state: 'COMPLETE',
+        record_type: 'FOO',
+        submission_timestamp: '2022-12-08T23:28:50.280+00:00',
+        last_modified_timestamp: '2022-12-09T16:30:50.280+00:00',
+        run_count: 1,
+        error_count: 0,
+        input_definition: '[{\'input_name\':\'wf_hello.hello.addressee\',\'input_type\':{\'type\':\'primitive\',\'primitive_type\':\'String\'},\'source\':{\'type\':\'record_lookup\',\'record_attribute\':\'foo_name\'}}]',
+        output_definition: '[]'
+      }
+    ]
+  }
+
+  const methodData = {
+    methods: [
+      {
+        method_id: '00000000-0000-0000-0000-000000000004',
+        name: 'Hello world',
+        description: 'Add description',
+        source: 'Github',
+        source_url: 'https://raw.githubusercontent.com/broadinstitute/cromwell/a40de672c565c4bbd40f57ff96d4ee520dc2b4fc/centaur/src/main/resources/standardTestCases/hello/hello.wdl',
+        created: '2022-12-08T23:28:50.280+00:00'
       }
     ]
   }
@@ -82,40 +125,49 @@ describe('Submission Details page', () => {
     const table = screen.getByRole('table')
 
     // Assert
-    expect(table).toHaveAttribute('aria-colcount', '6')
+    expect(table).toHaveAttribute('aria-colcount', '4')
     expect(table).toHaveAttribute('aria-rowcount', '3')
 
     const rows = within(table).queryAllByRole('row')
     expect(rows.length).toBe(3)
 
     const headers = within(rows[0]).queryAllByRole('columnheader')
-    expect(headers.length).toBe(6)
-    within(headers[0]).getByText('Run ID')
+    expect(headers.length).toBe(4)
+    within(headers[0]).getByText('ID')
     within(headers[1]).getByText('Status')
-    within(headers[2]).getByText('Submission date')
-    within(headers[3]).getByText('Duration')
-    within(headers[4]).getByText('Data')
-    within(headers[5]).getByText('Logs')
-
-
-    const cellsFromDataRow2 = within(rows[1]).queryAllByRole('cell')
-    expect(cellsFromDataRow2.length).toBe(6)
-    within(cellsFromDataRow2[0]).getByText('ea001565-1cd6-4e43-b446-932ac1918081')
-    within(cellsFromDataRow2[1]).getByText('COMPLETE')
-    within(cellsFromDataRow2[2]).getByText('Nov 23, 2022, 3:03 PM')
-    within(cellsFromDataRow2[3]).getByText('47 seconds')
-    within(cellsFromDataRow2[4]).getByText('View inputs')
+    within(headers[2]).getByText('Duration')
+    within(headers[3]).getByText('Run ID')
 
     // check data rows are rendered as expected
     const cellsFromDataRow1 = within(rows[2]).queryAllByRole('cell')
-    expect(cellsFromDataRow1.length).toBe(6)
-    within(cellsFromDataRow1[0]).getByText('b7234aae-6f43-405e-bb3a-71f924e09825')
-    within(cellsFromDataRow1[1]).getByText('Failed with error')
-    within(cellsFromDataRow1[2]).getByText(/Jul 14, 2022/)
-    within(cellsFromDataRow1[3]).getByText('52 minutes 10 seconds')
-    within(cellsFromDataRow1[4]).getByText('View inputs')
+    expect(cellsFromDataRow1.length).toBe(4)
+    within(cellsFromDataRow1[0]).getByText('FOO2')
+    within(cellsFromDataRow1[1]).getByText('Error(s)')
+    within(cellsFromDataRow1[2]).getByText('52 minutes 10 seconds')
+    within(cellsFromDataRow1[3]).getByText('b7234aae-6f43-405e-bb3a-71f924e09825')
+
+    const cellsFromDataRow2 = within(rows[1]).queryAllByRole('cell')
+    expect(cellsFromDataRow2.length).toBe(4)
+    within(cellsFromDataRow2[0]).getByText('FOO1')
+    within(cellsFromDataRow2[1]).getByText('Succeeded')
+    within(cellsFromDataRow2[2]).getByText('37 seconds')
+    within(cellsFromDataRow2[3]).getByText('55b36a53-2ff3-41d0-adc4-abc08aea88ad')
   })
 
+  it('should display standard message when there are no saved workflows', () => {
+    // Act
+    act(async () => {
+      await render(h(SubmissionDetails, { submissionId }))
+    })
+    const table = screen.getByRole('table')
+
+    // Assert
+    expect(table).toHaveAttribute('aria-colcount', '4')
+    expect(table).toHaveAttribute('aria-rowcount', '1')
+
+    // check that noContentMessage shows up as expected
+    screen.getByText('Nothing here yet! Your previously run workflows will be displayed here.')
+  })
 
   it('should sort columns properly', async () => {
     // Act - click on sort button on Submitted column to sort submission timestamp by ascending order
@@ -128,58 +180,92 @@ describe('Submission Details page', () => {
     expect(rows.length).toBe(3)
 
     const headers = within(rows[0]).queryAllByRole('columnheader')
-    expect(headers.length).toBe(6)
+    expect(headers.length).toBe(4)
 
     await act(async () => {
       await fireEvent.click(within(headers[2]).getByRole('button'))
     })
 
-    // Assert - rows are now sorted by submission timestamp in ascending order
-    const cellsFromUpdatedDataRow1 = within(rows[2]).queryAllByRole('cell')
-    expect(cellsFromUpdatedDataRow1.length).toBe(6)
-    within(cellsFromUpdatedDataRow1[0]).getByText('ea001565-1cd6-4e43-b446-932ac1918081')
-    within(cellsFromUpdatedDataRow1[1]).getByText('COMPLETE')
-    within(cellsFromUpdatedDataRow1[2]).getByText('Nov 23, 2022, 3:03 PM')
-    within(cellsFromUpdatedDataRow1[3]).getByText('47 seconds')
-    within(cellsFromUpdatedDataRow1[4]).getByText(/View inputs/)
+    // Assert - rows are now sorted by duration in ascending order
+    const cellsFromUpdatedDataRow1 = within(rows[1]).queryAllByRole('cell')
+    expect(cellsFromUpdatedDataRow1.length).toBe(4)
+    within(cellsFromUpdatedDataRow1[0]).getByText('FOO2')
+    within(cellsFromUpdatedDataRow1[1]).getByText('Error(s)')
+    within(cellsFromUpdatedDataRow1[2]).getByText('52 minutes 10 seconds')
+    within(cellsFromUpdatedDataRow1[3]).getByText('b7234aae-6f43-405e-bb3a-71f924e09825')
 
-    const cellsFromUpdatedDataRow2 = within(rows[1]).queryAllByRole('cell')
-    expect(cellsFromUpdatedDataRow2.length).toBe(6)
-    within(cellsFromUpdatedDataRow2[0]).getByText('b7234aae-6f43-405e-bb3a-71f924e09825')
-    within(cellsFromUpdatedDataRow2[1]).getByText('Failed with error')
-    within(cellsFromUpdatedDataRow2[2]).getByText(/Jul 14, 2022/)
-    within(cellsFromUpdatedDataRow2[3]).getByText('52 minutes 10 seconds')
-    within(cellsFromUpdatedDataRow2[4]).getByText(/View inputs/)
-
-    // Act - click on sort button on Status column
-    await act(async () => {
-      await fireEvent.click(within(headers[1]).getByRole('button'))
-    })
-
-    // Assert that sort by Status worked
-    const updatedDataRow1Cells = within(rows[2]).queryAllByRole('cell')
-    expect(updatedDataRow1Cells.length).toBe(6)
-    within(updatedDataRow1Cells[0]).getByText('b7234aae-6f43-405e-bb3a-71f924e09825')
-    within(updatedDataRow1Cells[1]).getByText('Failed with error')
-    within(updatedDataRow1Cells[2]).getByText(/Jul 14, 2022/)
-    within(updatedDataRow1Cells[3]).getByText('52 minutes 10 seconds')
-    within(updatedDataRow1Cells[4]).getByText(/View inputs/)
-
-    const updatedDataRow2Cells = within(rows[1]).queryAllByRole('cell')
-    expect(updatedDataRow2Cells.length).toBe(6)
-    within(updatedDataRow2Cells[0]).getByText('ea001565-1cd6-4e43-b446-932ac1918081')
-    within(updatedDataRow2Cells[1]).getByText('COMPLETE')
-    within(updatedDataRow2Cells[2]).getByText('Nov 23, 2022, 3:03 PM')
-    within(updatedDataRow2Cells[3]).getByText('47 seconds')
-    within(updatedDataRow2Cells[4]).getByText(/View inputs/)
+    const cellsFromUpdatedDataRow2 = within(rows[2]).queryAllByRole('cell')
+    expect(cellsFromUpdatedDataRow2.length).toBe(4)
+    within(cellsFromUpdatedDataRow2[0]).getByText('FOO1')
+    within(cellsFromUpdatedDataRow2[1]).getByText('Succeeded')
+    within(cellsFromUpdatedDataRow2[2]).getByText('37 seconds')
+    within(cellsFromUpdatedDataRow2[3]).getByText('55b36a53-2ff3-41d0-adc4-abc08aea88ad')
   })
 
-  it('display run set id', async () => {
-    // Act
-    await act(async () => {
-      await render(h(SubmissionDetails, { submissionId }))
+  it('display run set details', async () => {
+    const getRunsSets = jest.fn(() => Promise.resolve(runSetData))
+    const getMethods = jest.fn(() => Promise.resolve(methodData))
+    await Ajax.mockImplementation(() => {
+      return {
+        Cbas: {
+          runSets: {
+            get: getRunsSets
+          },
+          methods: {
+            get: getMethods
+          }
+        }
+      }
     })
 
+    render(h(SubmissionDetails, { submissionId }))
+
+
     await screen.getByText(/Submission e8347247-4738-4ad1-a591-56c119f93f58/)
+    await screen.getByText(/workflow: Hello world/)
+    await screen.getByText(/Submission date: Dec 8, 2022/)
+    await screen.getByText(/Duration: 17 hours 2 minutes/)
+  })
+
+  it('should correctly set default option', async () => {
+    await act(async () => {
+      await render(h(SubmissionDetails))
+    })
+
+    await screen.getByText(/None selected/)
+  })
+
+
+  it('should correctly select and change results', async () => {
+    await act(async () => {
+      await render(h(SubmissionDetails))
+      const dropdown = screen.getByLabelText('Filter selection')
+      await selectEvent.select(dropdown, ['Error'])
+    })
+
+    const table = screen.getByRole('table')
+
+    // Assert
+    expect(table).toHaveAttribute('aria-colcount', '4')
+    expect(table).toHaveAttribute('aria-rowcount', '2')
+
+
+    const rows = within(table).queryAllByRole('row')
+    expect(rows.length).toBe(2)
+
+    const headers = within(rows[0]).queryAllByRole('columnheader')
+    expect(headers.length).toBe(4)
+    within(headers[0]).getByText('ID')
+    within(headers[1]).getByText('Status')
+    within(headers[2]).getByText('Duration')
+    within(headers[3]).getByText('Run ID')
+
+    // check data rows are rendered as expected
+    const cellsFromDataRow1 = within(rows[1]).queryAllByRole('cell')
+    expect(cellsFromDataRow1.length).toBe(4)
+    within(cellsFromDataRow1[0]).getByText('FOO2')
+    within(cellsFromDataRow1[1]).getByText('Error(s)')
+    within(cellsFromDataRow1[2]).getByText('52 minutes 10 seconds')
+    within(cellsFromDataRow1[3]).getByText('b7234aae-6f43-405e-bb3a-71f924e09825')
   })
 })
