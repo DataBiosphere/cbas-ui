@@ -24,6 +24,7 @@ export const SubmissionConfig = ({ methodId }) => {
   const [recordTypes, setRecordTypes] = useState()
   const [method, setMethod] = useState()
   const [records, setRecords] = useState([])
+  const [runSetData, setRunSet] = useState()
 
   // Options chosen on this page:
   const [selectedRecordType, setSelectedRecordType] = useState()
@@ -71,6 +72,7 @@ export const SubmissionConfig = ({ methodId }) => {
     try {
       const runSet = await Ajax(signal).Cbas.runSets.getForMethod(methodId, 1)
       const newRunSetData = runSet.run_sets[0]
+      setRunSet(runSet.run_sets[0])
       setConfiguredInputDefinition(JSON.parse(newRunSetData.input_definition))
       setConfiguredOutputDefinition(JSON.parse(newRunSetData.output_definition))
       return newRunSetData.record_type
@@ -182,7 +184,7 @@ export const SubmissionConfig = ({ methodId }) => {
             onChange: setRunSetDescription,
             placeholder: 'Enter comments' })]),
         div({ style: { lineHeight: 2.0, marginTop: '1.5rem' } }, [
-          h(TextCell, ['This will launch # workflows']),
+          h(TextCell, [`This will launch ${runSetData.run_count} workflows`]),
           h(TextCell, { style: { marginTop: '1.5rem'} }, ['Running workflows will generate cloud compute charges.'])
         ])
         ])
