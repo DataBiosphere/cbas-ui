@@ -32,8 +32,8 @@ export const SubmissionConfig = ({ methodId }) => {
   const [configuredOutputDefinition, setConfiguredOutputDefinition] = useState()
 
   // TODO: These should probably be moved to the modal:
-  const [runSetName, setRunSetName] = useState()
-  const [runSetDescription, setRunSetDescription] = useState()
+  const [runSetName, setRunSetName] = useState('')
+  const [runSetDescription, setRunSetDescription] = useState('')
 
   // TODO: this should probably be moved to a scope more local to the data selector
   const [sort, setSort] = useState({ field: 'name', direction: 'asc' })
@@ -89,7 +89,7 @@ export const SubmissionConfig = ({ methodId }) => {
   }
 
   useOnMount(() => {
-    setRunSetName('New run set name')
+    //setRunSetName('New run set name')
     setRunSetDescription('New run set description')
 
     loadMethodsData()
@@ -160,7 +160,7 @@ export const SubmissionConfig = ({ methodId }) => {
         title: 'Send submission',
         width: 600,
         onDismiss: () => setLaunching(undefined),
-        showCancel: false,
+        showCancel: true,
         borderRadius: 5, position: 'relative',
         padding: '1.5rem 1.25rem', outline: 'none',
         backgroundColor: 'white',
@@ -173,8 +173,8 @@ export const SubmissionConfig = ({ methodId }) => {
         div({ style: { lineHeight: 2.0 } }, [
           h(TextCell, { style: { marginTop: '1.5rem', fontSize: 16, fontWeight: 'bold' } }, ['Submission name']),
           h(TextInput, {
-            value: name,
-            onChange: setRunSetName(name),
+            value: runSetName,
+            onChange: setRunSetName,
             placeholder: 'Enter submission name' })]
         ),
         div({ style: { lineHeight: 2.0, marginTop: '1.5rem' } }, [
