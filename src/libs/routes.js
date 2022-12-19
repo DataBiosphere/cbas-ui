@@ -3,7 +3,7 @@ import { compile, pathToRegexp } from 'path-to-regexp'
 import { routeHandlersStore } from 'src/libs/state'
 import * as SubmissionConfig from 'src/pages/SubmissionConfig'
 import * as SubmissionDetails from 'src/pages/SubmissionDetails'
-import * as SubmissionHistory from 'src/pages/SubmissionHistory'
+import * as SubmissionHistory from 'src/pages/SubmissionHistory/SubmissionHistory'
 import * as SubmitWorkflow from 'src/pages/SubmitWorkflow'
 import * as WorkspaceDashboard from 'src/pages/workspaces/workspace/jobHistory/WorkflowDashboard.js'
 
