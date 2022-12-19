@@ -31,6 +31,7 @@ export const SubmissionConfig = ({ methodId }) => {
   const [configuredOutputDefinition, setConfiguredOutputDefinition] = useState()
 
   const [cachedInputSources, setCachedInputSources] = useState()
+  const [cachedOutputSources, setCachedOutputSources] = useState()
 
   // TODO: These should probably be moved to the modal:
   const [runSetName, setRunSetName] = useState()
@@ -39,6 +40,7 @@ export const SubmissionConfig = ({ methodId }) => {
   // TODO: this should probably be moved to a scope more local to the data selector
   const [sort, setSort] = useState({ field: 'name', direction: 'asc' })
   const [inputTableSort, setInputTableSort] = useState({ field: 'taskVariable', direction: 'asc' })
+  const [outputTableSort, setOutputTableSort] = useState({ field: 'taskVariable', direction: 'asc' })
 
   const signal = useCancellation()
   const loadRecordsData = async recordType => {
@@ -177,14 +179,12 @@ export const SubmissionConfig = ({ methodId }) => {
   }
 
   const renderOutputs = () => {
-    return configuredOutputDefinition ? h(ReactJson, {
-      style: { whiteSpace: 'pre-wrap' },
-      name: false,
-      collapsed: 4,
-      enableClipboard: false,
-      displayDataTypes: false,
-      displayObjectSize: false,
-      src: configuredOutputDefinition
+    return configuredOutputDefinition ? h(renderOutputTable, {
+      selectedDataTable: _.keyBy('name', recordTypes)[selectedRecordType],
+      method,
+      configuredOutputDefinition, setConfiguredOutputDefinition,
+      cachedOutputSources, setCachedOutputSources,
+      outputTableSort, setOutputTableSort
     }) : 'No previous run set data...'
   }
 
@@ -373,6 +373,11 @@ const renderGrid = props => {
 }
 
 
+const parseDefinitionType = iotype => {
+  const { primitive_type: primitiveType, optional_type: optionalType } = iotype
+  return primitiveType ? primitiveType : `${optionalType.primitive_type} (optional)`
+}
+
 const renderInputTable = ({
   selectedDataTable,
   method,
@@ -388,11 +393,6 @@ const renderInputTable = ({
     record_lookup: 'Fetch from Data Table'
   }
   const inputSourceTypes = _.invert(inputSourceLabels)
-
-  const parseInputType = inputType => {
-    const { primitive_type: primitiveType, optional_type: optionalType } = inputType
-    return primitiveType ? primitiveType : `${optionalType.primitive_type} (optional)`
-  }
 
   const recordLookupSelect = rowIndex => {
     return h(Select, {
@@ -468,7 +468,7 @@ const renderInputTable = ({
           size: { basis: 160, grow: 0 },
           headerRenderer: () => h(HeaderCell, ['Type']),
           cellRenderer: ({ rowIndex }) => {
-            return h(TextCell, {}, [parseInputType(configuredInputDefinition[rowIndex].input_type)]) // TODO: this needs to be more flexible
+            return h(TextCell, {}, [parseDefinitionType(configuredInputDefinition[rowIndex].input_type)]) // TODO: this needs to be more flexible
           }
         },
         {
@@ -510,6 +510,75 @@ const renderInputTable = ({
               ['literal', () => parameterValueSelect(rowIndex)],
               ['default', () => h(TextCell, {}, ['Use value from Workflow'])]
             )
+          }
+        }
+      ]
+    })
+  }])
+}
+
+const renderOutputTable = ({
+  selectedDataTable,
+  method,
+  configuredOutputDefinition, setConfiguredOutputDefinition,
+  cachedOutputSources, setCachedOutputSources,
+  outputTableSort, setOutputTableSort
+}) => {
+
+  const parameterValueSelect = rowIndex => {
+    return h(TextCell, {}, [
+      h(TextInput, {
+        id: `output-parameter-${rowIndex}`,
+        style: { display: 'block', width: '100%' },
+        placeholder: 'FOO',
+        defaultValue: _.get(`${rowIndex}.record_attribute`, cachedOutputSources) || null,
+        onChange: value => {
+          setConfiguredOutputDefinition(_.set(`${rowIndex}.record_attribute`, value, configuredOutputDefinition))
+          setCachedOutputSources(_.set(`${rowIndex}.record_attribute`, value, cachedOutputSources))
+        }
+      })
+    ])
+  }
+
+  return h(AutoSizer, [({ width, height }) => {
+    return h(FlexTable, {
+      'aria-label': 'input-table',
+      rowCount: configuredOutputDefinition.length,
+      sort: outputTableSort,
+      readOnly: false,
+      height,
+      width,
+      columns: [
+        {
+          size: { basis: 250, grow: 0 },
+          field: 'taskVariable',
+          headerRenderer: () => h(Sortable, { sort: outputTableSort, field: 'taskVariable', onSort: setOutputTableSort }, [h(HeaderCell, ['Task name'])]),
+          cellRenderer: () => {
+            return h(TextCell, { style: { fontWeight: 500 } }, [method ? method.name : 'Loading...'])
+          }
+        },
+        {
+          size: { basis: 360, grow: 0 },
+          field: 'workflowVariable',
+          headerRenderer: () => h(Sortable, { sort: outputTableSort, field: 'workflowVariable', onSort: setOutputTableSort }, [h(HeaderCell, ['Variable'])]),
+          cellRenderer: ({ rowIndex }) => {
+            return h(TextCell, {}, [configuredOutputDefinition[rowIndex].output_name])
+          }
+        },
+        {
+          size: { basis: 160, grow: 0 },
+          headerRenderer: () => h(HeaderCell, ['Type']),
+          cellRenderer: ({ rowIndex }) => {
+            return h(TextCell, {}, [parseDefinitionType(configuredOutputDefinition[rowIndex].output_type)]) // TODO: this needs to be more flexible
+          }
+        },
+        {
+          headerRenderer: () => h(Fragment, [
+            h(HeaderCell, ['Attribute'])
+          ]),
+          cellRenderer: ({ rowIndex }) => {
+            const source = _.get(`${rowIndex}.source`, configuredOutputDefinition)
+            return parameterValueSelect(rowIndex)
           }
         }
       ]
