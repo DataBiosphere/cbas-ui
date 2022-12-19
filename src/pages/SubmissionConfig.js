@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
-import { a, div, h, h2, h3, span } from 'react-hyperscript-helpers'
+import { a, div, h, h2, span } from 'react-hyperscript-helpers'
 import ReactJson from 'react-json-view'
 import { AutoSizer } from 'react-virtualized'
 import { ButtonPrimary, Checkbox, Clickable, headerBar, Link, Select } from 'src/components/common'
@@ -171,9 +171,12 @@ export const SubmissionConfig = ({ methodId }) => {
         div({ style: { lineHeight: 2.0 } }, [
           h(TextCell, { style: { marginTop: '1.5rem', fontSize: 16, fontWeight: 'bold' } }, ['Submission name']),
           h(TextInput, {
+            'aria-label': 'Submission name',
             value: runSetName,
             onChange: setRunSetName,
-            placeholder: 'Enter submission name' })]
+            placeholder: 'Enter submission name'
+          })
+        ]
         ),
         div({ style: { lineHeight: 2.0, marginTop: '1.5rem' } }, [
           span({ style: { fontSize: 16, fontWeight: 'bold' } }, ['Comment ']), '(optional)',
@@ -182,12 +185,14 @@ export const SubmissionConfig = ({ methodId }) => {
             'aria-label': 'Enter a comment',
             value: runSetDescription,
             onChange: setRunSetDescription,
-            placeholder: 'Enter comments' })]),
+            placeholder: 'Enter comments'
+          })
+        ]),
         div({ style: { lineHeight: 2.0, marginTop: '1.5rem' } }, [
-          h(TextCell, [`This will launch ${runSetData.run_count} workflows`]),
-          h(TextCell, { style: { marginTop: '1.5rem'} }, ['Running workflows will generate cloud compute charges.'])
+          div([h(TextCell, ['This will launch ', span({ style: { fontWeight: 'bold' } }, [runSetData.run_count]), ' workflow(s).'])]),
+          h(TextCell, { style: { marginTop: '1rem' } }, ['Running workflows will generate cloud compute charges.'])
         ])
-        ])
+      ])
     ])
   }
 
@@ -246,22 +251,6 @@ export const SubmissionConfig = ({ methodId }) => {
     } catch (error) {
       notify('error', 'Error submitting workflow', { detail: await (error instanceof Response ? error.text() : error) })
     }
-  }
-
-  const submitModal = () => {
-    return h(Modal, {
-      title: 'Submit modal',
-      onDismiss: setLaunching(true),
-      okButton:
-        h(ButtonPrimary, {
-        disabled: false, //TODO: change this to be disabled when there is no submission name
-        onClick: () => {
-          setLaunching(true)
-          submitRun()
-        }
-      }, ['Submit'])
-    }, [div(), div({}, [h(TextCell, ['Comment (optional)']),(h(TextInput, {placeholder: 'Enter comments'}))]), div()]
-    )
   }
 
   return h(Fragment, [
