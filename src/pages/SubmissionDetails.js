@@ -73,7 +73,9 @@ export const SubmissionDetails = ({ submissionId }) => {
       try {
         const getRunSets = await Ajax(signal).Cbas.runSets.get()
         const allRunSets = getRunSets.run_sets
-        setRunSetData(map(r => merge(r, { duration: duration(r) }), allRunSets))
+        const annotatedWithDurations = map(r => merge(r, { duration: duration(r) }), allRunSets)
+        setRunSetData(annotatedWithDurations)
+        return annotatedWithDurations
       } catch (error) {
         notify('error', 'Error getting run set data', { detail: await (error instanceof Response ? error.text() : error) })
       }
@@ -91,7 +93,7 @@ export const SubmissionDetails = ({ submissionId }) => {
 
     loadRunsData()
     loadRunSetData().then(runSet => {
-      loadMethodsData(runSet.method_version_id)
+      runSet && loadMethodsData(runSet.method_version_id)
     })
   })
 
