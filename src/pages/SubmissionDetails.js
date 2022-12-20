@@ -79,9 +79,9 @@ export const SubmissionDetails = ({ submissionId }) => {
       }
     }
 
-    const loadMethodsData = async method_version_id => {
+    const loadMethodsData = async methodVersionId => {
       try {
-        const methodsResponse = await Ajax(signal).Cbas.methods.getByMethodVersionId(method_version_id)
+        const methodsResponse = await Ajax(signal).Cbas.methods.getByMethodVersionId(methodVersionId)
         const allMethods = methodsResponse.methods
         setMethodsData(allMethods)
       } catch (error) {
@@ -91,7 +91,7 @@ export const SubmissionDetails = ({ submissionId }) => {
 
     loadRunsData()
     loadRunSetData().then(runSet => {
-      loadMethodsData()
+      loadMethodsData(runSet.method_version_id)
     })
   })
 

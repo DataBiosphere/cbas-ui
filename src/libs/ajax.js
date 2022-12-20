@@ -83,13 +83,13 @@ const Cbas = signal => ({
       const res = await fetchCbas(`methods?${keyParams}`, { signal, method: 'GET' })
       return res.json()
     },
-    getById: async method_id => {
-      const keyParams = qs.stringify({ method_id })
+    getById: async methodId => {
+      const keyParams = qs.stringify({ method_id: methodId })
       const res = await fetchCbas(`methods?${keyParams}`, { signal, method: 'GET' })
       return await res.json()
     },
-    getByMethodVersionId: async method_version_id => {
-      const keyParams = qs.stringify({ method_version_id })
+    getByMethodVersionId: async methodVersionId => {
+      const keyParams = qs.stringify({ method_version_id: methodVersionId })
       const res = await fetchCbas(`methods?${keyParams}`, { signal, method: 'GET' })
       return await res.json()
     }

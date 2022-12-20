@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
-import { a, div, h, h2, span } from 'react-hyperscript-helpers'
+import { div, h, h2, span } from 'react-hyperscript-helpers'
 import ReactJson from 'react-json-view'
 import { ButtonPrimary, Link, Navbar, Select } from 'src/components/common'
 import { TextArea, TextInput } from 'src/components/input'
@@ -51,14 +51,14 @@ export const SubmissionConfig = ({ methodId }) => {
     }
   }
 
-  const loadMethodsData = async (method_id, method_version_id) => {
+  const loadMethodsData = async (methodId, methodVersionId) => {
     try {
-      const methodsResponse = await Ajax(signal).Cbas.methods.getById(method_id)
+      const methodsResponse = await Ajax(signal).Cbas.methods.getById(methodId)
       const method = methodsResponse.methods[0]
       if (method) {
         setMethod(method)
         setAvailableMethodVersions(method.method_versions)
-        const selectedVersion = _.filter(mv => mv.method_version_id === method_version_id, method.method_versions)[0]
+        const selectedVersion = _.filter(mv => mv.method_version_id === methodVersionId, method.method_versions)[0]
         setSelectedMethodVersion(selectedVersion)
       } else {
         notify('error', 'Error loading methods data', { detail: 'Method not found.' })
@@ -107,7 +107,21 @@ export const SubmissionConfig = ({ methodId }) => {
         h2([method ? `Submission Configuration for ${method.name}` : 'loading'])
       ]),
       div({ style: { lineHeight: 2.0 } }, [
-        div([span({ style: { fontWeight: 'bold' } }, ['Workflow Version: ']), selectedMethodVersion ? selectedMethodVersion.name : 'No workflow version selected']),
+        div([span({ style: { fontWeight: 'bold' } }, ['Workflow Version: ']),
+          availableMethodVersions ?
+            h(Select, {
+              isDisabled: false,
+              'aria-label': 'Select a workflow version',
+              isClearable: false,
+              value: selectedMethodVersion ? selectedMethodVersion.name : null,
+              onChange: ({ value }) => {
+                setSelectedMethodVersion(_.find(m => m.name === value, availableMethodVersions))
+              },
+              placeholder: 'None',
+              styles: { container: old => ({ ...old, display: 'inline-block', width: 100, marginLeft: 20 }) },
+              options: _.map(m => m.name, availableMethodVersions)
+            }) :
+            'Fetching available workflow versions...']),
         div([
           span({ style: { fontWeight: 'bold' } }, ['Workflow source URL: ']),
           selectedMethodVersion ?
