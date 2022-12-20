@@ -26,6 +26,7 @@ export const SubmissionDetails = ({ submissionId }) => {
   const [runsData, setRunsData] = useState()
 
   const [runSetData, setRunSetData] = useState()
+  const [methodsData, setMethodsData] = useState()
   const [filterOption, setFilterOption] = useState(null)
 
   const signal = useCancellation()
@@ -77,11 +78,24 @@ export const SubmissionDetails = ({ submissionId }) => {
       }
     }
 
+    const loadMethodsData = async () => {
+      try {
+        const methodsResponse = await Ajax(signal).Cbas.methods.get()
+        const allMethods = methodsResponse.methods
+        setMethodsData(allMethods)
+      } catch (error) {
+        notify('error', 'Error loading methods data', { detail: await (error instanceof Response ? error.text() : error) })
+      }
+    }
+
     loadRunsData()
     loadRunSetData()
+    loadMethodsData()
   })
 
   const specifyRunSet = _.filter(r => r.run_set_id === submissionId, runSetData)
+  const methodId = specifyRunSet[0]?.method_id
+  const getSpecificMethod = _.filter(m => m.method_id === methodId, methodsData)
 
   const errorStates = ['SYSTEM_ERROR', 'EXECUTOR_ERROR']
   const filteredPreviousRuns = filterOption ? getFilter(filterOption)(runsData) : runsData
@@ -110,9 +124,10 @@ export const SubmissionDetails = ({ submissionId }) => {
           onClick: () => Nav.goToPath('root')
         }, ['Submit a new workflow'])
       ]),
-      div({ style: { marginLeft: '4em' } }, [
+      div({ style: { marginLeft: '4em', lineHeight: 1.25 } }, [
         h(TextCell, [(h(Link, { onClick: () => Nav.goToPath('submission-history') }, ['Submission History'])), ' >', ` Submission ${submissionId}`]),
-        h2(['workflow: ', specifyRunSet[0]?.run_set_name]),
+        h2(['Submission name: ', specifyRunSet[0]?.run_set_name]),
+        h3(['Workflow name: ', getSpecificMethod[0]?.name]),
         h3(['Submission date: ', specifyRunSet[0] && Utils.makeCompleteDate(specifyRunSet[0].submission_timestamp)]),
         h3(['Duration: ', specifyRunSet[0] && Utils.customFormatDuration(duration(specifyRunSet[0]))])
       ])
