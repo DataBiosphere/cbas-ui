@@ -317,6 +317,5 @@ describe('SubmissionConfig records selector', () => {
     const button = screen.getByLabelText('Submit button')
     fireEvent.click(button)
     await screen.getByText('Send submission')
-
   })
 })
