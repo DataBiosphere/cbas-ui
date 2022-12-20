@@ -138,10 +138,6 @@ export const SubmissionConfig = ({ methodId }) => {
         styles: { container: old => ({ ...old, display: 'inline-block', width: 200 }) },
         options: _.map(t => t.name, recordTypes)
       }),
-      div({ style: { lineHeight: 2.0 } }, [
-        div([span({ style: { fontWeight: 'bold' } }, ['New run set name (TODO: Move to modal): ']), runSetName ? runSetName : 'Run set name required']),
-        div([span({ style: { fontWeight: 'bold' } }, ['New run set description (TODO: Move to modal): ']), runSetDescription ? runSetDescription : 'Run set description required'])
-      ]),
       h(StepButtons, {
         tabs: [
           { key: 'select-data', title: 'Select Data', isValid: () => true },
@@ -155,7 +151,7 @@ export const SubmissionConfig = ({ methodId }) => {
           'aria-label': 'Submit button',
           // disabled: !!Utils.computeWorkspaceError(ws) || !!noLaunchReason || currentSnapRedacted || !!snapshotReferenceError,
           // tooltip: Utils.computeWorkspaceError(ws) || noLaunchReason || (currentSnapRedacted && 'Workflow version was redacted.'),
-          onClick: () => setLaunching(true) //submitRun()
+          onClick: () => setLaunching(true)
         }, ['Submit'])
       }),
       (launching !== undefined) && h(Modal, {
