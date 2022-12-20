@@ -152,6 +152,7 @@ export const SubmissionConfig = ({ methodId }) => {
         onChangeTab: v => setActiveTab({ key: v }),
         finalStep: h(ButtonPrimary, {
           style: { marginLeft: '1rem' },
+          'aria-label': 'Submit button',
           // disabled: !!Utils.computeWorkspaceError(ws) || !!noLaunchReason || currentSnapRedacted || !!snapshotReferenceError,
           // tooltip: Utils.computeWorkspaceError(ws) || noLaunchReason || (currentSnapRedacted && 'Workflow version was redacted.'),
           onClick: () => setLaunching(true) //submitRun()
@@ -167,7 +168,7 @@ export const SubmissionConfig = ({ methodId }) => {
             disabled: false,
             onClick: () => submitRun()
           }, ['Submit'])
-      }, [
+       }, [
         div({ style: { lineHeight: 2.0 } }, [
           h(TextCell, { style: { marginTop: '1.5rem', fontSize: 16, fontWeight: 'bold' } }, ['Submission name']),
           h(TextInput, {
@@ -192,7 +193,7 @@ export const SubmissionConfig = ({ methodId }) => {
           div([h(TextCell, ['This will launch ', span({ style: { fontWeight: 'bold' } }, [runSetData.run_count]), ' workflow(s).'])]),
           h(TextCell, { style: { marginTop: '1rem' } }, ['Running workflows will generate cloud compute charges.'])
         ])
-      ])
+       ])
     ])
   }
 
