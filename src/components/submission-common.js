@@ -235,28 +235,26 @@ export const inputsTable = props => {
       placeholder: 'Select Attribute',
       options: _.keys(dataTableAttributes),
       // ** https://stackoverflow.com/questions/55830799/how-to-change-zindex-in-react-select-drowpdown
-      styles: { container: old => ({ ...old, display: 'inline-block' }), menuPortal: base => ({ ...base, zIndex: 9999 }) },
+      styles: { container: old => ({ ...old, display: 'inline-block', width: '100%' }), menuPortal: base => ({ ...base, zIndex: 9999 }) },
       menuPortalTarget: document.body,
       menuPlacement: 'top'
     })
   }
 
   const parameterValueSelect = rowIndex => {
-    return h(TextCell, {}, [
-      h(TextInput, {
-        id: `literal-input-${rowIndex}`,
-        style: { display: 'block', width: '100%' },
-        defaultValue: _.get(`${rowIndex}.source.parameter_value`, configuredInputDefinition) || null,
-        onChange: value => {
-          const newSource = {
-            type: _.get(`${rowIndex}.source.type`, configuredInputDefinition),
-            parameter_value: value
-          }
-          const newConfig = _.set(`${rowIndex}.source`, newSource, configuredInputDefinition)
-          setConfiguredInputDefinition(newConfig)
+    return h(TextInput, {
+      id: `literal-input-${rowIndex}`,
+      style: { display: 'block', width: '100%' },
+      defaultValue: _.get(`${rowIndex}.source.parameter_value`, configuredInputDefinition) || null,
+      onChange: value => {
+        const newSource = {
+          type: _.get(`${rowIndex}.source.type`, configuredInputDefinition),
+          parameter_value: value
         }
-      })
-    ])
+        const newConfig = _.set(`${rowIndex}.source`, newSource, configuredInputDefinition)
+        setConfiguredInputDefinition(newConfig)
+      }
+    })
   }
 
   const parseInputString = inputString => {
@@ -326,7 +324,7 @@ export const inputsTable = props => {
                   _.omit('none', inputSourceLabels)
               ),
               // ** https://stackoverflow.com/questions/55830799/how-to-change-zindex-in-react-select-drowpdown
-              styles: { container: old => ({ ...old, display: 'inline-block' }), menuPortal: base => ({ ...base, zIndex: 9999 }) },
+              styles: { container: old => ({ ...old, display: 'inline-block', width: '100%' }), menuPortal: base => ({ ...base, zIndex: 9999 }) },
               menuPortalTarget: document.body,
               menuPlacement: 'top'
             })
