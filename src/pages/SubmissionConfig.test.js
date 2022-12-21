@@ -341,6 +341,11 @@ describe('SubmissionConfig records selector', () => {
       expect(mockRunSetResponse).toHaveBeenCalledTimes(1)
     })
 
+    const checkboxes = screen.getAllByRole('checkbox')
+    const checkbox = checkboxes[1]
+    fireEvent.click(checkbox)
+    expect(checkbox).toHaveAttribute('aria-checked', 'true')
+
     const button = screen.getByLabelText('Submit button')
     fireEvent.click(button)
     await screen.getByText('Send submission')
