@@ -199,9 +199,7 @@ export const recordsTable = props => {
 export const inputsTable = props => {
   const {
     selectedDataTable,
-    method,
     configuredInputDefinition, setConfiguredInputDefinition,
-    cachedInputSources, setCachedInputSources,
     inputTableSort, setInputTableSort
   } = props
 
@@ -224,7 +222,7 @@ export const inputsTable = props => {
       isDisabled: false,
       'aria-label': 'Select an Attribute',
       isClearable: false,
-      value: _.get(`${rowIndex}.source.record_attribute`, configuredInputDefinition) || _.get(`${rowIndex}.record_attribute`, cachedInputSources),
+      value: _.get(`${rowIndex}.source.record_attribute`, configuredInputDefinition),
       onChange: ({ value }) => {
         const newAttribute = _.get(`${value}.name`, dataTableAttributes)
         const newSource = {
@@ -233,7 +231,6 @@ export const inputsTable = props => {
         }
         const newConfig = _.set(`${rowIndex}.source`, newSource, configuredInputDefinition)
         setConfiguredInputDefinition(newConfig)
-        setCachedInputSources(_.set(`${rowIndex}.record_attribute`, newSource.record_attribute, cachedInputSources))
       },
       placeholder: 'Select Attribute',
       options: _.keys(dataTableAttributes),
@@ -249,7 +246,7 @@ export const inputsTable = props => {
       h(TextInput, {
         id: `literal-input-${rowIndex}`,
         style: { display: 'block', width: '100%' },
-        defaultValue: _.get(`${rowIndex}.parameter_value`, cachedInputSources) || null,
+        defaultValue: _.get(`${rowIndex}.source.parameter_value`, configuredInputDefinition) || null,
         onChange: value => {
           const newSource = {
             type: _.get(`${rowIndex}.source.type`, configuredInputDefinition),
@@ -257,7 +254,6 @@ export const inputsTable = props => {
           }
           const newConfig = _.set(`${rowIndex}.source`, newSource, configuredInputDefinition)
           setConfiguredInputDefinition(newConfig)
-          setCachedInputSources(_.set(`${rowIndex}.parameter_value`, newSource.parameter_value, cachedInputSources))
         }
       })
     ])
@@ -268,7 +264,7 @@ export const inputsTable = props => {
     return {
       workflow: inputNameParts[0],
       input: inputNameParts[inputNameParts.length - 1],
-      call: inputNameParts.length == 3 ? inputNameParts[1] : ''
+      call: inputNameParts.length === 3 ? inputNameParts[1] : ''
     }
   }
 
@@ -318,7 +314,7 @@ export const inputsTable = props => {
                 const param = newType === 'record_lookup' ? 'record_attribute' : 'parameter_value'
                 const newSource = {
                   type: newType,
-                  [param]: _.get(`${rowIndex}.${param}`, cachedInputSources)
+                  [param]: _.get(`${rowIndex}.source.${param}`, configuredInputDefinition)
                 }
                 const newConfig = _.set(`${rowIndex}.source`, newSource, configuredInputDefinition)
                 setConfiguredInputDefinition(newConfig)

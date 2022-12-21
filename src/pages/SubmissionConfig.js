@@ -24,8 +24,6 @@ export const SubmissionConfig = ({ methodId }) => {
   const [configuredInputDefinition, setConfiguredInputDefinition] = useState()
   const [configuredOutputDefinition, setConfiguredOutputDefinition] = useState()
 
-  const [cachedInputSources, setCachedInputSources] = useState()
-
   // TODO: These should probably be moved to the modal:
   const [runSetName, setRunSetName] = useState()
   const [runSetDescription, setRunSetDescription] = useState()
@@ -65,7 +63,6 @@ export const SubmissionConfig = ({ methodId }) => {
       const newRunSetData = runSet.run_sets[0]
       setConfiguredInputDefinition(JSON.parse(newRunSetData.input_definition))
       setConfiguredOutputDefinition(JSON.parse(newRunSetData.output_definition))
-      setCachedInputSources(_.map(definition => _.unset('type', _.get('source', definition)), JSON.parse(newRunSetData.input_definition)))
       return newRunSetData.record_type
     } catch (error) {
       notify('error', 'Error loading run set data', { detail: await (error instanceof Response ? error.text() : error) })
@@ -163,9 +160,7 @@ export const SubmissionConfig = ({ methodId }) => {
   const renderInputs = () => {
     return configuredInputDefinition ? h(inputsTable, {
       selectedDataTable: _.keyBy('name', recordTypes)[selectedRecordType],
-      method,
       configuredInputDefinition, setConfiguredInputDefinition,
-      cachedInputSources, setCachedInputSources,
       inputTableSort, setInputTableSort
     }) : 'No configured input definition...'
   }
