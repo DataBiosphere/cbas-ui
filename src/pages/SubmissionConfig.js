@@ -6,7 +6,7 @@ import { ButtonPrimary, Link, Navbar, Select } from 'src/components/common'
 import { TextArea, TextInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import StepButtons from 'src/components/StepButtons'
-import { inputsTable, recordsTable } from 'src/components/submission-common'
+import { inputsTable, recordsTable, outputsTable } from 'src/components/submission-common'
 import { TextCell } from 'src/components/table'
 import { Ajax } from 'src/libs/ajax'
 import * as Nav from 'src/libs/nav'
@@ -35,6 +35,7 @@ export const SubmissionConfig = ({ methodId }) => {
   // TODO: this should probably be moved to a scope more local to the data selector
   const [sort, setSort] = useState({ field: 'name', direction: 'asc' })
   const [inputTableSort, setInputTableSort] = useState({ field: 'taskVariable', direction: 'asc' })
+  const [outputTableSort, setOutputTableSort] = useState({ field: 'taskVariable', direction: 'asc' })
 
   const [launching, setLaunching] = useState(undefined)
 
@@ -207,14 +208,11 @@ export const SubmissionConfig = ({ methodId }) => {
   }
 
   const renderOutputs = () => {
-    return configuredOutputDefinition ? h(ReactJson, {
-      style: { whiteSpace: 'pre-wrap' },
-      name: false,
-      collapsed: 4,
-      enableClipboard: false,
-      displayDataTypes: false,
-      displayObjectSize: false,
-      src: configuredOutputDefinition
+    console.log(configuredOutputDefinition)
+    return configuredOutputDefinition ? h(outputsTable, {
+      selectedDataTable: _.keyBy('name', recordTypes)[selectedRecordType],
+      configuredOutputDefinition, setConfiguredOutputDefinition,
+      outputTableSort, setOutputTableSort
     }) : 'No previous run set data...'
   }
 
