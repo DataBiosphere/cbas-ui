@@ -208,9 +208,9 @@ export const inputsTable = props => {
   const dataTableAttributes = _.keyBy('name', selectedDataTable.attributes)
 
   const inputSourceLabels = {
-    default: 'Use Default',
     literal: 'Type a Value',
-    record_lookup: 'Fetch from Data Table'
+    record_lookup: 'Fetch from Data Table',
+    none: 'None'
   }
   const inputSourceTypes = _.invert(inputSourceLabels)
 
@@ -293,7 +293,7 @@ export const inputsTable = props => {
           size: { basis: 160, grow: 0 },
           headerRenderer: () => h(HeaderCell, ['Type']),
           cellRenderer: ({ rowIndex }) => {
-            return h(TextCell, {}, [parseInputType(configuredInputDefinition[rowIndex].input_type)]) // TODO: this needs to be more flexible
+            return h(TextCell, {}, [parseInputType(configuredInputDefinition[rowIndex].input_type)])
           }
         },
         {
@@ -316,7 +316,11 @@ export const inputsTable = props => {
                 setConfiguredInputDefinition(newConfig)
               },
               placeholder: 'Select Source',
-              options: _.values(inputSourceLabels),
+              options: _.values(
+                _.has('optional_type', configuredInputDefinition[rowIndex].input_type) ?
+                  inputSourceLabels :
+                  _.omit('none', inputSourceLabels)
+              ),
               // ** https://stackoverflow.com/questions/55830799/how-to-change-zindex-in-react-select-drowpdown
               styles: { container: old => ({ ...old, display: 'inline-block' }), menuPortal: base => ({ ...base, zIndex: 9999 }) },
               menuPortalTarget: document.body,
@@ -330,10 +334,10 @@ export const inputsTable = props => {
           ]),
           cellRenderer: ({ rowIndex }) => {
             const source = _.get(`${rowIndex}.source`, configuredInputDefinition)
-            return Utils.switchCase(source.type || 'default',
+            return Utils.switchCase(source.type || 'none',
               ['record_lookup', () => recordLookupSelect(rowIndex)],
               ['literal', () => parameterValueSelect(rowIndex)],
-              ['default', () => h(TextCell, {}, ['Use value from Workflow'])]
+              ['none', () => h(TextCell, {}, ['The workflow input will either be empty or use a default value from the workflow.'])]
             )
           }
         }
