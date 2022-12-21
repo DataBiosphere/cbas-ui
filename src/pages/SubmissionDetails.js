@@ -1,18 +1,19 @@
-import _ from 'lodash/fp'
-import { Fragment, useState } from 'react'
-import { div, h, h1, h2, h3 } from 'react-hyperscript-helpers'
+import { filter, isEmpty, map, merge, orderBy } from 'lodash/fp'
+import { useMemo, useState } from 'react'
+import { div, h, h2, h3 } from 'react-hyperscript-helpers'
 import ReactJson from 'react-json-view'
 import { AutoSizer } from 'react-virtualized'
-import { ButtonOutline, ButtonPrimary, headerBar, Link, Select } from 'src/components/common'
+import { ButtonPrimary, Link, Navbar, Select } from 'src/components/common'
 import { icon } from 'src/components/icons'
+import { HeaderSection, SubmitNewWorkflowButton } from 'src/components/job-common'
 import Modal from 'src/components/Modal'
 import { FlexTable, paginator, Sortable, tableHeight, TextCell } from 'src/components/table'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
-import * as Nav from 'src/libs/nav'
+import { goToPath } from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
 import { useCancellation, useOnMount } from 'src/libs/react-utils'
-import * as Utils from 'src/libs/utils'
+import { customFormatDuration, differenceFromDatesInSeconds, differenceFromNowInSeconds, makeCompleteDate } from 'src/libs/utils'
 
 
 export const SubmissionDetails = ({ submissionId }) => {
@@ -39,18 +40,18 @@ export const SubmissionDetails = ({ submissionId }) => {
     last_modified_timestamp: modified
   }) => {
     return terminalStates.includes(state) ?
-      Utils.differenceFromDatesInSeconds(submitted, modified) :
-      Utils.differenceFromNowInSeconds(submitted)
+      differenceFromDatesInSeconds(submitted, modified) :
+      differenceFromNowInSeconds(submitted)
   }
 
-  const getFilter = filter => {
+  const getFilter = filterOption => {
     let filterStatement
-    switch (filter) {
+    switch (filterOption) {
       case 'Error':
-        filterStatement = _.filter(r => errorStates.includes(r.state))
+        filterStatement = filter(r => errorStates.includes(r.state))
         break
       case 'Succeeded':
-        filterStatement = _.filter(r => r.state === 'COMPLETE')
+        filterStatement = filter(r => r.state === 'COMPLETE')
         break
       default:
         filterStatement = data => data
@@ -62,7 +63,7 @@ export const SubmissionDetails = ({ submissionId }) => {
     const loadRunsData = async () => {
       try {
         const runs = await Ajax(signal).Cbas.runs.get(submissionId)
-        setRunsData(runs.runs)
+        setRunsData(runs?.runs)
       } catch (error) {
         notify('error', 'Error loading previous runs', { detail: await (error instanceof Response ? error.text() : error) })
       }
@@ -72,7 +73,7 @@ export const SubmissionDetails = ({ submissionId }) => {
       try {
         const getRunSets = await Ajax(signal).Cbas.runSets.get()
         const allRunSets = getRunSets.run_sets
-        setRunSetData(_.map(r => _.merge(r, { duration: duration(r) }), allRunSets))
+        setRunSetData(map(r => merge(r, { duration: duration(r) }), allRunSets))
       } catch (error) {
         notify('error', 'Error getting run set data', { detail: await (error instanceof Response ? error.text() : error) })
       }
@@ -93,22 +94,37 @@ export const SubmissionDetails = ({ submissionId }) => {
     loadMethodsData()
   })
 
-  const specifyRunSet = _.filter(r => r.run_set_id === submissionId, runSetData)
+  const specifyRunSet = filter(r => r.run_set_id === submissionId, runSetData)
   const methodId = specifyRunSet[0]?.method_id
-  const getSpecificMethod = _.filter(m => m.method_id === methodId, methodsData)
+  const getSpecificMethod = filter(m => m.method_id === methodId, methodsData)
 
   const errorStates = ['SYSTEM_ERROR', 'EXECUTOR_ERROR']
   const filteredPreviousRuns = filterOption ? getFilter(filterOption)(runsData) : runsData
-  const sortedPreviousRuns = _.orderBy(sort.field, sort.direction, filteredPreviousRuns)
+  const sortedPreviousRuns = orderBy(sort.field, sort.direction, filteredPreviousRuns)
   const filterOptions = ['Error', 'None', 'Succeeded']
 
   const firstPageIndex = (pageNumber - 1) * itemsPerPage
   const lastPageIndex = firstPageIndex + itemsPerPage
   const paginatedPreviousRuns = sortedPreviousRuns.slice(firstPageIndex, lastPageIndex)
 
+  const header = useMemo(() => {
+    const breadcrumbPathObjects = [
+      {
+        label: 'Submission History',
+        path: 'submission-history'
+      },
+      {
+        label: `Submission ${submissionId}`
+      }
+    ]
+
+    return h(HeaderSection, { breadcrumbPathObjects, title: 'Submission Details', button: SubmitNewWorkflowButton })
+  }, [submissionId])
+
   const rowWidth = 100
   const rowHeight = 50
-  return h(Fragment, [
+  return div({ id: 'submission-details-page' }, [
+    Navbar('SUBMIT WORKFLOWS WITH CROMWELL'),
     div({
       style: {
         borderBottom: '2px solid rgb(116, 174, 67)',
@@ -203,14 +219,14 @@ export const SubmissionDetails = ({ submissionId }) => {
                   const terminalStates = ['COMPLETE', 'CANCELED', 'SYSTEM_ERROR', 'ABORTED', 'EXECUTOR_ERROR']
                   let durationSeconds
                   if (terminalStates.includes(paginatedPreviousRuns[rowIndex].state)) {
-                    durationSeconds = Utils.differenceFromDatesInSeconds(
+                    durationSeconds = differenceFromDatesInSeconds(
                       paginatedPreviousRuns[rowIndex].submission_date,
                       paginatedPreviousRuns[rowIndex].last_modified_timestamp
                     )
                   } else {
-                    durationSeconds = Utils.differenceFromNowInSeconds(paginatedPreviousRuns[rowIndex].submission_date)
+                    durationSeconds = differenceFromNowInSeconds(paginatedPreviousRuns[rowIndex].submission_date)
                   }
-                  return h(TextCell, [Utils.customFormatDuration(durationSeconds)])
+                  return h(TextCell, [customFormatDuration(durationSeconds)])
                 }
               },
               {
@@ -219,7 +235,7 @@ export const SubmissionDetails = ({ submissionId }) => {
                 headerRenderer: () => h(Sortable, { sort, field: 'run_id', onSort: setSort }, ['Run ID']),
                 cellRenderer: ({ rowIndex }) => {
                   return div({ style: { width: '100%', textAlign: 'left' } }, [
-                    h(Link, { onClick: () => { Nav.goToPath('workflow-dashboard', { workflowId: paginatedPreviousRuns[rowIndex].engine_id }) }, style: { fontWeight: 'bold' } },
+                    h(Link, { onClick: () => { goToPath('workflow-dashboard', { workflowId: paginatedPreviousRuns[rowIndex].engine_id }) }, style: { fontWeight: 'bold' } },
                       [paginatedPreviousRuns[rowIndex].run_id])
                   ])
                 }
@@ -231,7 +247,7 @@ export const SubmissionDetails = ({ submissionId }) => {
           })
         ])
       ]),
-      !_.isEmpty(sortedPreviousRuns) && div({ style: { bottom: 0, position: 'absolute', marginBottom: '1.5rem', right: '4rem' } }, [
+      !isEmpty(sortedPreviousRuns) && div({ style: { bottom: 0, position: 'absolute', marginBottom: '1.5rem', right: '4rem' } }, [
         paginator({
           filteredDataLength: sortedPreviousRuns.length,
           unfilteredDataLength: sortedPreviousRuns.length,
@@ -284,7 +300,7 @@ export const SubmissionDetails = ({ submissionId }) => {
           enableClipboard: true,
           displayDataTypes: false,
           displayObjectSize: false,
-          src: _.isEmpty(paginatedPreviousRuns[viewOutputsId].workflow_outputs) ?
+          src: isEmpty(paginatedPreviousRuns[viewOutputsId].workflow_outputs) ?
             {} :
             JSON.parse(paginatedPreviousRuns[viewOutputsId].workflow_outputs)
         })

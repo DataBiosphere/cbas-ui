@@ -3,7 +3,7 @@ import { Fragment, useState } from 'react'
 import { a, div, h, h2, span } from 'react-hyperscript-helpers'
 import ReactJson from 'react-json-view'
 import { AutoSizer } from 'react-virtualized'
-import { ButtonPrimary, Checkbox, Clickable, headerBar, Link, Select } from 'src/components/common'
+import { ButtonPrimary, Checkbox, Clickable, Link, Navbar, Select } from 'src/components/common'
 import { HeaderOptions, renderDataCell } from 'src/components/data/data-utils'
 import { icon } from 'src/components/icons'
 import { TextArea, TextInput } from 'src/components/input'
@@ -258,7 +258,7 @@ export const SubmissionConfig = ({ methodId }) => {
         position: 'relative'
       }
     }, [
-      headerBar(),
+      Navbar('SUBMIT WORKFLOWS WITH CROMWELL'),
       renderSummary()
     ]),
     div({

@@ -45,7 +45,7 @@ module.exports = {
     'operator-linebreak': ['warn', 'after'],
     'padded-blocks': ['warn', 'never'],
     'quote-props': ['warn', 'as-needed'],
-    'quotes': ['warn', 'single', { 'allowTemplateLiterals': true }],
+    'quotes': ['warn', 'single', { 'avoidEscape': true, 'allowTemplateLiterals': true }], // Checks for single quote usage where possible
     'semi': ['warn', 'never'],
     'space-before-blocks': 'warn',
     'space-before-function-paren': ['warn', { 'anonymous': 'never', 'named': 'never', 'asyncArrow': 'always' }],

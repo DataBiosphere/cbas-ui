@@ -1,6 +1,6 @@
 import { Fragment, useState } from 'react'
 import { div, h, h2, span } from 'react-hyperscript-helpers'
-import { ButtonOutline, Clickable, headerBar } from 'src/components/common'
+import { ButtonOutline, Clickable, Navbar } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
@@ -48,7 +48,7 @@ export const SubmitWorkflow = () => {
   })
 
   return div([
-    headerBar(),
+    Navbar(),
     div({ style: { margin: '4rem' } }, [
       div({ style: { display: 'flex', marginTop: '1rem', justifyContent: 'space-between' } }, [
         h2(['Submit a workflow']),
