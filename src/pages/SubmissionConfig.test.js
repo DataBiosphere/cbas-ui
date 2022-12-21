@@ -16,6 +16,33 @@ jest.mock('src/libs/config', () => ({
   getConfig: jest.fn().mockReturnValue({})
 }))
 
+const runSetInputDef = [
+  {
+    input_name: 'target_workflow_1.foo.foo_rating_workflow_var',
+    input_type: { type: 'primitive', primitive_type: 'Int' },
+    source: {
+      type: 'record_lookup',
+      record_attribute: 'foo_rating'
+    }
+  },
+  {
+    input_name: 'target_workflow_1.bar_string_workflow_var',
+    input_type: { type: 'primitive', primitive_type: 'String' },
+    source: {
+      type: 'record_lookup',
+      record_attribute: 'bar_string'
+    }
+  }
+]
+
+const runSetOutputDef = [
+  {
+    output_name: 'target_workflow_1.file_output',
+    output_type: { type: 'primitive', primitive_type: 'String' },
+    record_attribute: 'target_workflow_1_file_output'
+  }
+]
+
 const runSetResponse = {
   run_sets: [
     {
@@ -30,8 +57,8 @@ const runSetResponse = {
       last_modified_timestamp: '2022-12-07T17:26:53.153+00:00',
       run_count: 1,
       error_count: 0,
-      input_definition: '[\n  {\n    "input_name": "target_workflow_1.foo.input_file_1",\n    "input_type": { "type": "primitive", "primitive_type": "File" },\n    "source": {\n      "type": "record_lookup",\n      "record_attribute": "target_workflow_1_input_file_1"\n    }\n  },\n  {\n    "input_name": "target_workflow_1.foo.input_file_2",\n    "input_type": { "type": "primitive", "primitive_type": "File" },\n    "source": {\n      "type": "record_lookup",\n      "record_attribute": "target_workflow_1_input_file_2"\n    }\n  },\n  {\n    "input_name": "target_workflow_1.foo.input_string_1",\n    "input_type": { "type": "primitive", "primitive_type": "String" },\n    "source": {\n      "type": "record_lookup",\n      "record_attribute": "target_workflow_1_input_string_1"\n    }\n  },\n  {\n    "input_name": "target_workflow_1.foo.input_string_2",\n    "input_type": { "type": "primitive", "primitive_type": "String" },\n    "source": {\n      "type": "record_lookup",\n      "record_attribute": "target_workflow_1_input_string_2"\n    }\n  },\n  {\n    "input_name": "target_workflow_1.foo.input_string_3",\n    "input_type": { "type": "optional", "optional_type": { "type": "primitive", "primitive_type": "String" } },\n    "source": {\n      "type": "record_lookup",\n      "record_attribute": "target_workflow_1_input_string_3"\n    }\n  },\n  {\n    "input_name": "target_workflow_1.foo.input_string_4",\n    "input_type": { "type": "primitive", "primitive_type": "String" },\n    "source": {\n      "type": "record_lookup",\n      "record_attribute": "target_workflow_1_input_string_4"\n    }\n  },\n  {\n    "input_name": "target_workflow_1.foo.input_string_5",\n    "input_type": { "type": "primitive", "primitive_type": "String" },\n    "source": {\n      "type": "record_lookup",\n      "record_attribute": "target_workflow_1_input_string_5"\n    }\n  },\n  {\n    "input_name": "target_workflow_1.foo.input_string_6",\n    "input_type": { "type": "primitive", "primitive_type": "String" },\n    "source": {\n      "type": "record_lookup",\n      "record_attribute": "target_workflow_1_input_string_6"\n    }\n  },\n  {\n    "input_name": "target_workflow_1.foo.input_string_7",\n    "input_type": { "type": "primitive", "primitive_type": "String" },\n    "source": {\n      "type": "record_lookup",\n      "record_attribute": "target_workflow_1_input_string_7"\n    }\n  }\n]\n',
-      output_definition: '[\n  {\n    "output_name": "target_workflow_1.file_output",\n    "output_type": { "type": "primitive", "primitive_type": "String" },\n    "record_attribute": "target_workflow_1_file_output"\n  }\n]\n'
+      input_definition: JSON.stringify(runSetInputDef),
+      output_definition: JSON.stringify(runSetOutputDef)
     }
   ]
 }
@@ -56,6 +83,10 @@ const typesResponse = [
       {
         name: 'foo_rating',
         datatype: 'NUMBER'
+      },
+      {
+        name: 'bar_string',
+        datatype: 'STRING'
       },
       {
         name: 'sys_name',
@@ -314,8 +345,107 @@ describe('SubmissionConfig records selector', () => {
       expect(mockRunSetResponse).toHaveBeenCalledTimes(1)
     })
 
+    const checkboxes = screen.getAllByRole('checkbox')
+    const checkbox = checkboxes[1]
+    fireEvent.click(checkbox)
+    expect(checkbox).toHaveAttribute('aria-checked', 'true')
+
     const button = screen.getByLabelText('Submit button')
     fireEvent.click(button)
     await screen.getByText('Send submission')
+  })
+})
+
+describe('SubmissionConfig inputs definition', () => {
+  // SubmissionConfig component uses AutoSizer to determine the right size for table to be displayed. As a result we need to
+  // mock out the height and width so that when AutoSizer asks for the width and height of "browser" it can use the mocked
+  // values and render the component properly. Without this the tests will be break.
+  // (see https://github.com/bvaughn/react-virtualized/issues/493 and https://stackoverflow.com/a/62214834)
+  const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'offsetHeight')
+  const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'offsetWidth')
+
+  beforeAll(() => {
+    Object.defineProperty(HTMLElement.prototype, 'offsetHeight', { configurable: true, value: 1000 })
+    Object.defineProperty(HTMLElement.prototype, 'offsetWidth', { configurable: true, value: 800 })
+  })
+
+  afterEach(() => {
+    jest.clearAllMocks()
+  })
+
+  afterAll(() => {
+    Object.defineProperty(HTMLElement.prototype, 'offsetHeight', originalOffsetHeight)
+    Object.defineProperty(HTMLElement.prototype, 'offsetWidth', originalOffsetWidth)
+  })
+
+  it('should initially populate the inputs definition table with attributes determined by the previously executed run set', async () => {
+    // ** ARRANGE **
+    const mockRunSetResponse = jest.fn(() => Promise.resolve(runSetResponse))
+    const mockMethodsResponse = jest.fn(() => Promise.resolve(methodsResponse))
+    const mockSearchResponse = jest.fn(recordType => Promise.resolve(searchResponses[recordType]))
+    const mockTypesResponse = jest.fn(() => Promise.resolve(typesResponse))
+
+    await Ajax.mockImplementation(() => {
+      return {
+        Cbas: {
+          runSets: {
+            getForMethod: mockRunSetResponse
+          },
+          methods: {
+            get: mockMethodsResponse
+          }
+        },
+        Wds: {
+          search: {
+            post: mockSearchResponse
+          },
+          types: {
+            get: mockTypesResponse
+          }
+        }
+      }
+    })
+
+    // ** ACT **
+    render(h(SubmissionConfig))
+
+    // ** ASSERT **
+    await waitFor(() => {
+      expect(mockRunSetResponse).toHaveBeenCalledTimes(1)
+      expect(mockMethodsResponse).toHaveBeenCalledTimes(1)
+      expect(mockTypesResponse).toHaveBeenCalledTimes(1)
+      expect(mockSearchResponse).toHaveBeenCalledTimes(0)
+    })
+    const button = await screen.findByRole('button', { name: 'Inputs' })
+
+    // ** ACT **
+    await fireEvent.click(button)
+
+    // ** ASSERT **
+    const table = await screen.findByRole('table')
+    const rows = within(table).queryAllByRole('row')
+
+    expect(runSetInputDef.length).toBe(2)
+    expect(rows.length).toBe(runSetInputDef.length + 1) // one row for each input definition variabe, plus headers
+
+    const headers = within(rows[0]).queryAllByRole('columnheader')
+    expect(headers.length).toBe(5)
+
+    const cellsFoo = within(rows[1]).queryAllByRole('cell')
+    expect(cellsFoo.length).toBe(5)
+    within(cellsFoo[0]).getByText('foo')
+    within(cellsFoo[1]).getByText('foo_rating_workflow_var')
+    within(cellsFoo[2]).getByText('Int')
+    within(cellsFoo[3]).getByText('Fetch from Data Table')
+    within(cellsFoo[4]).getByText('foo_rating')
+
+
+    const cellsBar = within(rows[2]).queryAllByRole('cell')
+    expect(cellsBar.length).toBe(5)
+    expect(cellsBar[0].textContent).toBe('')
+    within(cellsBar[1]).getByText('bar_string_workflow_var')
+    within(cellsBar[2]).getByText('String')
+    within(cellsBar[3]).getByText('Fetch from Data Table')
+    within(cellsBar[4]).getByText('bar_string')
   })
 })

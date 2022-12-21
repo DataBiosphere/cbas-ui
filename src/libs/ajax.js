@@ -106,7 +106,10 @@ const Wds = signal => ({
   types: {
     get: async () => {
       const res = await fetchWds(`${wdsInstanceId}/types/${wdsApiVersion}`, { signal, method: 'GET' })
-      return res.json()
+      return _.map(
+        type => _.set('attributes', _.filter(attr => attr.name !== 'sys_name', type.attributes), type),
+        await res.json()
+      )
     }
   },
   search: {
@@ -115,7 +118,9 @@ const Wds = signal => ({
         `${wdsInstanceId}/search/${wdsApiVersion}/${wdsType}`,
         _.mergeAll([{ signal, method: 'POST' }, jsonBody(searchPayload)])
       )
-      return res.json()
+      const resultJson = await res.json()
+      resultJson.records = _.map(_.unset('attributes.sys_name'), resultJson.records)
+      return resultJson
     }
   }
 })
