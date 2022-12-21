@@ -6,9 +6,11 @@ import { AutoSizer } from 'react-virtualized'
 import { ButtonPrimary, Checkbox, Clickable, Link, Navbar, Select } from 'src/components/common'
 import { HeaderOptions, renderDataCell } from 'src/components/data/data-utils'
 import { icon } from 'src/components/icons'
+import { TextArea, TextInput } from 'src/components/input'
+import Modal from 'src/components/Modal'
 import { MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
 import StepButtons from 'src/components/StepButtons'
-import { GridTable, HeaderCell, Resizable } from 'src/components/table'
+import { GridTable, HeaderCell, Resizable, TextCell } from 'src/components/table'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import * as Nav from 'src/libs/nav'
@@ -22,6 +24,7 @@ export const SubmissionConfig = ({ methodId }) => {
   const [recordTypes, setRecordTypes] = useState()
   const [method, setMethod] = useState()
   const [records, setRecords] = useState([])
+  const [runSetData, setRunSet] = useState()
 
   // Options chosen on this page:
   const [selectedRecordType, setSelectedRecordType] = useState()
@@ -30,11 +33,14 @@ export const SubmissionConfig = ({ methodId }) => {
   const [configuredOutputDefinition, setConfiguredOutputDefinition] = useState()
 
   // TODO: These should probably be moved to the modal:
-  const [runSetName, setRunSetName] = useState()
-  const [runSetDescription, setRunSetDescription] = useState()
+  const [runSetName, setRunSetName] = useState('')
+  const [runSetDescription, setRunSetDescription] = useState('')
 
   // TODO: this should probably be moved to a scope more local to the data selector
   const [sort, setSort] = useState({ field: 'name', direction: 'asc' })
+
+  const [launching, setLaunching] = useState(undefined)
+
 
   const signal = useCancellation()
 
@@ -66,6 +72,7 @@ export const SubmissionConfig = ({ methodId }) => {
     try {
       const runSet = await Ajax(signal).Cbas.runSets.getForMethod(methodId, 1)
       const newRunSetData = runSet.run_sets[0]
+      setRunSet(runSet.run_sets[0])
       setConfiguredInputDefinition(JSON.parse(newRunSetData.input_definition))
       setConfiguredOutputDefinition(JSON.parse(newRunSetData.output_definition))
       return newRunSetData.record_type
@@ -83,8 +90,8 @@ export const SubmissionConfig = ({ methodId }) => {
   }
 
   useOnMount(() => {
-    setRunSetName('New run set name')
-    setRunSetDescription('New run set description')
+    //setRunSetName('New run set name')
+    //setRunSetDescription('New run set description')
 
     loadMethodsData()
     loadTablesData()
@@ -131,10 +138,6 @@ export const SubmissionConfig = ({ methodId }) => {
         styles: { container: old => ({ ...old, display: 'inline-block', width: 200 }) },
         options: _.map(t => t.name, recordTypes)
       }),
-      div({ style: { lineHeight: 2.0 } }, [
-        div([span({ style: { fontWeight: 'bold' } }, ['New run set name (TODO: Move to modal): ']), runSetName ? runSetName : 'Run set name required']),
-        div([span({ style: { fontWeight: 'bold' } }, ['New run set description (TODO: Move to modal): ']), runSetDescription ? runSetDescription : 'Run set description required'])
-      ]),
       h(StepButtons, {
         tabs: [
           { key: 'select-data', title: 'Select Data', isValid: () => true },
@@ -145,11 +148,48 @@ export const SubmissionConfig = ({ methodId }) => {
         onChangeTab: v => setActiveTab({ key: v }),
         finalStep: h(ButtonPrimary, {
           style: { marginLeft: '1rem' },
+          'aria-label': 'Submit button',
           // disabled: !!Utils.computeWorkspaceError(ws) || !!noLaunchReason || currentSnapRedacted || !!snapshotReferenceError,
           // tooltip: Utils.computeWorkspaceError(ws) || noLaunchReason || (currentSnapRedacted && 'Workflow version was redacted.'),
-          onClick: () => submitRun()
+          onClick: () => setLaunching(true)
         }, ['Submit'])
-      })
+      }),
+      (launching !== undefined) && h(Modal, {
+        title: 'Send submission',
+        width: 600,
+        onDismiss: () => setLaunching(undefined),
+        showCancel: true,
+        okButton:
+          h(ButtonPrimary, {
+            disabled: false,
+            onClick: () => submitRun()
+          }, ['Submit'])
+      }, [
+        div({ style: { lineHeight: 2.0 } }, [
+          h(TextCell, { style: { marginTop: '1.5rem', fontSize: 16, fontWeight: 'bold' } }, ['Submission name']),
+          h(TextInput, {
+            'aria-label': 'Submission name',
+            value: runSetName,
+            onChange: setRunSetName,
+            placeholder: 'Enter submission name'
+          })
+        ]
+        ),
+        div({ style: { lineHeight: 2.0, marginTop: '1.5rem' } }, [
+          span({ style: { fontSize: 16, fontWeight: 'bold' } }, ['Comment ']), '(optional)',
+          h(TextArea, {
+            style: { height: 200, borderTopLeftRadius: 0, borderTopRightRadius: 0 },
+            'aria-label': 'Enter a comment',
+            value: runSetDescription,
+            onChange: setRunSetDescription,
+            placeholder: 'Enter comments'
+          })
+        ]),
+        div({ style: { lineHeight: 2.0, marginTop: '1.5rem' } }, [
+          div([h(TextCell, ['This will launch ', span({ style: { fontWeight: 'bold' } }, [runSetData.run_count]), ' workflow(s).'])]),
+          h(TextCell, { style: { marginTop: '1rem' } }, ['Running workflows will generate cloud compute charges.'])
+        ])
+      ])
     ])
   }
 

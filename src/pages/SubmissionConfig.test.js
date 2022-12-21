@@ -1,6 +1,6 @@
 import '@testing-library/jest-dom'
 
-import { act, render, screen, waitFor, within } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { h } from 'react-hyperscript-helpers'
 import selectEvent from 'react-select-event'
 import { Ajax } from 'src/libs/ajax'
@@ -28,7 +28,7 @@ const runSetResponse = {
       record_type: 'FOO',
       submission_timestamp: '2022-12-07T17:26:53.153+00:00',
       last_modified_timestamp: '2022-12-07T17:26:53.153+00:00',
-      run_count: 0,
+      run_count: 1,
       error_count: 0,
       input_definition: '[\n  {\n    "input_name": "target_workflow_1.foo.input_file_1",\n    "input_type": { "type": "primitive", "primitive_type": "File" },\n    "source": {\n      "type": "record_lookup",\n      "record_attribute": "target_workflow_1_input_file_1"\n    }\n  },\n  {\n    "input_name": "target_workflow_1.foo.input_file_2",\n    "input_type": { "type": "primitive", "primitive_type": "File" },\n    "source": {\n      "type": "record_lookup",\n      "record_attribute": "target_workflow_1_input_file_2"\n    }\n  },\n  {\n    "input_name": "target_workflow_1.foo.input_string_1",\n    "input_type": { "type": "primitive", "primitive_type": "String" },\n    "source": {\n      "type": "record_lookup",\n      "record_attribute": "target_workflow_1_input_string_1"\n    }\n  },\n  {\n    "input_name": "target_workflow_1.foo.input_string_2",\n    "input_type": { "type": "primitive", "primitive_type": "String" },\n    "source": {\n      "type": "record_lookup",\n      "record_attribute": "target_workflow_1_input_string_2"\n    }\n  },\n  {\n    "input_name": "target_workflow_1.foo.input_string_3",\n    "input_type": { "type": "optional", "optional_type": { "type": "primitive", "primitive_type": "String" } },\n    "source": {\n      "type": "record_lookup",\n      "record_attribute": "target_workflow_1_input_string_3"\n    }\n  },\n  {\n    "input_name": "target_workflow_1.foo.input_string_4",\n    "input_type": { "type": "primitive", "primitive_type": "String" },\n    "source": {\n      "type": "record_lookup",\n      "record_attribute": "target_workflow_1_input_string_4"\n    }\n  },\n  {\n    "input_name": "target_workflow_1.foo.input_string_5",\n    "input_type": { "type": "primitive", "primitive_type": "String" },\n    "source": {\n      "type": "record_lookup",\n      "record_attribute": "target_workflow_1_input_string_5"\n    }\n  },\n  {\n    "input_name": "target_workflow_1.foo.input_string_6",\n    "input_type": { "type": "primitive", "primitive_type": "String" },\n    "source": {\n      "type": "record_lookup",\n      "record_attribute": "target_workflow_1_input_string_6"\n    }\n  },\n  {\n    "input_name": "target_workflow_1.foo.input_string_7",\n    "input_type": { "type": "primitive", "primitive_type": "String" },\n    "source": {\n      "type": "record_lookup",\n      "record_attribute": "target_workflow_1_input_string_7"\n    }\n  }\n]\n',
       output_definition: '[\n  {\n    "output_name": "target_workflow_1.file_output",\n    "output_type": { "type": "primitive", "primitive_type": "String" },\n    "record_attribute": "target_workflow_1_file_output"\n  }\n]\n'
@@ -279,5 +279,43 @@ describe('SubmissionConfig records selector', () => {
     })
     const rowsFOO = within(table).queryAllByRole('row')
     expect(rowsFOO.length).toBe(5)
+  })
+
+  it('should display modal when Submit button is clicked', async () => {
+    const mockRunSetResponse = jest.fn(() => Promise.resolve(runSetResponse))
+    const mockMethodsResponse = jest.fn(() => Promise.resolve(methodsResponse))
+    const mockSearchResponse = jest.fn(recordType => Promise.resolve(searchResponses[recordType]))
+    const mockTypesResponse = jest.fn(() => Promise.resolve(typesResponse))
+
+    await Ajax.mockImplementation(() => {
+      return {
+        Cbas: {
+          runSets: {
+            getForMethod: mockRunSetResponse
+          },
+          methods: {
+            get: mockMethodsResponse
+          }
+        },
+        Wds: {
+          search: {
+            post: mockSearchResponse
+          },
+          types: {
+            get: mockTypesResponse
+          }
+        }
+      }
+    })
+
+    render(h(SubmissionConfig))
+
+    await waitFor(() => {
+      expect(mockRunSetResponse).toHaveBeenCalledTimes(1)
+    })
+
+    const button = screen.getByLabelText('Submit button')
+    fireEvent.click(button)
+    await screen.getByText('Send submission')
   })
 })

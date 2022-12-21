@@ -63,6 +63,17 @@ export const computePopupPosition = ({ side, viewport, target, element, gap }) =
   return { side: finalSide, position: finalPosition }
 }
 
+export const getPopupRoot = () => {
+  let popupRoot = document.getElementById('modal-root')
+  if (!popupRoot) {
+    popupRoot = document.createElement('div')
+    popupRoot.id = 'modal-root'
+    popupRoot.role = 'complementary'
+    document.body.append(popupRoot)
+  }
+  return popupRoot
+}
+
 export const PopupPortal = ({ children }) => {
   return createPortal(Children.only(children), document.getElementById('modal-root'))
 }

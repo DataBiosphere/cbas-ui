@@ -1,9 +1,9 @@
 import { filter, isEmpty, map, merge, orderBy } from 'lodash/fp'
 import { useMemo, useState } from 'react'
-import { div, h, h2, h3 } from 'react-hyperscript-helpers'
+import { div, h, h1, h2, h3 } from 'react-hyperscript-helpers'
 import ReactJson from 'react-json-view'
 import { AutoSizer } from 'react-virtualized'
-import { ButtonPrimary, Link, Navbar, Select } from 'src/components/common'
+import { ButtonOutline, ButtonPrimary, Link, Navbar, Select } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { HeaderSection, SubmitNewWorkflowButton } from 'src/components/job-common'
 import Modal from 'src/components/Modal'
@@ -117,7 +117,6 @@ export const SubmissionDetails = ({ submissionId }) => {
         label: `Submission ${submissionId}`
       }
     ]
-
     return h(HeaderSection, { breadcrumbPathObjects, title: 'Submission Details', button: SubmitNewWorkflowButton })
   }, [submissionId])
 
@@ -132,13 +131,19 @@ export const SubmissionDetails = ({ submissionId }) => {
         position: 'relative'
       }
     }, [
-      div({ style: { marginLeft: '4em' } }, [
+      div({ style: { marginLeft: '4em', display: 'flex', marginTop: '0.5rem', justifyContent: 'space-between' } }, [
+        h1(['Submission Details']),
+        h(ButtonOutline, {
+          style: { margin: '2em' },
+          onClick: () => goToPath('root')
+        }, ['Submit a new workflow'])
+      ]),
+      div({ style: { marginLeft: '4em', lineHeight: 1.25 } }, [
         header,
-        div({ style: { marginTop: '2rem' } }, [
-          h2(['workflow: ', getSpecificMethod[0]?.name]),
-          h3(['Submission date: ', specifyRunSet[0] && makeCompleteDate(specifyRunSet[0].submission_timestamp)]),
-          h3(['Duration: ', specifyRunSet[0] && customFormatDuration(duration(specifyRunSet[0]))])
-        ])
+        h2(['Submission name: ', specifyRunSet[0]?.run_set_name]),
+        h3(['Workflow name: ', getSpecificMethod[0]?.name]),
+        h3(['Submission date: ', specifyRunSet[0] && makeCompleteDate(specifyRunSet[0].submission_timestamp)]),
+        h3(['Duration: ', specifyRunSet[0] && customFormatDuration(duration(specifyRunSet[0]))])
       ])
     ]),
     div({
