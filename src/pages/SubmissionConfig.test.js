@@ -55,7 +55,7 @@ const runSetResponse = {
       record_type: 'FOO',
       submission_timestamp: '2022-12-07T17:26:53.153+00:00',
       last_modified_timestamp: '2022-12-07T17:26:53.153+00:00',
-      run_count: 0,
+      run_count: 1,
       error_count: 0,
       input_definition: JSON.stringify(runSetInputDef),
       output_definition: JSON.stringify(runSetOutputDef)
@@ -306,6 +306,44 @@ describe('SubmissionConfig records selector', () => {
     })
     const rowsFOO = within(table).queryAllByRole('row')
     expect(rowsFOO.length).toBe(5)
+  })
+
+  it('should display modal when Submit button is clicked', async () => {
+    const mockRunSetResponse = jest.fn(() => Promise.resolve(runSetResponse))
+    const mockMethodsResponse = jest.fn(() => Promise.resolve(methodsResponse))
+    const mockSearchResponse = jest.fn(recordType => Promise.resolve(searchResponses[recordType]))
+    const mockTypesResponse = jest.fn(() => Promise.resolve(typesResponse))
+
+    await Ajax.mockImplementation(() => {
+      return {
+        Cbas: {
+          runSets: {
+            getForMethod: mockRunSetResponse
+          },
+          methods: {
+            get: mockMethodsResponse
+          }
+        },
+        Wds: {
+          search: {
+            post: mockSearchResponse
+          },
+          types: {
+            get: mockTypesResponse
+          }
+        }
+      }
+    })
+
+    render(h(SubmissionConfig))
+
+    await waitFor(() => {
+      expect(mockRunSetResponse).toHaveBeenCalledTimes(1)
+    })
+
+    const button = screen.getByLabelText('Submit button')
+    fireEvent.click(button)
+    await screen.getByText('Send submission')
   })
 })
 

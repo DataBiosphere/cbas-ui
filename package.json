@@ -1,12 +1,13 @@
 {
   "name": "composite-batch-analysis-service-ui",
-  "version": "0.0.29",
+  "version": "0.0.37",
   "private": true,
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^1.2.36",
     "@fortawesome/free-regular-svg-icons": "^5.15.4",
     "@fortawesome/free-solid-svg-icons": "^5.15.4",
     "@fortawesome/react-fontawesome": "^0.1.15",
+    "@pact-foundation/pact": "10.2.2",
     "animate.css": "^4.1.1",
     "clipboard-polyfill": "^3.0.3",
     "color": "^4.0.1",
@@ -26,7 +27,7 @@
     "react-dom": "17.0.2",
     "react-draggable": "^4.4.5",
     "react-focus-lock": "^2.9.2",
-    "react-hyperscript-helpers": "^1.2.0",
+    "react-hyperscript-helpers": "^2.0.0",
     "react-json-view": "^1.21.3",
     "react-modal": "^3.14.3",
     "react-notifications-component": "^3.1.0",
@@ -37,6 +38,7 @@
     "react-select-event": "^5.5.1",
     "react-textarea-autosize": "^8.3.3",
     "react-virtualized": "^9.22.3",
+    "setimmediate": "^1.0.5",
     "uuid": "^8.3.2"
   },
   "scripts": {
@@ -48,7 +50,8 @@
     "setenv": "echo REACT_APP_VERSION=$(git rev-parse HEAD) REACT_APP_BUILD_TIMESTAMP=$(date -u \"+%s000\")",
     "start": "env $(yarn setenv) react-app-rewired start",
     "test": "react-app-rewired test",
-    "postinstall": "husky install"
+    "postinstall": "husky install",
+    "yarn:install": "yarn set version 3.x; yarn install"
   },
   "devDependencies": {
     "@testing-library/dom": "^8.17.1",

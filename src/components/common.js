@@ -1,5 +1,5 @@
 import * as clipboard from 'clipboard-polyfill/text'
-import _ from 'lodash/fp'
+import { find, flow, isNil, isObject, map, merge, uniqueId } from 'lodash/fp'
 import { useState } from 'react'
 import FocusLock from 'react-focus-lock'
 import { a, div, h, h3 } from 'react-hyperscript-helpers'
@@ -75,7 +75,7 @@ export const Clickable = forwardRefWithName('Clickable', ({ href, as = (!!href ?
   //
   // Note that TooltipTrigger does this same check with its own children, but since we'll be passing it an
   // Interactive element, we need to do the check here instead.
-  const useAsLabel = _.isNil(useTooltipAsLabel) ? containsUnlabelledIcon({ children, ...props }) : useTooltipAsLabel
+  const useAsLabel = isNil(useTooltipAsLabel) ? containsUnlabelledIcon({ children, ...props }) : useTooltipAsLabel
 
   // If we determined that we need to use the tooltip as a label, assert that we have a tooltip.
   // Do the check here and pass empty properties, to bypass the check logic in useLabelAssert() which doesn't take into account the icon's properties.
@@ -91,7 +91,7 @@ export const Clickable = forwardRefWithName('Clickable', ({ href, as = (!!href ?
 })
 
 export const Link = forwardRefWithName('Link', ({ disabled, variant, children, baseColor = colors.accent, ...props }, ref) => {
-  return h(Clickable, _.merge({
+  return h(Clickable, merge({
     ref,
     style: { // 0.72 is the min to meet ANDI's contrast requirement
       color: disabled ? colors.dark(0.72) : baseColor(variant === 'light' ? 0.3 : 1),
@@ -121,12 +121,12 @@ export const makeDocLink = (href, title, size) => {
 }
 
 export const IdContainer = ({ children }) => {
-  const [id] = useState(() => _.uniqueId('element-'))
+  const [id] = useState(() => uniqueId('element-'))
   return children(id)
 }
 
 export const ButtonPrimary = ({ disabled, danger = false, children, ...props }) => {
-  return h(Clickable, _.merge({
+  return h(Clickable, merge({
     disabled,
     style: {
       ...styles.button,
@@ -140,7 +140,7 @@ export const ButtonPrimary = ({ disabled, danger = false, children, ...props }) 
 }
 
 export const ButtonSecondary = ({ disabled, children, ...props }) => {
-  return h(Clickable, _.merge({
+  return h(Clickable, merge({
     disabled,
     style: {
       ...styles.button,
@@ -152,7 +152,7 @@ export const ButtonSecondary = ({ disabled, children, ...props }) => {
 }
 
 export const ButtonOutline = ({ disabled, children, ...props }) => {
-  return h(ButtonPrimary, _.merge({
+  return h(ButtonPrimary, merge({
     disabled,
     style: {
       border: `1px solid ${disabled ? colors.dark(0.4) : colors.accent()}`,
@@ -165,7 +165,7 @@ export const ButtonOutline = ({ disabled, children, ...props }) => {
 
 export const Checkbox = ({ checked, onChange, disabled, ...props }) => {
   useLabelAssert('Checkbox', { ...props, allowId: true })
-  return h(Interactive, _.merge({
+  return h(Interactive, merge({
     as: 'span',
     className: 'fa-layers fa-fw',
     role: 'checkbox',
@@ -180,7 +180,7 @@ export const Checkbox = ({ checked, onChange, disabled, ...props }) => {
   ])
 }
 
-export const headerBar = () => {
+export const Navbar = title => {
   return div({
     role: 'banner',
     style: { flex: 'none', display: 'flex', flexFlow: 'column nowrap' }
@@ -205,7 +205,7 @@ export const headerBar = () => {
           div({ style: { display: 'flex', alignItems: 'center', marginLeft: '1rem' } }, [
             h3({
               style: { color: 'white', fontWeight: 600, padding: '0px', marginLeft: '0.5rem' }
-            }, ['SUBMIT WORKFLOWS WITH CROMWELL'])
+            }, [title])
           ])
         ])
       ])
@@ -218,7 +218,7 @@ export const ClipboardButton = ({ text, onClick, children, ...props }) => {
   return h(Link, {
     tooltip: copied ? 'Copied to clipboard' : 'Copy to clipboard',
     ...props,
-    onClick: _.flow(
+    onClick: flow(
       withErrorReporting('Error copying to clipboard'),
       Utils.withBusyState(setCopied)
     )(async e => {
@@ -230,11 +230,11 @@ export const ClipboardButton = ({ text, onClick, children, ...props }) => {
 }
 
 const BaseSelect = ({ value, newOptions, id, findValue, ...props }) => {
-  const newValue = props.isMulti ? _.map(findValue, value) : findValue(value)
+  const newValue = props.isMulti ? map(findValue, value) : findValue(value)
   const myId = useUniqueId()
   const inputId = id || myId
 
-  return h(RSelect, _.merge({
+  return h(RSelect, merge({
     inputId,
     ...commonSelectProps,
     getOptionLabel: ({ value, label }) => label || value.toString(),
@@ -253,14 +253,14 @@ const BaseSelect = ({ value, newOptions, id, findValue, ...props }) => {
 export const Select = ({ value, options, ...props }) => {
   useLabelAssert('Select', { ...props, allowId: true })
 
-  const newOptions = options && !_.isObject(options[0]) ? _.map(value => ({ value }), options) : options
-  const findValue = target => _.find({ value: target }, newOptions)
+  const newOptions = options && !isObject(options[0]) ? map(value => ({ value }), options) : options
+  const findValue = target => find({ value: target }, newOptions)
 
   return h(BaseSelect, { value, newOptions, findValue, ...props })
 }
 
 const commonSelectProps = {
-  theme: base => _.merge(base, {
+  theme: base => merge(base, {
     colors: {
       primary: colors.accent(),
       neutral20: colors.dark(0.55),
@@ -269,12 +269,12 @@ const commonSelectProps = {
     spacing: { controlHeight: 36 }
   }),
   styles: {
-    control: (base, { isDisabled }) => _.merge(base, {
+    control: (base, { isDisabled }) => merge(base, {
       backgroundColor: isDisabled ? colors.dark(0.25) : 'white',
       boxShadow: 'none'
     }),
     singleValue: base => ({ ...base, color: colors.dark() }),
-    option: (base, { isSelected, isFocused, isDisabled }) => _.merge(base, {
+    option: (base, { isSelected, isFocused, isDisabled }) => merge(base, {
       fontWeight: isSelected ? 600 : undefined,
       backgroundColor: isFocused ? colors.dark(0.15) : 'white',
       color: isDisabled ? undefined : colors.dark(),
@@ -282,13 +282,13 @@ const commonSelectProps = {
     }),
     clearIndicator: base => ({ ...base, paddingRight: 0 }),
     indicatorSeparator: () => ({ display: 'none' }),
-    dropdownIndicator: (base, { selectProps: { isClearable } }) => _.merge(base, { paddingLeft: isClearable ? 0 : undefined }),
+    dropdownIndicator: (base, { selectProps: { isClearable } }) => merge(base, { paddingLeft: isClearable ? 0 : undefined }),
     multiValueLabel: base => ({ ...base, maxWidth: '100%' }),
-    multiValueRemove: base => _.merge(base, { ':hover': { backgroundColor: 'unset' } }),
+    multiValueRemove: base => merge(base, { ':hover': { backgroundColor: 'unset' } }),
     placeholder: base => ({ ...base, color: colors.dark(0.8) })
   },
   components: {
-    Option: ({ children, selectProps, ...props }) => h(RSelectComponents.Option, _.merge(props, {
+    Option: ({ children, selectProps, ...props }) => h(RSelectComponents.Option, merge(props, {
       selectProps,
       innerProps: {
         role: 'option',
@@ -300,7 +300,7 @@ const commonSelectProps = {
         props.isSelected && icon('check', { size: 14, style: { flex: 'none', marginLeft: '0.5rem', color: colors.dark(0.5) } })
       ])
     ]),
-    Menu: ({ children, selectProps, ...props }) => h(RSelectComponents.Menu, _.merge(props, {
+    Menu: ({ children, selectProps, ...props }) => h(RSelectComponents.Menu, merge(props, {
       selectProps,
       innerProps: {
         role: 'listbox',
@@ -343,7 +343,7 @@ const makeBaseSpinner = ({ outerStyles = {}, innerStyles = {} }) => div(
 export const FocusTrapper = ({ children, onBreakout, ...props }) => {
   return h(FocusLock, {
     returnFocus: true,
-    lockProps: _.merge({
+    lockProps: merge({
       tabIndex: 0,
       style: { outline: 'none' },
       onKeyDown: e => {
