@@ -249,7 +249,6 @@ export const inputsTable = props => {
       h(TextInput, {
         id: `literal-input-${rowIndex}`,
         style: { display: 'block', width: '100%' },
-        placeholder: 'FOO',
         defaultValue: _.get(`${rowIndex}.parameter_value`, cachedInputSources) || null,
         onChange: value => {
           const newSource = {
@@ -262,6 +261,15 @@ export const inputsTable = props => {
         }
       })
     ])
+  }
+
+  const parseInputString = inputString => {
+    const inputNameParts = inputString.split('.')
+    return {
+      workflow: inputNameParts[0],
+      input: inputNameParts[inputNameParts.length - 1],
+      call: inputNameParts.length == 3 ? inputNameParts[1] : ''
+    }
   }
 
   return h(AutoSizer, [({ width, height }) => {
@@ -277,8 +285,8 @@ export const inputsTable = props => {
           size: { basis: 250, grow: 0 },
           field: 'taskVariable',
           headerRenderer: () => h(Sortable, { sort: inputTableSort, field: 'taskVariable', onSort: setInputTableSort }, [h(HeaderCell, ['Task name'])]),
-          cellRenderer: () => {
-            return h(TextCell, { style: { fontWeight: 500 } }, [method ? method.name : 'Loading...'])
+          cellRenderer: ({ rowIndex }) => {
+            return h(TextCell, { style: { fontWeight: 500 } }, [parseInputString(configuredInputDefinition[rowIndex].input_name).call])
           }
         },
         {
@@ -286,7 +294,7 @@ export const inputsTable = props => {
           field: 'workflowVariable',
           headerRenderer: () => h(Sortable, { sort: inputTableSort, field: 'workflowVariable', onSort: setInputTableSort }, [h(HeaderCell, ['Variable'])]),
           cellRenderer: ({ rowIndex }) => {
-            return h(TextCell, {}, [configuredInputDefinition[rowIndex].input_name])
+            return h(TextCell, {}, [parseInputString(configuredInputDefinition[rowIndex].input_name).input])
           }
         },
         {
