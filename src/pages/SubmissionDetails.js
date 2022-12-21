@@ -1,9 +1,9 @@
 import { filter, isEmpty, map, merge, orderBy } from 'lodash/fp'
 import { useMemo, useState } from 'react'
-import { div, h, h1, h2, h3 } from 'react-hyperscript-helpers'
+import { div, h, h2, h3 } from 'react-hyperscript-helpers'
 import ReactJson from 'react-json-view'
 import { AutoSizer } from 'react-virtualized'
-import { ButtonOutline, ButtonPrimary, Link, Navbar, Select } from 'src/components/common'
+import { ButtonPrimary, Link, Navbar, Select } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { HeaderSection, SubmitNewWorkflowButton } from 'src/components/job-common'
 import Modal from 'src/components/Modal'
@@ -131,13 +131,6 @@ export const SubmissionDetails = ({ submissionId }) => {
         position: 'relative'
       }
     }, [
-      div({ style: { marginLeft: '4em', display: 'flex', marginTop: '0.5rem', justifyContent: 'space-between' } }, [
-        h1(['Submission Details']),
-        h(ButtonOutline, {
-          style: { margin: '2em' },
-          onClick: () => goToPath('root')
-        }, ['Submit a new workflow'])
-      ]),
       div({ style: { marginLeft: '4em', lineHeight: 1.25 } }, [
         header,
         h2(['Submission name: ', specifyRunSet[0]?.run_set_name]),
