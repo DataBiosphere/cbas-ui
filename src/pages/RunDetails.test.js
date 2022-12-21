@@ -4,7 +4,8 @@ import userEvent from '@testing-library/user-event'
 import { h } from 'react-hyperscript-helpers'
 import { Ajax } from 'src/libs/ajax'
 import { makeCompleteDate } from 'src/libs/utils'
-import { WorkflowDashboard } from 'src/pages/workspaces/workspace/jobHistory/WorkflowDashboard'
+
+import { RunDetails } from './RunDetails'
 
 
 jest.mock('src/libs/ajax')
@@ -15,17 +16,17 @@ jest.mock('src/libs/config', () => ({
 }))
 
 
-const workspaceDashboardProps = {
+const runDetailsProps = {
   namespace: 'example-billing-project',
   name: 'workspace',
-  submissionId: 'subId',
-  workflowId: 'workId'
+  submissionId: 1,
+  workflowId: 2
 }
 
 const end = new Date()
 const start = new Date(end.getMilliseconds() - 1000000)
 
-const workspaceDashboardMetadata = {
+const runDetailsMetadata = {
   workflowName: 'fileChecksum',
   workflowProcessingEvents: [
     {
@@ -86,7 +87,7 @@ const workspaceDashboardMetadata = {
 beforeEach(() => {
   const workId = {
     metadata() {
-      return jest.fn(() => workspaceDashboardMetadata)
+      return jest.fn(() => runDetailsMetadata)
     }
   }
   Ajax.mockImplementation(() => {
@@ -100,7 +101,7 @@ beforeEach(() => {
   })
 })
 
-describe('WorkspaceDashboard - Dashboard render smoke test', () => {
+describe('RunDetails - render smoke test', () => {
   const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'offsetHeight')
   const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'offsetWidth')
 
@@ -117,37 +118,28 @@ describe('WorkspaceDashboard - Dashboard render smoke test', () => {
 
   it('should mount the component', async () => {
     // Act
-    render(h(WorkflowDashboard, workspaceDashboardProps))
+    render(h(RunDetails, runDetailsProps))
 
     await waitFor(() => {
-      const dashboardContainer = screen.getByTestId('dashboard-container')
-      expect(dashboardContainer).toBeDefined
-    })
-  })
-
-  it('shows the time taken to fetch the workflow metadata', async () => {
-    // Act
-    render(h(WorkflowDashboard, workspaceDashboardProps))
-    await waitFor(() => {
-      const fetchTime = screen.getByText(/Workflow metadata fetched in \d+ms/)
-      expect(fetchTime).toBeDefined
+      const detailsContainer = screen.getByTestId('run-details-container')
+      expect(detailsContainer).toBeDefined
     })
   })
 
   it('shows the workflow status', async () => {
-    render(h(WorkflowDashboard, workspaceDashboardProps))
+    render(h(RunDetails, runDetailsProps))
     await waitFor(() => {
-      const workflowStatus = screen.getByText(workspaceDashboardMetadata.status)
+      const workflowStatus = screen.getByText(runDetailsMetadata.status)
       expect(workflowStatus).toBeDefined
     })
   })
 
   it('shows the workflow timing', async () => {
-    render(h(WorkflowDashboard, workspaceDashboardProps))
+    render(h(RunDetails, runDetailsProps))
     await waitFor(() => {
-      const startTime = screen.getByText(makeCompleteDate(workspaceDashboardMetadata.start))
+      const startTime = screen.getByText(makeCompleteDate(runDetailsMetadata.start))
       expect(startTime).toBeDefined
-      const endTime = screen.getByText(makeCompleteDate(workspaceDashboardMetadata.end))
+      const endTime = screen.getByText(makeCompleteDate(runDetailsMetadata.end))
       expect(endTime).toBeDefined
     })
   })
@@ -155,7 +147,7 @@ describe('WorkspaceDashboard - Dashboard render smoke test', () => {
   it('shows the workflow failures', async () => {
     jest.spyOn(navigator.clipboard, 'writeText')
 
-    render(h(WorkflowDashboard, workspaceDashboardProps))
+    render(h(RunDetails, runDetailsProps))
     const user = userEvent.setup()
     await waitFor(async () => {
       const collapseTitle = screen.getByText('Workflow-Level Failures')
@@ -167,13 +159,13 @@ describe('WorkspaceDashboard - Dashboard render smoke test', () => {
     })
   })
 
-  it('shows the workflow calls', async () => {
-    const callData = workspaceDashboardMetadata.calls.testOne[0]
-    render(h(WorkflowDashboard, workspaceDashboardProps))
+  it('shows the workflow tasks', async () => {
+    const callData = runDetailsMetadata.calls.testOne[0]
+    render(h(RunDetails, runDetailsProps))
     await waitFor(() => {
-      const callCollapse = screen.getByText('Calls')
+      const callCollapse = screen.getByText('Tasks')
       expect(callCollapse).toBeDefined
-      const countString = screen.getByText('Total Call Status Counts')
+      const countString = screen.getByText('Total Task Status Counts')
       expect(countString).toBeDefined
       const totalRunningString = screen.getByText(/1 running/)
       expect(totalRunningString).toBeDefined
@@ -212,7 +204,7 @@ describe('WorkspaceDashboard - Dashboard render smoke test', () => {
   })
 
   it('shows the wdl text in a dedicated code block', async () => {
-    render(h(WorkflowDashboard, workspaceDashboardProps))
+    render(h(RunDetails, runDetailsProps))
     const user = userEvent.setup()
     await waitFor(async () => {
       const collapseTitle = screen.getByText('Submitted workflow script')

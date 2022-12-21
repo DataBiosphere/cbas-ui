@@ -27,7 +27,7 @@
     "react-dom": "17.0.2",
     "react-draggable": "^4.4.5",
     "react-focus-lock": "^2.9.2",
-    "react-hyperscript-helpers": "^1.2.0",
+    "react-hyperscript-helpers": "^2.0.0",
     "react-json-view": "^1.21.3",
     "react-modal": "^3.14.3",
     "react-notifications-component": "^3.1.0",
@@ -50,7 +50,8 @@
     "setenv": "echo REACT_APP_VERSION=$(git rev-parse HEAD) REACT_APP_BUILD_TIMESTAMP=$(date -u \"+%s000\")",
     "start": "env $(yarn setenv) react-app-rewired start",
     "test": "react-app-rewired test",
-    "postinstall": "husky install"
+    "postinstall": "husky install",
+    "yarn:install": "yarn set version 3.x; yarn install"
   },
   "devDependencies": {
     "@testing-library/dom": "^8.17.1",

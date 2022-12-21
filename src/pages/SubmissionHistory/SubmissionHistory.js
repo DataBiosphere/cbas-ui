@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { div, h, h2 } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
-import { ButtonOutline, headerBar, Link } from 'src/components/common'
+import { ButtonOutline, Link, Navbar } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { makeStatusLine, statusType } from 'src/components/submission-common'
 import { FlexTable, paginator, Sortable, tableHeight, TextCell } from 'src/components/table'
@@ -78,7 +78,7 @@ export const SubmissionHistory = () => {
   const rowHeight = 250
 
   return h(Fragment, [
-    headerBar(),
+    Navbar(),
     div({ style: { margin: '4em' } }, [
       div({ style: { display: 'flex', marginTop: '1rem', justifyContent: 'space-between' } }, [
         h2(['Submission History']),
