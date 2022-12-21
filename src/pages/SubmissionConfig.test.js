@@ -18,7 +18,7 @@ jest.mock('src/libs/config', () => ({
 
 const runSetInputDef = [
   {
-    input_name: 'target_workflow_1.foo.foo_rating',
+    input_name: 'target_workflow_1.foo.foo_rating_workflow_var',
     input_type: { type: 'primitive', primitive_type: 'Int' },
     source: {
       type: 'record_lookup',
@@ -386,7 +386,7 @@ describe('SubmissionConfig inputs definition', () => {
 
     const cells = within(rows[1]).queryAllByRole('cell')
     expect(cells.length).toBe(5)
-    within(cells[1]).getByText('target_workflow_1.foo.foo_rating')
+    within(cells[1]).getByText('foo_rating_workflow_var')
     within(cells[2]).getByText('Int')
     within(cells[3]).getByText('Fetch from Data Table')
     within(cells[4]).getByText('foo_rating')
