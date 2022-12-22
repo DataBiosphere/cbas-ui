@@ -216,9 +216,9 @@ const parseDefinitionType = iotype => {
 
 export const inputsTable = props => {
   const {
-    selectedDataTable,
     configuredInputDefinition, setConfiguredInputDefinition,
-    inputTableSort, setInputTableSort
+    inputTableSort, setInputTableSort,
+    selectedDataTable
   } = props
 
   const dataTableAttributes = _.keyBy('name', selectedDataTable.attributes)
@@ -354,7 +354,6 @@ export const inputsTable = props => {
 
 export const outputsTable = props => {
   const {
-    selectedDataTable,
     configuredOutputDefinition, setConfiguredOutputDefinition,
     outputTableSort, setOutputTableSort
   } = props
@@ -396,7 +395,6 @@ export const outputsTable = props => {
             h(HeaderCell, ['Attribute'])
           ]),
           cellRenderer: ({ rowIndex }) => {
-            const source = _.get(`${rowIndex}.source`, configuredOutputDefinition)
             return h(TextInput, {
               id: `output-parameter-${rowIndex}`,
               style: { display: 'block', width: '100%' },

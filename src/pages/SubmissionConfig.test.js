@@ -236,6 +236,7 @@ describe('SubmissionConfig records selector', () => {
     const cells = within(rows[1]).queryAllByRole('cell')
     expect(cells.length).toBe(4)
   })
+
   it('should repopulate the record selector when the dropdown selection changes', async () => {
     // ** ARRANGE **
     const mockRunSetResponse = jest.fn(() => Promise.resolve(runSetResponse))
@@ -312,7 +313,7 @@ describe('SubmissionConfig records selector', () => {
     expect(rowsFOO.length).toBe(5)
   })
 
-  it('should display modal when Submit button is clicked', async () => {
+  it('when records are selected, should display modal when Submit button is clicked', async () => {
     const mockRunSetResponse = jest.fn(() => Promise.resolve(runSetResponse))
     const mockMethodsResponse = jest.fn(() => Promise.resolve(methodsResponse))
     const mockSearchResponse = jest.fn(recordType => Promise.resolve(searchResponses[recordType]))
@@ -447,5 +448,90 @@ describe('SubmissionConfig inputs definition', () => {
     within(cellsBar[2]).getByText('String')
     within(cellsBar[3]).getByText('Fetch from Data Table')
     within(cellsBar[4]).getByText('bar_string')
+  })
+})
+
+
+describe('SubmissionConfig outputs definition', () => {
+  // SubmissionConfig component uses AutoSizer to determine the right size for table to be displayed. As a result we need to
+  // mock out the height and width so that when AutoSizer asks for the width and height of "browser" it can use the mocked
+  // values and render the component properly. Without this the tests will be break.
+  // (see https://github.com/bvaughn/react-virtualized/issues/493 and https://stackoverflow.com/a/62214834)
+  const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'offsetHeight')
+  const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'offsetWidth')
+
+  beforeAll(() => {
+    Object.defineProperty(HTMLElement.prototype, 'offsetHeight', { configurable: true, value: 1000 })
+    Object.defineProperty(HTMLElement.prototype, 'offsetWidth', { configurable: true, value: 800 })
+  })
+
+  afterEach(() => {
+    jest.clearAllMocks()
+  })
+
+  afterAll(() => {
+    Object.defineProperty(HTMLElement.prototype, 'offsetHeight', originalOffsetHeight)
+    Object.defineProperty(HTMLElement.prototype, 'offsetWidth', originalOffsetWidth)
+  })
+
+  it('should initially populate the outputs definition table with attributes determined by the previously executed run set', async () => {
+    // ** ARRANGE **
+    const mockRunSetResponse = jest.fn(() => Promise.resolve(runSetResponse))
+    const mockMethodsResponse = jest.fn(() => Promise.resolve(methodsResponse))
+    const mockSearchResponse = jest.fn(recordType => Promise.resolve(searchResponses[recordType]))
+    const mockTypesResponse = jest.fn(() => Promise.resolve(typesResponse))
+
+    await Ajax.mockImplementation(() => {
+      return {
+        Cbas: {
+          runSets: {
+            getForMethod: mockRunSetResponse
+          },
+          methods: {
+            get: mockMethodsResponse
+          }
+        },
+        Wds: {
+          search: {
+            post: mockSearchResponse
+          },
+          types: {
+            get: mockTypesResponse
+          }
+        }
+      }
+    })
+
+    // ** ACT **
+    render(h(SubmissionConfig))
+
+    // ** ASSERT **
+    await waitFor(() => {
+      expect(mockRunSetResponse).toHaveBeenCalledTimes(1)
+      expect(mockMethodsResponse).toHaveBeenCalledTimes(1)
+      expect(mockTypesResponse).toHaveBeenCalledTimes(1)
+      expect(mockSearchResponse).toHaveBeenCalledTimes(0)
+    })
+    const button = await screen.findByRole('button', { name: 'Outputs' })
+
+    // ** ACT **
+    await fireEvent.click(button)
+
+    // ** ASSERT **
+    const table = await screen.findByRole('table')
+    const rows = within(table).queryAllByRole('row')
+
+    expect(runSetOutputDef.length).toBe(1)
+    expect(rows.length).toBe(runSetOutputDef.length + 1) // one row for each input definition variabe, plus headers
+
+    const headers = within(rows[0]).queryAllByRole('columnheader')
+    expect(headers.length).toBe(4)
+
+    const cells = within(rows[1]).queryAllByRole('cell')
+    expect(cells.length).toBe(4)
+    expect(cells[0].textContent).toBe('')
+    within(cells[1]).getByText('file_output')
+    within(cells[2]).getByText('String')
+    within(cells[3]).getByDisplayValue('target_workflow_1_file_output')
   })
 })

@@ -1,12 +1,11 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { a, div, h, h2, span } from 'react-hyperscript-helpers'
-import ReactJson from 'react-json-view'
 import { ButtonPrimary, Link, Navbar, Select } from 'src/components/common'
 import { TextArea, TextInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import StepButtons from 'src/components/StepButtons'
-import { inputsTable, recordsTable, outputsTable } from 'src/components/submission-common'
+import { inputsTable, outputsTable, recordsTable } from 'src/components/submission-common'
 import { TextCell } from 'src/components/table'
 import { Ajax } from 'src/libs/ajax'
 import * as Nav from 'src/libs/nav'
@@ -201,14 +200,13 @@ export const SubmissionConfig = ({ methodId }) => {
 
   const renderInputs = () => {
     return configuredInputDefinition ? h(inputsTable, {
-      selectedDataTable: _.keyBy('name', recordTypes)[selectedRecordType],
       configuredInputDefinition, setConfiguredInputDefinition,
-      inputTableSort, setInputTableSort
+      inputTableSort, setInputTableSort,
+      selectedDataTable: _.keyBy('name', recordTypes)[selectedRecordType]
     }) : 'No configured input definition...'
   }
 
   const renderOutputs = () => {
-    console.log(configuredOutputDefinition)
     return configuredOutputDefinition ? h(outputsTable, {
       selectedDataTable: _.keyBy('name', recordTypes)[selectedRecordType],
       configuredOutputDefinition, setConfiguredOutputDefinition,
