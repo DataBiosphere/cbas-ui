@@ -382,7 +382,7 @@ export const outputsTable = props => {
           size: { basis: 160, grow: 0 },
           headerRenderer: () => h(HeaderCell, ['Type']),
           cellRenderer: ({ rowIndex }) => {
-            return h(TextCell, {}, [parseDefinitionType(configuredOutputDefinition[rowIndex].output_type)]) // TODO: this needs to be more flexible
+            return h(TextCell, {}, [parseDefinitionType(configuredOutputDefinition[rowIndex].output_type)])
           }
         },
         {
