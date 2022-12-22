@@ -195,7 +195,6 @@ export const recordsTable = props => {
   }])
 }
 
-
 const parseMethodString = methodString => {
   const methodNameParts = methodString.split('.')
   return {

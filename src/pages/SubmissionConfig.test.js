@@ -26,11 +26,11 @@ const runSetInputDef = [
     }
   },
   {
-    input_name: 'target_workflow_1.foo.sys_name',
+    input_name: 'target_workflow_1.bar_string_workflow_var',
     input_type: { type: 'primitive', primitive_type: 'String' },
     source: {
       type: 'record_lookup',
-      record_attribute: 'sys_name'
+      record_attribute: 'bar_string'
     }
   }
 ]
@@ -83,6 +83,10 @@ const typesResponse = [
       {
         name: 'foo_rating',
         datatype: 'NUMBER'
+      },
+      {
+        name: 'bar_string',
+        datatype: 'STRING'
       },
       {
         name: 'sys_name',
@@ -427,11 +431,21 @@ describe('SubmissionConfig inputs definition', () => {
     const headers = within(rows[0]).queryAllByRole('columnheader')
     expect(headers.length).toBe(5)
 
-    const cells = within(rows[1]).queryAllByRole('cell')
-    expect(cells.length).toBe(5)
-    within(cells[1]).getByText('foo_rating_workflow_var')
-    within(cells[2]).getByText('Int')
-    within(cells[3]).getByText('Fetch from Data Table')
-    within(cells[4]).getByText('foo_rating')
+    const cellsFoo = within(rows[1]).queryAllByRole('cell')
+    expect(cellsFoo.length).toBe(5)
+    within(cellsFoo[0]).getByText('foo')
+    within(cellsFoo[1]).getByText('foo_rating_workflow_var')
+    within(cellsFoo[2]).getByText('Int')
+    within(cellsFoo[3]).getByText('Fetch from Data Table')
+    within(cellsFoo[4]).getByText('foo_rating')
+
+
+    const cellsBar = within(rows[2]).queryAllByRole('cell')
+    expect(cellsBar.length).toBe(5)
+    expect(cellsBar[0].textContent).toBe('')
+    within(cellsBar[1]).getByText('bar_string_workflow_var')
+    within(cellsBar[2]).getByText('String')
+    within(cellsBar[3]).getByText('Fetch from Data Table')
+    within(cellsBar[4]).getByText('bar_string')
   })
 })
