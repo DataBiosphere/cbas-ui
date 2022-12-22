@@ -427,7 +427,7 @@ describe('SubmissionConfig inputs definition', () => {
     const rows = within(table).queryAllByRole('row')
 
     expect(runSetInputDef.length).toBe(2)
-    expect(rows.length).toBe(runSetInputDef.length + 1) // one row for each input definition variabe, plus headers
+    expect(rows.length).toBe(runSetInputDef.length + 1) // one row for each input definition variable, plus headers
 
     const headers = within(rows[0]).queryAllByRole('columnheader')
     expect(headers.length).toBe(5)
@@ -522,7 +522,7 @@ describe('SubmissionConfig outputs definition', () => {
     const rows = within(table).queryAllByRole('row')
 
     expect(runSetOutputDef.length).toBe(1)
-    expect(rows.length).toBe(runSetOutputDef.length + 1) // one row for each input definition variabe, plus headers
+    expect(rows.length).toBe(runSetOutputDef.length + 1) // one row for each output definition variable, plus headers
 
     const headers = within(rows[0]).queryAllByRole('columnheader')
     expect(headers.length).toBe(4)
