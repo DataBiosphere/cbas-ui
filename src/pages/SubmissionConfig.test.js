@@ -71,7 +71,10 @@ const methodsResponse = {
       description: 'Target Workflow 1',
       source: 'Github',
       source_url: 'https://raw.githubusercontent.com/DataBiosphere/cbas/main/useful_workflows/target_workflow_1/target_workflow_1.wdl',
-      created: '2022-12-07T17:26:53.131+00:00'
+      created: '2022-12-07T17:26:53.131+00:00',
+      last_run: {
+        run_previously: false
+      }
     }
   ]
 }
@@ -196,7 +199,7 @@ describe('SubmissionConfig records selector', () => {
             getForMethod: mockRunSetResponse
           },
           methods: {
-            get: mockMethodsResponse
+            getById: mockMethodsResponse
           }
         },
         Wds: {
@@ -216,8 +219,8 @@ describe('SubmissionConfig records selector', () => {
     // ** ASSERT **
     await waitFor(() => {
       expect(mockRunSetResponse).toHaveBeenCalledTimes(1)
-      expect(mockMethodsResponse).toHaveBeenCalledTimes(1)
       expect(mockTypesResponse).toHaveBeenCalledTimes(1)
+      expect(mockMethodsResponse).toHaveBeenCalledTimes(0)
       expect(mockSearchResponse).toHaveBeenCalledTimes(0)
     })
     const table = await screen.findByRole('table')
@@ -225,6 +228,7 @@ describe('SubmissionConfig records selector', () => {
     // after the initial render (not before), records data should have been retrieved once
     await waitFor(() => {
       expect(mockSearchResponse).toHaveBeenCalledTimes(1)
+      expect(mockMethodsResponse).toHaveBeenCalledTimes(1)
     })
 
     const rows = within(table).queryAllByRole('row')
@@ -250,7 +254,7 @@ describe('SubmissionConfig records selector', () => {
             getForMethod: mockRunSetResponse
           },
           methods: {
-            get: mockMethodsResponse
+            getById: mockMethodsResponse
           }
         },
         Wds: {
@@ -270,14 +274,15 @@ describe('SubmissionConfig records selector', () => {
     // ** ASSERT **
     await waitFor(() => {
       expect(mockRunSetResponse).toHaveBeenCalledTimes(1)
-      expect(mockMethodsResponse).toHaveBeenCalledTimes(1)
       expect(mockTypesResponse).toHaveBeenCalledTimes(1)
+      expect(mockMethodsResponse).toHaveBeenCalledTimes(0)
       expect(mockSearchResponse).toHaveBeenCalledTimes(0)
     })
     const table = await screen.findByRole('table')
     // after the initial render (not before), records data should have been retrieved once
     await waitFor(() => {
       expect(mockSearchResponse).toHaveBeenCalledTimes(1)
+      expect(mockMethodsResponse).toHaveBeenCalledTimes(1)
     })
 
     // ** ACT **
@@ -325,7 +330,7 @@ describe('SubmissionConfig records selector', () => {
             getForMethod: mockRunSetResponse
           },
           methods: {
-            get: mockMethodsResponse
+            getById: mockMethodsResponse
           }
         },
         Wds: {
@@ -392,7 +397,7 @@ describe('SubmissionConfig inputs definition', () => {
             getForMethod: mockRunSetResponse
           },
           methods: {
-            get: mockMethodsResponse
+            getById: mockMethodsResponse
           }
         },
         Wds: {
@@ -412,10 +417,19 @@ describe('SubmissionConfig inputs definition', () => {
     // ** ASSERT **
     await waitFor(() => {
       expect(mockRunSetResponse).toHaveBeenCalledTimes(1)
-      expect(mockMethodsResponse).toHaveBeenCalledTimes(1)
       expect(mockTypesResponse).toHaveBeenCalledTimes(1)
+
+      // At initial render these two shouldn't be called. See below for a follow-up await for them to be triggered via callbacks
+      expect(mockMethodsResponse).toHaveBeenCalledTimes(0)
       expect(mockSearchResponse).toHaveBeenCalledTimes(0)
     })
+
+    // after the initial render (not before), records data should have been retrieved once
+    await waitFor(() => {
+      expect(mockSearchResponse).toHaveBeenCalledTimes(1)
+      expect(mockMethodsResponse).toHaveBeenCalledTimes(1)
+    })
+
     const button = await screen.findByRole('button', { name: 'Inputs' })
 
     // ** ACT **

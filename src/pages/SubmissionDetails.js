@@ -73,15 +73,17 @@ export const SubmissionDetails = ({ submissionId }) => {
       try {
         const getRunSets = await Ajax(signal).Cbas.runSets.get()
         const allRunSets = getRunSets.run_sets
-        setRunSetData(map(r => merge(r, { duration: duration(r) }), allRunSets))
+        const annotatedWithDurations = map(r => merge(r, { duration: duration(r) }), allRunSets)
+        setRunSetData(annotatedWithDurations)
+        return annotatedWithDurations
       } catch (error) {
         notify('error', 'Error getting run set data', { detail: await (error instanceof Response ? error.text() : error) })
       }
     }
 
-    const loadMethodsData = async () => {
+    const loadMethodsData = async methodVersionId => {
       try {
-        const methodsResponse = await Ajax(signal).Cbas.methods.get()
+        const methodsResponse = await Ajax(signal).Cbas.methods.getByMethodVersionId(methodVersionId)
         const allMethods = methodsResponse.methods
         setMethodsData(allMethods)
       } catch (error) {
@@ -90,8 +92,9 @@ export const SubmissionDetails = ({ submissionId }) => {
     }
 
     loadRunsData()
-    loadRunSetData()
-    loadMethodsData()
+    loadRunSetData().then(runSet => {
+      runSet && loadMethodsData(runSet.method_version_id)
+    })
   })
 
   const specifyRunSet = filter(r => r.run_set_id === submissionId, runSetData)
