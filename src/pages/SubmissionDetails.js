@@ -229,7 +229,7 @@ export const SubmissionDetails = ({ submissionId }) => {
                 headerRenderer: () => h(Sortable, { sort, field: 'run_id', onSort: setSort }, ['Run ID']),
                 cellRenderer: ({ rowIndex }) => {
                   return div({ style: { width: '100%', textAlign: 'left' } }, [
-                    h(Link, { onClick: () => { goToPath('workflow-dashboard', { workflowId: paginatedPreviousRuns[rowIndex].engine_id }) }, style: { fontWeight: 'bold' } },
+                    h(Link, { onClick: () => { goToPath('run-details', { submissionId, workflowId: paginatedPreviousRuns[rowIndex].engine_id }) }, style: { fontWeight: 'bold' } },
                       [paginatedPreviousRuns[rowIndex].run_id])
                   ])
                 }
