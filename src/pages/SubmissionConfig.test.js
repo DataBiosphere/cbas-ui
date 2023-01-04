@@ -362,7 +362,7 @@ describe('SubmissionConfig records selector', () => {
   })
 })
 
-describe('SubmissionConfig inputs definition', () => {
+describe('SubmissionConfig inputs/outputs definitions', () => {
   // SubmissionConfig component uses AutoSizer to determine the right size for table to be displayed. As a result we need to
   // mock out the height and width so that when AutoSizer asks for the width and height of "browser" it can use the mocked
   // values and render the component properly. Without this the tests will be break.
@@ -463,30 +463,6 @@ describe('SubmissionConfig inputs definition', () => {
     within(cellsBar[3]).getByText('Fetch from Data Table')
     within(cellsBar[4]).getByText('bar_string')
   })
-})
-
-
-describe('SubmissionConfig outputs definition', () => {
-  // SubmissionConfig component uses AutoSizer to determine the right size for table to be displayed. As a result we need to
-  // mock out the height and width so that when AutoSizer asks for the width and height of "browser" it can use the mocked
-  // values and render the component properly. Without this the tests will be break.
-  // (see https://github.com/bvaughn/react-virtualized/issues/493 and https://stackoverflow.com/a/62214834)
-  const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'offsetHeight')
-  const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'offsetWidth')
-
-  beforeAll(() => {
-    Object.defineProperty(HTMLElement.prototype, 'offsetHeight', { configurable: true, value: 1000 })
-    Object.defineProperty(HTMLElement.prototype, 'offsetWidth', { configurable: true, value: 800 })
-  })
-
-  afterEach(() => {
-    jest.clearAllMocks()
-  })
-
-  afterAll(() => {
-    Object.defineProperty(HTMLElement.prototype, 'offsetHeight', originalOffsetHeight)
-    Object.defineProperty(HTMLElement.prototype, 'offsetWidth', originalOffsetWidth)
-  })
 
   it('should initially populate the outputs definition table with attributes determined by the previously executed run set', async () => {
     // ** ARRANGE **
@@ -502,7 +478,7 @@ describe('SubmissionConfig outputs definition', () => {
             getForMethod: mockRunSetResponse
           },
           methods: {
-            get: mockMethodsResponse
+            getById: mockMethodsResponse
           }
         },
         Wds: {
@@ -522,10 +498,19 @@ describe('SubmissionConfig outputs definition', () => {
     // ** ASSERT **
     await waitFor(() => {
       expect(mockRunSetResponse).toHaveBeenCalledTimes(1)
-      expect(mockMethodsResponse).toHaveBeenCalledTimes(1)
       expect(mockTypesResponse).toHaveBeenCalledTimes(1)
+
+      // At initial render these two shouldn't be called. See below for a follow-up await for them to be triggered via callbacks
+      expect(mockMethodsResponse).toHaveBeenCalledTimes(0)
       expect(mockSearchResponse).toHaveBeenCalledTimes(0)
     })
+
+    // after the initial render (not before), records data should have been retrieved once
+    await waitFor(() => {
+      expect(mockSearchResponse).toHaveBeenCalledTimes(1)
+      expect(mockMethodsResponse).toHaveBeenCalledTimes(1)
+    })
+
     const button = await screen.findByRole('button', { name: 'Outputs' })
 
     // ** ACT **
