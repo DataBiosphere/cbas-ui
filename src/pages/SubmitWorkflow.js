@@ -24,7 +24,7 @@ const styles = {
 export const SubmitWorkflow = () => {
   // State
   const [cbasStatus, setCbasStatus] = useState()
-  const [runsData, setRunsData] = useState()
+  const [methodsData, setMethodsData] = useState()
 
   const signal = useCancellation()
 
@@ -36,8 +36,8 @@ export const SubmitWorkflow = () => {
 
     const loadRunsData = async () => {
       try {
-        const runs = await Ajax(signal).Cbas.methods.get()
-        setRunsData(runs.methods)
+        const runs = await Ajax(signal).Cbas.methods.getWithoutVersions()
+        setMethodsData(runs.methods)
       } catch (error) {
         notify('error', 'Error loading saved workflows', { detail: await (error instanceof Response ? error.text() : error) })
       }
@@ -64,7 +64,7 @@ export const SubmitWorkflow = () => {
         style: { ...styles.card, ...styles.shortCard, color: colors.dark(0.7), /*colors.accent()*/ fontSize: 18, lineHeight: '22px' },
         onClick: () => null
       }, ['Find a Workflow', icon('plus-circle', { size: 32 })])),
-      (h(Fragment, [h(SavedWorkflows, { runsData })])),
+      (h(Fragment, [h(SavedWorkflows, { methodsData })])),
       div({ style: { bottom: 0, position: 'absolute', marginBottom: '1em' } }, [
         span(['CBAS Status OK: ']),
         (cbasStatus && span([JSON.stringify(cbasStatus.ok)])) || 'Not Found'

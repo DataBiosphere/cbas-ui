@@ -1,6 +1,6 @@
 import '@testing-library/jest-dom'
 
-import { act, fireEvent, render, screen, within } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { h } from 'react-hyperscript-helpers'
 import selectEvent from 'react-select-event'
 import { Ajax } from 'src/libs/ajax'
@@ -59,6 +59,7 @@ describe('Submission Details page', () => {
       {
         run_set_id: 'e8347247-4738-4ad1-a591-56c119f93f58',
         method_id: '00000000-0000-0000-0000-000000000004',
+        method_version_id: '20000000-0000-0000-0000-000000000004',
         is_template: false,
         run_set_name: 'hello world',
         run_set_description: 'test',
@@ -82,7 +83,14 @@ describe('Submission Details page', () => {
         description: 'Add description',
         source: 'Github',
         source_url: 'https://raw.githubusercontent.com/broadinstitute/cromwell/a40de672c565c4bbd40f57ff96d4ee520dc2b4fc/centaur/src/main/resources/standardTestCases/hello/hello.wdl',
-        created: '2022-12-08T23:28:50.280+00:00'
+        created: '2022-12-08T23:28:50.280+00:00',
+        last_run: {
+          run_previously: false,
+          timestamp: '2022-12-08T23:28:50.280+00:00',
+          run_set_id: 'e8347247-4738-4ad1-a591-56c119f93f58',
+          method_version_id: '20000000-0000-0000-0000-000000000004',
+          method_version_name: '1.0'
+        }
       }
     ]
   }
@@ -212,13 +220,18 @@ describe('Submission Details page', () => {
             get: getRunsSets
           },
           methods: {
-            get: getMethods
+            getByMethodVersionId: getMethods
           }
         }
       }
     })
 
     render(h(SubmissionDetails, { submissionId }))
+
+    await waitFor(() => {
+      expect(getRunsSets).toHaveBeenCalledTimes(1)
+      expect(getMethods).toHaveBeenCalledTimes(1)
+    })
 
 
     await screen.getByText(/Submission e8347247-4738-4ad1-a591-56c119f93f58/)
