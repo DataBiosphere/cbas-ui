@@ -4,9 +4,9 @@ import { div, h, h2, h3 } from 'react-hyperscript-helpers'
 import ReactJson from 'react-json-view'
 import { AutoSizer } from 'react-virtualized'
 import { ButtonPrimary, Link, Navbar, Select } from 'src/components/common'
-import { icon } from 'src/components/icons'
-import { HeaderSection, SubmitNewWorkflowButton } from 'src/components/job-common'
+import { HeaderSection, statusType, SubmitNewWorkflowButton } from 'src/components/job-common'
 import Modal from 'src/components/Modal'
+import { makeStatusLine } from 'src/components/submission-common'
 import { FlexTable, paginator, Sortable, tableHeight, TextCell } from 'src/components/table'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
@@ -57,6 +57,43 @@ export const SubmissionDetails = ({ submissionId }) => {
         filterStatement = data => data
     }
     return filterStatement
+  }
+
+  const state = state => {
+    switch (state) {
+      case 'SYSTEM_ERROR':
+        return statusType.failed
+      default:
+        return statusType.unknown
+    }
+  }
+
+  const stateCell = ({ state, rowIndex }) => {
+    const stateContent = {
+      UNKNOWN: 'Unknown',
+      RUNNING: 'Running',
+      COMPLETE: 'Success',
+      SYSTEM_ERROR: h(
+        Link,
+        { style: { width: '100%', fontWeight: 'bold' }, onClick: () => setViewErrorsId(rowIndex) },
+        [`Failed with errors`]),
+      EXECUTOR_ERROR: h(
+      Link,
+      { style: { width: '100%', fontWeight: 'bold' }, onClick: () => setViewErrorsId(rowIndex) },
+      [`Failed with errors`])
+    }
+
+    const stateIconKey = {
+      UNKNOWN: 'unknown',
+      RUNNING: 'running',
+      COMPLETE: 'succeeded',
+      SYSTEM_ERROR: 'failed',
+      EXECUTOR_ERROR: 'failed'
+    }
+
+    return div([
+      makeStatusLine(statusType[stateIconKey[state]].icon, stateContent[state])
+    ])
   }
 
   useOnMount(() => {
@@ -193,16 +230,9 @@ export const SubmissionDetails = ({ submissionId }) => {
                 field: 'state',
                 headerRenderer: () => h(Sortable, { sort, field: 'state', onSort: setSort }, ['Status']),
                 cellRenderer: ({ rowIndex }) => {
-                  const failureStates = ['SYSTEM_ERROR', 'EXECUTOR_ERROR']
-                  if (failureStates.includes(paginatedPreviousRuns[rowIndex].state)) {
-                    return div({ style: { width: '100%', textAlign: 'center' } }, [
-                      h(Link, { key: 'error link', style: { fontWeight: 'bold' }, onClick: () => setViewErrorsId(rowIndex) }, [[icon('warning-standard', { key: 'error', size: 18, style: { color: colors.danger() } })], ['      Error(s)']])
-                    ])
-                  } else if (paginatedPreviousRuns[rowIndex].state === 'COMPLETE') {
-                    return div({ style: { width: '100%', textAlign: 'center' } }, [
-                      div({ style: { fontWeight: 'bold' } }, [h(TextCell, {}, [icon('check', { size: 18, style: { color: colors.success() } }), ['   Succeeded']])])
-                    ])
-                  }
+                  console.log(rowIndex)
+                  return div({ style: { width: '100%', textAlign: 'center' } }, [
+                    h(Link, { key: 'error link', style: { fontWeight: 'bold' }, onClick: () => setViewErrorsId(rowIndex) }, [makeStatusLine(style => state(paginatedPreviousRuns[rowIndex]).icon(style), [], { marginLeft: '0.5rem' })])])
                 }
               },
               {
@@ -312,7 +342,7 @@ export const SubmissionDetails = ({ submissionId }) => {
       }, [
         h(TextCell, {
           style: { textAlign: 'center', whiteSpace: 'pre-wrap', wordBreak: 'break-word', margin: '3rem', marginBottom: '1rem' }
-        }, [paginatedPreviousRuns[viewErrorsId].error_messages])
+        }, [paginatedPreviousRuns[viewErrorsId]?.error_messages])
       ])
     ])
   ])
