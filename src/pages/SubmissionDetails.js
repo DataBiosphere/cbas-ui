@@ -219,17 +219,17 @@ export const SubmissionDetails = ({ submissionId }) => {
                 field: 'state',
                 headerRenderer: () => h(Sortable, { sort, field: 'state', onSort: setSort }, ['Status']),
                 cellRenderer: ({ rowIndex }) => {
-                  const getStatus = state(paginatedPreviousRuns[rowIndex].state)
+                  const status = state(paginatedPreviousRuns[rowIndex].state)
                   const failureStates = ['SYSTEM_ERROR', 'EXECUTOR_ERROR']
                   if (failureStates.includes(paginatedPreviousRuns[rowIndex].state)) {
                     return div({ style: { width: '100%', textAlign: 'center' } }, [
                       h(Link, { key: 'error link', style: { fontWeight: 'bold' }, onClick: () => setViewErrorsId(rowIndex) },
-                        [makeStatusLine(style => getStatus.icon(style), getStatus.label(paginatedPreviousRuns[rowIndex].state),
+                        [makeStatusLine(style => status.icon(style), status.label(paginatedPreviousRuns[rowIndex].state),
                           { textAlign: 'center' })])
                     ])
                   } else {
-                    return h(TextCell, { style: { fontWeight: 'bold' } }, [makeStatusLine(style => getStatus.icon(style),
-                      getStatus.label(paginatedPreviousRuns[rowIndex].state), { textAlign: 'center' })])
+                    return h(TextCell, { style: { fontWeight: 'bold' } }, [makeStatusLine(style => status.icon(style),
+                      status.label(paginatedPreviousRuns[rowIndex].state), { textAlign: 'center' })])
                   }
                 }
               },
