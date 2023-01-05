@@ -125,7 +125,7 @@ export const SubmissionHistory = () => {
                 {
                   size: { basis: 350 },
                   field: 'runset_name',
-                  headerRenderer: () => h(Sortable, { sort, field: 'runset_name', onSort: setSort }, ['Submission']),
+                  headerRenderer: () => h(Sortable, { sort, field: 'runset_name', onSort: setSort }, ['Submission name']),
                   cellRenderer: ({ rowIndex }) => {
                     return div([
                       h(
