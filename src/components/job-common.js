@@ -23,17 +23,29 @@ export const statusType = {
   },
   failed: {
     id: 'failed', // Must match variable name for collection unpacking.
-    label: () => 'Failed',
+    label: () => 'Failed with error(s)',
     icon: style => icon('warning-standard', { size: iconSize, style: { color: colors.danger(), ...style } })
+  },
+  paused: {
+    id: 'paused', // Must match variable name for collection unpacking.
+    label: () => 'Paused',
+    icon: style => icon('pause', { size: iconSize, style: { color: colors.dark(), ...style } })
   },
   running: {
     id: 'running', // Must match variable name for collection unpacking.
     label: () => 'Running',
     icon: style => icon('sync', { size: iconSize, style: { color: colors.dark(), ...style } })
   },
+  canceled: {
+    id: 'canceled', // Must match variable name for collection unpacking.
+    label: () => 'Canceled',
+    icon: style => icon('warning-standard', { size: iconSize, style: { color: colors.dark(), ...style } })
+  },
   submitted: {
     id: 'submitted', // Must match variable name for collection unpacking.
-    label: () => 'Submitted',
+    label: type => (type === 'QUEUED' ? 'Queued' :
+      type === 'INITIALIZING' ? 'Initializing' :
+        'Submitted'),
     icon: style => icon('clock', { size: iconSize, style: { color: colors.dark(), ...style } })
   },
   waitingForQuota: {

@@ -59,10 +59,25 @@ export const SubmissionDetails = ({ submissionId }) => {
     return filterStatement
   }
 
+  //   CANCELING("CANCELING");
+
   const state = state => {
+    console.log(state)
     switch (state) {
       case 'SYSTEM_ERROR':
+      case 'EXECUTOR_ERROR':
         return statusType.failed
+      case 'COMPLETE':
+        return statusType.succeeded
+      case 'INITIALIZING':
+      case 'QUEUED':
+        return statusType.submitted
+      case 'RUNNING':
+        return statusType.running
+      case 'PAUSED':
+        return statusType.paused
+      case 'CANCELED':
+        return statusType.canceled
       default:
         return statusType.unknown
     }
@@ -230,9 +245,18 @@ export const SubmissionDetails = ({ submissionId }) => {
                 field: 'state',
                 headerRenderer: () => h(Sortable, { sort, field: 'state', onSort: setSort }, ['Status']),
                 cellRenderer: ({ rowIndex }) => {
-                  console.log(rowIndex)
-                  return div({ style: { width: '100%', textAlign: 'center' } }, [
-                    h(Link, { key: 'error link', style: { fontWeight: 'bold' }, onClick: () => setViewErrorsId(rowIndex) }, [makeStatusLine(style => state(paginatedPreviousRuns[rowIndex]).icon(style), [], { marginLeft: '0.5rem' })])])
+                  const getStatus = state('INITIALIZING') // UPDATE
+                  const failureStates = ['SYSTEM_ERROR', 'EXECUTOR_ERROR']
+                  if (failureStates.includes(paginatedPreviousRuns[rowIndex].state)) {
+                    return div({ style: { width: '100%', textAlign: 'center' } }, [
+                      h(Link, { key: 'error link', style: { fontWeight: 'bold' }, onClick: () => setViewErrorsId(rowIndex) },
+                        [makeStatusLine(style => getStatus.icon(style), getStatus.label(paginatedPreviousRuns[rowIndex].state),
+                          { textAlign: 'center' })])
+                    ])
+                  } else {
+                    return h(TextCell, { style: { fontWeight: 'bold' } }, [makeStatusLine(style => getStatus.icon(style),
+                      getStatus.label(paginatedPreviousRuns[rowIndex].state), { textAlign: 'center' })])
+                  }
                 }
               },
               {
