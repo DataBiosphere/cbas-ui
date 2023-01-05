@@ -43,10 +43,23 @@ export const statusType = {
   },
   submitted: {
     id: 'submitted', // Must match variable name for collection unpacking.
-    label: type => (type === 'QUEUED' ? 'Queued' :
-      type === 'INITIALIZING' ? 'Initializing' :
-        'Submitted'),
+    label: () => 'Submitted',
     icon: style => icon('clock', { size: iconSize, style: { color: colors.dark(), ...style } })
+  },
+  queued: {
+    id: 'queued', // Must match variable name for collection unpacking.
+    label: () => 'Queued',
+    icon: style => icon('clock', { size: iconSize, style: { color: colors.dark(), ...style } })
+  },
+  initializing: {
+    id: 'initializing', // Must match variable name for collection unpacking.
+    label: () => 'Initializing',
+    icon: style => icon('cog', { size: iconSize, style: { color: colors.dark(), ...style } })
+  },
+  canceling: {
+    id: 'canceling', // Must match variable name for collection unpacking.
+    label: () => 'Canceling',
+    icon: style => icon('cog', { size: iconSize, style: { color: colors.dark(), ...style } })
   },
   waitingForQuota: {
     id: 'waitingForQuota', // Must match variable name for collection unpacking.

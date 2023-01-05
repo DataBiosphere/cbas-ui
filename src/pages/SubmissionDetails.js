@@ -62,7 +62,6 @@ export const SubmissionDetails = ({ submissionId }) => {
   //   CANCELING("CANCELING");
 
   const state = state => {
-    console.log(state)
     switch (state) {
       case 'SYSTEM_ERROR':
       case 'EXECUTOR_ERROR':
@@ -70,45 +69,20 @@ export const SubmissionDetails = ({ submissionId }) => {
       case 'COMPLETE':
         return statusType.succeeded
       case 'INITIALIZING':
+        return statusType.initializing
       case 'QUEUED':
-        return statusType.submitted
+        return statusType.queued
       case 'RUNNING':
         return statusType.running
       case 'PAUSED':
         return statusType.paused
       case 'CANCELED':
         return statusType.canceled
+      case 'CANCELING':
+        return statusType.canceling
       default:
         return statusType.unknown
     }
-  }
-
-  const stateCell = ({ state, rowIndex }) => {
-    const stateContent = {
-      UNKNOWN: 'Unknown',
-      RUNNING: 'Running',
-      COMPLETE: 'Success',
-      SYSTEM_ERROR: h(
-        Link,
-        { style: { width: '100%', fontWeight: 'bold' }, onClick: () => setViewErrorsId(rowIndex) },
-        [`Failed with errors`]),
-      EXECUTOR_ERROR: h(
-      Link,
-      { style: { width: '100%', fontWeight: 'bold' }, onClick: () => setViewErrorsId(rowIndex) },
-      [`Failed with errors`])
-    }
-
-    const stateIconKey = {
-      UNKNOWN: 'unknown',
-      RUNNING: 'running',
-      COMPLETE: 'succeeded',
-      SYSTEM_ERROR: 'failed',
-      EXECUTOR_ERROR: 'failed'
-    }
-
-    return div([
-      makeStatusLine(statusType[stateIconKey[state]].icon, stateContent[state])
-    ])
   }
 
   useOnMount(() => {
@@ -245,7 +219,7 @@ export const SubmissionDetails = ({ submissionId }) => {
                 field: 'state',
                 headerRenderer: () => h(Sortable, { sort, field: 'state', onSort: setSort }, ['Status']),
                 cellRenderer: ({ rowIndex }) => {
-                  const getStatus = state('INITIALIZING') // UPDATE
+                  const getStatus = state(paginatedPreviousRuns[rowIndex].state)
                   const failureStates = ['SYSTEM_ERROR', 'EXECUTOR_ERROR']
                   if (failureStates.includes(paginatedPreviousRuns[rowIndex].state)) {
                     return div({ style: { width: '100%', textAlign: 'center' } }, [
