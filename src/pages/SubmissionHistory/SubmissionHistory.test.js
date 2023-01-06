@@ -129,7 +129,7 @@ describe('SubmissionHistory page', () => {
     const headers = within(rows[0]).queryAllByRole('columnheader')
     expect(headers.length).toBe(6)
     within(headers[headerPosition['Actions']]).getByText('Actions')
-    within(headers[headerPosition['Submission']]).getByText('Submission')
+    within(headers[headerPosition['Submission']]).getByText('Submission name')
     within(headers[headerPosition['Status']]).getByText('Status')
     within(headers[headerPosition['Date Submitted']]).getByText('Date Submitted')
     within(headers[headerPosition['Duration']]).getByText('Duration')
