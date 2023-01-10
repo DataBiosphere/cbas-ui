@@ -150,7 +150,7 @@ describe('Submission Details page', () => {
     const cellsFromDataRow1 = within(rows[2]).queryAllByRole('cell')
     expect(cellsFromDataRow1.length).toBe(4)
     within(cellsFromDataRow1[0]).getByText('FOO2')
-    within(cellsFromDataRow1[1]).getByText('Error(s)')
+    within(cellsFromDataRow1[1]).getByText('Failed with error(s)')
     within(cellsFromDataRow1[2]).getByText('52 minutes 10 seconds')
     within(cellsFromDataRow1[3]).getByText('b7234aae-6f43-405e-bb3a-71f924e09825')
 
@@ -198,7 +198,7 @@ describe('Submission Details page', () => {
     const cellsFromUpdatedDataRow1 = within(rows[1]).queryAllByRole('cell')
     expect(cellsFromUpdatedDataRow1.length).toBe(4)
     within(cellsFromUpdatedDataRow1[0]).getByText('FOO2')
-    within(cellsFromUpdatedDataRow1[1]).getByText('Error(s)')
+    within(cellsFromUpdatedDataRow1[1]).getByText('Failed with error(s)')
     within(cellsFromUpdatedDataRow1[2]).getByText('52 minutes 10 seconds')
     within(cellsFromUpdatedDataRow1[3]).getByText('b7234aae-6f43-405e-bb3a-71f924e09825')
 
@@ -278,7 +278,7 @@ describe('Submission Details page', () => {
     const cellsFromDataRow1 = within(rows[1]).queryAllByRole('cell')
     expect(cellsFromDataRow1.length).toBe(4)
     within(cellsFromDataRow1[0]).getByText('FOO2')
-    within(cellsFromDataRow1[1]).getByText('Error(s)')
+    within(cellsFromDataRow1[1]).getByText('Failed with error(s)')
     within(cellsFromDataRow1[2]).getByText('52 minutes 10 seconds')
     within(cellsFromDataRow1[3]).getByText('b7234aae-6f43-405e-bb3a-71f924e09825')
   })

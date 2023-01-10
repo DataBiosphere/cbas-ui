@@ -4,9 +4,9 @@ import { div, h, h2, h3 } from 'react-hyperscript-helpers'
 import ReactJson from 'react-json-view'
 import { AutoSizer } from 'react-virtualized'
 import { ButtonPrimary, Link, Navbar, Select } from 'src/components/common'
-import { icon } from 'src/components/icons'
-import { HeaderSection, SubmitNewWorkflowButton } from 'src/components/job-common'
+import { HeaderSection, statusType, SubmitNewWorkflowButton } from 'src/components/job-common'
 import Modal from 'src/components/Modal'
+import { makeStatusLine } from 'src/components/submission-common'
 import { FlexTable, paginator, Sortable, tableHeight, TextCell } from 'src/components/table'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
@@ -57,6 +57,30 @@ export const SubmissionDetails = ({ submissionId }) => {
         filterStatement = data => data
     }
     return filterStatement
+  }
+
+  const state = state => {
+    switch (state) {
+      case 'SYSTEM_ERROR':
+      case 'EXECUTOR_ERROR':
+        return statusType.failed
+      case 'COMPLETE':
+        return statusType.succeeded
+      case 'INITIALIZING':
+        return statusType.initializing
+      case 'QUEUED':
+        return statusType.queued
+      case 'RUNNING':
+        return statusType.running
+      case 'PAUSED':
+        return statusType.paused
+      case 'CANCELED':
+        return statusType.canceled
+      case 'CANCELING':
+        return statusType.canceling
+      default:
+        return statusType.unknown
+    }
   }
 
   useOnMount(() => {
@@ -193,15 +217,17 @@ export const SubmissionDetails = ({ submissionId }) => {
                 field: 'state',
                 headerRenderer: () => h(Sortable, { sort, field: 'state', onSort: setSort }, ['Status']),
                 cellRenderer: ({ rowIndex }) => {
+                  const status = state(paginatedPreviousRuns[rowIndex].state)
                   const failureStates = ['SYSTEM_ERROR', 'EXECUTOR_ERROR']
                   if (failureStates.includes(paginatedPreviousRuns[rowIndex].state)) {
                     return div({ style: { width: '100%', textAlign: 'center' } }, [
-                      h(Link, { key: 'error link', style: { fontWeight: 'bold' }, onClick: () => setViewErrorsId(rowIndex) }, [[icon('warning-standard', { key: 'error', size: 18, style: { color: colors.danger() } })], ['      Error(s)']])
+                      h(Link, { key: 'error link', style: { fontWeight: 'bold' }, onClick: () => setViewErrorsId(rowIndex) },
+                        [makeStatusLine(style => status.icon(style), status.label(paginatedPreviousRuns[rowIndex].state),
+                          { textAlign: 'center' })])
                     ])
-                  } else if (paginatedPreviousRuns[rowIndex].state === 'COMPLETE') {
-                    return div({ style: { width: '100%', textAlign: 'center' } }, [
-                      div({ style: { fontWeight: 'bold' } }, [h(TextCell, {}, [icon('check', { size: 18, style: { color: colors.success() } }), ['   Succeeded']])])
-                    ])
+                  } else {
+                    return h(TextCell, { style: { fontWeight: 'bold' } }, [makeStatusLine(style => status.icon(style),
+                      status.label(paginatedPreviousRuns[rowIndex].state), { textAlign: 'center' })])
                   }
                 }
               },
@@ -312,7 +338,7 @@ export const SubmissionDetails = ({ submissionId }) => {
       }, [
         h(TextCell, {
           style: { textAlign: 'center', whiteSpace: 'pre-wrap', wordBreak: 'break-word', margin: '3rem', marginBottom: '1rem' }
-        }, [paginatedPreviousRuns[viewErrorsId].error_messages])
+        }, [paginatedPreviousRuns[viewErrorsId]?.error_messages])
       ])
     ])
   ])
