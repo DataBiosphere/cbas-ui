@@ -195,12 +195,25 @@ export const recordsTable = props => {
   }])
 }
 
+const parseMethodString = methodString => {
+  const methodNameParts = methodString.split('.')
+  return {
+    workflow: methodNameParts[0],
+    variable: methodNameParts[methodNameParts.length - 1],
+    call: methodNameParts.length === 3 ? methodNameParts[1] : ''
+  }
+}
+
+const renderTypeText = iotype => {
+  const { primitive_type: primitiveType, optional_type: optionalType } = iotype
+  return primitiveType ? primitiveType : `${optionalType.primitive_type} (optional)`
+}
 
 export const inputsTable = props => {
   const {
-    selectedDataTable,
     configuredInputDefinition, setConfiguredInputDefinition,
-    inputTableSort, setInputTableSort
+    inputTableSort, setInputTableSort,
+    selectedDataTable
   } = props
 
   const dataTableAttributes = _.keyBy('name', selectedDataTable.attributes)
@@ -211,11 +224,6 @@ export const inputsTable = props => {
     none: 'None'
   }
   const inputSourceTypes = _.invert(inputSourceLabels)
-
-  const parseInputType = inputType => {
-    const { primitive_type: primitiveType, optional_type: optionalType } = inputType
-    return primitiveType ? primitiveType : `${optionalType.primitive_type} (optional)`
-  }
 
   const recordLookupSelect = rowIndex => {
     return h(Select, {
@@ -257,15 +265,6 @@ export const inputsTable = props => {
     })
   }
 
-  const parseInputString = inputString => {
-    const inputNameParts = inputString.split('.')
-    return {
-      workflow: inputNameParts[0],
-      input: inputNameParts[inputNameParts.length - 1],
-      call: inputNameParts.length === 3 ? inputNameParts[1] : ''
-    }
-  }
-
   return h(AutoSizer, [({ width, height }) => {
     return h(FlexTable, {
       'aria-label': 'input-table',
@@ -280,7 +279,7 @@ export const inputsTable = props => {
           field: 'taskVariable',
           headerRenderer: () => h(Sortable, { sort: inputTableSort, field: 'taskVariable', onSort: setInputTableSort }, [h(HeaderCell, ['Task name'])]),
           cellRenderer: ({ rowIndex }) => {
-            return h(TextCell, { style: { fontWeight: 500 } }, [parseInputString(configuredInputDefinition[rowIndex].input_name).call])
+            return h(TextCell, { style: { fontWeight: 500 } }, [parseMethodString(configuredInputDefinition[rowIndex].input_name).call])
           }
         },
         {
@@ -288,14 +287,14 @@ export const inputsTable = props => {
           field: 'workflowVariable',
           headerRenderer: () => h(Sortable, { sort: inputTableSort, field: 'workflowVariable', onSort: setInputTableSort }, [h(HeaderCell, ['Variable'])]),
           cellRenderer: ({ rowIndex }) => {
-            return h(TextCell, {}, [parseInputString(configuredInputDefinition[rowIndex].input_name).input])
+            return h(TextCell, {}, [parseMethodString(configuredInputDefinition[rowIndex].input_name).variable])
           }
         },
         {
           size: { basis: 160, grow: 0 },
           headerRenderer: () => h(HeaderCell, ['Type']),
           cellRenderer: ({ rowIndex }) => {
-            return h(TextCell, {}, [parseInputType(configuredInputDefinition[rowIndex].input_type)])
+            return h(TextCell, {}, [renderTypeText(configuredInputDefinition[rowIndex].input_type)])
           }
         },
         {
@@ -341,6 +340,64 @@ export const inputsTable = props => {
               ['literal', () => parameterValueSelect(rowIndex)],
               ['none', () => h(TextCell, {}, ['The workflow input will either be empty or use a default value from the workflow.'])]
             )
+          }
+        }
+      ]
+    })
+  }])
+}
+
+export const outputsTable = props => {
+  const {
+    configuredOutputDefinition, setConfiguredOutputDefinition,
+    outputTableSort, setOutputTableSort
+  } = props
+
+  return h(AutoSizer, [({ width, height }) => {
+    return h(FlexTable, {
+      'aria-label': 'input-table',
+      rowCount: configuredOutputDefinition.length,
+      sort: outputTableSort,
+      readOnly: false,
+      height,
+      width,
+      columns: [
+        {
+          size: { basis: 250, grow: 0 },
+          field: 'taskVariable',
+          headerRenderer: () => h(Sortable, { sort: outputTableSort, field: 'taskVariable', onSort: setOutputTableSort }, [h(HeaderCell, ['Task name'])]),
+          cellRenderer: ({ rowIndex }) => {
+            return h(TextCell, { style: { fontWeight: 500 } }, [parseMethodString(configuredOutputDefinition[rowIndex].output_name).call])
+          }
+        },
+        {
+          size: { basis: 360, grow: 0 },
+          field: 'workflowVariable',
+          headerRenderer: () => h(Sortable, { sort: outputTableSort, field: 'workflowVariable', onSort: setOutputTableSort }, [h(HeaderCell, ['Variable'])]),
+          cellRenderer: ({ rowIndex }) => {
+            return h(TextCell, {}, [parseMethodString(configuredOutputDefinition[rowIndex].output_name).variable])
+          }
+        },
+        {
+          size: { basis: 160, grow: 0 },
+          headerRenderer: () => h(HeaderCell, ['Type']),
+          cellRenderer: ({ rowIndex }) => {
+            return h(TextCell, {}, [renderTypeText(configuredOutputDefinition[rowIndex].output_type)])
+          }
+        },
+        {
+          headerRenderer: () => h(Fragment, [
+            h(HeaderCell, ['Attribute'])
+          ]),
+          cellRenderer: ({ rowIndex }) => {
+            return h(TextInput, {
+              id: `output-parameter-${rowIndex}`,
+              style: { display: 'block', width: '100%' },
+              defaultValue: _.get(`${rowIndex}.record_attribute`, configuredOutputDefinition) || null,
+              onChange: value => {
+                setConfiguredOutputDefinition(_.set(`${rowIndex}.record_attribute`, value, configuredOutputDefinition))
+              }
+            })
           }
         }
       ]

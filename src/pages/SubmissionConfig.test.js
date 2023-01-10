@@ -240,6 +240,7 @@ describe('SubmissionConfig records selector', () => {
     const cells = within(rows[1]).queryAllByRole('cell')
     expect(cells.length).toBe(4)
   })
+
   it('should repopulate the record selector when the dropdown selection changes', async () => {
     // ** ARRANGE **
     const mockRunSetResponse = jest.fn(() => Promise.resolve(runSetResponse))
@@ -317,7 +318,7 @@ describe('SubmissionConfig records selector', () => {
     expect(rowsFOO.length).toBe(5)
   })
 
-  it('should display modal when Submit button is clicked', async () => {
+  it('when records are selected, should display modal when Submit button is clicked', async () => {
     const mockRunSetResponse = jest.fn(() => Promise.resolve(runSetResponse))
     const mockMethodsResponse = jest.fn(() => Promise.resolve(methodsResponse))
     const mockSearchResponse = jest.fn(recordType => Promise.resolve(searchResponses[recordType]))
@@ -361,7 +362,7 @@ describe('SubmissionConfig records selector', () => {
   })
 })
 
-describe('SubmissionConfig inputs definition', () => {
+describe('SubmissionConfig inputs/outputs definitions', () => {
   // SubmissionConfig component uses AutoSizer to determine the right size for table to be displayed. As a result we need to
   // mock out the height and width so that when AutoSizer asks for the width and height of "browser" it can use the mocked
   // values and render the component properly. Without this the tests will be break.
@@ -440,7 +441,7 @@ describe('SubmissionConfig inputs definition', () => {
     const rows = within(table).queryAllByRole('row')
 
     expect(runSetInputDef.length).toBe(2)
-    expect(rows.length).toBe(runSetInputDef.length + 1) // one row for each input definition variabe, plus headers
+    expect(rows.length).toBe(runSetInputDef.length + 1) // one row for each input definition variable, plus headers
 
     const headers = within(rows[0]).queryAllByRole('columnheader')
     expect(headers.length).toBe(5)
@@ -461,5 +462,75 @@ describe('SubmissionConfig inputs definition', () => {
     within(cellsBar[2]).getByText('String')
     within(cellsBar[3]).getByText('Fetch from Data Table')
     within(cellsBar[4]).getByText('bar_string')
+  })
+
+  it('should initially populate the outputs definition table with attributes determined by the previously executed run set', async () => {
+    // ** ARRANGE **
+    const mockRunSetResponse = jest.fn(() => Promise.resolve(runSetResponse))
+    const mockMethodsResponse = jest.fn(() => Promise.resolve(methodsResponse))
+    const mockSearchResponse = jest.fn(recordType => Promise.resolve(searchResponses[recordType]))
+    const mockTypesResponse = jest.fn(() => Promise.resolve(typesResponse))
+
+    await Ajax.mockImplementation(() => {
+      return {
+        Cbas: {
+          runSets: {
+            getForMethod: mockRunSetResponse
+          },
+          methods: {
+            getById: mockMethodsResponse
+          }
+        },
+        Wds: {
+          search: {
+            post: mockSearchResponse
+          },
+          types: {
+            get: mockTypesResponse
+          }
+        }
+      }
+    })
+
+    // ** ACT **
+    render(h(SubmissionConfig))
+
+    // ** ASSERT **
+    await waitFor(() => {
+      expect(mockRunSetResponse).toHaveBeenCalledTimes(1)
+      expect(mockTypesResponse).toHaveBeenCalledTimes(1)
+
+      // At initial render these two shouldn't be called. See below for a follow-up await for them to be triggered via callbacks
+      expect(mockMethodsResponse).toHaveBeenCalledTimes(0)
+      expect(mockSearchResponse).toHaveBeenCalledTimes(0)
+    })
+
+    // after the initial render (not before), records data should have been retrieved once
+    await waitFor(() => {
+      expect(mockSearchResponse).toHaveBeenCalledTimes(1)
+      expect(mockMethodsResponse).toHaveBeenCalledTimes(1)
+    })
+
+    const button = await screen.findByRole('button', { name: 'Outputs' })
+
+    // ** ACT **
+    await fireEvent.click(button)
+
+    // ** ASSERT **
+    const table = await screen.findByRole('table')
+    const rows = within(table).queryAllByRole('row')
+
+    expect(runSetOutputDef.length).toBe(1)
+    expect(rows.length).toBe(runSetOutputDef.length + 1) // one row for each output definition variable, plus headers
+
+    const headers = within(rows[0]).queryAllByRole('columnheader')
+    expect(headers.length).toBe(4)
+
+    const cells = within(rows[1]).queryAllByRole('cell')
+    expect(cells.length).toBe(4)
+    expect(cells[0].textContent).toBe('')
+    within(cells[1]).getByText('file_output')
+    within(cells[2]).getByText('String')
+    within(cells[3]).getByDisplayValue('target_workflow_1_file_output')
   })
 })
