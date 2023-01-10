@@ -54,12 +54,12 @@ export const statusType = {
   initializing: {
     id: 'initializing', // Must match variable name for collection unpacking.
     label: () => 'Initializing',
-    icon: style => icon('cog', { size: iconSize, style: { color: colors.dark(), ...style } })
+    icon: style => icon('sync', { size: iconSize, style: { color: colors.dark(), ...style } })
   },
   canceling: {
     id: 'canceling', // Must match variable name for collection unpacking.
     label: () => 'Canceling',
-    icon: style => icon('cog', { size: iconSize, style: { color: colors.dark(), ...style } })
+    icon: style => icon('sync', { size: iconSize, style: { color: colors.dark(), ...style } })
   },
   waitingForQuota: {
     id: 'waitingForQuota', // Must match variable name for collection unpacking.

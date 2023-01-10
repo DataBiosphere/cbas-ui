@@ -59,8 +59,6 @@ export const SubmissionDetails = ({ submissionId }) => {
     return filterStatement
   }
 
-  //   CANCELING("CANCELING");
-
   const state = state => {
     switch (state) {
       case 'SYSTEM_ERROR':
