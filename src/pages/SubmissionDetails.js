@@ -116,9 +116,8 @@ export const SubmissionDetails = ({ submissionId }) => {
     }
 
     loadRunsData()
-    loadRunSetData().then(runSet => {
-      runSet && loadMethodsData(runSet.method_version_id)
-    })
+      .then(() => loadRunSetData())
+      .then(runSet => runSet && loadMethodsData(runSet.method_version_id))
   })
 
   const specifyRunSet = filter(r => r.run_set_id === submissionId, runSetData)
