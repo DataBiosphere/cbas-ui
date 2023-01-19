@@ -91,9 +91,6 @@ export const SubmissionConfig = ({ methodId }) => {
   }
 
   useOnMount(() => {
-    //setRunSetName('New run set name')
-    //setRunSetDescription('New run set description')
-
     loadTablesData()
     loadRunSet().then(runSet => {
       loadMethodsData(runSet.method_id, runSet.method_version_id)
@@ -155,7 +152,10 @@ export const SubmissionConfig = ({ methodId }) => {
           style: { marginLeft: '1rem' },
           disabled: _.isEmpty(selectedRecords),
           tooltip: _.isEmpty(selectedRecords) ? 'No records selected' : '',
-          onClick: () => setLaunching(true)
+          onClick: () => {
+            updateRunSetName()
+            setLaunching(true)
+          }
         }, ['Submit'])
       }),
       (launching !== undefined) && h(Modal, {
@@ -220,6 +220,13 @@ export const SubmissionConfig = ({ methodId }) => {
       configuredOutputDefinition, setConfiguredOutputDefinition,
       outputTableSort, setOutputTableSort
     }) : 'No previous run set data...'
+  }
+
+  const updateRunSetName = () => {
+    const timestamp = new Date().toISOString().slice(0, -5) // slice off milliseconds at the end for readability.
+    if (runSetName === '') {
+      setRunSetName(`${_.kebabCase(method.name)}_${_.kebabCase(selectedRecordType)}_${timestamp}`)
+    }
   }
 
   const submitRun = async () => {
