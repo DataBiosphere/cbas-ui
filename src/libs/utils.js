@@ -160,3 +160,16 @@ export const convertValue = _.curry((type, value) => {
       throw new Error('unknown type for convertValue')
   }
 })
+
+export const renderTypeText = iotype => {
+  if (_.has('primitive_type', iotype)) {
+    return iotype.primitive_type
+  }
+  if (_.has('optional_type', iotype)) {
+    return `${_.get('optional_type.primitive_type', iotype)} (optional)`
+  }
+  if (_.has('array_type', iotype)) {
+    return `Array[${renderTypeText(_.get('array_type', iotype))}]`
+  }
+  throw new Error(`iotype ${iotype} does not contain a valid type`)
+}

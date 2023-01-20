@@ -204,11 +204,6 @@ const parseMethodString = methodString => {
   }
 }
 
-const renderTypeText = iotype => {
-  const { primitive_type: primitiveType, optional_type: optionalType } = iotype
-  return primitiveType ? primitiveType : `${optionalType.primitive_type} (optional)`
-}
-
 export const inputsTable = props => {
   const {
     configuredInputDefinition, setConfiguredInputDefinition,
@@ -294,7 +289,7 @@ export const inputsTable = props => {
           size: { basis: 160, grow: 0 },
           headerRenderer: () => h(HeaderCell, ['Type']),
           cellRenderer: ({ rowIndex }) => {
-            return h(TextCell, {}, [renderTypeText(configuredInputDefinition[rowIndex].input_type)])
+            return h(TextCell, {}, [Utils.renderTypeText(configuredInputDefinition[rowIndex].input_type)])
           }
         },
         {
@@ -382,7 +377,7 @@ export const outputsTable = props => {
           size: { basis: 160, grow: 0 },
           headerRenderer: () => h(HeaderCell, ['Type']),
           cellRenderer: ({ rowIndex }) => {
-            return h(TextCell, {}, [renderTypeText(configuredOutputDefinition[rowIndex].output_type)])
+            return h(TextCell, {}, [Utils.renderTypeText(configuredOutputDefinition[rowIndex].output_type)])
           }
         },
         {
