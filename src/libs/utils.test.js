@@ -17,6 +17,6 @@ describe('submission-common tests', () => {
     expect(renderTypeText({ type: 'optional', optional_type: { type: 'primitive', primitive_type: 'String' } })).toStrictEqual('String (optional)')
     expect(renderTypeText({ type: 'array', array_type: { type: 'primitive', primitive_type: 'Int' } })).toStrictEqual('Array[Int]')
     expect(renderTypeText({ type: 'array', array_type: { type: 'optional', optional_type: { type: 'primitive', primitive_type: 'Int' } } })).toStrictEqual('Array[Int (optional)]')
-    expect(renderTypeText({ type: 'array', array_type: { array_type: { array_type: { primitive_type: 'Int' } } } })).toStrictEqual('Array[Array[Array[Int]]]')
+    expect(renderTypeText({ type: 'array', array_type: { type: 'array', array_type: { type: 'array', array_type: { type: 'primitive', primitive_type: 'Int' } } } })).toStrictEqual('Array[Array[Array[Int]]]')
   })
 })
