@@ -48,6 +48,11 @@ jobs:
       - name: Build Docker image
         run: docker build . --no-cache -t ${{ steps.image-name.outputs.GCR_NAME }}
 
+      - name: Run Trivy vulnerability scanner
+        uses: broadinstitute/dsp-appsec-trivy-action@v1
+        with:
+          image: ${{ steps.image-name.outputs.GCR_NAME }}
+
       - name: Set up gcloud
         uses: google-github-actions/setup-gcloud@v0
 
