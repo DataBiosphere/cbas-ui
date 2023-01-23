@@ -171,5 +171,5 @@ export const renderTypeText = iotype => {
   if (_.has('array_type', iotype)) {
     return `Array[${renderTypeText(_.get('array_type', iotype))}]`
   }
-  throw new Error(`iotype ${iotype} does not contain a valid type`)
+  return 'Unsupported Type'
 }
