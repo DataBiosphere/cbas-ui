@@ -18,5 +18,7 @@ describe('submission-common tests', () => {
     expect(renderTypeText({ type: 'array', array_type: { type: 'primitive', primitive_type: 'Int' } })).toStrictEqual('Array[Int]')
     expect(renderTypeText({ type: 'array', array_type: { type: 'optional', optional_type: { type: 'primitive', primitive_type: 'Int' } } })).toStrictEqual('Array[Int (optional)]')
     expect(renderTypeText({ type: 'array', array_type: { type: 'array', array_type: { type: 'array', array_type: { type: 'primitive', primitive_type: 'Int' } } } })).toStrictEqual('Array[Array[Array[Int]]]')
+    expect(renderTypeText({ type: 'struct', struct_type: 'File' })).toStrictEqual('Unsupported Type')
+    expect(renderTypeText({ type: 'map', map_type: 'File' })).toStrictEqual('Unsupported Type')
   })
 })
