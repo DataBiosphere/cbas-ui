@@ -11,6 +11,7 @@ import { Ajax } from 'src/libs/ajax'
 import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
 import { useCancellation, useOnMount } from 'src/libs/react-utils'
+import { maybeParseJSON } from 'src/libs/utils'
 import * as Utils from 'src/libs/utils'
 
 
@@ -71,8 +72,8 @@ export const SubmissionConfig = ({ methodId }) => {
     try {
       const runSet = await Ajax(signal).Cbas.runSets.getForMethod(methodId, 1)
       const newRunSetData = runSet.run_sets[0]
-      setConfiguredInputDefinition(JSON.parse(newRunSetData.input_definition))
-      setConfiguredOutputDefinition(JSON.parse(newRunSetData.output_definition))
+      setConfiguredInputDefinition(maybeParseJSON(newRunSetData.input_definition))
+      setConfiguredOutputDefinition(maybeParseJSON(newRunSetData.output_definition))
       setSelectedRecordType(newRunSetData.record_type)
       return newRunSetData
     } catch (error) {
@@ -205,11 +206,11 @@ export const SubmissionConfig = ({ methodId }) => {
   }
 
   const renderInputs = () => {
-    return configuredInputDefinition ? h(inputsTable, {
+    return configuredInputDefinition && recordTypes && records.length ? h(inputsTable, {
       configuredInputDefinition, setConfiguredInputDefinition,
       inputTableSort, setInputTableSort,
       selectedDataTable: _.keyBy('name', recordTypes)[selectedRecordType]
-    }) : 'No configured input definition...'
+    }) : 'No data table rows available or input definition is not configured...'
   }
 
   const renderOutputs = () => {
