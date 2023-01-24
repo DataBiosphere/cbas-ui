@@ -49,7 +49,7 @@ export const SubmissionConfig = ({ methodId }) => {
       const searchResult = await Ajax(signal).Wds.search.post(recordType)
       setRecords(searchResult.records)
     } catch (error) {
-      setNoRecordData('No existing record')
+      setNoRecordData(`Data Table not found: ${recordType}`)
     }
   }
 
