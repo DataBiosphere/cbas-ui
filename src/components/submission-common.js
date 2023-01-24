@@ -397,7 +397,7 @@ export const outputsTable = props => {
               id: `output-parameter-${rowIndex}`,
               style: { display: 'block', width: '100%' },
               defaultValue: outputValue(rowIndex, configuredOutputDefinition),
-              placeholder: '[Not Saved]',
+              placeholder: '[Enter an attribute name to save this output to your data table]',
               onChange: value => {
                 if (!!value && value !== '') {
                   setConfiguredOutputDefinition(_.set(`${rowIndex}.destination`, { type: 'record_update', record_attribute: value }, configuredOutputDefinition))
