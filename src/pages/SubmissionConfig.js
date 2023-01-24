@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
-import { div, h, h2, span, a } from 'react-hyperscript-helpers'
+import { a, div, h, h2, span } from 'react-hyperscript-helpers'
 import { ButtonPrimary, Link, Navbar, Select } from 'src/components/common'
 import { TextArea, TextInput } from 'src/components/input'
 import { statusType } from 'src/components/job-common'
