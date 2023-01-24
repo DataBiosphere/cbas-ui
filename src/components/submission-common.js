@@ -390,9 +390,14 @@ export const outputsTable = props => {
             return h(TextInput, {
               id: `output-parameter-${rowIndex}`,
               style: { display: 'block', width: '100%' },
-              defaultValue: _.get(`${rowIndex}.record_attribute`, configuredOutputDefinition) || null,
+              defaultValue: _.get(`${rowIndex}.destination.type` === 'record_update' ? `${rowIndex}.destination.record_attribute` : null, configuredOutputDefinition) || null,
+              placeholder: '[Not Saved]',
               onChange: value => {
-                setConfiguredOutputDefinition(_.set(`${rowIndex}.record_attribute`, value, configuredOutputDefinition))
+                if (!!value && value !== '' ) {
+                  setConfiguredOutputDefinition(_.set(`${rowIndex}.destination`, { 'type': 'record_update', 'record_attribute': value }, configuredOutputDefinition))
+                } else {
+                  setConfiguredOutputDefinition(_.set(`${rowIndex}.destination`, { 'type': 'none' }, configuredOutputDefinition))
+                }
               }
             })
           }
