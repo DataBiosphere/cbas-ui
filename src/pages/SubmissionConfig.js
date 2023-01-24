@@ -50,9 +50,6 @@ export const SubmissionConfig = ({ methodId }) => {
       setRecords(searchResult.records)
     } catch (error) {
       setNoRecordData('No existing record')
-      //console.log(error)
-      //return error //h(TextCell, {}, ['Record type not found in WDS database'])
-      //notify('error', 'Error loading WDS records', { detail: await (error instanceof Response ? error.text() : error) })
     }
   }
 
