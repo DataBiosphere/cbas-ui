@@ -1,8 +1,9 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
-import { div, h, h2, span } from 'react-hyperscript-helpers'
+import { div, h, h2, span, a } from 'react-hyperscript-helpers'
 import { ButtonPrimary, Link, Navbar, Select } from 'src/components/common'
 import { TextArea, TextInput } from 'src/components/input'
+import { statusType } from 'src/components/job-common'
 import Modal from 'src/components/Modal'
 import StepButtons from 'src/components/StepButtons'
 import { inputsTable, outputsTable, recordsTable } from 'src/components/submission-common'
@@ -39,6 +40,7 @@ export const SubmissionConfig = ({ methodId }) => {
   const [outputTableSort, setOutputTableSort] = useState({ field: 'taskVariable', direction: 'asc' })
 
   const [launching, setLaunching] = useState(undefined)
+  const [noRecordData, setNoRecordData] = useState(null)
 
 
   const signal = useCancellation()
@@ -47,7 +49,10 @@ export const SubmissionConfig = ({ methodId }) => {
       const searchResult = await Ajax(signal).Wds.search.post(recordType)
       setRecords(searchResult.records)
     } catch (error) {
-      notify('error', 'Error loading WDS records', { detail: await (error instanceof Response ? error.text() : error) })
+      setNoRecordData('No existing record')
+      //console.log(error)
+      //return error //h(TextCell, {}, ['Record type not found in WDS database'])
+      //notify('error', 'Error loading WDS records', { detail: await (error instanceof Response ? error.text() : error) })
     }
   }
 
@@ -125,19 +130,26 @@ export const SubmissionConfig = ({ methodId }) => {
         ])
       ]),
       div({ style: { marginTop: '2rem', height: '2rem', fontWeight: 'bold' } }, ['Select a data table']),
-      h(Select, {
-        isDisabled: false,
-        'aria-label': 'Select a data table',
-        isClearable: false,
-        value: selectedRecordType ? selectedRecordType : null,
-        onChange: ({ value }) => {
-          setSelectedRecordType(value)
-          loadRecordsData(value)
-        },
-        placeholder: 'None selected',
-        styles: { container: old => ({ ...old, display: 'inline-block', width: 200 }) },
-        options: _.map(t => t.name, recordTypes)
-      }),
+      div({}, [
+        h(Select, {
+          isDisabled: false,
+          'aria-label': 'Select a data table',
+          isClearable: false,
+          value: selectedRecordType ? selectedRecordType : null,
+          onChange: ({ value }) => {
+            setNoRecordData(null)
+            setSelectedRecordType(value)
+            loadRecordsData(value)
+          },
+          placeholder: 'None selected',
+          styles: { container: old => ({ ...old, display: 'inline-block', width: 200 }), paddingRight: '2rem' },
+          options: _.map(t => t.name, recordTypes)
+        }),
+        noRecordData && h(Fragment, [
+          a({ style: { marginLeft: '1rem', fontSize: 15, marginTop: '1rem', height: '2rem', fontWeight: 'bold' } }, [statusType.failed.icon(), ' ', noRecordData])
+        ])
+      ]),
+
       h(StepButtons, {
         tabs: [
           { key: 'select-data', title: 'Select Data', isValid: () => true },
@@ -207,9 +219,9 @@ export const SubmissionConfig = ({ methodId }) => {
 
   const renderInputs = () => {
     return configuredInputDefinition && recordTypes && records.length ? h(inputsTable, {
+      selectedDataTable: _.keyBy('name', recordTypes)[selectedRecordType],
       configuredInputDefinition, setConfiguredInputDefinition,
-      inputTableSort, setInputTableSort,
-      selectedDataTable: _.keyBy('name', recordTypes)[selectedRecordType]
+      inputTableSort, setInputTableSort
     }) : 'No data table rows available or input definition is not configured...'
   }
 
