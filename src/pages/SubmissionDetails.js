@@ -6,7 +6,7 @@ import { AutoSizer } from 'react-virtualized'
 import { ButtonPrimary, Link, Navbar, Select } from 'src/components/common'
 import { HeaderSection, statusType, SubmitNewWorkflowButton } from 'src/components/job-common'
 import Modal from 'src/components/Modal'
-import { makeStatusLine } from 'src/components/submission-common'
+import { AutoRefreshTimeout, makeStatusLine } from 'src/components/submission-common'
 import { FlexTable, paginator, Sortable, tableHeight, TextCell } from 'src/components/table'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
@@ -92,9 +92,9 @@ export const SubmissionDetails = ({ submissionId }) => {
       const runs = runsResponse?.runs
       setRunsData(runs)
 
-      // only refresh if there are Runs in non-terminal state. Refresh interval is 1 min
+      // only refresh if there are Runs in non-terminal state
       if (_.some(({ state }) => !isRunInTerminalState(state), runs)) {
-        scheduledRefresh.current = setTimeout(refresh, 1000 * 60)
+        scheduledRefresh.current = setTimeout(refresh, AutoRefreshTimeout)
       }
     } catch (error) {
       notify('error', 'Error loading previous runs', { detail: await (error instanceof Response ? error.text() : error) })
