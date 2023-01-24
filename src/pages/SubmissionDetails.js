@@ -1,5 +1,5 @@
-import { filter, isEmpty, map, merge, orderBy } from 'lodash/fp'
-import { useMemo, useState } from 'react'
+import _ from 'lodash/fp'
+import { useMemo, useRef, useState } from 'react'
 import { div, h, h2, h3 } from 'react-hyperscript-helpers'
 import ReactJson from 'react-json-view'
 import { AutoSizer } from 'react-virtualized'
@@ -31,15 +31,17 @@ export const SubmissionDetails = ({ submissionId }) => {
   const [filterOption, setFilterOption] = useState(null)
 
   const signal = useCancellation()
+  const scheduledRefresh = useRef()
 
-  const terminalStates = ['ERROR', 'COMPLETE', 'CANCELED']
+  const RunTerminalStates = ['COMPLETE', 'CANCELED', 'SYSTEM_ERROR', 'ABORTED', 'EXECUTOR_ERROR']
+  const isRunInTerminalState = runStatus => RunTerminalStates.includes(runStatus)
 
   const duration = ({
     state,
     submission_timestamp: submitted,
     last_modified_timestamp: modified
   }) => {
-    return terminalStates.includes(state) ?
+    return isRunInTerminalState(state) ?
       differenceFromDatesInSeconds(submitted, modified) :
       differenceFromNowInSeconds(submitted)
   }
@@ -48,10 +50,10 @@ export const SubmissionDetails = ({ submissionId }) => {
     let filterStatement
     switch (filterOption) {
       case 'Error':
-        filterStatement = filter(r => errorStates.includes(r.state))
+        filterStatement = _.filter(r => errorStates.includes(r.state))
         break
       case 'Succeeded':
-        filterStatement = filter(r => r.state === 'COMPLETE')
+        filterStatement = _.filter(r => r.state === 'COMPLETE')
         break
       default:
         filterStatement = data => data
@@ -83,21 +85,30 @@ export const SubmissionDetails = ({ submissionId }) => {
     }
   }
 
-  useOnMount(() => {
-    const loadRunsData = async () => {
-      try {
-        const runs = await Ajax(signal).Cbas.runs.get(submissionId)
-        setRunsData(runs?.runs)
-      } catch (error) {
-        notify('error', 'Error loading previous runs', { detail: await (error instanceof Response ? error.text() : error) })
+  // helper for auto-refresh
+  const refresh = async () => {
+    try {
+      const runsResponse = await Ajax(signal).Cbas.runs.get(submissionId)
+      const runs = runsResponse?.runs
+      setRunsData(runs)
+
+      // only refresh if there are Runs in non-terminal state. Refresh interval is 1 min
+      if (_.some(({ state }) => !isRunInTerminalState(state), runs)) {
+        scheduledRefresh.current = setTimeout(refresh, 1000 * 60)
       }
+    } catch (error) {
+      notify('error', 'Error loading previous runs', { detail: await (error instanceof Response ? error.text() : error) })
     }
+  }
+
+  useOnMount(async () => {
+    await refresh()
 
     const loadRunSetData = async () => {
       try {
         const getRunSets = await Ajax(signal).Cbas.runSets.get()
         const allRunSets = getRunSets.run_sets
-        const annotatedWithDurations = map(r => merge(r, { duration: duration(r) }), allRunSets)
+        const annotatedWithDurations = _.map(r => _.merge(r, { duration: duration(r) }), allRunSets)
         setRunSetData(annotatedWithDurations)
         return annotatedWithDurations
       } catch (error) {
@@ -115,20 +126,22 @@ export const SubmissionDetails = ({ submissionId }) => {
       }
     }
 
-    loadRunSetData()
-      .then(runSet => {
-        loadRunsData()
-          .then(() => runSet && loadMethodsData(runSet.method_version_id))
-      })
+    loadRunSetData().then(runSet => runSet && loadMethodsData(runSet.method_version_id))
+
+    return () => {
+      if (scheduledRefresh.current) {
+        clearTimeout(scheduledRefresh.current)
+      }
+    }
   })
 
-  const specifyRunSet = filter(r => r.run_set_id === submissionId, runSetData)
+  const specifyRunSet = _.filter(r => r.run_set_id === submissionId, runSetData)
   const methodId = specifyRunSet[0]?.method_id
-  const getSpecificMethod = filter(m => m.method_id === methodId, methodsData)
+  const getSpecificMethod = _.filter(m => m.method_id === methodId, methodsData)
 
   const errorStates = ['SYSTEM_ERROR', 'EXECUTOR_ERROR']
   const filteredPreviousRuns = filterOption ? getFilter(filterOption)(runsData) : runsData
-  const sortedPreviousRuns = orderBy(sort.field, sort.direction, filteredPreviousRuns)
+  const sortedPreviousRuns = _.orderBy(sort.field, sort.direction, filteredPreviousRuns)
   const filterOptions = ['Error', 'None', 'Succeeded']
 
   const firstPageIndex = (pageNumber - 1) * itemsPerPage
@@ -219,8 +232,7 @@ export const SubmissionDetails = ({ submissionId }) => {
                 headerRenderer: () => h(Sortable, { sort, field: 'state', onSort: setSort }, ['Status']),
                 cellRenderer: ({ rowIndex }) => {
                   const status = state(paginatedPreviousRuns[rowIndex].state)
-                  const failureStates = ['SYSTEM_ERROR', 'EXECUTOR_ERROR']
-                  if (failureStates.includes(paginatedPreviousRuns[rowIndex].state)) {
+                  if (errorStates.includes(paginatedPreviousRuns[rowIndex].state)) {
                     return div({ style: { width: '100%', textAlign: 'center' } }, [
                       h(Link, { key: 'error link', style: { fontWeight: 'bold' }, onClick: () => setViewErrorsId(rowIndex) },
                         [makeStatusLine(style => status.icon(style), status.label(paginatedPreviousRuns[rowIndex].state),
@@ -237,9 +249,8 @@ export const SubmissionDetails = ({ submissionId }) => {
                 field: 'duration',
                 headerRenderer: () => h(Sortable, { sort, field: 'duration', onSort: setSort }, ['Duration']),
                 cellRenderer: ({ rowIndex }) => {
-                  const terminalStates = ['COMPLETE', 'CANCELED', 'SYSTEM_ERROR', 'ABORTED', 'EXECUTOR_ERROR']
                   let durationSeconds
-                  if (terminalStates.includes(paginatedPreviousRuns[rowIndex].state)) {
+                  if (isRunInTerminalState(paginatedPreviousRuns[rowIndex].state)) {
                     durationSeconds = differenceFromDatesInSeconds(
                       paginatedPreviousRuns[rowIndex].submission_date,
                       paginatedPreviousRuns[rowIndex].last_modified_timestamp
@@ -268,7 +279,7 @@ export const SubmissionDetails = ({ submissionId }) => {
           })
         ])
       ]),
-      !isEmpty(sortedPreviousRuns) && div({ style: { bottom: 0, position: 'absolute', marginBottom: '1.5rem', right: '4rem' } }, [
+      !_.isEmpty(sortedPreviousRuns) && div({ style: { bottom: 0, position: 'absolute', marginBottom: '1.5rem', right: '4rem' } }, [
         paginator({
           filteredDataLength: sortedPreviousRuns.length,
           unfilteredDataLength: sortedPreviousRuns.length,
@@ -321,7 +332,7 @@ export const SubmissionDetails = ({ submissionId }) => {
           enableClipboard: true,
           displayDataTypes: false,
           displayObjectSize: false,
-          src: isEmpty(paginatedPreviousRuns[viewOutputsId].workflow_outputs) ?
+          src: _.isEmpty(paginatedPreviousRuns[viewOutputsId].workflow_outputs) ?
             {} :
             JSON.parse(paginatedPreviousRuns[viewOutputsId].workflow_outputs)
         })
