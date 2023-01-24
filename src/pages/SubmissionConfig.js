@@ -40,7 +40,7 @@ export const SubmissionConfig = ({ methodId }) => {
   const [outputTableSort, setOutputTableSort] = useState({ field: 'taskVariable', direction: 'asc' })
 
   const [launching, setLaunching] = useState(undefined)
-  const [noRecordData, setNoRecordData] = useState(null)
+  const [noRecordTypeData, setNoRecordTypeData] = useState(null)
 
 
   const signal = useCancellation()
@@ -49,7 +49,7 @@ export const SubmissionConfig = ({ methodId }) => {
       const searchResult = await Ajax(signal).Wds.search.post(recordType)
       setRecords(searchResult.records)
     } catch (error) {
-      setNoRecordData(`Data Table not found: ${recordType}`)
+      setNoRecordTypeData(`Data Table not found: ${recordType}`)
     }
   }
 
@@ -134,7 +134,7 @@ export const SubmissionConfig = ({ methodId }) => {
           isClearable: false,
           value: selectedRecordType ? selectedRecordType : null,
           onChange: ({ value }) => {
-            setNoRecordData(null)
+            setNoRecordTypeData(null)
             setSelectedRecordType(value)
             loadRecordsData(value)
           },
@@ -142,8 +142,8 @@ export const SubmissionConfig = ({ methodId }) => {
           styles: { container: old => ({ ...old, display: 'inline-block', width: 200 }), paddingRight: '2rem' },
           options: _.map(t => t.name, recordTypes)
         }),
-        noRecordData && h(Fragment, [
-          a({ style: { marginLeft: '1rem', fontSize: 15, marginTop: '1rem', height: '2rem', fontWeight: 'bold' } }, [statusType.failed.icon(), ' ', noRecordData])
+        noRecordTypeData && h(Fragment, [
+          a({ style: { marginLeft: '1rem', fontSize: 15, marginTop: '1rem', height: '2rem', fontWeight: 'bold' } }, [statusType.failed.icon(), ' ', noRecordTypeData])
         ])
       ]),
 
