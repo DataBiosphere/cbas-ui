@@ -344,9 +344,9 @@ export const inputsTable = props => {
 }
 
 const outputValue = (rowIndex, outputDefinition) => {
-  return _.get(`${rowIndex}.destination.type`, outputDefinition) === 'record_update'
-    ? _.get(`${rowIndex}.destination.record_attribute`, outputDefinition) || null
-    : null
+  return _.get(`${rowIndex}.destination.type`, outputDefinition) === 'record_update' ?
+    _.get(`${rowIndex}.destination.record_attribute`, outputDefinition) || null :
+    null
 }
 
 export const outputsTable = props => {
@@ -399,10 +399,10 @@ export const outputsTable = props => {
               defaultValue: outputValue(rowIndex, configuredOutputDefinition),
               placeholder: '[Not Saved]',
               onChange: value => {
-                if (!!value && value !== '' ) {
-                  setConfiguredOutputDefinition(_.set(`${rowIndex}.destination`, { 'type': 'record_update', 'record_attribute': value }, configuredOutputDefinition))
+                if (!!value && value !== '') {
+                  setConfiguredOutputDefinition(_.set(`${rowIndex}.destination`, { type: 'record_update', record_attribute: value }, configuredOutputDefinition))
                 } else {
-                  setConfiguredOutputDefinition(_.set(`${rowIndex}.destination`, { 'type': 'none' }, configuredOutputDefinition))
+                  setConfiguredOutputDefinition(_.set(`${rowIndex}.destination`, { type: 'none' }, configuredOutputDefinition))
                 }
               }
             })
