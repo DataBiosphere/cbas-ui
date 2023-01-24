@@ -343,6 +343,12 @@ export const inputsTable = props => {
   }])
 }
 
+const outputValue = (rowIndex, outputDefinition) => {
+  return _.get(`${rowIndex}.destination.type`, outputDefinition) === 'record_update'
+    ? _.get(`${rowIndex}.destination.record_attribute`, outputDefinition) || null
+    : null
+}
+
 export const outputsTable = props => {
   const {
     configuredOutputDefinition, setConfiguredOutputDefinition,
@@ -390,7 +396,7 @@ export const outputsTable = props => {
             return h(TextInput, {
               id: `output-parameter-${rowIndex}`,
               style: { display: 'block', width: '100%' },
-              defaultValue: _.get(`${rowIndex}.destination.type` === 'record_update' ? `${rowIndex}.destination.record_attribute` : null, configuredOutputDefinition) || null,
+              defaultValue: outputValue(rowIndex, configuredOutputDefinition),
               placeholder: '[Not Saved]',
               onChange: value => {
                 if (!!value && value !== '' ) {
