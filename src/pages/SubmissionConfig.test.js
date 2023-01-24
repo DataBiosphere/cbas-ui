@@ -38,8 +38,18 @@ const runSetInputDef = [
 const runSetOutputDef = [
   {
     output_name: 'target_workflow_1.file_output',
+    output_type: { type: 'primitive', primitive_type: 'File' },
+    destination: {
+      type: 'record_update',
+      record_attribute: 'target_workflow_1_file_output'
+    }
+  },
+  {
+    output_name: 'target_workflow_1.unused_output',
     output_type: { type: 'primitive', primitive_type: 'String' },
-    record_attribute: 'target_workflow_1_file_output'
+    destination: {
+      type: 'none'
+    }
   }
 ]
 
@@ -520,17 +530,24 @@ describe('SubmissionConfig inputs/outputs definitions', () => {
     const table = await screen.findByRole('table')
     const rows = within(table).queryAllByRole('row')
 
-    expect(runSetOutputDef.length).toBe(1)
+    expect(runSetOutputDef.length).toBe(2)
     expect(rows.length).toBe(runSetOutputDef.length + 1) // one row for each output definition variable, plus headers
 
     const headers = within(rows[0]).queryAllByRole('columnheader')
     expect(headers.length).toBe(4)
 
-    const cells = within(rows[1]).queryAllByRole('cell')
-    expect(cells.length).toBe(4)
-    expect(cells[0].textContent).toBe('target_workflow_1')
-    within(cells[1]).getByText('file_output')
-    within(cells[2]).getByText('String')
-    within(cells[3]).getByDisplayValue('target_workflow_1_file_output')
+    const row1cells = within(rows[1]).queryAllByRole('cell')
+    expect(row1cells.length).toBe(4)
+    expect(row1cells[0].textContent).toBe('target_workflow_1')
+    within(row1cells[1]).getByText('file_output')
+    within(row1cells[2]).getByText('File')
+    within(row1cells[3]).getByDisplayValue('target_workflow_1_file_output')
+
+    const row2cells = within(rows[2]).queryAllByRole('cell')
+    expect(row2cells.length).toBe(4)
+    expect(row2cells[0].textContent).toBe('')
+    within(row2cells[1]).getByText('unused_output')
+    within(row2cells[2]).getByText('String')
+    within(row2cells[3]).getByDisplayValue('')
   })
 })
