@@ -545,7 +545,7 @@ describe('SubmissionConfig inputs/outputs definitions', () => {
 
     const row2cells = within(rows[2]).queryAllByRole('cell')
     expect(row2cells.length).toBe(4)
-    expect(row2cells[0].textContent).toBe('')
+    expect(row2cells[0].textContent).toBe('target_workflow_1')
     within(row2cells[1]).getByText('unused_output')
     within(row2cells[2]).getByText('String')
     within(row2cells[3]).getByDisplayValue('')
