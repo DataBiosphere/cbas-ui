@@ -4,7 +4,7 @@ import { div, h, h2 } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import { ButtonOutline, Link, Navbar } from 'src/components/common'
 import { icon } from 'src/components/icons'
-import { AutoRefreshTimeout, makeStatusLine, statusType } from 'src/components/submission-common'
+import { AutoRefreshInterval, makeStatusLine, statusType } from 'src/components/submission-common'
 import { FlexTable, paginator, Sortable, tableHeight, TextCell } from 'src/components/table'
 import { Ajax } from 'src/libs/ajax'
 import * as Nav from 'src/libs/nav'
@@ -45,7 +45,7 @@ export const SubmissionHistory = () => {
 
       // only refresh if there are Run Sets in non-terminal state
       if (_.some(({ state }) => !isRunSetInTerminalState(state), mergedRunSets)) {
-        scheduledRefresh.current = setTimeout(refresh, AutoRefreshTimeout)
+        scheduledRefresh.current = setTimeout(refresh, AutoRefreshInterval)
       }
     } catch (error) {
       notify('error', 'Error loading previous run sets', { detail: await (error instanceof Response ? error.text() : error) })
