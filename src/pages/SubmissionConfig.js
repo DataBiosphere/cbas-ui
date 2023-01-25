@@ -2,13 +2,14 @@ import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { a, div, h, h2, span } from 'react-hyperscript-helpers'
 import { ButtonPrimary, Link, Navbar, Select } from 'src/components/common'
+import { icon } from 'src/components/icons'
 import { TextArea, TextInput } from 'src/components/input'
-import { statusType } from 'src/components/job-common'
 import Modal from 'src/components/Modal'
 import StepButtons from 'src/components/StepButtons'
 import { inputsTable, outputsTable, recordsTable } from 'src/components/submission-common'
 import { TextCell } from 'src/components/table'
 import { Ajax } from 'src/libs/ajax'
+import colors from 'src/libs/colors'
 import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
 import { useCancellation, useOnMount } from 'src/libs/react-utils'
@@ -143,7 +144,7 @@ export const SubmissionConfig = ({ methodId }) => {
           options: _.map(t => t.name, recordTypes)
         }),
         noRecordTypeData && h(Fragment, [
-          a({ style: { marginLeft: '1rem', fontSize: 15, marginTop: '1rem', height: '2rem', fontWeight: 'bold' } }, [statusType.failed.icon(), ' ', noRecordTypeData])
+          a({ style: { marginLeft: '1rem', fontSize: 15, marginTop: '1rem', height: '2rem', fontWeight: 'bold' } }, [icon('error-standard', { size: 20, style: { color: colors.warning(), flex: 'none', marginRight: '0.5rem' } }), noRecordTypeData])
         ])
       ]),
 
