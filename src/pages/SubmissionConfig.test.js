@@ -457,7 +457,7 @@ describe('SubmissionConfig inputs/outputs definitions', () => {
 
     const cellsBar = within(rows[2]).queryAllByRole('cell')
     expect(cellsBar.length).toBe(5)
-    expect(cellsBar[0].textContent).toBe('')
+    expect(cellsBar[0].textContent).toBe('target_workflow_1')
     within(cellsBar[1]).getByText('bar_string_workflow_var')
     within(cellsBar[2]).getByText('String')
     within(cellsBar[3]).getByText('Fetch from Data Table')
@@ -528,7 +528,7 @@ describe('SubmissionConfig inputs/outputs definitions', () => {
 
     const cells = within(rows[1]).queryAllByRole('cell')
     expect(cells.length).toBe(4)
-    expect(cells[0].textContent).toBe('')
+    expect(cells[0].textContent).toBe('target_workflow_1')
     within(cells[1]).getByText('file_output')
     within(cells[2]).getByText('String')
     within(cells[3]).getByDisplayValue('target_workflow_1_file_output')

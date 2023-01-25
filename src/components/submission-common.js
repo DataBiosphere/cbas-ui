@@ -199,8 +199,8 @@ const parseMethodString = methodString => {
   const methodNameParts = methodString.split('.')
   return {
     workflow: methodNameParts[0],
-    variable: methodNameParts[methodNameParts.length - 1],
-    call: methodNameParts.length === 3 ? methodNameParts[1] : ''
+    task: methodNameParts.length === 3 ? methodNameParts[1] : '',
+    variable: methodNameParts[methodNameParts.length - 1]
   }
 }
 
@@ -274,7 +274,8 @@ export const inputsTable = props => {
           field: 'taskVariable',
           headerRenderer: () => h(Sortable, { sort: inputTableSort, field: 'taskVariable', onSort: setInputTableSort }, [h(HeaderCell, ['Task name'])]),
           cellRenderer: ({ rowIndex }) => {
-            return h(TextCell, { style: { fontWeight: 500 } }, [parseMethodString(configuredInputDefinition[rowIndex].input_name).call])
+            const { workflow, task, variable } = parseMethodString(configuredInputDefinition[rowIndex].input_name)
+            return h(TextCell, { style: { fontWeight: 500 } }, [ task || workflow ])
           }
         },
         {
@@ -362,7 +363,8 @@ export const outputsTable = props => {
           field: 'taskVariable',
           headerRenderer: () => h(Sortable, { sort: outputTableSort, field: 'taskVariable', onSort: setOutputTableSort }, [h(HeaderCell, ['Task name'])]),
           cellRenderer: ({ rowIndex }) => {
-            return h(TextCell, { style: { fontWeight: 500 } }, [parseMethodString(configuredOutputDefinition[rowIndex].output_name).call])
+            const { workflow, task, variable } = parseMethodString(configuredOutputDefinition[rowIndex].output_name)
+            return h(TextCell, { style: { fontWeight: 500 } }, [ task || workflow ])
           }
         },
         {
