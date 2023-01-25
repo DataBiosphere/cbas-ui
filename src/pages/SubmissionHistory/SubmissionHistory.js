@@ -1,10 +1,10 @@
 import _ from 'lodash/fp'
-import { Fragment, useState } from 'react'
+import { Fragment, useRef, useState } from 'react'
 import { div, h, h2 } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import { ButtonOutline, Link, Navbar } from 'src/components/common'
 import { icon } from 'src/components/icons'
-import { makeStatusLine, statusType } from 'src/components/submission-common'
+import { AutoRefreshInterval, makeStatusLine, statusType } from 'src/components/submission-common'
 import { FlexTable, paginator, Sortable, tableHeight, TextCell } from 'src/components/table'
 import { Ajax } from 'src/libs/ajax'
 import * as Nav from 'src/libs/nav'
@@ -21,30 +21,45 @@ export const SubmissionHistory = () => {
   const [runSetsData, setRunSetData] = useState()
 
   const signal = useCancellation()
+  const scheduledRefresh = useRef()
 
-  const terminalStates = ['ERROR', 'COMPLETE']
+  const RunSetTerminalStates = ['ERROR', 'COMPLETE']
+  const isRunSetInTerminalState = runSetStatus => RunSetTerminalStates.includes(runSetStatus)
 
   const runSetDuration = ({
     state,
     submission_timestamp: submitted,
     last_modified_timestamp: modified
   }) => {
-    return terminalStates.includes(state) ?
+    return isRunSetInTerminalState(state) ?
       Utils.differenceFromDatesInSeconds(submitted, modified) :
       Utils.differenceFromNowInSeconds(submitted)
   }
 
-  useOnMount(() => {
-    const loadRunSetsData = async () => {
-      try {
-        const runSets = await Ajax(signal).Cbas.runSets.get()
-        setRunSetData(_.map(r => _.merge(r, { duration: runSetDuration(r) }), runSets.run_sets))
-      } catch (error) {
-        notify('error', 'Error loading previous run sets', { detail: await (error instanceof Response ? error.text() : error) })
+  // helper for auto-refresh
+  const refresh = async () => {
+    try {
+      const runSets = await Ajax(signal).Cbas.runSets.get()
+      const mergedRunSets = _.map(r => _.merge(r, { duration: runSetDuration(r) }), runSets.run_sets)
+      setRunSetData(mergedRunSets)
+
+      // only refresh if there are Run Sets in non-terminal state
+      if (_.some(({ state }) => !isRunSetInTerminalState(state), mergedRunSets)) {
+        scheduledRefresh.current = setTimeout(refresh, AutoRefreshInterval)
+      }
+    } catch (error) {
+      notify('error', 'Error loading previous run sets', { detail: await (error instanceof Response ? error.text() : error) })
+    }
+  }
+
+  useOnMount(async () => {
+    await refresh()
+
+    return () => {
+      if (scheduledRefresh.current) {
+        clearTimeout(scheduledRefresh.current)
       }
     }
-
-    loadRunSetsData()
   })
 
   const stateCell = ({ state, error_count: errorCount }) => {

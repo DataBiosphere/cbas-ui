@@ -12,6 +12,8 @@ import colors from 'src/libs/colors'
 import * as Utils from 'src/libs/utils'
 
 
+export const AutoRefreshInterval = 1000 * 60 // 1 minute
+
 const iconSize = 24
 export const addCountSuffix = (label, count = undefined) => {
   return label + (count === undefined ? '' : `: ${count}`)
