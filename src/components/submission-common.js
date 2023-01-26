@@ -225,10 +225,9 @@ export const inputsTable = props => {
   const inputSourceTypes = _.invert(inputSourceLabels)
 
   const recordLookupSelect = rowIndex => {
-    // console.log(`***** Orange icon for input ${_.get(`${rowIndex}.input_name`, configuredInputDefinition)}? ${missingRequiredInputs.includes(_.get(`${rowIndex}.input_name`, configuredInputDefinition))}`)
     const currentInputName = _.get(`${rowIndex}.input_name`, configuredInputDefinition)
 
-    return div({ style: { display: 'flex', alignItems: 'center', width: '100%', paddingTop: '0.5rem', paddingBottom: '0.5rem' }}, [
+    return div({ style: { display: 'flex', alignItems: 'center', width: '100%', paddingTop: '0.5rem', paddingBottom: '0.5rem' } }, [
       h(Select, {
         isDisabled: false,
         'aria-label': 'Select an Attribute',

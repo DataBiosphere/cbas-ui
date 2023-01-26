@@ -90,64 +90,28 @@ export const SubmissionConfig = ({ methodId }) => {
     }
   }
 
-  useOnMount(async () => {
-    // await loadTablesData().then(
-    //   await loadRunSet().then(async runSet => {
-    //     await loadMethodsData(runSet.method_id, runSet.method_version_id)
-    //     await loadRecordsData(runSet.record_type)
-    //   }).then(validateInputs())
-    // )
-
-    // console.log('Calling loadTablesData ')
-    await loadTablesData()
-    // console.log(`loadtablesData set recordTypes: ${recordTypes}`)
-
-    // console.log('Calling loadRunSet ')
-    const runSet = await loadRunSet()
-    // console.log(`loadRunSet set configuredInputDefinition: ${configuredInputDefinition}`)
-    // console.log(`loadRunSet set configuredOutputDefinition: ${configuredOutputDefinition}`)
-    // console.log(`loadRunSet set selectedRecordType: ${selectedRecordType}`)
-
-
-    await loadMethodsData(runSet.method_id, runSet.method_version_id)
-
-    // console.log('Calling loadRecordsData ')
-    await loadRecordsData(runSet.record_type)
-    // console.log(`loadRecordsData set records: ${records}`)
-
-    // validateInputs()
-
-
-    // setDataLoading(false)
-
-
+  useOnMount(() => {
+    loadTablesData()
+    loadRunSet().then(runSet => {
+      loadMethodsData(runSet.method_id, runSet.method_version_id)
+      loadRecordsData(runSet.record_type)
+    })
   })
 
   useEffect(() => {
+    // inspect input configuration and selected data table to find required inputs without attributes assigned to it
     const validateInputs = () => {
-      console.log('################################')
-
       if (recordTypes && records && records.length && configuredInputDefinition) {
         const selectedDataTable = _.keyBy('name', recordTypes)[records[0].type]
-
-        console.log(`Record types: ${JSON.stringify(records[0])}`)
-        console.log(`Selected data table: ${JSON.stringify(selectedDataTable)}`)
-
         const dataTableAttributes = _.keyBy('name', selectedDataTable.attributes)
         const dataTableAttrKeys = _.keys(dataTableAttributes)
 
-        console.log(`Data attribute keys: ${dataTableAttrKeys}`)
+        const inputsWithoutAttrs = _.flow(
+          _.filter(i => i.input_type.type !== 'optional' && i.source.type === 'record_lookup' && !dataTableAttrKeys.includes(i.source.record_attribute)),
+          _.map(i => i.input_name)
+        )(configuredInputDefinition)
 
-        // calculate if any record attributes from input configuration don't exist in data table
-        _.map(i => console.log(`INPUT: ${JSON.stringify(i)}`), configuredInputDefinition)
-
-
-        const notIncluded = _.filter(i => i.input_type.type !== "optional" && i.source.type === 'record_lookup' && !dataTableAttrKeys.includes(i.source.record_attribute), configuredInputDefinition)
-        const notIncludedInputs = _.map(i => i.input_name, notIncluded)
-        console.log(`NOT INCLUDED INPUT ATTRIBUTES: ${JSON.stringify(notIncludedInputs)}`)
-        setMissingRequiredInputs(notIncludedInputs)
-      } else {
-        console.log('Something is undefined')
+        setMissingRequiredInputs(inputsWithoutAttrs)
       }
     }
 
