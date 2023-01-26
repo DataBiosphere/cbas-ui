@@ -452,7 +452,7 @@ describe('SubmissionConfig records selector', () => {
       expect(mockSearchResponse).toHaveBeenCalledTimes(1)
     })
 
-    await screen.getByText(/Data Table not found: BADFOO/)
+    await screen.getByText(/Data table not found: BADFOO/)
   })
 })
 
