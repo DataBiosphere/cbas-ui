@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import { Fragment, useState } from 'react'
+import { Fragment, useEffect, useState } from 'react'
 import { div, h, h2, span } from 'react-hyperscript-helpers'
 import { ButtonPrimary, Link, Navbar, Select } from 'src/components/common'
 import { TextArea, TextInput } from 'src/components/input'
@@ -28,6 +28,7 @@ export const SubmissionConfig = ({ methodId }) => {
   const [selectedRecords, setSelectedRecords] = useState({})
   const [configuredInputDefinition, setConfiguredInputDefinition] = useState()
   const [configuredOutputDefinition, setConfiguredOutputDefinition] = useState()
+  const [missingRequiredInputs, setMissingRequiredInputs] = useState([])
 
   // TODO: These should probably be moved to the modal:
   const [runSetName, setRunSetName] = useState('')
@@ -89,13 +90,69 @@ export const SubmissionConfig = ({ methodId }) => {
     }
   }
 
-  useOnMount(() => {
-    loadTablesData()
-    loadRunSet().then(runSet => {
-      loadMethodsData(runSet.method_id, runSet.method_version_id)
-      loadRecordsData(runSet.record_type)
-    })
+  useOnMount(async () => {
+    // await loadTablesData().then(
+    //   await loadRunSet().then(async runSet => {
+    //     await loadMethodsData(runSet.method_id, runSet.method_version_id)
+    //     await loadRecordsData(runSet.record_type)
+    //   }).then(validateInputs())
+    // )
+
+    // console.log('Calling loadTablesData ')
+    await loadTablesData()
+    // console.log(`loadtablesData set recordTypes: ${recordTypes}`)
+
+    // console.log('Calling loadRunSet ')
+    const runSet = await loadRunSet()
+    // console.log(`loadRunSet set configuredInputDefinition: ${configuredInputDefinition}`)
+    // console.log(`loadRunSet set configuredOutputDefinition: ${configuredOutputDefinition}`)
+    // console.log(`loadRunSet set selectedRecordType: ${selectedRecordType}`)
+
+
+    await loadMethodsData(runSet.method_id, runSet.method_version_id)
+
+    // console.log('Calling loadRecordsData ')
+    await loadRecordsData(runSet.record_type)
+    // console.log(`loadRecordsData set records: ${records}`)
+
+    // validateInputs()
+
+
+    // setDataLoading(false)
+
+
   })
+
+  useEffect(() => {
+    const validateInputs = () => {
+      console.log('################################')
+
+      if (recordTypes && records && records.length && configuredInputDefinition) {
+        const selectedDataTable = _.keyBy('name', recordTypes)[records[0].type]
+
+        console.log(`Record types: ${JSON.stringify(records[0])}`)
+        console.log(`Selected data table: ${JSON.stringify(selectedDataTable)}`)
+
+        const dataTableAttributes = _.keyBy('name', selectedDataTable.attributes)
+        const dataTableAttrKeys = _.keys(dataTableAttributes)
+
+        console.log(`Data attribute keys: ${dataTableAttrKeys}`)
+
+        // calculate if any record attributes from input configuration don't exist in data table
+        _.map(i => console.log(`INPUT: ${JSON.stringify(i)}`), configuredInputDefinition)
+
+
+        const notIncluded = _.filter(i => i.input_type.type !== "optional" && i.source.type === 'record_lookup' && !dataTableAttrKeys.includes(i.source.record_attribute), configuredInputDefinition)
+        const notIncludedInputs = _.map(i => i.input_name, notIncluded)
+        console.log(`NOT INCLUDED INPUT ATTRIBUTES: ${JSON.stringify(notIncludedInputs)}`)
+        setMissingRequiredInputs(notIncludedInputs)
+      } else {
+        console.log('Something is undefined')
+      }
+    }
+
+    validateInputs()
+  }, [records, recordTypes, configuredInputDefinition])
 
   const renderSummary = () => {
     return div({ style: { margin: '4em' } }, [
@@ -140,16 +197,16 @@ export const SubmissionConfig = ({ methodId }) => {
       }),
       h(StepButtons, {
         tabs: [
-          { key: 'select-data', title: 'Select Data', isValid: () => true },
-          { key: 'inputs', title: 'Inputs', isValid: () => true },
-          { key: 'outputs', title: 'Outputs', isValid: () => true }
+          { key: 'select-data', title: 'Select Data', isValid: true },
+          { key: 'inputs', title: 'Inputs', isValid: !missingRequiredInputs.length },
+          { key: 'outputs', title: 'Outputs', isValid: true }
         ],
         activeTab: activeTab.key || 'select-data',
         onChangeTab: v => setActiveTab({ key: v }),
         finalStep: h(ButtonPrimary, {
           'aria-label': 'Submit button',
           style: { marginLeft: '1rem' },
-          disabled: _.isEmpty(selectedRecords),
+          disabled: _.isEmpty(selectedRecords) || missingRequiredInputs.length,
           tooltip: _.isEmpty(selectedRecords) ? 'No records selected' : '',
           onClick: () => {
             updateRunSetName()
@@ -209,6 +266,7 @@ export const SubmissionConfig = ({ methodId }) => {
     return configuredInputDefinition && recordTypes && records.length ? h(inputsTable, {
       configuredInputDefinition, setConfiguredInputDefinition,
       inputTableSort, setInputTableSort,
+      missingRequiredInputs,
       selectedDataTable: _.keyBy('name', recordTypes)[selectedRecordType]
     }) : 'No data table rows available or input definition is not configured...'
   }

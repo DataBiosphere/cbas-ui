@@ -8,6 +8,7 @@ import { icon } from 'src/components/icons'
 import { TextInput } from 'src/components/input'
 import { MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
 import { FlexTable, GridTable, HeaderCell, Resizable, Sortable, TextCell } from 'src/components/table'
+import TooltipTrigger from 'src/components/TooltipTrigger'
 import colors from 'src/libs/colors'
 import * as Utils from 'src/libs/utils'
 
@@ -210,6 +211,7 @@ export const inputsTable = props => {
   const {
     configuredInputDefinition, setConfiguredInputDefinition,
     inputTableSort, setInputTableSort,
+    missingRequiredInputs,
     selectedDataTable
   } = props
 
@@ -223,27 +225,37 @@ export const inputsTable = props => {
   const inputSourceTypes = _.invert(inputSourceLabels)
 
   const recordLookupSelect = rowIndex => {
-    return h(Select, {
-      isDisabled: false,
-      'aria-label': 'Select an Attribute',
-      isClearable: false,
-      value: _.get(`${rowIndex}.source.record_attribute`, configuredInputDefinition),
-      onChange: ({ value }) => {
-        const newAttribute = _.get(`${value}.name`, dataTableAttributes)
-        const newSource = {
-          type: _.get(`${rowIndex}.source.type`, configuredInputDefinition),
-          record_attribute: newAttribute
-        }
-        const newConfig = _.set(`${rowIndex}.source`, newSource, configuredInputDefinition)
-        setConfiguredInputDefinition(newConfig)
-      },
-      placeholder: 'Select Attribute',
-      options: _.keys(dataTableAttributes),
-      // ** https://stackoverflow.com/questions/55830799/how-to-change-zindex-in-react-select-drowpdown
-      styles: { container: old => ({ ...old, display: 'inline-block', width: '100%' }), menuPortal: base => ({ ...base, zIndex: 9999 }) },
-      menuPortalTarget: document.body,
-      menuPlacement: 'top'
-    })
+    // console.log(`***** Orange icon for input ${_.get(`${rowIndex}.input_name`, configuredInputDefinition)}? ${missingRequiredInputs.includes(_.get(`${rowIndex}.input_name`, configuredInputDefinition))}`)
+    const currentInputName = _.get(`${rowIndex}.input_name`, configuredInputDefinition)
+
+    return div({ style: { display: 'flex', alignItems: 'center', width: '100%', paddingTop: '0.5rem', paddingBottom: '0.5rem' }}, [
+      h(Select, {
+        isDisabled: false,
+        'aria-label': 'Select an Attribute',
+        isClearable: false,
+        value: _.get(`${rowIndex}.source.record_attribute`, configuredInputDefinition),
+        onChange: ({ value }) => {
+          const newAttribute = _.get(`${value}.name`, dataTableAttributes)
+          const newSource = {
+            type: _.get(`${rowIndex}.source.type`, configuredInputDefinition),
+            record_attribute: newAttribute
+          }
+          const newConfig = _.set(`${rowIndex}.source`, newSource, configuredInputDefinition)
+          setConfiguredInputDefinition(newConfig)
+        },
+        placeholder: 'Select Attribute',
+        options: _.keys(dataTableAttributes),
+        // ** https://stackoverflow.com/questions/55830799/how-to-change-zindex-in-react-select-drowpdown
+        styles: { container: old => ({ ...old, display: 'inline-block', width: '100%' }), menuPortal: base => ({ ...base, zIndex: 9999 }) },
+        menuPortalTarget: document.body,
+        menuPlacement: 'top'
+      }),
+      missingRequiredInputs.includes(currentInputName) && h(TooltipTrigger, { content: 'This attribute is required' }, [
+        icon('error-standard', {
+          size: 14, style: { marginLeft: '0.5rem', color: colors.warning(), cursor: 'help' }
+        })
+      ])
+    ])
   }
 
   const parameterValueSelect = rowIndex => {
