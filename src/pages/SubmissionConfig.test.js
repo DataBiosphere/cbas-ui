@@ -94,18 +94,18 @@ const methodsResponse = {
       source_url: 'https://raw.githubusercontent.com/DataBiosphere/cbas/main/useful_workflows/target_workflow_2/target_workflow_2.wdl',
       method_versions: [
         {
-          method_version_id: "50000000-0000-0000-0000-000000000005",
-          method_id: "00000000-0000-0000-0000-000000000002",
-          name: "1.0",
-          description: "method description",
-          created: "2023-01-26T19:45:50.419Z",
-          url: "https://raw.githubusercontent.com/DataBiosphere/cbas/main/useful_workflows/target_workflow_2/target_workflow_2.wdl",
+          method_version_id: '50000000-0000-0000-0000-000000000005',
+          method_id: '00000000-0000-0000-0000-000000000002',
+          name: '1.0',
+          description: 'method description',
+          created: '2023-01-26T19:45:50.419Z',
+          url: 'https://raw.githubusercontent.com/DataBiosphere/cbas/main/useful_workflows/target_workflow_2/target_workflow_2.wdl',
           last_run: {
             previously_run: true,
-            timestamp: "2023-01-26T19:45:50.419Z",
-            run_set_id: "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-            method_version_id: "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-            method_version_name: "string"
+            timestamp: '2023-01-26T19:45:50.419Z',
+            run_set_id: '3fa85f64-5717-4562-b3fc-2c963f66afa6',
+            method_version_id: '3fa85f64-5717-4562-b3fc-2c963f66afa6',
+            method_version_name: 'string'
           }
         }
       ],
@@ -411,12 +411,10 @@ describe('SubmissionConfig records selector', () => {
   })
 
   it('should display error message when WDS is unable to find a record type', async () => {
-
     const mockRunSetResponse = jest.fn(() => Promise.resolve(badRecordTypeRunSetResponse))
     const mockMethodsResponse = jest.fn(() => Promise.resolve(methodsResponse))
     const mockSearchResponse = jest.fn(recordType => Promise.resolve(searchResponses[recordType]))
     const mockTypesResponse = jest.fn(() => Promise.resolve(typesResponse))
-
 
     await Ajax.mockImplementation(() => {
       return {
@@ -438,7 +436,6 @@ describe('SubmissionConfig records selector', () => {
         }
       }
     })
-
 
     // ** ACT **
     render(h(SubmissionConfig))
