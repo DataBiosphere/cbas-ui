@@ -1,6 +1,7 @@
 import '@testing-library/jest-dom'
 
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { h } from 'react-hyperscript-helpers'
 import selectEvent from 'react-select-event'
 import { Ajax } from 'src/libs/ajax'
@@ -115,6 +116,28 @@ const typesResponse = [
       {
         name: 'bar_rating',
         datatype: 'NUMBER'
+      },
+      {
+        name: 'sys_name',
+        datatype: 'STRING'
+      }
+    ],
+    count: 4,
+    primaryKey: 'sys_name'
+  }
+]
+
+const typesResponseWithoutFooRating = [
+  {
+    name: 'FOO',
+    attributes: [
+      {
+        name: 'rating_for_foo',
+        datatype: 'NUMBER'
+      },
+      {
+        name: 'bar_string',
+        datatype: 'STRING'
       },
       {
         name: 'sys_name',
@@ -472,6 +495,88 @@ describe('SubmissionConfig inputs/outputs definitions', () => {
     within(cellsBar[2]).getByText('String')
     within(cellsBar[3]).getByText('Fetch from Data Table')
     within(cellsBar[4]).getByText('bar_string')
+  })
+
+  it('should display warning icon for required inputs with missing attributes and disappear when attribute is supplied', async () => {
+    // ** ARRANGE **
+    const mockRunSetResponse = jest.fn(() => Promise.resolve(runSetResponse))
+    const mockMethodsResponse = jest.fn(() => Promise.resolve(methodsResponse))
+    const mockSearchResponse = jest.fn(recordType => Promise.resolve(searchResponses[recordType]))
+    const mockTypesResponse = jest.fn(() => Promise.resolve(typesResponseWithoutFooRating))
+
+    await Ajax.mockImplementation(() => {
+      return {
+        Cbas: {
+          runSets: {
+            getForMethod: mockRunSetResponse
+          },
+          methods: {
+            getById: mockMethodsResponse
+          }
+        },
+        Wds: {
+          search: {
+            post: mockSearchResponse
+          },
+          types: {
+            get: mockTypesResponse
+          }
+        }
+      }
+    })
+
+    // ** ACT **
+    render(h(SubmissionConfig))
+
+    // ** ASSERT **
+    await waitFor(() => {
+      expect(mockRunSetResponse).toHaveBeenCalledTimes(1)
+      expect(mockTypesResponse).toHaveBeenCalledTimes(1)
+
+      // At initial render these two shouldn't be called. See below for a follow-up await for them to be triggered via callbacks
+      expect(mockMethodsResponse).toHaveBeenCalledTimes(0)
+      expect(mockSearchResponse).toHaveBeenCalledTimes(0)
+    })
+
+    // after the initial render (not before), records data should have been retrieved once
+    await waitFor(() => {
+      expect(mockSearchResponse).toHaveBeenCalledTimes(1)
+      expect(mockMethodsResponse).toHaveBeenCalledTimes(1)
+    })
+
+    const button = await screen.findByRole('button', { name: 'Inputs' })
+
+    // ** ACT **
+    await fireEvent.click(button)
+
+    // ** ASSERT **
+    const table = await screen.findByRole('table')
+    const rows = within(table).queryAllByRole('row')
+
+    expect(runSetInputDef.length).toBe(2)
+    expect(rows.length).toBe(runSetInputDef.length + 1) // one row for each input definition variable, plus headers
+
+    const cellsFoo = within(rows[1]).queryAllByRole('cell')
+    expect(cellsFoo.length).toBe(5)
+    within(cellsFoo[0]).getByText('foo')
+    within(cellsFoo[1]).getByText('foo_rating_workflow_var')
+    within(cellsFoo[2]).getByText('Int')
+    within(cellsFoo[3]).getByText('Fetch from Data Table')
+    // input configuration expects attribute 'foo_rating' to be present, but it isn't available in the data table.
+    // Hence, the select box will be empty and defaulted to 'Select Attribute' and orange warning icon will be present next to it
+    within(cellsFoo[4]).getByText('Select Attribute')
+    within(cellsFoo[4]).queryByRole('img', { 'data-icon': 'error-standard' })
+
+    // ** ACT **
+    // user selects the attribute 'rating_for_foo' for input 'foo_rating_workflow_var'
+    await userEvent.click(within(cellsFoo[4]).getByText('Select Attribute'))
+    const selectOption = await screen.findByText(`rating_for_foo`)
+    await userEvent.click(selectOption)
+
+    // ** ASSERT **
+    within(cellsFoo[4]).getByText('rating_for_foo')
+    const warningIcon = within(cellsFoo[4]).queryByRole('img', { 'data-icon': 'error-standard' })
+    expect(warningIcon).toBeNull() // once user has selected an attribute warning icon should disappear
   })
 
   it('should initially populate the outputs definition table with attributes determined by the previously executed run set', async () => {
