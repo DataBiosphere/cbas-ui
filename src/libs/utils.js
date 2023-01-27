@@ -171,5 +171,8 @@ export const renderTypeText = iotype => {
   if (_.has('array_type', iotype)) {
     return `Array[${renderTypeText(_.get('array_type', iotype))}]`
   }
+  if (_.has('map_type', iotype)) {
+    return `Map[${renderTypeText(_.get('map_type.key_type', iotype))}, ${renderTypeText(_.get('map_type.value_type', iotype))}]`
+  }
   return 'Unsupported Type'
 }
