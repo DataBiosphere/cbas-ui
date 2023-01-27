@@ -61,7 +61,7 @@ export const SubmissionDetails = ({ submissionId }) => {
     return filterStatement
   }
 
-  const state = state => {
+  const state = (state, submissionDate) => {
     switch (state) {
       case 'SYSTEM_ERROR':
       case 'EXECUTOR_ERROR':
@@ -81,7 +81,7 @@ export const SubmissionDetails = ({ submissionId }) => {
       case 'CANCELING':
         return statusType.canceling
       default:
-        return statusType.unknown
+        return (differenceFromNowInSeconds(submissionDate) < 10) ? statusType.initializing : statusType.unknown
     }
   }
 
@@ -231,7 +231,7 @@ export const SubmissionDetails = ({ submissionId }) => {
                 field: 'state',
                 headerRenderer: () => h(Sortable, { sort, field: 'state', onSort: setSort }, ['Status']),
                 cellRenderer: ({ rowIndex }) => {
-                  const status = state(paginatedPreviousRuns[rowIndex].state)
+                  const status = state(paginatedPreviousRuns[rowIndex].state, runSetData.submission_date)
                   if (errorStates.includes(paginatedPreviousRuns[rowIndex].state)) {
                     return div({ style: { width: '100%', textAlign: 'center' } }, [
                       h(Link, { key: 'error link', style: { fontWeight: 'bold' }, onClick: () => setViewErrorsId(rowIndex) },
