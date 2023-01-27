@@ -73,8 +73,57 @@ const runSetResponse = {
   ]
 }
 
+const badRecordTypeRunSetResponse = {
+  run_sets: [
+    {
+      run_set_id: '20000000-0000-0000-0000-000000000002',
+      method_id: '00000000-0000-0000-0000-000000000002',
+      method_version_id: '50000000-0000-0000-0000-000000000005',
+      is_template: true,
+      run_set_name: 'Target workflow 2, run 1',
+      run_set_description: 'Example run for target workflow 2',
+      state: 'COMPLETE',
+      record_type: 'BADFOO',
+      submission_timestamp: '2022-12-07T17:26:53.153+00:00',
+      last_modified_timestamp: '2022-12-07T17:26:53.153+00:00',
+      run_count: 1,
+      error_count: 0,
+      input_definition: JSON.stringify(runSetInputDef),
+      output_definition: JSON.stringify(runSetOutputDef)
+    }
+  ]
+}
+
 const methodsResponse = {
   methods: [
+    {
+      method_id: '00000000-0000-0000-0000-000000000002',
+      name: 'Target Workflow 2',
+      description: 'Target Workflow 2',
+      source: 'Github',
+      source_url: 'https://raw.githubusercontent.com/DataBiosphere/cbas/main/useful_workflows/target_workflow_2/target_workflow_2.wdl',
+      method_versions: [
+        {
+          method_version_id: '50000000-0000-0000-0000-000000000005',
+          method_id: '00000000-0000-0000-0000-000000000002',
+          name: '1.0',
+          description: 'method description',
+          created: '2023-01-26T19:45:50.419Z',
+          url: 'https://raw.githubusercontent.com/DataBiosphere/cbas/main/useful_workflows/target_workflow_2/target_workflow_2.wdl',
+          last_run: {
+            previously_run: true,
+            timestamp: '2023-01-26T19:45:50.419Z',
+            run_set_id: '3fa85f64-5717-4562-b3fc-2c963f66afa6',
+            method_version_id: '3fa85f64-5717-4562-b3fc-2c963f66afa6',
+            method_version_name: 'string'
+          }
+        }
+      ],
+      created: '2022-12-07T17:26:53.131+00:00',
+      last_run: {
+        run_previously: false
+      }
+    },
     {
       method_id: '00000000-0000-0000-0000-000000000001',
       name: 'Target Workflow 1',
@@ -297,7 +346,7 @@ describe('SubmissionConfig records selector', () => {
     })
 
     // ** ACT **
-    const dropdown = await screen.findByRole('combobox')
+    const dropdown = await screen.findByLabelText('Select a data table')
     await act(async () => {
       await selectEvent.select(dropdown, ['BAR'])
     })
@@ -369,6 +418,51 @@ describe('SubmissionConfig records selector', () => {
     const button = screen.getByLabelText('Submit button')
     fireEvent.click(button)
     await screen.getByText('Send submission')
+  })
+
+  it('should display error message when WDS is unable to find a record type', async () => {
+    const mockRunSetResponse = jest.fn(() => Promise.resolve(badRecordTypeRunSetResponse))
+    const mockMethodsResponse = jest.fn(() => Promise.resolve(methodsResponse))
+    const mockSearchResponse = jest.fn(recordType => Promise.resolve(searchResponses[recordType]))
+    const mockTypesResponse = jest.fn(() => Promise.resolve(typesResponse))
+
+    await Ajax.mockImplementation(() => {
+      return {
+        Cbas: {
+          runSets: {
+            getForMethod: mockRunSetResponse
+          },
+          methods: {
+            getById: mockMethodsResponse
+          }
+        },
+        Wds: {
+          search: {
+            post: mockSearchResponse
+          },
+          types: {
+            get: mockTypesResponse
+          }
+        }
+      }
+    })
+
+    // ** ACT **
+    render(h(SubmissionConfig))
+
+    await waitFor(() => {
+      expect(mockRunSetResponse).toHaveBeenCalledTimes(1)
+      expect(mockTypesResponse).toHaveBeenCalledTimes(1)
+      expect(mockMethodsResponse).toHaveBeenCalledTimes(0)
+      expect(mockSearchResponse).toHaveBeenCalledTimes(0)
+    })
+
+    await waitFor(() => {
+      expect(mockMethodsResponse).toHaveBeenCalledTimes(1)
+      expect(mockSearchResponse).toHaveBeenCalledTimes(1)
+    })
+
+    await screen.getByText(/Data table not found: BADFOO/)
   })
 })
 
