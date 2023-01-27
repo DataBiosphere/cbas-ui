@@ -142,7 +142,7 @@ export const SubmissionDetails = ({ submissionId }) => {
   const errorStates = ['SYSTEM_ERROR', 'EXECUTOR_ERROR']
   const filteredPreviousRuns = filterOption ? getFilter(filterOption)(runsData) : runsData
   const sortedPreviousRuns = _.orderBy(sort.field, sort.direction, filteredPreviousRuns)
-  const filterOptions = ['Error', 'None', 'Succeeded']
+  const filterOptions = ['Error', 'No filter', 'Succeeded']
 
   const firstPageIndex = (pageNumber - 1) * itemsPerPage
   const lastPageIndex = firstPageIndex + itemsPerPage
