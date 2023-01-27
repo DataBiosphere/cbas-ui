@@ -231,7 +231,7 @@ export const SubmissionDetails = ({ submissionId }) => {
                 field: 'state',
                 headerRenderer: () => h(Sortable, { sort, field: 'state', onSort: setSort }, ['Status']),
                 cellRenderer: ({ rowIndex }) => {
-                  const status = state(paginatedPreviousRuns[rowIndex].state, runSetData.submission_date)
+                  const status = state(paginatedPreviousRuns[rowIndex].state, paginatedPreviousRuns[rowIndex].submission_date)
                   if (errorStates.includes(paginatedPreviousRuns[rowIndex].state)) {
                     return div({ style: { width: '100%', textAlign: 'center' } }, [
                       h(Link, { key: 'error link', style: { fontWeight: 'bold' }, onClick: () => setViewErrorsId(rowIndex) },
