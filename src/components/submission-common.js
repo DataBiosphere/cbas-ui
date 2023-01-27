@@ -209,10 +209,10 @@ const parseMethodString = methodString => {
 
 export const inputsTable = props => {
   const {
+    selectedDataTable,
     configuredInputDefinition, setConfiguredInputDefinition,
     inputTableSort, setInputTableSort,
-    missingRequiredInputs,
-    selectedDataTable
+    missingRequiredInputs
   } = props
 
   const dataTableAttributes = _.keyBy('name', selectedDataTable.attributes)
