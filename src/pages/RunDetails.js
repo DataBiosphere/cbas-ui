@@ -1,5 +1,5 @@
 
-import { concat, countBy, every, filter, flattenDepth, flow, includes, isEmpty, keys, map, min, sortBy, toPairs, values } from 'lodash/fp'
+import { concat, countBy, every, filter, flattenDepth, flow, includes, isEmpty, keys, map, min, sortBy, values } from 'lodash/fp'
 import { Fragment, useMemo, useRef, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import ReactJson from 'react-json-view'
@@ -7,7 +7,10 @@ import Collapse from 'src/components/Collapse'
 import { ClipboardButton, Link, Navbar } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
 import {
-  collapseCromwellStatus, collapseStatus, HeaderSection, makeSection, makeStatusLine, statusType, SubmitNewWorkflowButton
+  HeaderSection,
+  SubmitNewWorkflowButton,
+  collapseCromwellStatus, collapseStatus,
+  makeSection, makeStatusLine, statusType
 } from 'src/components/job-common'
 //  Q4-2022 Disable log-viewing
 //import UriViewer from 'src/components/UriViewer'
@@ -49,8 +52,7 @@ const statusCell = ({ calls }) => {
   }
   return h(Fragment, concat(
     ['submitted', 'waitingForQuota', 'running', 'succeeded', 'failed'].filter(
-      s => statusGroups[s]).map(s => makeRow(statusGroups[s], statusType[s])),
-    map(([label, count]) => makeRow(count, statusType.unknown, label), toPairs(unknownStatuses)))
+      s => statusGroups[s]).map(s => makeRow(statusGroups[s], statusType[s])))
   )
 }
 
@@ -108,7 +110,7 @@ export const RunDetails = ({ namespace, name, submissionId, workflowId }) => {
       }
     ]
 
-    return h(HeaderSection, { breadcrumbPathObjects, button: SubmitNewWorkflowButton, title: 'Run details' })
+    return h(HeaderSection, { breadcrumbPathObjects, button: SubmitNewWorkflowButton, title: 'Workflow details' })
   }, [workflow, submissionId])
 
   /*
