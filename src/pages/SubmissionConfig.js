@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import { Fragment, useState } from 'react'
+import { Fragment, useEffect, useState } from 'react'
 import { a, div, h, h2, span } from 'react-hyperscript-helpers'
 import { ButtonPrimary, Link, Navbar, Select } from 'src/components/common'
 import { icon } from 'src/components/icons'
@@ -30,6 +30,7 @@ export const SubmissionConfig = ({ methodId }) => {
   const [selectedRecords, setSelectedRecords] = useState({})
   const [configuredInputDefinition, setConfiguredInputDefinition] = useState()
   const [configuredOutputDefinition, setConfiguredOutputDefinition] = useState()
+  const [missingRequiredInputs, setMissingRequiredInputs] = useState([])
 
   // TODO: These should probably be moved to the modal:
   const [runSetName, setRunSetName] = useState('')
@@ -100,6 +101,26 @@ export const SubmissionConfig = ({ methodId }) => {
     })
   })
 
+  useEffect(() => {
+    // inspect input configuration and selected data table to find required inputs without attributes assigned to it
+    const validateInputs = () => {
+      if (recordTypes && records && records.length && configuredInputDefinition) {
+        const selectedDataTable = _.keyBy('name', recordTypes)[records[0].type]
+        const dataTableAttributes = _.keyBy('name', selectedDataTable.attributes)
+        const dataTableAttrKeys = _.keys(dataTableAttributes)
+
+        const inputsWithoutAttrs = _.flow(
+          _.filter(i => i.input_type.type !== 'optional' && i.source.type === 'record_lookup' && !dataTableAttrKeys.includes(i.source.record_attribute)),
+          _.map(i => i.input_name)
+        )(configuredInputDefinition)
+
+        setMissingRequiredInputs(inputsWithoutAttrs)
+      }
+    }
+
+    validateInputs()
+  }, [records, recordTypes, configuredInputDefinition])
+
   const renderSummary = () => {
     return div({ style: { margin: '4em' } }, [
       div({ style: { display: 'flex', marginTop: '1rem', justifyContent: 'space-between' } }, [
@@ -150,16 +171,16 @@ export const SubmissionConfig = ({ methodId }) => {
 
       h(StepButtons, {
         tabs: [
-          { key: 'select-data', title: 'Select Data', isValid: () => true },
-          { key: 'inputs', title: 'Inputs', isValid: () => true },
-          { key: 'outputs', title: 'Outputs', isValid: () => true }
+          { key: 'select-data', title: 'Select Data', isValid: true },
+          { key: 'inputs', title: 'Inputs', isValid: !missingRequiredInputs.length },
+          { key: 'outputs', title: 'Outputs', isValid: true }
         ],
         activeTab: activeTab.key || 'select-data',
         onChangeTab: v => setActiveTab({ key: v }),
         finalStep: h(ButtonPrimary, {
           'aria-label': 'Submit button',
           style: { marginLeft: '1rem' },
-          disabled: _.isEmpty(selectedRecords),
+          disabled: _.isEmpty(selectedRecords) || missingRequiredInputs.length,
           tooltip: _.isEmpty(selectedRecords) ? 'No records selected' : '',
           onClick: () => {
             updateRunSetName()
@@ -219,7 +240,8 @@ export const SubmissionConfig = ({ methodId }) => {
     return configuredInputDefinition && recordTypes && records.length ? h(inputsTable, {
       selectedDataTable: _.keyBy('name', recordTypes)[selectedRecordType],
       configuredInputDefinition, setConfiguredInputDefinition,
-      inputTableSort, setInputTableSort
+      inputTableSort, setInputTableSort,
+      missingRequiredInputs
     }) : 'No data table rows available or input definition is not configured...'
   }
 
