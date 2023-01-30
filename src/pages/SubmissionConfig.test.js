@@ -1,4 +1,5 @@
 import '@testing-library/jest-dom'
+import {prettyDOM} from '@testing-library/dom'
 
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
@@ -443,6 +444,87 @@ describe('SubmissionConfig records selector', () => {
     await screen.getByText('Send submission')
   })
 
+  it('should change record table sort order when column headers are clicked', async () => {
+    const mockRunSetResponse = jest.fn(() => Promise.resolve(runSetResponse))
+    const mockMethodsResponse = jest.fn(() => Promise.resolve(methodsResponse))
+    const mockSearchResponse = jest.fn(recordType => Promise.resolve(searchResponses[recordType]))
+    const mockTypesResponse = jest.fn(() => Promise.resolve(typesResponse))
+
+    await Ajax.mockImplementation(() => {
+      return {
+        Cbas: {
+          runSets: {
+            getForMethod: mockRunSetResponse
+          },
+          methods: {
+            getById: mockMethodsResponse
+          }
+        },
+        Wds: {
+          search: {
+            post: mockSearchResponse
+          },
+          types: {
+            get: mockTypesResponse
+          }
+        }
+      }
+    })
+
+    render(h(SubmissionConfig))
+
+    await waitFor(() => {
+      expect(mockRunSetResponse).toHaveBeenCalledTimes(1)
+      expect(mockTypesResponse).toHaveBeenCalledTimes(1)
+      expect(mockMethodsResponse).toHaveBeenCalledTimes(1)
+      expect(mockSearchResponse).toHaveBeenCalledTimes(1)
+    })
+
+    const table = screen.getByRole('table')
+    const rows = within(table).queryAllByRole('row')
+    expect(rows.length).toBe(5)
+
+    const headers = within(rows[0]).queryAllByRole('columnheader')
+    expect(headers.length).toBe(4)
+
+    const cells1 = within(rows[1]).queryAllByRole('cell')
+    const cells2 = within(rows[2]).queryAllByRole('cell')
+    const cells3 = within(rows[3]).queryAllByRole('cell')
+    const cells4 = within(rows[4]).queryAllByRole('cell')
+
+    await act(async () => {
+      await fireEvent.click(within(headers[1]).getByRole('button'))
+    })
+    within(cells1[1]).getByText('FOO1')
+    within(cells2[1]).getByText('FOO2')
+    within(cells3[1]).getByText('FOO3')
+    within(cells4[1]).getByText('FOO4')
+
+    await act(async () => {
+      await fireEvent.click(within(headers[1]).getByRole('button'))
+    })
+    within(cells1[1]).getByText('FOO4')
+    within(cells2[1]).getByText('FOO3')
+    within(cells3[1]).getByText('FOO2')
+    within(cells4[1]).getByText('FOO1')
+
+    await act(async () => {
+      await fireEvent.click(within(headers[2]).getByRole('button'))
+    })
+    within(cells1[2]).getByText('30')
+    within(cells2[2]).getByText('85')
+    within(cells3[2]).getByText('999')
+    within(cells4[2]).getByText('1000')
+
+    await act(async () => {
+      await fireEvent.click(within(headers[2]).getByRole('button'))
+    })
+    within(cells1[2]).getByText('1000')
+    within(cells2[2]).getByText('999')
+    within(cells3[2]).getByText('85')
+    within(cells4[2]).getByText('30')
+  })
+
   it('should display error message when WDS is unable to find a record type', async () => {
     const mockRunSetResponse = jest.fn(() => Promise.resolve(badRecordTypeRunSetResponse))
     const mockMethodsResponse = jest.fn(() => Promise.resolve(methodsResponse))
@@ -748,5 +830,165 @@ describe('SubmissionConfig inputs/outputs definitions', () => {
     within(row2cells[1]).getByText('unused_output')
     within(row2cells[2]).getByText('String')
     within(row2cells[3]).getByDisplayValue('')
+  })
+
+  it('should change input table sort order when column headers are clicked', async () => {
+    const mockRunSetResponse = jest.fn(() => Promise.resolve(runSetResponse))
+    const mockMethodsResponse = jest.fn(() => Promise.resolve(methodsResponse))
+    const mockSearchResponse = jest.fn(recordType => Promise.resolve(searchResponses[recordType]))
+    const mockTypesResponse = jest.fn(() => Promise.resolve(typesResponse))
+
+    await Ajax.mockImplementation(() => {
+      return {
+        Cbas: {
+          runSets: {
+            getForMethod: mockRunSetResponse
+          },
+          methods: {
+            getById: mockMethodsResponse
+          }
+        },
+        Wds: {
+          search: {
+            post: mockSearchResponse
+          },
+          types: {
+            get: mockTypesResponse
+          }
+        }
+      }
+    })
+
+    render(h(SubmissionConfig))
+
+    await waitFor(() => {
+      expect(mockRunSetResponse).toHaveBeenCalledTimes(1)
+      expect(mockTypesResponse).toHaveBeenCalledTimes(1)
+      expect(mockMethodsResponse).toHaveBeenCalledTimes(1)
+      expect(mockSearchResponse).toHaveBeenCalledTimes(1)
+    })
+
+    const button = await screen.findByRole('button', { name: 'Inputs' })
+    await fireEvent.click(button)
+
+    const table = await screen.findByRole('table')
+    const rows = within(table).queryAllByRole('row')
+    const headers = within(rows[0]).queryAllByRole('columnheader')
+    const cells1 = within(rows[1]).queryAllByRole('cell')
+    const cells2 = within(rows[2]).queryAllByRole('cell')
+
+
+    // sort ascending by column 0
+    await act(async () => {
+      await fireEvent.click(within(headers[0]).getByRole('button'))
+    })
+
+    within(cells1[0]).getByText('foo')
+    within(cells1[1]).getByText('foo_rating_workflow_var')
+    within(cells1[2]).getByText('Int')
+    within(cells1[3]).getByText('Fetch from Data Table')
+    within(cells1[4]).getByText('foo_rating')
+
+    within(cells2[0]).getByText('target_workflow_1')
+    within(cells2[1]).getByText('bar_string_workflow_var')
+    within(cells2[2]).getByText('String')
+    within(cells2[3]).getByText('Fetch from Data Table')
+    within(cells2[4]).getByText('bar_string')
+
+    // sort descending by column 0
+    await act(async () => {
+      await fireEvent.click(within(headers[0]).getByRole('button'))
+    })
+
+    within(cells1[0]).getByText('target_workflow_1')
+    within(cells1[1]).getByText('bar_string_workflow_var')
+    within(cells1[2]).getByText('String')
+    within(cells1[3]).getByText('Fetch from Data Table')
+    within(cells1[4]).getByText('bar_string')
+
+    within(cells2[0]).getByText('foo')
+    within(cells2[1]).getByText('foo_rating_workflow_var')
+    within(cells2[2]).getByText('Int')
+    within(cells2[3]).getByText('Fetch from Data Table')
+    within(cells2[4]).getByText('foo_rating')
+  })
+
+  it('should change output table sort order when column headers are clicked', async () => {
+    const mockRunSetResponse = jest.fn(() => Promise.resolve(runSetResponse))
+    const mockMethodsResponse = jest.fn(() => Promise.resolve(methodsResponse))
+    const mockSearchResponse = jest.fn(recordType => Promise.resolve(searchResponses[recordType]))
+    const mockTypesResponse = jest.fn(() => Promise.resolve(typesResponse))
+
+    await Ajax.mockImplementation(() => {
+      return {
+        Cbas: {
+          runSets: {
+            getForMethod: mockRunSetResponse
+          },
+          methods: {
+            getById: mockMethodsResponse
+          }
+        },
+        Wds: {
+          search: {
+            post: mockSearchResponse
+          },
+          types: {
+            get: mockTypesResponse
+          }
+        }
+      }
+    })
+
+    render(h(SubmissionConfig))
+
+    await waitFor(() => {
+      expect(mockRunSetResponse).toHaveBeenCalledTimes(1)
+      expect(mockTypesResponse).toHaveBeenCalledTimes(1)
+      expect(mockMethodsResponse).toHaveBeenCalledTimes(1)
+      expect(mockSearchResponse).toHaveBeenCalledTimes(1)
+    })
+
+    const button = await screen.findByRole('button', { name: 'Outputs' })
+    await fireEvent.click(button)
+
+    const table = await screen.findByRole('table')
+    const rows = within(table).queryAllByRole('row')
+    const headers = within(rows[0]).queryAllByRole('columnheader')
+    const cells1 = within(rows[1]).queryAllByRole('cell')
+    const cells2 = within(rows[2]).queryAllByRole('cell')
+
+    // console.log(prettyDOM(cells1[3]))
+
+
+    // sort ascending by column 2
+    await act(async () => {
+      await fireEvent.click(within(headers[2]).getByRole('button'))
+    })
+
+    within(cells1[0]).getByText('target_workflow_1')
+    within(cells1[1]).getByText('file_output')
+    within(cells1[2]).getByText('File')
+    within(cells1[3]).getByDisplayValue('target_workflow_1_file_output')
+
+    within(cells2[0]).getByText('target_workflow_1')
+    within(cells2[1]).getByText('unused_output')
+    within(cells2[2]).getByText('String')
+    within(cells2[3]).getByDisplayValue('')
+
+    // sort descending by column 0
+    await act(async () => {
+      await fireEvent.click(within(headers[2]).getByRole('button'))
+    })
+
+    within(cells2[0]).getByText('target_workflow_1')
+    within(cells2[1]).getByText('file_output')
+    within(cells2[2]).getByText('File')
+    within(cells2[3]).getByDisplayValue('target_workflow_1_file_output')
+
+    // within(cells2[0]).getByText('target_workflow_1')
+    // within(cells2[1]).getByText('file_output')
+    // within(cells2[2]).getByText('File')
+    // within(cells2[3]).getByDisplayValue('target_workflow_1_file_output')
   })
 })
