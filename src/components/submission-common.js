@@ -296,7 +296,7 @@ export const inputsTable = props => {
           field: 'workflowVariable',
           headerRenderer: () => h(Sortable, { sort: inputTableSort, field: 'workflowVariable', onSort: setInputTableSort }, [h(HeaderCell, ['Variable'])]),
           cellRenderer: ({ rowIndex }) => {
-            return h(TextCell, {}, [parseMethodString(configuredInputDefinition[rowIndex].input_name).variable])
+            return h(TextCell, { style: Utils.typeStyle(configuredInputDefinition[rowIndex].input_type) }, [parseMethodString(configuredInputDefinition[rowIndex].input_name).variable])
           }
         },
         {
