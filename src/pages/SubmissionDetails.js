@@ -81,6 +81,8 @@ export const SubmissionDetails = ({ submissionId }) => {
       case 'CANCELING':
         return statusType.canceling
       default:
+        // 10 seconds should be enough for Cromwell to summarize the new workflow and get a status other
+        // than UNKNOWN. In the meantime, handle this as an edge case in the UI:
         return (differenceFromNowInSeconds(submissionDate) < 10) ? statusType.initializing : statusType.unknown
     }
   }
