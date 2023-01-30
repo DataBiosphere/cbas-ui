@@ -9,6 +9,7 @@ import { TextInput } from 'src/components/input'
 import { MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
 import { FlexTable, GridTable, HeaderCell, Resizable, Sortable, TextCell } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
+import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import * as Utils from 'src/libs/utils'
 
@@ -82,11 +83,11 @@ export const recordsTable = props => {
   }
 
   const deselectPage = () => {
-    console.log('TODO: implement deselectPage')
+    setSelectedRecords(_.omit(_.map(({ id }) => [id], records), selectedRecords))
   }
 
   const selectNone = () => {
-    console.log('TODO: implement selectNone')
+    setSelectedRecords({})
   }
 
   const pageSelected = () => {
@@ -116,9 +117,9 @@ export const recordsTable = props => {
           headerRenderer: () => {
             return h(Fragment, [
               h(Checkbox, {
-                checked: () => pageSelected(),
+                checked: pageSelected(),
                 disabled: !records.length,
-                onChange: () => pageSelected() ? deselectPage : selectPage,
+                onChange: pageSelected() ? deselectPage : selectPage,
                 'aria-label': 'Select all'
               }),
               h(MenuTrigger, {
