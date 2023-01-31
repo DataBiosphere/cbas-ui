@@ -1,9 +1,5 @@
 
-<<<<<<< HEAD
 import { countBy, every, filter, flattenDepth, flow, includes, isEmpty, keys, map, min, sortBy, values } from 'lodash/fp'
-=======
-import { countBy, every, filter, flattenDepth, flow, includes, isEmpty, keys, map, min, sortBy, values } from 'lodash/fp'
->>>>>>> 700de2a (Fix status group filter)
 import { Fragment, useMemo, useRef, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import ReactJson from 'react-json-view'
