@@ -65,6 +65,9 @@ export const makeStatusLine = (iconFn, label, style) => div(
   [iconFn({ marginRight: '0.5rem' }), label]
 )
 
+const entityMap = records => {
+  return _.fromPairs(_.map(r => [r.name, r], records))
+}
 
 export const recordsTable = props => {
   const {
@@ -79,7 +82,7 @@ export const recordsTable = props => {
   }
 
   const selectPage = () => {
-    console.log('TODO: implement selectPage')
+    setSelectedRecords(_.assign(selectedRecords, entityMap(records)))
   }
 
   const deselectPage = () => {
