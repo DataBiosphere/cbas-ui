@@ -7,10 +7,10 @@ import Collapse from 'src/components/Collapse'
 import { ClipboardButton, Link, Navbar } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
 import {
-  HeaderSection,
-  SubmitNewWorkflowButton,
   collapseCromwellStatus, collapseStatus,
-  makeSection, makeStatusLine, statusType
+  HeaderSection,
+  makeSection, makeStatusLine, statusType,
+  SubmitNewWorkflowButton
 } from 'src/components/job-common'
 //  Q4-2022 Disable log-viewing
 //import UriViewer from 'src/components/UriViewer'
@@ -20,6 +20,7 @@ import { useCancellation, useOnMount } from 'src/libs/react-utils'
 import { codeFont, elements } from 'src/libs/style'
 import { cond, makeCompleteDate, newTabLinkProps } from 'src/libs/utils'
 import CallTable from 'src/pages/workspaces/workspace/jobHistory/CallTable'
+
 
 const commonStatuses = ['submitted', 'waitingForQuota', 'running', 'succeeded', 'failed']
 
