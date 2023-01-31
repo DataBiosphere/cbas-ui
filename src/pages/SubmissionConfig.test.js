@@ -400,6 +400,106 @@ describe('SubmissionConfig records selector', () => {
     expect(rowsFOO.length).toBe(5)
   })
 
+  it('should resize the columns and new widths should be preserved when data table selection changes within given workflow', async () => {
+    // ** ARRANGE **
+    const mockRunSetResponse = jest.fn(() => Promise.resolve(runSetResponse))
+    const mockMethodsResponse = jest.fn(() => Promise.resolve(methodsResponse))
+    const mockSearchResponse = jest.fn(recordType => Promise.resolve(searchResponses[recordType]))
+    const mockTypesResponse = jest.fn(() => Promise.resolve(typesResponse))
+
+    await Ajax.mockImplementation(() => {
+      return {
+        Cbas: {
+          runSets: {
+            getForMethod: mockRunSetResponse
+          },
+          methods: {
+            getById: mockMethodsResponse
+          }
+        },
+        Wds: {
+          search: {
+            post: mockSearchResponse
+          },
+          types: {
+            get: mockTypesResponse
+          }
+        }
+      }
+    })
+
+    // ** ACT **
+    render(h(SubmissionConfig))
+
+    // ** ASSERT **
+    await waitFor(() => {
+      expect(mockRunSetResponse).toHaveBeenCalledTimes(1)
+      expect(mockTypesResponse).toHaveBeenCalledTimes(1)
+      expect(mockMethodsResponse).toHaveBeenCalledTimes(1)
+      expect(mockSearchResponse).toHaveBeenCalledTimes(1)
+    })
+    const table = await screen.findByRole('table')
+
+    const fooRows1 = within(table).queryAllByRole('row')
+    expect(fooRows1.length).toBe(5)
+
+    const fooHeaders1 = within(fooRows1[0]).queryAllByRole('columnheader')
+    expect(fooHeaders1.length).toBe(4)
+    within(fooHeaders1[1]).getByText('ID')
+    expect(getComputedStyle(fooHeaders1[1]).width).toBe('300px') // initial column width
+
+    // ** ACT **
+    // simulate user resizing the column 'ID' for data table 'FOO'
+    const fooDraggableIcon = fooHeaders1[1].querySelector("[data-icon='columnGrabber']")
+    fireEvent.mouseDown(fooDraggableIcon)
+    fireEvent.mouseMove(fooDraggableIcon, { clientX: 200, clientY: 0 }) // user moves the icon 200px to right
+    fireEvent.mouseUp(fooDraggableIcon)
+
+    // ** ASSERT **
+    // new width of column 'ID' for data table 'FOO' should be 500
+    expect(getComputedStyle(fooHeaders1[1]).width).toBe('500px')
+
+    // ** ACT **
+    // Change Data Table to 'BAR'
+    const dropdown1 = await screen.findByLabelText('Select a data table')
+    await act(async () => {
+      await selectEvent.select(dropdown1, ['BAR'])
+    })
+
+    // ** ASSERT **
+    const barRows = within(table).queryAllByRole('row')
+    expect(barRows.length).toBe(3)
+    const barHeaders = within(barRows[0]).queryAllByRole('columnheader')
+    expect(barHeaders.length).toBe(4)
+    within(barHeaders[1]).getByText('ID')
+    // even though both 'FOO' and 'BAR' data tables have 'ID' columns their widths can be different
+    expect(getComputedStyle(barHeaders[1]).width).toBe('300px') // initial column width
+
+    // ** ACT **
+    // simulate user resizing the column 'ID' for data table 'BAR'
+    const barDraggableIcon = barHeaders[1].querySelector("[data-icon='columnGrabber']")
+    fireEvent.mouseDown(barDraggableIcon)
+    fireEvent.mouseMove(barDraggableIcon, { clientX: 50, clientY: 0 }) // user moves the icon 50px to right
+    fireEvent.mouseUp(barDraggableIcon)
+
+    // ** ASSERT **
+    // new width of column 'ID' for data table 'BAR' should be 350
+    expect(getComputedStyle(barHeaders[1]).width).toBe('350px')
+
+    // ** ACT **
+    // Change Data Table back to 'FOO'
+    const dropdown2 = await screen.findByLabelText('Select a data table')
+    await act(async () => {
+      await selectEvent.select(dropdown2, ['FOO'])
+    })
+
+    // ** ASSERT **
+    // verify that the width of column 'ID' has been preserved from previous resizing
+    const fooRows2 = within(table).queryAllByRole('row')
+    const fooHeaders2 = within(fooRows2[0]).queryAllByRole('columnheader')
+    expect(getComputedStyle(fooHeaders2[1]).width).toBe('500px')
+  })
+
   it('when records are selected, should display modal when Submit button is clicked', async () => {
     const mockRunSetResponse = jest.fn(() => Promise.resolve(runSetResponse))
     const mockMethodsResponse = jest.fn(() => Promise.resolve(methodsResponse))

@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import { Fragment, useEffect, useState } from 'react'
+import { Fragment, useEffect, useRef, useState } from 'react'
 import { a, div, h, h2, span } from 'react-hyperscript-helpers'
 import { ButtonPrimary, Link, Navbar, Select } from 'src/components/common'
 import { icon } from 'src/components/icons'
@@ -24,6 +24,7 @@ export const SubmissionConfig = ({ methodId }) => {
   const [availableMethodVersions, setAvailableMethodVersions] = useState()
   const [selectedMethodVersion, setSelectedMethodVersion] = useState()
   const [records, setRecords] = useState([])
+  const [dataTableColumnWidths, setDataTableColumnWidths] = useState({})
 
   // Options chosen on this page:
   const [selectedRecordType, setSelectedRecordType] = useState()
@@ -44,8 +45,9 @@ export const SubmissionConfig = ({ methodId }) => {
   const [launching, setLaunching] = useState(undefined)
   const [noRecordTypeData, setNoRecordTypeData] = useState(null)
 
-
+  const dataTableRef = useRef()
   const signal = useCancellation()
+
   const loadRecordsData = async recordType => {
     try {
       const searchResult = await Ajax(signal).Wds.search.post(recordType)
@@ -120,6 +122,10 @@ export const SubmissionConfig = ({ methodId }) => {
 
     validateInputs()
   }, [records, recordTypes, configuredInputDefinition])
+
+  useEffect(() => {
+    dataTableRef.current?.recomputeColumnSizes()
+  }, [dataTableColumnWidths, records, recordTypes])
 
   const renderSummary = () => {
     return div({ style: { margin: '4em' } }, [
@@ -229,6 +235,8 @@ export const SubmissionConfig = ({ methodId }) => {
 
   const renderRecordSelector = () => {
     return recordTypes && records.length ? h(recordsTable, {
+      dataTableColumnWidths, setDataTableColumnWidths,
+      dataTableRef,
       records,
       selectedRecords, setSelectedRecords,
       selectedDataTable: _.keyBy('name', recordTypes)[selectedRecordType || records[0].type],
