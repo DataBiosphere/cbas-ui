@@ -7,10 +7,10 @@ import Collapse from 'src/components/Collapse'
 import { ClipboardButton, Link, Navbar } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
 import {
-  collapseCromwellStatus, collapseStatus,
   HeaderSection,
-  makeSection, makeStatusLine, statusType,
-  SubmitNewWorkflowButton
+  SubmitNewWorkflowButton,
+  collapseCromwellStatus, collapseStatus,
+  makeSection, makeStatusLine, statusType
 } from 'src/components/job-common'
 //  Q4-2022 Disable log-viewing
 //import UriViewer from 'src/components/UriViewer'
@@ -21,6 +21,7 @@ import { codeFont, elements } from 'src/libs/style'
 import { cond, makeCompleteDate, newTabLinkProps } from 'src/libs/utils'
 import CallTable from 'src/pages/workspaces/workspace/jobHistory/CallTable'
 
+const commonStatuses = ['submitted', 'waitingForQuota', 'running', 'succeeded', 'failed']
 
 const styles = {
   sectionTableLabel: { fontWeight: 600 }
@@ -38,7 +39,6 @@ const groupCallStatuses = flow(
 
 const statusCell = ({ calls }) => {
   const statusGroups = groupCallStatuses(calls)
-
   const makeRow = (count, status, labelOverride) => {
     const seeMore = !!status.moreInfoLink ? h(Link, { href: status.moreInfoLink, style: { marginLeft: '0.50rem' }, ...newTabLinkProps },
       [status.moreInfoLabel, icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })]) : ''
@@ -48,7 +48,7 @@ const statusCell = ({ calls }) => {
       seeMore
     ])
   }
-  const status = ['submitted', 'waitingForQuota', 'running', 'succeeded', 'failed'].filter(
+  const status = commonStatuses.filter(
     s => statusGroups[s]).map(s => makeRow(statusGroups[s], statusType[s]))
   return h(Fragment, status)
 }
