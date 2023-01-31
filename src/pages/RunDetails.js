@@ -1,5 +1,9 @@
 
+<<<<<<< HEAD
 import { concat, countBy, every, filter, flattenDepth, flow, includes, isEmpty, keys, map, min, sortBy, values } from 'lodash/fp'
+=======
+import { countBy, every, filter, flattenDepth, flow, includes, isEmpty, keys, map, min, sortBy, values } from 'lodash/fp'
+>>>>>>> 700de2a (Fix status group filter)
 import { Fragment, useMemo, useRef, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import ReactJson from 'react-json-view'
@@ -50,10 +54,16 @@ const statusCell = ({ calls }) => {
       seeMore
     ])
   }
+<<<<<<< HEAD
   return h(Fragment, concat(
     ['submitted', 'waitingForQuota', 'running', 'succeeded', 'failed'].filter(
       s => statusGroups[s]).map(s => makeRow(statusGroups[s], statusType[s])))
   )
+=======
+  const status = ['submitted', 'waitingForQuota', 'running', 'succeeded', 'failed'].filter(
+    s => statusGroups[s]).map(s => makeRow(statusGroups[s], statusType[s]))
+  return h(Fragment, status)
+>>>>>>> 700de2a (Fix status group filter)
 }
 
 
