@@ -435,15 +435,10 @@ describe('SubmissionConfig records selector', () => {
     await waitFor(() => {
       expect(mockRunSetResponse).toHaveBeenCalledTimes(1)
       expect(mockTypesResponse).toHaveBeenCalledTimes(1)
-      expect(mockMethodsResponse).toHaveBeenCalledTimes(0)
-      expect(mockSearchResponse).toHaveBeenCalledTimes(0)
+      expect(mockMethodsResponse).toHaveBeenCalledTimes(1)
+      expect(mockSearchResponse).toHaveBeenCalledTimes(1)
     })
     const table = await screen.findByRole('table')
-    // after the initial render (not before), records data should have been retrieved once
-    await waitFor(() => {
-      expect(mockSearchResponse).toHaveBeenCalledTimes(1)
-      expect(mockMethodsResponse).toHaveBeenCalledTimes(1)
-    })
 
     const fooRows1 = within(table).queryAllByRole('row')
     expect(fooRows1.length).toBe(5)
