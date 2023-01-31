@@ -9,7 +9,6 @@ import { TextInput } from 'src/components/input'
 import { MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
 import { FlexTable, GridTable, HeaderCell, Resizable, Sortable, TextCell } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
-import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import * as Utils from 'src/libs/utils'
 
@@ -65,24 +64,24 @@ export const makeStatusLine = (iconFn, label, style) => div(
   [iconFn({ marginRight: '0.5rem' }), label]
 )
 
-const entityMap = records => {
-  return _.fromPairs(_.map(r => [r.name, r], records))
+const recordMap = records => {
+  return _.fromPairs(_.map(e => [e.id, e], records))
 }
 
 export const recordsTable = props => {
   const {
     records,
-    selectedRecords, setSelectedRecords,
+    selectionModel: { selectedRecords, setSelectedRecords },
     selectedDataTable,
     sort, setSort
   } = props
 
   const selectAll = () => {
-    console.log('TODO: implement selectAll')
+    setSelectedRecords(recordMap(records))
   }
 
   const selectPage = () => {
-    setSelectedRecords(_.assign(selectedRecords, entityMap(records)))
+    setSelectedRecords(_.assign(selectedRecords, recordMap(records)))
   }
 
   const deselectPage = () => {

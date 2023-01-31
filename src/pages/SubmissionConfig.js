@@ -230,7 +230,9 @@ export const SubmissionConfig = ({ methodId }) => {
   const renderRecordSelector = () => {
     return recordTypes && records.length ? h(recordsTable, {
       records,
-      selectedRecords, setSelectedRecords,
+      selectionModel: {
+        selectedRecords, setSelectedRecords
+      },
       selectedDataTable: _.keyBy('name', recordTypes)[selectedRecordType || records[0].type],
       sort, setSort
     }) : 'No data table rows selected...'
