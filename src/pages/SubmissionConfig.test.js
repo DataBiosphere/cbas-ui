@@ -33,6 +33,20 @@ const runSetInputDef = [
       type: 'record_lookup',
       record_attribute: 'bar_string'
     }
+  },
+  {
+    input_name: 'target_workflow_1.optional_var',
+    input_type: {
+      type: 'optional',
+      optional_type: {
+        type: 'primitive',
+        primitive_type: 'String'
+      }
+    },
+    source: {
+      type: 'literal',
+      parameter_value: 'Hello World'
+    }
   }
 ]
 
@@ -59,6 +73,7 @@ const runSetResponse = {
     {
       run_set_id: '10000000-0000-0000-0000-000000000001',
       method_id: '00000000-0000-0000-0000-000000000001',
+      method_version_id: '50000000-0000-0000-0000-000000000006',
       is_template: true,
       run_set_name: 'Target workflow 1, run 1',
       run_set_description: 'Example run for target workflow 1',
@@ -98,39 +113,28 @@ const badRecordTypeRunSetResponse = {
 const methodsResponse = {
   methods: [
     {
-      method_id: '00000000-0000-0000-0000-000000000002',
-      name: 'Target Workflow 2',
-      description: 'Target Workflow 2',
-      source: 'Github',
-      source_url: 'https://raw.githubusercontent.com/DataBiosphere/cbas/main/useful_workflows/target_workflow_2/target_workflow_2.wdl',
-      method_versions: [
-        {
-          method_version_id: '50000000-0000-0000-0000-000000000005',
-          method_id: '00000000-0000-0000-0000-000000000002',
-          name: '1.0',
-          description: 'method description',
-          created: '2023-01-26T19:45:50.419Z',
-          url: 'https://raw.githubusercontent.com/DataBiosphere/cbas/main/useful_workflows/target_workflow_2/target_workflow_2.wdl',
-          last_run: {
-            previously_run: true,
-            timestamp: '2023-01-26T19:45:50.419Z',
-            run_set_id: '3fa85f64-5717-4562-b3fc-2c963f66afa6',
-            method_version_id: '3fa85f64-5717-4562-b3fc-2c963f66afa6',
-            method_version_name: 'string'
-          }
-        }
-      ],
-      created: '2022-12-07T17:26:53.131+00:00',
-      last_run: {
-        run_previously: false
-      }
-    },
-    {
       method_id: '00000000-0000-0000-0000-000000000001',
       name: 'Target Workflow 1',
       description: 'Target Workflow 1',
       source: 'Github',
       source_url: 'https://raw.githubusercontent.com/DataBiosphere/cbas/main/useful_workflows/target_workflow_1/target_workflow_1.wdl',
+      method_versions: [
+        {
+          method_version_id: '50000000-0000-0000-0000-000000000006',
+          method_id: '00000000-0000-0000-0000-000000000001',
+          name: '1.0',
+          description: 'method description',
+          created: '2023-01-26T19:45:50.419Z',
+          url: 'https://raw.githubusercontent.com/DataBiosphere/cbas/main/useful_workflows/target_workflow_1/target_workflow_1.wdl',
+          last_run: {
+            previously_run: true,
+            timestamp: '2023-01-26T19:45:50.419Z',
+            run_set_id: '10000000-0000-0000-0000-000000000001',
+            method_version_id: '50000000-0000-0000-0000-000000000006',
+            method_version_name: 'string'
+          }
+        }
+      ],
       created: '2022-12-07T17:26:53.131+00:00',
       last_run: {
         run_previously: false
@@ -667,7 +671,7 @@ describe('SubmissionConfig inputs/outputs definitions', () => {
     const table = await screen.findByRole('table')
     const rows = within(table).queryAllByRole('row')
 
-    expect(runSetInputDef.length).toBe(2)
+    expect(runSetInputDef.length).toBe(3)
     expect(rows.length).toBe(runSetInputDef.length + 1) // one row for each input definition variable, plus headers
 
     const headers = within(rows[0]).queryAllByRole('columnheader')
@@ -681,7 +685,6 @@ describe('SubmissionConfig inputs/outputs definitions', () => {
     within(cellsFoo[3]).getByText('Fetch from Data Table')
     within(cellsFoo[4]).getByText('foo_rating')
 
-
     const cellsBar = within(rows[2]).queryAllByRole('cell')
     expect(cellsBar.length).toBe(5)
     expect(cellsBar[0].textContent).toBe('target_workflow_1')
@@ -689,6 +692,14 @@ describe('SubmissionConfig inputs/outputs definitions', () => {
     within(cellsBar[2]).getByText('String')
     within(cellsBar[3]).getByText('Fetch from Data Table')
     within(cellsBar[4]).getByText('bar_string')
+
+    const thirdInputRow = within(rows[3]).queryAllByRole('cell')
+    expect(thirdInputRow.length).toBe(5)
+    expect(thirdInputRow[0].textContent).toBe('target_workflow_1')
+    within(thirdInputRow[1]).getByText('optional_var')
+    within(thirdInputRow[2]).getByText('String (optional)')
+    within(thirdInputRow[3]).getByText('Type a Value')
+    within(thirdInputRow[4]).getByDisplayValue('Hello World')
   })
 
   it('should display warning icon for required inputs with missing attributes and disappear when attribute is supplied', async () => {
@@ -747,7 +758,7 @@ describe('SubmissionConfig inputs/outputs definitions', () => {
     const table = await screen.findByRole('table')
     const rows = within(table).queryAllByRole('row')
 
-    expect(runSetInputDef.length).toBe(2)
+    expect(runSetInputDef.length).toBe(3)
     expect(rows.length).toBe(runSetInputDef.length + 1) // one row for each input definition variable, plus headers
 
     const cellsFoo = within(rows[1]).queryAllByRole('cell')
@@ -848,5 +859,233 @@ describe('SubmissionConfig inputs/outputs definitions', () => {
     within(row2cells[1]).getByText('unused_output')
     within(row2cells[2]).getByText('String')
     within(row2cells[3]).getByDisplayValue('')
+  })
+})
+
+describe('SubmissionConfig submitting a run set', () => {
+  // SubmissionConfig component uses AutoSizer to determine the right size for table to be displayed. As a result we need to
+  // mock out the height and width so that when AutoSizer asks for the width and height of "browser" it can use the mocked
+  // values and render the component properly. Without this the tests will be break.
+  // (see https://github.com/bvaughn/react-virtualized/issues/493 and https://stackoverflow.com/a/62214834)
+  const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'offsetHeight')
+  const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'offsetWidth')
+
+  beforeAll(() => {
+    Object.defineProperty(HTMLElement.prototype, 'offsetHeight', { configurable: true, value: 1000 })
+    Object.defineProperty(HTMLElement.prototype, 'offsetWidth', { configurable: true, value: 800 })
+  })
+
+  afterEach(() => {
+    jest.clearAllMocks()
+  })
+
+  afterAll(() => {
+    Object.defineProperty(HTMLElement.prototype, 'offsetHeight', originalOffsetHeight)
+    Object.defineProperty(HTMLElement.prototype, 'offsetWidth', originalOffsetWidth)
+  })
+
+  it('should call POST /run_sets endpoint with expected parameters', async () => {
+    // ** ARRANGE **
+    const mockRunSetResponse = jest.fn(() => Promise.resolve(runSetResponse))
+    const mockMethodsResponse = jest.fn(() => Promise.resolve(methodsResponse))
+    const mockSearchResponse = jest.fn(() => Promise.resolve(searchResponses['FOO']))
+    const mockTypesResponse = jest.fn(() => Promise.resolve(typesResponse))
+
+    const postRunSetFunction = jest.fn()
+
+    await Ajax.mockImplementation(() => {
+      return {
+        Cbas: {
+          runSets: {
+            post: postRunSetFunction,
+            getForMethod: mockRunSetResponse
+          },
+          methods: {
+            getById: mockMethodsResponse
+          }
+        },
+        Wds: {
+          search: {
+            post: mockSearchResponse
+          },
+          types: {
+            get: mockTypesResponse
+          }
+        }
+      }
+    })
+
+    // ** ACT **
+    render(h(SubmissionConfig))
+
+    // ** ASSERT **
+    await waitFor(() => {
+      expect(mockRunSetResponse).toHaveBeenCalledTimes(1)
+      expect(mockTypesResponse).toHaveBeenCalledTimes(1)
+      expect(mockSearchResponse).toHaveBeenCalledTimes(1)
+      expect(mockMethodsResponse).toHaveBeenCalledTimes(1)
+    })
+
+    // ** ACT **
+    // user selects 'FOO1' record from Data Table
+    const checkboxes = screen.getAllByRole('checkbox')
+    const checkbox = checkboxes[1]
+    fireEvent.click(checkbox)
+
+    // ** ASSERT **
+    // verify that the record was indeed selected
+    expect(checkbox).toHaveAttribute('aria-checked', 'true')
+
+    // ** ACT **
+    // user clicks on Submit (inputs and outputs should be rendered based on previous submission)
+    const button = screen.getByLabelText('Submit button')
+    fireEvent.click(button)
+
+    // ** ASSERT **
+    // Launch modal should be displayed
+    await screen.getByText('Send submission')
+    const modalSubmitButton = await screen.getByLabelText('Launch Submission')
+
+    // ** ACT **
+    // user click on Submit button
+    fireEvent.click(modalSubmitButton)
+
+    // ** ASSERT **
+    // assert POST /run_sets endpoint was called with expected parameters
+    expect(postRunSetFunction).toHaveBeenCalled()
+    expect(postRunSetFunction).toBeCalledWith(
+      expect.objectContaining({
+        method_version_id: runSetResponse.run_sets[0].method_version_id,
+        workflow_input_definitions: runSetInputDef,
+        workflow_output_definitions: runSetOutputDef,
+        wds_records: {
+          record_type: 'FOO',
+          record_ids: [
+            'FOO1'
+          ]
+        }
+      })
+    )
+  })
+
+  it('should call POST /run_sets endpoint with expected parameters after an optional input is set to None', async () => {
+    // ** ARRANGE **
+    const mockRunSetResponse = jest.fn(() => Promise.resolve(runSetResponse))
+    const mockMethodsResponse = jest.fn(() => Promise.resolve(methodsResponse))
+    const mockSearchResponse = jest.fn(() => Promise.resolve(searchResponses['FOO']))
+    const mockTypesResponse = jest.fn(() => Promise.resolve(typesResponse))
+
+    const postRunSetFunction = jest.fn()
+
+    await Ajax.mockImplementation(() => {
+      return {
+        Cbas: {
+          runSets: {
+            post: postRunSetFunction,
+            getForMethod: mockRunSetResponse
+          },
+          methods: {
+            getById: mockMethodsResponse
+          }
+        },
+        Wds: {
+          search: {
+            post: mockSearchResponse
+          },
+          types: {
+            get: mockTypesResponse
+          }
+        }
+      }
+    })
+
+    // ** ACT **
+    render(h(SubmissionConfig))
+
+    // ** ASSERT **
+    await waitFor(() => {
+      expect(mockRunSetResponse).toHaveBeenCalledTimes(1)
+      expect(mockTypesResponse).toHaveBeenCalledTimes(1)
+      expect(mockSearchResponse).toHaveBeenCalledTimes(1)
+      expect(mockMethodsResponse).toHaveBeenCalledTimes(1)
+    })
+
+    // ** ACT **
+    // user selects 'FOO1' record from Data Table
+    const checkboxes = screen.getAllByRole('checkbox')
+    const checkbox = checkboxes[1]
+    fireEvent.click(checkbox)
+
+    // ** ASSERT **
+    // verify that the record was indeed selected
+    expect(checkbox).toHaveAttribute('aria-checked', 'true')
+
+    // ** ACT **
+    const inputsTabButton = await screen.findByRole('button', { name: 'Inputs' })
+    await fireEvent.click(inputsTabButton)
+
+    // ** ASSERT **
+    const inputTable = await screen.findByRole('table')
+    const rows = within(inputTable).queryAllByRole('row')
+    expect(rows.length).toBe(runSetInputDef.length + 1) // one row for each input definition variable, plus headers
+
+
+    // ** ACT **
+    // user sets the source to 'None' for input 'optional_var'
+    const thirdInputRow = within(rows[3]).queryAllByRole('cell')
+    await userEvent.click(within(thirdInputRow[3]).getByText('Type a Value'))
+    const selectOption = await screen.findByText('None')
+    await userEvent.click(selectOption)
+
+    // ** ASSERT **
+    // check that the Attribute column has expected behavior
+    within(thirdInputRow[4]).getByText('The workflow input will either be empty or use a default value from the workflow.')
+
+    // ** ACT **
+    // user clicks on Submit (inputs and outputs should be rendered based on previous submission)
+    const button = screen.getByLabelText('Submit button')
+    fireEvent.click(button)
+
+    // ** ASSERT **
+    // Launch modal should be displayed
+    await screen.getByText('Send submission')
+    const modalSubmitButton = await screen.getByLabelText('Launch Submission')
+
+    // ** ACT **
+    // user click on Submit button
+    fireEvent.click(modalSubmitButton)
+
+    // ** ASSERT **
+    // assert POST /run_sets endpoint was called with expected parameters and input 'optional_var' has correct definition for source 'None'
+    expect(postRunSetFunction).toHaveBeenCalled()
+    expect(postRunSetFunction).toBeCalledWith(
+      expect.objectContaining({
+        method_version_id: runSetResponse.run_sets[0].method_version_id,
+        workflow_input_definitions: [
+          runSetInputDef[0],
+          runSetInputDef[1],
+          {
+            input_name: 'target_workflow_1.optional_var',
+            input_type: {
+              optional_type: {
+                primitive_type: 'String',
+                type: 'primitive'
+              },
+              type: 'optional'
+            },
+            source: {
+              type: 'none'
+            }
+          }
+        ],
+        workflow_output_definitions: runSetOutputDef,
+        wds_records: {
+          record_type: 'FOO',
+          record_ids: [
+            'FOO1'
+          ]
+        }
+      })
+    )
   })
 })
