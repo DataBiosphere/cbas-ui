@@ -67,6 +67,8 @@ export const makeStatusLine = (iconFn, label, style) => div(
 
 export const recordsTable = props => {
   const {
+    dataTableColumnWidths, setDataTableColumnWidths,
+    dataTableRef,
     records,
     selectedRecords, setSelectedRecords,
     selectedDataTable,
@@ -95,15 +97,16 @@ export const recordsTable = props => {
     return records.length && _.every(k => _.includes(k, selectedIds), recordIds)
   }
 
-  const resizeColumn = (delta, columnName) => {
-    window.alert(`column resizing currently disabled (${delta}, ${columnName}`)
+  const resizeColumn = (currentWidth, delta, columnKey) => {
+    setDataTableColumnWidths(_.set(columnKey, currentWidth + delta))
   }
 
-  const columnWidth = 300
+  const withDataTableNamePrefix = columnName => `${selectedDataTable.name}/${columnName}`
 
   return h(AutoSizer, [({ width, height }) => {
     return h(GridTable, {
       'aria-label': `${selectedDataTable.name} data table`,
+      ref: dataTableRef,
       width,
       height,
       // // Keeping these properties here as a reminder: can we use them?
@@ -149,14 +152,15 @@ export const recordsTable = props => {
         },
         {
           field: 'id',
-          width: columnWidth,
-          headerRenderer: () => h(Resizable, {
-            width: columnWidth, // TODO: read this from state after resizing
-            onWidthChange: delta => resizeColumn(delta, 'id')
-          }, [
-            h(HeaderOptions, { sort, field: 'id', onSort: setSort },
-              [h(HeaderCell, ['ID'])])
-          ]),
+          width: dataTableColumnWidths[withDataTableNamePrefix('id')] || 300,
+          headerRenderer: () => {
+            const columnWidth = dataTableColumnWidths[withDataTableNamePrefix('id')] || 300
+            return h(Resizable, {
+              width: columnWidth,
+              onWidthChange: delta => resizeColumn(columnWidth, delta, withDataTableNamePrefix('id'))
+            }, [h(HeaderOptions, { sort, field: 'id', onSort: setSort }, [h(HeaderCell, ['ID'])])]
+            )
+          },
           cellRenderer: ({ rowIndex }) => {
             const { id: recordId } = records[rowIndex]
             return h(Fragment, [
@@ -166,14 +170,14 @@ export const recordsTable = props => {
           }
         },
         ..._.map(({ name: attributeName }) => {
-          const thisWidth = columnWidth // TODO: read this from state after resizing
+          const columnWidth = dataTableColumnWidths[withDataTableNamePrefix(attributeName)] || 300
           const [, columnNamespace, columnName] = /(.+:)?(.+)/.exec(attributeName)
           return {
             field: attributeName,
-            width: thisWidth,
+            width: columnWidth,
             headerRenderer: () => h(Resizable, {
-              width: thisWidth,
-              onWidthChange: delta => resizeColumn(delta, 'id')
+              width: columnWidth,
+              onWidthChange: delta => resizeColumn(columnWidth, delta, withDataTableNamePrefix(attributeName))
             }, [
               h(HeaderOptions, {
                 sort,
