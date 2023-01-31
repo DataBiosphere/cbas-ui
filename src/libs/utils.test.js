@@ -21,10 +21,7 @@ describe('submission-common tests', () => {
     expect(renderTypeText({ type: 'struct', struct_type: 'File' })).toStrictEqual('Unsupported Type')
     expect(renderTypeText({
       type: 'map',
-      key_type: {
-        type: 'primitive',
-        primitive_type: 'File'
-      },
+      key_type: 'File',
       value_type: {
         type: 'primitive',
         primitive_type: 'String'
