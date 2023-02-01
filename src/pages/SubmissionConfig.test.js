@@ -541,7 +541,6 @@ describe('SubmissionConfig records selector', () => {
     fireEvent.click(checkbox)
     expect(checkbox).toHaveAttribute('aria-checked', 'false')
   })
-
 })
 
 describe('SubmissionConfig inputs/outputs definitions', () => {
