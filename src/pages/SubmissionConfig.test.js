@@ -515,8 +515,6 @@ describe('SubmissionConfig records selector', () => {
       }
     })
 
-    //const { getByLabelText } = render(h(SubmissionConfig))
-
     render(h(SubmissionConfig))
 
     // ** ASSERT **
@@ -526,7 +524,6 @@ describe('SubmissionConfig records selector', () => {
       expect(mockMethodsResponse).toHaveBeenCalledTimes(0)
       expect(mockSearchResponse).toHaveBeenCalledTimes(0)
     })
-    const table = await screen.findByRole('table')
 
     // after the initial render (not before), records data should have been retrieved once
     await waitFor(() => {
