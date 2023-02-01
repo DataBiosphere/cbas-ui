@@ -42,7 +42,7 @@ export const SubmissionConfig = ({ methodId }) => {
   const [inputTableSort, setInputTableSort] = useState({ field: 'taskVariable', direction: 'asc' })
   const [outputTableSort, setOutputTableSort] = useState({ field: 'taskVariable', direction: 'asc' })
 
-  const [launching, setLaunching] = useState(undefined)
+  const [displayLaunchModal, setDisplayLaunchModal] = useState(false)
   const [noRecordTypeData, setNoRecordTypeData] = useState(null)
 
   const dataTableRef = useRef()
@@ -190,18 +190,19 @@ export const SubmissionConfig = ({ methodId }) => {
           tooltip: _.isEmpty(selectedRecords) ? 'No records selected' : '',
           onClick: () => {
             updateRunSetName()
-            setLaunching(true)
+            setDisplayLaunchModal(true)
           }
         }, ['Submit'])
       }),
-      (launching !== undefined) && h(Modal, {
+      displayLaunchModal && h(Modal, {
         title: 'Send submission',
         width: 600,
-        onDismiss: () => setLaunching(undefined),
+        onDismiss: () => setDisplayLaunchModal(false),
         showCancel: true,
         okButton:
           h(ButtonPrimary, {
             disabled: false,
+            'aria-label': 'Launch Submission',
             onClick: () => submitRun()
           }, ['Submit'])
       }, [
@@ -282,6 +283,7 @@ export const SubmissionConfig = ({ methodId }) => {
         }
       }
 
+      setDisplayLaunchModal(false)
       const runSetObject = await Ajax(signal).Cbas.runSets.post(runSetsPayload)
       notify('success', 'Workflow successfully submitted', { message: 'You may check on the progress of workflow on this page anytime.', timeout: 5000 })
       Nav.goToPath('submission-details', {
