@@ -487,6 +487,93 @@ describe('SubmissionConfig records selector', () => {
 
     await screen.getByText(/Data table not found: BADFOO/)
   })
+
+  it('should toggle between different states of checked boxes', async () => {
+    const mockRunSetResponse = jest.fn(() => Promise.resolve(runSetResponse))
+    const mockMethodsResponse = jest.fn(() => Promise.resolve(methodsResponse))
+    const mockSearchResponse = jest.fn(recordType => Promise.resolve(searchResponses[recordType]))
+    const mockTypesResponse = jest.fn(() => Promise.resolve(typesResponse))
+
+    await Ajax.mockImplementation(() => {
+      return {
+        Cbas: {
+          runSets: {
+            getForMethod: mockRunSetResponse
+          },
+          methods: {
+            getById: mockMethodsResponse
+          }
+        },
+        Wds: {
+          search: {
+            post: mockSearchResponse
+          },
+          types: {
+            get: mockTypesResponse
+          }
+        }
+      }
+    })
+
+    render(h(SubmissionConfig))
+
+    // ** ASSERT **
+    await waitFor(() => {
+      expect(mockRunSetResponse).toHaveBeenCalledTimes(1)
+      expect(mockTypesResponse).toHaveBeenCalledTimes(1)
+      expect(mockMethodsResponse).toHaveBeenCalledTimes(0)
+      expect(mockSearchResponse).toHaveBeenCalledTimes(0)
+    })
+    const table = await screen.findByRole('table')
+
+    // after the initial render (not before), records data should have been retrieved once
+    await waitFor(() => {
+      expect(mockSearchResponse).toHaveBeenCalledTimes(1)
+      expect(mockMethodsResponse).toHaveBeenCalledTimes(1)
+    })
+
+    // const rows = within(table).queryAllByRole('row')
+    // expect(rows.length).toBe(5)
+    //
+    // const headers = within(rows[0]).queryAllByRole('columnheader')
+    // expect(headers.length).toBe(4)
+
+    //const checkboxHeader = headers[1]
+    const allButtons = screen.getAllByRole('button')
+    //console.log(checkboxes[4])
+    const myButton = allButtons[4]
+    console.log(myButton.getAttribute('aria-label'))
+    expect(myButton.getAttribute('aria-label'))
+
+    fireEvent.click(myButton)
+
+      //.toBe("\"Select All\" options"))
+      //.getAttribute('aria-checked')).toBe('true')
+    //const headerCheckbox = screen.getByLabelText('"Select All" options')
+    // console.log(checkboxes)
+    // console.log(checkboxes.length)
+    //expect(headerCheckbox)
+
+    //fireEvent.click(headerCheckbox)
+    screen.debug(undefined, 300000)
+    await screen.getByText('Page')
+
+
+    //expect(checkboxHeader.typeof).toBe('checkbox')
+
+    // const cells = within(rows[1]).queryAllByRole('cell')
+    // expect(cells.length).toBe(4)
+
+    // const checkboxes = screen.getAllByRole('checkbox')
+    // const checkbox = checkboxes[1]
+    // fireEvent.click(checkbox)
+    // expect(checkbox).toHaveAttribute('aria-checked', 'true')
+    //
+    // const button = screen.getByLabelText('Submit button')
+    // fireEvent.click(button)
+    // await screen.getByText('Send submission')
+  })
+
 })
 
 describe('SubmissionConfig inputs/outputs definitions', () => {
