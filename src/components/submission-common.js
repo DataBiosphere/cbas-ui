@@ -2,11 +2,10 @@ import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
-import { Checkbox, Clickable, Select } from 'src/components/common'
+import { Checkbox, Select } from 'src/components/common'
 import { HeaderOptions, renderDataCell } from 'src/components/data/data-utils'
 import { icon } from 'src/components/icons'
 import { TextInput } from 'src/components/input'
-import { MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
 import { FlexTable, GridTable, HeaderCell, Resizable, Sortable, TextCell } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import colors from 'src/libs/colors'
@@ -76,20 +75,12 @@ export const recordsTable = props => {
     sort, setSort
   } = props
 
-  const selectAll = () => {
-    setSelectedRecords(recordMap(records))
-  }
-
   const selectPage = () => {
     setSelectedRecords(_.assign(selectedRecords, recordMap(records)))
   }
 
   const deselectPage = () => {
     setSelectedRecords(_.omit(_.map(({ id }) => [id], records), selectedRecords))
-  }
-
-  const selectNone = () => {
-    setSelectedRecords({})
   }
 
   const pageSelected = () => {
@@ -123,18 +114,18 @@ export const recordsTable = props => {
                 disabled: !records.length,
                 onChange: pageSelected() ? deselectPage : selectPage,
                 'aria-label': 'Select all'
-              }),
-              h(MenuTrigger, {
-                closeOnClick: true,
-                content: h(Fragment, [
-                  h(MenuButton, { onClick: selectPage }, ['Page']),
-                  h(MenuButton, { onClick: selectAll }, [`All (${records.length})`]),
-                  h(MenuButton, { onClick: selectNone }, ['None'])
-                ]),
-                side: 'bottom'
-              }, [
-                h(Clickable, { 'aria-label': '"Select All" options' }, [icon('caretDown')])
-              ])
+              })
+              // h(MenuTrigger, {
+              //   closeOnClick: true,
+              //   content: h(Fragment, [
+              //     h(MenuButton, { onClick: selectPage }, ['Page']),
+              //     h(MenuButton, { onClick: selectAll }, [`All (${records.length})`]),
+              //     h(MenuButton, { onClick: selectNone }, ['None'])
+              //   ]),
+              //   side: 'bottom'
+              // }, [
+              //   h(Clickable, { 'aria-label': '"Select All" options' }, [icon('caretDown')])
+              // ])
             ])
           },
           cellRenderer: ({ rowIndex }) => {

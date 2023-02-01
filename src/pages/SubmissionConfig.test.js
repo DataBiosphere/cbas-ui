@@ -534,62 +534,15 @@ describe('SubmissionConfig records selector', () => {
       expect(mockMethodsResponse).toHaveBeenCalledTimes(1)
     })
 
-    const rows = within(table).queryAllByRole('row')
-    expect(rows.length).toBe(5)
+    // Checking all the checkboxes
+    const checkboxes = screen.getAllByRole('checkbox')
+    const checkbox = checkboxes[1]
+    fireEvent.click(checkbox)
+    expect(checkbox).toHaveAttribute('aria-checked', 'true')
 
-    const headers = within(rows[0]).queryAllByRole('columnheader')
-    expect(headers.length).toBe(4)
-
-    const checkBox = headers[0]
-
-    const caretImg = checkBox.querySelector("[data-icon='caretDown']")
-    console.log(caretImg)
-
-    fireEvent.click(caretImg)
-
-
-
-    const caretButton = within(checkBox).getByRole('img')
-    //console.log(within(checkBox).getByRole('button'))
-    //expect(caretButton).toHaveAttribute('caretDown')
-    const svgEl = document.querySelector("[data-icon='fire']")
-    console.log(svgEl)
-    expect(screen).toHaveAttribute('data-icon')
-    //console.log(headers[0].queryByAttribute('data-icon'))
-
-    const allButtons = screen.getAllByRole('button')
-    //console.log(checkboxes[4])
-    const myButton = allButtons[4]
-    console.log(myButton)
-    expect(myButton.getAttribute('aria-label'))
-
-    fireEvent.click(headers[0])
-
-      //.toBe("\"Select All\" options"))
-      //.getAttribute('aria-checked')).toBe('true')
-    //const headerCheckbox = screen.getByLabelText('"Select All" options')
-    // console.log(checkboxes)
-    // console.log(checkboxes.length)
-    //expect(headerCheckbox)
-
-    //fireEvent.click(headerCheckbox)
-    screen.debug(undefined, 300000)
-    await screen.getByText('Page')
-
-
-    //expect(checkboxHeader.typeof).toBe('checkbox')
-
-    // const cells = within(rows[1]).queryAllByRole('cell')
-    // expect(cells.length).toBe(4)
-
-    // const checkboxes = screen.getAllByRole('checkbox')
-    // const checkbox = checkboxes[1]
-    // fireEvent.click(checkbox)
-    // expect(checkbox).toHaveAttribute('aria-checked', 'true')
-    //
-    // const button = screen.getByLabelText('Submit button')
-    // fireEvent.click(button)
-    // await screen.getByText('Send submission')
+    // Unchecking all the checkboxes
+    fireEvent.click(checkbox)
+    expect(checkbox).toHaveAttribute('aria-checked', 'false')
   })
 
 })
