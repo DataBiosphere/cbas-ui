@@ -515,6 +515,8 @@ describe('SubmissionConfig records selector', () => {
       }
     })
 
+    //const { getByLabelText } = render(h(SubmissionConfig))
+
     render(h(SubmissionConfig))
 
     // ** ASSERT **
@@ -532,20 +534,36 @@ describe('SubmissionConfig records selector', () => {
       expect(mockMethodsResponse).toHaveBeenCalledTimes(1)
     })
 
-    // const rows = within(table).queryAllByRole('row')
-    // expect(rows.length).toBe(5)
-    //
-    // const headers = within(rows[0]).queryAllByRole('columnheader')
-    // expect(headers.length).toBe(4)
+    const rows = within(table).queryAllByRole('row')
+    expect(rows.length).toBe(5)
 
-    //const checkboxHeader = headers[1]
+    const headers = within(rows[0]).queryAllByRole('columnheader')
+    expect(headers.length).toBe(4)
+
+    const checkBox = headers[0]
+
+    const caretImg = checkBox.querySelector("[data-icon='caretDown']")
+    console.log(caretImg)
+
+    fireEvent.click(caretImg)
+
+
+
+    const caretButton = within(checkBox).getByRole('img')
+    //console.log(within(checkBox).getByRole('button'))
+    //expect(caretButton).toHaveAttribute('caretDown')
+    const svgEl = document.querySelector("[data-icon='fire']")
+    console.log(svgEl)
+    expect(screen).toHaveAttribute('data-icon')
+    //console.log(headers[0].queryByAttribute('data-icon'))
+
     const allButtons = screen.getAllByRole('button')
     //console.log(checkboxes[4])
     const myButton = allButtons[4]
-    console.log(myButton.getAttribute('aria-label'))
+    console.log(myButton)
     expect(myButton.getAttribute('aria-label'))
 
-    fireEvent.click(myButton)
+    fireEvent.click(headers[0])
 
       //.toBe("\"Select All\" options"))
       //.getAttribute('aria-checked')).toBe('true')
