@@ -603,7 +603,7 @@ describe('SubmissionConfig records selector', () => {
       expect(buttonAfterRecordTypeChange).toHaveAttribute('aria-disabled', 'true')
       expect(buttonAfterRecordTypeChange).toHaveAttribute('disabled')
       expect(screen.queryByText('No records selected')).not.toBeNull()
-    }, { 'timeout': 3000 })
+    })
 
     // Change the selected data type back
     await act(async () => {
@@ -622,7 +622,7 @@ describe('SubmissionConfig records selector', () => {
       expect(buttonAfterRecordTypeChange2).toHaveAttribute('aria-disabled', 'true')
       expect(buttonAfterRecordTypeChange2).toHaveAttribute('disabled')
       expect(screen.queryByText('No records selected')).not.toBeNull()
-    }, { 'timeout': 3000 })
+    })
   })
 
   it('should display error message when WDS is unable to find a record type', async () => {
