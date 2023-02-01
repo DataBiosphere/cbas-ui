@@ -330,7 +330,7 @@ export const inputsTable = props => {
                   const param = newType === 'record_lookup' ? 'record_attribute' : 'parameter_value'
                   newSource = {
                     type: newType,
-                    [param]: _.get(`${rowIndex}.source.${param}`, configuredInputDefinition)
+                    [param]: ''
                   }
                 }
                 const newConfig = _.set(`${rowIndex}.source`, newSource, configuredInputDefinition)
