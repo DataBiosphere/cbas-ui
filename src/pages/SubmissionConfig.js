@@ -164,6 +164,7 @@ export const SubmissionConfig = ({ methodId }) => {
           onChange: ({ value }) => {
             setNoRecordTypeData(null)
             setSelectedRecordType(value)
+            setSelectedRecords(null)
             loadRecordsData(value)
           },
           placeholder: 'None selected',
