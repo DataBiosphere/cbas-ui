@@ -697,7 +697,7 @@ describe('SubmissionConfig inputs/outputs definitions', () => {
     expect(thirdInputRow.length).toBe(5)
     expect(thirdInputRow[0].textContent).toBe('target_workflow_1')
     within(thirdInputRow[1]).getByText('optional_var')
-    within(thirdInputRow[2]).getByText('String (optional)')
+    within(thirdInputRow[2]).getByText('String?')
     within(thirdInputRow[3]).getByText('Type a Value')
     within(thirdInputRow[4]).getByDisplayValue('Hello World')
   })
