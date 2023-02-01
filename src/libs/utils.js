@@ -161,15 +161,26 @@ export const convertValue = _.curry((type, value) => {
   }
 })
 
+export const typeStyle = iotype => {
+  if (_.get('type', iotype) === 'optional') {
+    return { 'font-style': 'italic' }
+  } else {
+    return {}
+  }
+}
+
 export const renderTypeText = iotype => {
   if (_.has('primitive_type', iotype)) {
     return iotype.primitive_type
   }
   if (_.has('optional_type', iotype)) {
-    return `${_.get('optional_type.primitive_type', iotype)} (optional)`
+    return `${renderTypeText(_.get('optional_type', iotype))}?`
   }
   if (_.has('array_type', iotype)) {
     return `Array[${renderTypeText(_.get('array_type', iotype))}]`
+  }
+  if (_.get('type', iotype) === 'map') {
+    return `Map[${_.get('key_type', iotype)}, ${renderTypeText(_.get('value_type', iotype))}]`
   }
   return 'Unsupported Type'
 }

@@ -300,14 +300,14 @@ export const inputsTable = props => {
           field: 'workflowVariable',
           headerRenderer: () => h(Sortable, { sort: inputTableSort, field: 'workflowVariable', onSort: setInputTableSort }, [h(HeaderCell, ['Variable'])]),
           cellRenderer: ({ rowIndex }) => {
-            return h(TextCell, {}, [parseMethodString(configuredInputDefinition[rowIndex].input_name).variable])
+            return h(TextCell, { style: Utils.typeStyle(configuredInputDefinition[rowIndex].input_type) }, [parseMethodString(configuredInputDefinition[rowIndex].input_name).variable])
           }
         },
         {
           size: { basis: 160, grow: 0 },
           headerRenderer: () => h(HeaderCell, ['Type']),
           cellRenderer: ({ rowIndex }) => {
-            return h(TextCell, {}, [Utils.renderTypeText(configuredInputDefinition[rowIndex].input_type)])
+            return h(TextCell, { style: Utils.typeStyle(configuredInputDefinition[rowIndex].input_type) }, [Utils.renderTypeText(configuredInputDefinition[rowIndex].input_type)])
           }
         },
         {
