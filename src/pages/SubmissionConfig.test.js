@@ -582,7 +582,9 @@ describe('SubmissionConfig records selector', () => {
     expect(checkbox).toHaveAttribute('aria-checked', 'true')
 
     const button = screen.getByLabelText('Submit button')
-    expect(button).toBeEnabled()
+    expect(button).toHaveAttribute('aria-disabled', 'false')
+    expect(button).not.toHaveAttribute('disabled')
+    expect(screen.queryByText('No records selected')).toBeNull()
 
     // Change the selected data types
     const dropdown1 = await screen.findByLabelText('Select a data table')
@@ -590,28 +592,37 @@ describe('SubmissionConfig records selector', () => {
       await selectEvent.select(dropdown1, ['BAR'])
     })
 
-    const checkboxesAfterRecordSelection = screen.getAllByRole('checkbox')
-    for (const checkboxesAfterRecordSelectionKey in checkboxesAfterRecordSelection) {
-      const checkboxAfterRecordSelection = checkboxesAfterRecordSelection[checkboxesAfterRecordSelectionKey]
-      expect(checkboxAfterRecordSelection).not.toBeChecked()
+    const checkboxesAfterRecordTypeChange = screen.getAllByRole('checkbox')
+    for (const checkboxesAfterRecordTypeChangeKey in checkboxesAfterRecordTypeChange) {
+      const checkboxAfterRecordTypeChange = checkboxesAfterRecordTypeChange[checkboxesAfterRecordTypeChangeKey]
+      expect(checkboxAfterRecordTypeChange).not.toBeChecked()
     }
 
-    // const buttonAfterRecordSelection = screen.getByLabelText('Submit button')
-    // await waitFor(() => {
-    //   expect(buttonAfterRecordSelection).not.toBeEnabled()
-    //   within(screen).getByText('No Record Selected')
-    // }, { 'timeout': 3000 })
+    const buttonAfterRecordTypeChange = screen.getByLabelText('Submit button')
+    await waitFor(() => {
+      expect(buttonAfterRecordTypeChange).toHaveAttribute('aria-disabled', 'true')
+      expect(buttonAfterRecordTypeChange).toHaveAttribute('disabled')
+      expect(screen.queryByText('No records selected')).not.toBeNull()
+    }, { 'timeout': 3000 })
 
     // Change the selected data type back
     await act(async () => {
       await selectEvent.select(dropdown1, ['FOO'])
     })
 
-    const checkboxesAfterRecordSelection2 = screen.getAllByRole('checkbox')
-    for (const checkboxesAfterRecordSelectionKey in checkboxesAfterRecordSelection2) {
-      const checkboxAfterRecordSelection = checkboxesAfterRecordSelection2[checkboxesAfterRecordSelectionKey]
-      expect(checkboxAfterRecordSelection).not.toBeChecked()
+    const checkboxesAfterRecordTypeChange2 = screen.getAllByRole('checkbox')
+    for (const checkboxesAfterRecordTypeChangeKey in checkboxesAfterRecordTypeChange2) {
+      const checkboxAfterRecordTypeChange = checkboxesAfterRecordTypeChange2[checkboxesAfterRecordTypeChangeKey]
+      expect(checkboxAfterRecordTypeChange).not.toBeChecked()
     }
+
+    const buttonAfterRecordTypeChange2 = screen.getByLabelText('Submit button')
+    await waitFor(() => {
+      // Still no records selected, so this all should still be true:
+      expect(buttonAfterRecordTypeChange2).toHaveAttribute('aria-disabled', 'true')
+      expect(buttonAfterRecordTypeChange2).toHaveAttribute('disabled')
+      expect(screen.queryByText('No records selected')).not.toBeNull()
+    }, { 'timeout': 3000 })
   })
 
   it('should display error message when WDS is unable to find a record type', async () => {
