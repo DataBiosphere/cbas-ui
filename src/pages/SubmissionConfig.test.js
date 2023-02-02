@@ -531,15 +531,25 @@ describe('SubmissionConfig records selector', () => {
       expect(mockMethodsResponse).toHaveBeenCalledTimes(1)
     })
 
-    // Checking all the checkboxes
     const checkboxes = screen.getAllByRole('checkbox')
-    const checkbox = checkboxes[1]
+    const checkbox = checkboxes[0]
+    expect(checkbox).not.toBeChecked()
+
+    // Checking all the checkboxes
     fireEvent.click(checkbox)
-    expect(checkbox).toHaveAttribute('aria-checked', 'true')
+    expect(checkbox).toBeChecked()
+
+    for (const checkbox in checkboxes) {
+      const singleCheckbox = checkboxes[checkbox]
+      expect(singleCheckbox).toBeChecked()
+    }
 
     // Unchecking all the checkboxes
     fireEvent.click(checkbox)
-    expect(checkbox).toHaveAttribute('aria-checked', 'false')
+    for (const checkbox in checkboxes) {
+      const singleCheckbox = checkboxes[checkbox]
+      expect(singleCheckbox).not.toBeChecked()
+    }
   })
 })
 

@@ -70,7 +70,7 @@ const recordMap = records => {
 export const recordsTable = props => {
   const {
     records,
-    selectionModel: { selectedRecords, setSelectedRecords },
+    selectedRecords, setSelectedRecords,
     selectedDataTable,
     sort, setSort
   } = props
@@ -115,17 +115,6 @@ export const recordsTable = props => {
                 onChange: pageSelected() ? deselectPage : selectPage,
                 'aria-label': 'Select all'
               })
-              // h(MenuTrigger, {
-              //   closeOnClick: true,
-              //   content: h(Fragment, [
-              //     h(MenuButton, { onClick: selectPage }, ['Page']),
-              //     h(MenuButton, { onClick: selectAll }, [`All (${records.length})`]),
-              //     h(MenuButton, { onClick: selectNone }, ['None'])
-              //   ]),
-              //   side: 'bottom'
-              // }, [
-              //   h(Clickable, { 'aria-label': '"Select All" options' }, [icon('caretDown')])
-              // ])
             ])
           },
           cellRenderer: ({ rowIndex }) => {
