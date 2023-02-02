@@ -336,7 +336,7 @@ export const inputsTable = props => {
           field: 'inputTypeStr',
           headerRenderer: () => h(Sortable, { sort: inputTableSort, field: 'inputTypeStr', onSort: setInputTableSort }, [h(HeaderCell, ['Type'])]),
           cellRenderer: ({ rowIndex }) => {
-            return h(TextCell, { style: Utils.typeStyle(inputTableData[rowIndex].input_type) }, [inputTableData[rowIndex].inputTypeStr)])
+            return h(TextCell, { style: Utils.typeStyle(inputTableData[rowIndex].input_type) }, [inputTableData[rowIndex].inputTypeStr])
           }
         },
         {
