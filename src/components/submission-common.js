@@ -66,6 +66,8 @@ export const makeStatusLine = (iconFn, label, style) => div(
 
 export const recordsTable = props => {
   const {
+    dataTableColumnWidths, setDataTableColumnWidths,
+    dataTableRef,
     records,
     selectedRecords, setSelectedRecords,
     selectedDataTable,
@@ -94,11 +96,11 @@ export const recordsTable = props => {
     return records.length && _.every(k => _.includes(k, selectedIds), recordIds)
   }
 
-  const resizeColumn = (delta, columnName) => {
-    window.alert(`column resizing currently disabled (${delta}, ${columnName}`)
+  const resizeColumn = (currentWidth, delta, columnKey) => {
+    setDataTableColumnWidths(_.set(columnKey, currentWidth + delta))
   }
 
-  const columnWidth = 300
+  const withDataTableNamePrefix = columnName => `${selectedDataTable.name}/${columnName}`
 
   const recordsTableData = _.flow(
     // _.filter(({ namespace, name }) => Utils.textMatch(filter, `${namespace}/${name}`)),
@@ -115,6 +117,7 @@ export const recordsTable = props => {
   return h(AutoSizer, [({ width, height }) => {
     return h(GridTable, {
       'aria-label': `${selectedDataTable.name} data table`,
+      ref: dataTableRef,
       width,
       height,
       sort: recordsTableSort,
@@ -161,32 +164,35 @@ export const recordsTable = props => {
         },
         {
           field: 'id',
-          width: columnWidth,
-          headerRenderer: () => h(Resizable, {
-            width: columnWidth, // TODO: read this from state after resizing
-            onWidthChange: delta => resizeColumn(delta, 'id')
-          }, [
-            h(Sortable, {
-              sort: recordsTableSort,
-              field: 'id',
-              onSort: setRecordsTableSort
+          width: dataTableColumnWidths[withDataTableNamePrefix('id')] || 300,
+          headerRenderer: () => {
+            const columnWidth = dataTableColumnWidths[withDataTableNamePrefix('id')] || 300
+            return h(Resizable, {
+              width: columnWidth,
+              onWidthChange: delta => resizeColumn(columnWidth, delta, withDataTableNamePrefix('id'))
             }, [
-              h(HeaderCell, ['ID'])
+              h(Sortable, {
+                sort: recordsTableSort,
+                field: 'id',
+                onSort: setRecordsTableSort
+              }, [
+                h(HeaderCell, ['ID'])
+              ])
             ])
-          ]),
+          },
           cellRenderer: ({ rowIndex }) => {
             return h(TextCell, {}, [_.get('id', recordsTableData[rowIndex])])
           }
         },
         ..._.map(({ name: attributeName }) => {
-          const thisWidth = columnWidth // TODO: read this from state after resizing
+          const columnWidth = dataTableColumnWidths[withDataTableNamePrefix(attributeName)] || 300
           const [, columnNamespace, columnName] = /(.+:)?(.+)/.exec(attributeName)
           return {
             field: attributeName,
-            width: thisWidth,
+            width: columnWidth,
             headerRenderer: () => h(Resizable, {
-              width: thisWidth,
-              onWidthChange: delta => resizeColumn(delta, 'id')
+              width: columnWidth,
+              onWidthChange: delta => resizeColumn(columnWidth, delta, withDataTableNamePrefix(attributeName))
             }, [
               h(Sortable, {
                 sort: recordsTableSort,
@@ -322,7 +328,7 @@ export const inputsTable = props => {
           field: 'variable',
           headerRenderer: () => h(Sortable, { sort: inputTableSort, field: 'variable', onSort: setInputTableSort }, [h(HeaderCell, ['Variable'])]),
           cellRenderer: ({ rowIndex }) => {
-            return h(TextCell, {}, [inputTableData[rowIndex].variable])
+            return h(TextCell, { style: Utils.typeStyle(inputTableData[rowIndex].input_type) }, [inputTableData[rowIndex].variable])
           }
         },
         {
@@ -330,7 +336,7 @@ export const inputsTable = props => {
           field: 'inputTypeStr',
           headerRenderer: () => h(Sortable, { sort: inputTableSort, field: 'inputTypeStr', onSort: setInputTableSort }, [h(HeaderCell, ['Type'])]),
           cellRenderer: ({ rowIndex }) => {
-            return h(TextCell, {}, [inputTableData[rowIndex].inputTypeStr])
+            return h(TextCell, { style: Utils.typeStyle(inputTableData[rowIndex].input_type) }, [inputTableData[rowIndex].inputTypeStr)])
           }
         },
         {
@@ -344,10 +350,17 @@ export const inputsTable = props => {
               value: _.get(_.get(`${rowIndex}.source.type`, inputTableData), inputSourceLabels) || null,
               onChange: ({ value }) => {
                 const newType = _.get(value, inputSourceTypes)
-                const param = newType === 'record_lookup' ? 'record_attribute' : 'parameter_value'
-                const newSource = {
-                  type: newType,
-                  [param]: _.get(`${rowIndex}.source.${param}`, inputTableData)
+                let newSource
+                if (newType === 'none') {
+                  newSource = {
+                    type: newType
+                  }
+                } else {
+                  const param = newType === 'record_lookup' ? 'record_attribute' : 'parameter_value'
+                  newSource = {
+                    type: newType,
+                    [param]: ''
+                  }
                 }
                 const newConfig = _.set(`${rowIndex}.source`, newSource, inputTableData)
                 setConfiguredInputDefinition(newConfig)

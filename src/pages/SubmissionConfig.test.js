@@ -34,6 +34,20 @@ const runSetInputDef = [
       type: 'record_lookup',
       record_attribute: 'bar_string'
     }
+  },
+  {
+    input_name: 'target_workflow_1.optional_var',
+    input_type: {
+      type: 'optional',
+      optional_type: {
+        type: 'primitive',
+        primitive_type: 'String'
+      }
+    },
+    source: {
+      type: 'literal',
+      parameter_value: 'Hello World'
+    }
   }
 ]
 
@@ -60,6 +74,7 @@ const runSetResponse = {
     {
       run_set_id: '10000000-0000-0000-0000-000000000001',
       method_id: '00000000-0000-0000-0000-000000000001',
+      method_version_id: '50000000-0000-0000-0000-000000000006',
       is_template: true,
       run_set_name: 'Target workflow 1, run 1',
       run_set_description: 'Example run for target workflow 1',
@@ -99,39 +114,28 @@ const badRecordTypeRunSetResponse = {
 const methodsResponse = {
   methods: [
     {
-      method_id: '00000000-0000-0000-0000-000000000002',
-      name: 'Target Workflow 2',
-      description: 'Target Workflow 2',
-      source: 'Github',
-      source_url: 'https://raw.githubusercontent.com/DataBiosphere/cbas/main/useful_workflows/target_workflow_2/target_workflow_2.wdl',
-      method_versions: [
-        {
-          method_version_id: '50000000-0000-0000-0000-000000000005',
-          method_id: '00000000-0000-0000-0000-000000000002',
-          name: '1.0',
-          description: 'method description',
-          created: '2023-01-26T19:45:50.419Z',
-          url: 'https://raw.githubusercontent.com/DataBiosphere/cbas/main/useful_workflows/target_workflow_2/target_workflow_2.wdl',
-          last_run: {
-            previously_run: true,
-            timestamp: '2023-01-26T19:45:50.419Z',
-            run_set_id: '3fa85f64-5717-4562-b3fc-2c963f66afa6',
-            method_version_id: '3fa85f64-5717-4562-b3fc-2c963f66afa6',
-            method_version_name: 'string'
-          }
-        }
-      ],
-      created: '2022-12-07T17:26:53.131+00:00',
-      last_run: {
-        run_previously: false
-      }
-    },
-    {
       method_id: '00000000-0000-0000-0000-000000000001',
       name: 'Target Workflow 1',
       description: 'Target Workflow 1',
       source: 'Github',
       source_url: 'https://raw.githubusercontent.com/DataBiosphere/cbas/main/useful_workflows/target_workflow_1/target_workflow_1.wdl',
+      method_versions: [
+        {
+          method_version_id: '50000000-0000-0000-0000-000000000006',
+          method_id: '00000000-0000-0000-0000-000000000001',
+          name: '1.0',
+          description: 'method description',
+          created: '2023-01-26T19:45:50.419Z',
+          url: 'https://raw.githubusercontent.com/DataBiosphere/cbas/main/useful_workflows/target_workflow_1/target_workflow_1.wdl',
+          last_run: {
+            previously_run: true,
+            timestamp: '2023-01-26T19:45:50.419Z',
+            run_set_id: '10000000-0000-0000-0000-000000000001',
+            method_version_id: '50000000-0000-0000-0000-000000000006',
+            method_version_name: 'string'
+          }
+        }
+      ],
       created: '2022-12-07T17:26:53.131+00:00',
       last_run: {
         run_previously: false
@@ -401,6 +405,106 @@ describe('SubmissionConfig records selector', () => {
     expect(rowsFOO.length).toBe(5)
   })
 
+  it('should resize the columns and new widths should be preserved when data table selection changes within given workflow', async () => {
+    // ** ARRANGE **
+    const mockRunSetResponse = jest.fn(() => Promise.resolve(runSetResponse))
+    const mockMethodsResponse = jest.fn(() => Promise.resolve(methodsResponse))
+    const mockSearchResponse = jest.fn(recordType => Promise.resolve(searchResponses[recordType]))
+    const mockTypesResponse = jest.fn(() => Promise.resolve(typesResponse))
+
+    await Ajax.mockImplementation(() => {
+      return {
+        Cbas: {
+          runSets: {
+            getForMethod: mockRunSetResponse
+          },
+          methods: {
+            getById: mockMethodsResponse
+          }
+        },
+        Wds: {
+          search: {
+            post: mockSearchResponse
+          },
+          types: {
+            get: mockTypesResponse
+          }
+        }
+      }
+    })
+
+    // ** ACT **
+    render(h(SubmissionConfig))
+
+    // ** ASSERT **
+    await waitFor(() => {
+      expect(mockRunSetResponse).toHaveBeenCalledTimes(1)
+      expect(mockTypesResponse).toHaveBeenCalledTimes(1)
+      expect(mockMethodsResponse).toHaveBeenCalledTimes(1)
+      expect(mockSearchResponse).toHaveBeenCalledTimes(1)
+    })
+    const table = await screen.findByRole('table')
+
+    const fooRows1 = within(table).queryAllByRole('row')
+    expect(fooRows1.length).toBe(5)
+
+    const fooHeaders1 = within(fooRows1[0]).queryAllByRole('columnheader')
+    expect(fooHeaders1.length).toBe(4)
+    within(fooHeaders1[1]).getByText('ID')
+    expect(getComputedStyle(fooHeaders1[1]).width).toBe('300px') // initial column width
+
+    // ** ACT **
+    // simulate user resizing the column 'ID' for data table 'FOO'
+    const fooDraggableIcon = fooHeaders1[1].querySelector("[data-icon='columnGrabber']")
+    fireEvent.mouseDown(fooDraggableIcon)
+    fireEvent.mouseMove(fooDraggableIcon, { clientX: 200, clientY: 0 }) // user moves the icon 200px to right
+    fireEvent.mouseUp(fooDraggableIcon)
+
+    // ** ASSERT **
+    // new width of column 'ID' for data table 'FOO' should be 500
+    expect(getComputedStyle(fooHeaders1[1]).width).toBe('500px')
+
+    // ** ACT **
+    // Change Data Table to 'BAR'
+    const dropdown1 = await screen.findByLabelText('Select a data table')
+    await act(async () => {
+      await selectEvent.select(dropdown1, ['BAR'])
+    })
+
+    // ** ASSERT **
+    const barRows = within(table).queryAllByRole('row')
+    expect(barRows.length).toBe(3)
+    const barHeaders = within(barRows[0]).queryAllByRole('columnheader')
+    expect(barHeaders.length).toBe(4)
+    within(barHeaders[1]).getByText('ID')
+    // even though both 'FOO' and 'BAR' data tables have 'ID' columns their widths can be different
+    expect(getComputedStyle(barHeaders[1]).width).toBe('300px') // initial column width
+
+    // ** ACT **
+    // simulate user resizing the column 'ID' for data table 'BAR'
+    const barDraggableIcon = barHeaders[1].querySelector("[data-icon='columnGrabber']")
+    fireEvent.mouseDown(barDraggableIcon)
+    fireEvent.mouseMove(barDraggableIcon, { clientX: 50, clientY: 0 }) // user moves the icon 50px to right
+    fireEvent.mouseUp(barDraggableIcon)
+
+    // ** ASSERT **
+    // new width of column 'ID' for data table 'BAR' should be 350
+    expect(getComputedStyle(barHeaders[1]).width).toBe('350px')
+
+    // ** ACT **
+    // Change Data Table back to 'FOO'
+    const dropdown2 = await screen.findByLabelText('Select a data table')
+    await act(async () => {
+      await selectEvent.select(dropdown2, ['FOO'])
+    })
+
+    // ** ASSERT **
+    // verify that the width of column 'ID' has been preserved from previous resizing
+    const fooRows2 = within(table).queryAllByRole('row')
+    const fooHeaders2 = within(fooRows2[0]).queryAllByRole('columnheader')
+    expect(getComputedStyle(fooHeaders2[1]).width).toBe('500px')
+  })
+
   it('when records are selected, should display modal when Submit button is clicked', async () => {
     const mockRunSetResponse = jest.fn(() => Promise.resolve(runSetResponse))
     const mockMethodsResponse = jest.fn(() => Promise.resolve(methodsResponse))
@@ -649,7 +753,7 @@ describe('SubmissionConfig inputs/outputs definitions', () => {
     const table = await screen.findByRole('table')
     const rows = within(table).queryAllByRole('row')
 
-    expect(runSetInputDef.length).toBe(2)
+    expect(runSetInputDef.length).toBe(3)
     expect(rows.length).toBe(runSetInputDef.length + 1) // one row for each input definition variable, plus headers
 
     const headers = within(rows[0]).queryAllByRole('columnheader')
@@ -663,7 +767,6 @@ describe('SubmissionConfig inputs/outputs definitions', () => {
     within(cellsFoo[3]).getByText('Fetch from Data Table')
     within(cellsFoo[4]).getByText('foo_rating')
 
-
     const cellsBar = within(rows[2]).queryAllByRole('cell')
     expect(cellsBar.length).toBe(5)
     expect(cellsBar[0].textContent).toBe('target_workflow_1')
@@ -671,6 +774,14 @@ describe('SubmissionConfig inputs/outputs definitions', () => {
     within(cellsBar[2]).getByText('String')
     within(cellsBar[3]).getByText('Fetch from Data Table')
     within(cellsBar[4]).getByText('bar_string')
+
+    const thirdInputRow = within(rows[3]).queryAllByRole('cell')
+    expect(thirdInputRow.length).toBe(5)
+    expect(thirdInputRow[0].textContent).toBe('target_workflow_1')
+    within(thirdInputRow[1]).getByText('optional_var')
+    within(thirdInputRow[2]).getByText('String?')
+    within(thirdInputRow[3]).getByText('Type a Value')
+    within(thirdInputRow[4]).getByDisplayValue('Hello World')
   })
 
   it('should display warning icon for required inputs with missing attributes and disappear when attribute is supplied', async () => {
@@ -729,7 +840,7 @@ describe('SubmissionConfig inputs/outputs definitions', () => {
     const table = await screen.findByRole('table')
     const rows = within(table).queryAllByRole('row')
 
-    expect(runSetInputDef.length).toBe(2)
+    expect(runSetInputDef.length).toBe(3)
     expect(rows.length).toBe(runSetInputDef.length + 1) // one row for each input definition variable, plus headers
 
     const cellsFoo = within(rows[1]).queryAllByRole('cell')
@@ -990,5 +1101,233 @@ describe('SubmissionConfig inputs/outputs definitions', () => {
     // within(cells2[1]).getByText('file_output')
     // within(cells2[2]).getByText('File')
     // within(cells2[3]).getByDisplayValue('target_workflow_1_file_output')
+  })
+})
+
+describe('SubmissionConfig submitting a run set', () => {
+  // SubmissionConfig component uses AutoSizer to determine the right size for table to be displayed. As a result we need to
+  // mock out the height and width so that when AutoSizer asks for the width and height of "browser" it can use the mocked
+  // values and render the component properly. Without this the tests will be break.
+  // (see https://github.com/bvaughn/react-virtualized/issues/493 and https://stackoverflow.com/a/62214834)
+  const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'offsetHeight')
+  const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'offsetWidth')
+
+  beforeAll(() => {
+    Object.defineProperty(HTMLElement.prototype, 'offsetHeight', { configurable: true, value: 1000 })
+    Object.defineProperty(HTMLElement.prototype, 'offsetWidth', { configurable: true, value: 800 })
+  })
+
+  afterEach(() => {
+    jest.clearAllMocks()
+  })
+
+  afterAll(() => {
+    Object.defineProperty(HTMLElement.prototype, 'offsetHeight', originalOffsetHeight)
+    Object.defineProperty(HTMLElement.prototype, 'offsetWidth', originalOffsetWidth)
+  })
+
+  it('should call POST /run_sets endpoint with expected parameters', async () => {
+    // ** ARRANGE **
+    const mockRunSetResponse = jest.fn(() => Promise.resolve(runSetResponse))
+    const mockMethodsResponse = jest.fn(() => Promise.resolve(methodsResponse))
+    const mockSearchResponse = jest.fn(() => Promise.resolve(searchResponses['FOO']))
+    const mockTypesResponse = jest.fn(() => Promise.resolve(typesResponse))
+
+    const postRunSetFunction = jest.fn()
+
+    await Ajax.mockImplementation(() => {
+      return {
+        Cbas: {
+          runSets: {
+            post: postRunSetFunction,
+            getForMethod: mockRunSetResponse
+          },
+          methods: {
+            getById: mockMethodsResponse
+          }
+        },
+        Wds: {
+          search: {
+            post: mockSearchResponse
+          },
+          types: {
+            get: mockTypesResponse
+          }
+        }
+      }
+    })
+
+    // ** ACT **
+    render(h(SubmissionConfig))
+
+    // ** ASSERT **
+    await waitFor(() => {
+      expect(mockRunSetResponse).toHaveBeenCalledTimes(1)
+      expect(mockTypesResponse).toHaveBeenCalledTimes(1)
+      expect(mockSearchResponse).toHaveBeenCalledTimes(1)
+      expect(mockMethodsResponse).toHaveBeenCalledTimes(1)
+    })
+
+    // ** ACT **
+    // user selects 'FOO1' record from Data Table
+    const checkboxes = screen.getAllByRole('checkbox')
+    const checkbox = checkboxes[1]
+    fireEvent.click(checkbox)
+
+    // ** ASSERT **
+    // verify that the record was indeed selected
+    expect(checkbox).toHaveAttribute('aria-checked', 'true')
+
+    // ** ACT **
+    // user clicks on Submit (inputs and outputs should be rendered based on previous submission)
+    const button = screen.getByLabelText('Submit button')
+    fireEvent.click(button)
+
+    // ** ASSERT **
+    // Launch modal should be displayed
+    await screen.getByText('Send submission')
+    const modalSubmitButton = await screen.getByLabelText('Launch Submission')
+
+    // ** ACT **
+    // user click on Submit button
+    fireEvent.click(modalSubmitButton)
+
+    // ** ASSERT **
+    // assert POST /run_sets endpoint was called with expected parameters
+    expect(postRunSetFunction).toHaveBeenCalled()
+    expect(postRunSetFunction).toBeCalledWith(
+      expect.objectContaining({
+        method_version_id: runSetResponse.run_sets[0].method_version_id,
+        workflow_input_definitions: runSetInputDef,
+        workflow_output_definitions: runSetOutputDef,
+        wds_records: {
+          record_type: 'FOO',
+          record_ids: [
+            'FOO1'
+          ]
+        }
+      })
+    )
+  })
+
+  it('should call POST /run_sets endpoint with expected parameters after an optional input is set to None', async () => {
+    // ** ARRANGE **
+    const mockRunSetResponse = jest.fn(() => Promise.resolve(runSetResponse))
+    const mockMethodsResponse = jest.fn(() => Promise.resolve(methodsResponse))
+    const mockSearchResponse = jest.fn(() => Promise.resolve(searchResponses['FOO']))
+    const mockTypesResponse = jest.fn(() => Promise.resolve(typesResponse))
+
+    const postRunSetFunction = jest.fn()
+
+    await Ajax.mockImplementation(() => {
+      return {
+        Cbas: {
+          runSets: {
+            post: postRunSetFunction,
+            getForMethod: mockRunSetResponse
+          },
+          methods: {
+            getById: mockMethodsResponse
+          }
+        },
+        Wds: {
+          search: {
+            post: mockSearchResponse
+          },
+          types: {
+            get: mockTypesResponse
+          }
+        }
+      }
+    })
+
+    // ** ACT **
+    render(h(SubmissionConfig))
+
+    // ** ASSERT **
+    await waitFor(() => {
+      expect(mockRunSetResponse).toHaveBeenCalledTimes(1)
+      expect(mockTypesResponse).toHaveBeenCalledTimes(1)
+      expect(mockSearchResponse).toHaveBeenCalledTimes(1)
+      expect(mockMethodsResponse).toHaveBeenCalledTimes(1)
+    })
+
+    // ** ACT **
+    // user selects 'FOO1' record from Data Table
+    const checkboxes = screen.getAllByRole('checkbox')
+    const checkbox = checkboxes[1]
+    fireEvent.click(checkbox)
+
+    // ** ASSERT **
+    // verify that the record was indeed selected
+    expect(checkbox).toHaveAttribute('aria-checked', 'true')
+
+    // ** ACT **
+    const inputsTabButton = await screen.findByRole('button', { name: 'Inputs' })
+    await fireEvent.click(inputsTabButton)
+
+    // ** ASSERT **
+    const inputTable = await screen.findByRole('table')
+    const rows = within(inputTable).queryAllByRole('row')
+    expect(rows.length).toBe(runSetInputDef.length + 1) // one row for each input definition variable, plus headers
+
+
+    // ** ACT **
+    // user sets the source to 'None' for input 'optional_var'
+    const thirdInputRow = within(rows[3]).queryAllByRole('cell')
+    await userEvent.click(within(thirdInputRow[3]).getByText('Type a Value'))
+    const selectOption = await screen.findByText('None')
+    await userEvent.click(selectOption)
+
+    // ** ASSERT **
+    // check that the Attribute column has expected behavior
+    within(thirdInputRow[4]).getByText('The workflow input will either be empty or use a default value from the workflow.')
+
+    // ** ACT **
+    // user clicks on Submit (inputs and outputs should be rendered based on previous submission)
+    const button = screen.getByLabelText('Submit button')
+    fireEvent.click(button)
+
+    // ** ASSERT **
+    // Launch modal should be displayed
+    await screen.getByText('Send submission')
+    const modalSubmitButton = await screen.getByLabelText('Launch Submission')
+
+    // ** ACT **
+    // user click on Submit button
+    fireEvent.click(modalSubmitButton)
+
+    // ** ASSERT **
+    // assert POST /run_sets endpoint was called with expected parameters and input 'optional_var' has correct definition for source 'None'
+    expect(postRunSetFunction).toHaveBeenCalled()
+    expect(postRunSetFunction).toBeCalledWith(
+      expect.objectContaining({
+        method_version_id: runSetResponse.run_sets[0].method_version_id,
+        workflow_input_definitions: [
+          runSetInputDef[0],
+          runSetInputDef[1],
+          {
+            input_name: 'target_workflow_1.optional_var',
+            input_type: {
+              optional_type: {
+                primitive_type: 'String',
+                type: 'primitive'
+              },
+              type: 'optional'
+            },
+            source: {
+              type: 'none'
+            }
+          }
+        ],
+        workflow_output_definitions: runSetOutputDef,
+        wds_records: {
+          record_type: 'FOO',
+          record_ids: [
+            'FOO1'
+          ]
+        }
+      })
+    )
   })
 })

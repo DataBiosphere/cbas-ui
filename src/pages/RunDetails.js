@@ -1,5 +1,5 @@
 
-import { concat, countBy, every, filter, flattenDepth, flow, includes, isEmpty, keys, map, min, sortBy, toPairs, values } from 'lodash/fp'
+import { countBy, every, filter, flattenDepth, flow, includes, isEmpty, keys, map, min, sortBy, values } from 'lodash/fp'
 import { Fragment, useMemo, useRef, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import ReactJson from 'react-json-view'
@@ -7,7 +7,10 @@ import Collapse from 'src/components/Collapse'
 import { ClipboardButton, Link, Navbar } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
 import {
-  collapseCromwellStatus, collapseStatus, HeaderSection, makeSection, makeStatusLine, statusType, SubmitNewWorkflowButton
+  collapseCromwellStatus, collapseStatus,
+  HeaderSection,
+  makeSection, makeStatusLine, statusType,
+  SubmitNewWorkflowButton
 } from 'src/components/job-common'
 //  Q4-2022 Disable log-viewing
 //import UriViewer from 'src/components/UriViewer'
@@ -18,6 +21,8 @@ import { codeFont, elements } from 'src/libs/style'
 import { cond, makeCompleteDate, newTabLinkProps } from 'src/libs/utils'
 import CallTable from 'src/pages/workspaces/workspace/jobHistory/CallTable'
 
+
+const commonStatuses = ['submitted', 'waitingForQuota', 'running', 'succeeded', 'failed']
 
 const styles = {
   sectionTableLabel: { fontWeight: 600 }
@@ -35,9 +40,6 @@ const groupCallStatuses = flow(
 
 const statusCell = ({ calls }) => {
   const statusGroups = groupCallStatuses(calls)
-  // Note: these variable names match the id values of statusType (except for unknownStatuses, which will be their labels).
-  const { ...unknownStatuses } = statusGroups
-
   const makeRow = (count, status, labelOverride) => {
     const seeMore = !!status.moreInfoLink ? h(Link, { href: status.moreInfoLink, style: { marginLeft: '0.50rem' }, ...newTabLinkProps },
       [status.moreInfoLabel, icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })]) : ''
@@ -47,11 +49,9 @@ const statusCell = ({ calls }) => {
       seeMore
     ])
   }
-  return h(Fragment, concat(
-    ['submitted', 'waitingForQuota', 'running', 'succeeded', 'failed'].filter(
-      s => statusGroups[s]).map(s => makeRow(statusGroups[s], statusType[s])),
-    map(([label, count]) => makeRow(count, statusType.unknown, label), toPairs(unknownStatuses)))
-  )
+  const status = commonStatuses.filter(
+    s => statusGroups[s]).map(s => makeRow(statusGroups[s], statusType[s]))
+  return h(Fragment, status)
 }
 
 
@@ -108,7 +108,7 @@ export const RunDetails = ({ namespace, name, submissionId, workflowId }) => {
       }
     ]
 
-    return h(HeaderSection, { breadcrumbPathObjects, button: SubmitNewWorkflowButton, title: 'Run details' })
+    return h(HeaderSection, { breadcrumbPathObjects, button: SubmitNewWorkflowButton, title: 'Workflow details' })
   }, [workflow, submissionId])
 
   /*
