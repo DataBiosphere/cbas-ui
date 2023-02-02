@@ -547,6 +547,88 @@ describe('SubmissionConfig records selector', () => {
     await screen.getByText('Send submission')
   })
 
+  it('clear selected records when data type is changed', async () => {
+    const mockRunSetResponse = jest.fn(() => Promise.resolve(runSetResponse))
+    const mockMethodsResponse = jest.fn(() => Promise.resolve(methodsResponse))
+    const mockSearchResponse = jest.fn(recordType => Promise.resolve(searchResponses[recordType]))
+    const mockTypesResponse = jest.fn(() => Promise.resolve(typesResponse))
+
+    await Ajax.mockImplementation(() => {
+      return {
+        Cbas: {
+          runSets: {
+            getForMethod: mockRunSetResponse
+          },
+          methods: {
+            getById: mockMethodsResponse
+          }
+        },
+        Wds: {
+          search: {
+            post: mockSearchResponse
+          },
+          types: {
+            get: mockTypesResponse
+          }
+        }
+      }
+    })
+
+    render(h(SubmissionConfig))
+
+    await waitFor(() => {
+      expect(mockRunSetResponse).toHaveBeenCalledTimes(1)
+    })
+
+    const checkboxes = screen.getAllByRole('checkbox')
+    const checkbox = checkboxes[1]
+    fireEvent.click(checkbox)
+    expect(checkbox).toHaveAttribute('aria-checked', 'true')
+
+    const button = screen.getByLabelText('Submit button')
+    expect(button).toHaveAttribute('aria-disabled', 'false')
+    expect(button).not.toHaveAttribute('disabled')
+    expect(screen.queryByText('No records selected')).toBeNull()
+
+    // Change the selected data types
+    const dropdown1 = await screen.findByLabelText('Select a data table')
+    await act(async () => {
+      await selectEvent.select(dropdown1, ['BAR'])
+    })
+
+    const checkboxesAfterRecordTypeChange = screen.getAllByRole('checkbox')
+    for (const checkboxesAfterRecordTypeChangeKey in checkboxesAfterRecordTypeChange) {
+      const checkboxAfterRecordTypeChange = checkboxesAfterRecordTypeChange[checkboxesAfterRecordTypeChangeKey]
+      expect(checkboxAfterRecordTypeChange).not.toBeChecked()
+    }
+
+    const buttonAfterRecordTypeChange = screen.getByLabelText('Submit button')
+    await waitFor(() => {
+      expect(buttonAfterRecordTypeChange).toHaveAttribute('aria-disabled', 'true')
+      expect(buttonAfterRecordTypeChange).toHaveAttribute('disabled')
+      expect(screen.queryByText('No records selected')).not.toBeNull()
+    })
+
+    // Change the selected data type back
+    await act(async () => {
+      await selectEvent.select(dropdown1, ['FOO'])
+    })
+
+    const checkboxesAfterRecordTypeChange2 = screen.getAllByRole('checkbox')
+    for (const checkboxesAfterRecordTypeChangeKey in checkboxesAfterRecordTypeChange2) {
+      const checkboxAfterRecordTypeChange = checkboxesAfterRecordTypeChange2[checkboxesAfterRecordTypeChangeKey]
+      expect(checkboxAfterRecordTypeChange).not.toBeChecked()
+    }
+
+    const buttonAfterRecordTypeChange2 = screen.getByLabelText('Submit button')
+    await waitFor(() => {
+      // Still no records selected, so this all should still be true:
+      expect(buttonAfterRecordTypeChange2).toHaveAttribute('aria-disabled', 'true')
+      expect(buttonAfterRecordTypeChange2).toHaveAttribute('disabled')
+      expect(screen.queryByText('No records selected')).not.toBeNull()
+    })
+  })
+
   it('should display error message when WDS is unable to find a record type', async () => {
     const mockRunSetResponse = jest.fn(() => Promise.resolve(badRecordTypeRunSetResponse))
     const mockMethodsResponse = jest.fn(() => Promise.resolve(methodsResponse))
