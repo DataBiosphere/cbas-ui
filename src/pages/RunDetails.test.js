@@ -167,7 +167,7 @@ describe('RunDetails - render smoke test', () => {
       expect(callCollapse).toBeDefined
       const countString = screen.getByText('Total Task Status Counts')
       expect(countString).toBeDefined
-      const totalRunningString = screen.getByText(/1 running/)
+      const totalRunningString = screen.getByText(/1 Running/)
       expect(totalRunningString).toBeDefined
       const collapseTestOneString = screen.getByText(/^testOne/)
       expect(collapseTestOneString).toBeDefined
