@@ -240,7 +240,7 @@ export const inputsTable = props => {
             type: _.get(`${rowIndex}.source.type`, inputTableData),
             record_attribute: newAttribute
           }
-          const newConfig = _.set(`${rowIndex}.source`, newSource, inputTableData)
+          const newConfig = _.set(`${inputTableData[rowIndex].configurationIndex}.source`, newSource, configuredInputDefinition)
           setConfiguredInputDefinition(newConfig)
         },
         placeholder: 'Select Attribute',
@@ -268,7 +268,7 @@ export const inputsTable = props => {
           type: _.get(`${rowIndex}.source.type`, inputTableData),
           parameter_value: value
         }
-        const newConfig = _.set(`${rowIndex}.source`, newSource, inputTableData)
+        const newConfig = _.set(`${inputTableData[rowIndex].configurationIndex}.source`, newSource, configuredInputDefinition)
         setConfiguredInputDefinition(newConfig)
       }
     })
