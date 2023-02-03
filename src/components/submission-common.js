@@ -2,11 +2,10 @@ import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
-import { Checkbox, Clickable, Select } from 'src/components/common'
+import { Checkbox, Select } from 'src/components/common'
 import { HeaderOptions, renderDataCell } from 'src/components/data/data-utils'
 import { icon } from 'src/components/icons'
 import { TextInput } from 'src/components/input'
-import { MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
 import { FlexTable, GridTable, HeaderCell, Resizable, Sortable, TextCell } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import colors from 'src/libs/colors'
@@ -64,6 +63,9 @@ export const makeStatusLine = (iconFn, label, style) => div(
   [iconFn({ marginRight: '0.5rem' }), label]
 )
 
+const recordMap = records => {
+  return _.fromPairs(_.map(e => [e.id, e], records))
+}
 
 export const recordsTable = props => {
   const {
@@ -75,20 +77,12 @@ export const recordsTable = props => {
     sort, setSort
   } = props
 
-  const selectAll = () => {
-    console.log('TODO: implement selectAll')
-  }
-
   const selectPage = () => {
-    console.log('TODO: implement selectPage')
+    setSelectedRecords(_.assign(selectedRecords, recordMap(records)))
   }
 
   const deselectPage = () => {
-    console.log('TODO: implement deselectPage')
-  }
-
-  const selectNone = () => {
-    console.log('TODO: implement selectNone')
+    setSelectedRecords(_.omit(_.map(({ id }) => [id], records), selectedRecords))
   }
 
   const pageSelected = () => {
@@ -119,22 +113,11 @@ export const recordsTable = props => {
           headerRenderer: () => {
             return h(Fragment, [
               h(Checkbox, {
-                checked: () => pageSelected(),
+                checked: pageSelected(),
                 disabled: !records.length,
-                onChange: () => pageSelected() ? deselectPage : selectPage,
+                onChange: pageSelected() ? deselectPage : selectPage,
                 'aria-label': 'Select all'
-              }),
-              h(MenuTrigger, {
-                closeOnClick: true,
-                content: h(Fragment, [
-                  h(MenuButton, { onClick: selectPage }, ['Page']),
-                  h(MenuButton, { onClick: selectAll }, [`All (${records.length})`]),
-                  h(MenuButton, { onClick: selectNone }, ['None'])
-                ]),
-                side: 'bottom'
-              }, [
-                h(Clickable, { 'aria-label': '"Select All" options' }, [icon('caretDown')])
-              ])
+              })
             ])
           },
           cellRenderer: ({ rowIndex }) => {
