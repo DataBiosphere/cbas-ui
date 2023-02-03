@@ -3,7 +3,6 @@ import { Fragment } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import { Checkbox, Select } from 'src/components/common'
-import { HeaderOptions, renderDataCell } from 'src/components/data/data-utils'
 import { icon } from 'src/components/icons'
 import { TextInput } from 'src/components/input'
 import { FlexTable, GridTable, HeaderCell, Resizable, Sortable, TextCell } from 'src/components/table'
@@ -74,7 +73,7 @@ export const recordsTable = props => {
     records,
     selectedRecords, setSelectedRecords,
     selectedDataTable,
-    sort, setSort
+    recordsTableSort, setRecordsTableSort
   } = props
 
   const selectPage = () => {
@@ -97,16 +96,28 @@ export const recordsTable = props => {
 
   const withDataTableNamePrefix = columnName => `${selectedDataTable.name}/${columnName}`
 
+  const recordsTableData = _.flow(
+    _.map(row => _.merge(row, _.forEach(a => _.set(a, _.get(`attributes.${a}`, row), row), row.attributes))),
+    _.orderBy(
+      [
+        ({ [recordsTableSort.field]: field }) => field * 1, // converts field to int, float, or NaN (if field is a string)
+        ({ [recordsTableSort.field]: field }) => _.lowerCase(field)
+      ],
+      [recordsTableSort.direction]
+    )
+  )(records)
+
   return h(AutoSizer, [({ width, height }) => {
     return h(GridTable, {
       'aria-label': `${selectedDataTable.name} data table`,
       ref: dataTableRef,
       width,
       height,
+      sort: recordsTableSort,
       // // Keeping these properties here as a reminder: can we use them?
       // noContentMessage: DEFAULT,
       // noContentRenderer: DEFAULT,
-      rowCount: records.length,
+      rowCount: recordsTableData.length,
       columns: [
         {
           width: 70,
@@ -114,14 +125,14 @@ export const recordsTable = props => {
             return h(Fragment, [
               h(Checkbox, {
                 checked: pageSelected(),
-                disabled: !records.length,
+                disabled: !recordsTableData.length,
                 onChange: pageSelected() ? deselectPage : selectPage,
                 'aria-label': 'Select all'
               })
             ])
           },
           cellRenderer: ({ rowIndex }) => {
-            const thisRecord = records[rowIndex]
+            const thisRecord = recordsTableData[rowIndex]
             const { id } = thisRecord
             const checked = _.has([id], selectedRecords)
             return h(Checkbox, {
@@ -141,15 +152,18 @@ export const recordsTable = props => {
             return h(Resizable, {
               width: columnWidth,
               onWidthChange: delta => resizeColumn(columnWidth, delta, withDataTableNamePrefix('id'))
-            }, [h(HeaderOptions, { sort, field: 'id', onSort: setSort }, [h(HeaderCell, ['ID'])])]
-            )
+            }, [
+              h(Sortable, {
+                sort: recordsTableSort,
+                field: 'id',
+                onSort: setRecordsTableSort
+              }, [
+                h(HeaderCell, ['ID'])
+              ])
+            ])
           },
           cellRenderer: ({ rowIndex }) => {
-            const { id: recordId } = records[rowIndex]
-            return h(Fragment, [
-              renderDataCell(recordId),
-              div({ style: { flexGrow: 1 } })
-            ])
+            return h(TextCell, {}, [_.get('id', recordsTableData[rowIndex])])
           }
         },
         ..._.map(({ name: attributeName }) => {
@@ -162,10 +176,10 @@ export const recordsTable = props => {
               width: columnWidth,
               onWidthChange: delta => resizeColumn(columnWidth, delta, withDataTableNamePrefix(attributeName))
             }, [
-              h(HeaderOptions, {
-                sort,
+              h(Sortable, {
+                sort: recordsTableSort,
                 field: attributeName,
-                onSort: setSort
+                onSort: setRecordsTableSort
               }, [
                 h(HeaderCell, [
                   !!columnNamespace && span({ style: { fontStyle: 'italic', color: colors.dark(0.75), paddingRight: '0.2rem' } }, [columnNamespace]),
@@ -174,8 +188,8 @@ export const recordsTable = props => {
               ])
             ]),
             cellRenderer: ({ rowIndex }) => {
-              return h(Fragment, [
-                String(records[rowIndex].attributes[attributeName])
+              return h(TextCell, {}, [
+                _.get(attributeName, recordsTableData[rowIndex])
               ])
             }
           }
@@ -212,21 +226,21 @@ export const inputsTable = props => {
   const inputSourceTypes = _.invert(inputSourceLabels)
 
   const recordLookupSelect = rowIndex => {
-    const currentInputName = _.get(`${rowIndex}.input_name`, configuredInputDefinition)
+    const currentInputName = _.get(`${rowIndex}.input_name`, inputTableData)
 
     return div({ style: { display: 'flex', alignItems: 'center', width: '100%', paddingTop: '0.5rem', paddingBottom: '0.5rem' } }, [
       h(Select, {
         isDisabled: false,
         'aria-label': 'Select an Attribute',
         isClearable: false,
-        value: _.get(`${rowIndex}.source.record_attribute`, configuredInputDefinition),
+        value: _.get(`${rowIndex}.source.record_attribute`, inputTableData),
         onChange: ({ value }) => {
           const newAttribute = _.get(`${value}.name`, dataTableAttributes)
           const newSource = {
-            type: _.get(`${rowIndex}.source.type`, configuredInputDefinition),
+            type: _.get(`${rowIndex}.source.type`, inputTableData),
             record_attribute: newAttribute
           }
-          const newConfig = _.set(`${rowIndex}.source`, newSource, configuredInputDefinition)
+          const newConfig = _.set(`${inputTableData[rowIndex].configurationIndex}.source`, newSource, configuredInputDefinition)
           setConfiguredInputDefinition(newConfig)
         },
         placeholder: 'Select Attribute',
@@ -248,22 +262,37 @@ export const inputsTable = props => {
     return h(TextInput, {
       id: `literal-input-${rowIndex}`,
       style: { display: 'block', width: '100%' },
-      defaultValue: _.get(`${rowIndex}.source.parameter_value`, configuredInputDefinition) || null,
+      value: _.get(`${rowIndex}.source.parameter_value`, inputTableData) || null,
       onChange: value => {
         const newSource = {
-          type: _.get(`${rowIndex}.source.type`, configuredInputDefinition),
+          type: _.get(`${rowIndex}.source.type`, inputTableData),
           parameter_value: value
         }
-        const newConfig = _.set(`${rowIndex}.source`, newSource, configuredInputDefinition)
+        const newConfig = _.set(`${inputTableData[rowIndex].configurationIndex}.source`, newSource, configuredInputDefinition)
         setConfiguredInputDefinition(newConfig)
       }
     })
   }
 
+  const inputTableData = _.flow(
+    _.entries,
+    _.map(([index, row]) => {
+      const { workflow, call, variable } = parseMethodString(row.input_name)
+      return _.flow([
+        _.set('taskName', call || workflow || ''),
+        _.set('variable', variable || ''),
+        _.set('inputTypeStr', Utils.renderTypeText(row.input_type)),
+        _.set('configurationIndex', parseInt(index))
+      ])(row)
+    }),
+    _.orderBy([({ [inputTableSort.field]: field }) => _.lowerCase(field)], [inputTableSort.direction])
+  )(configuredInputDefinition)
+
+
   return h(AutoSizer, [({ width, height }) => {
     return h(FlexTable, {
       'aria-label': 'input-table',
-      rowCount: configuredInputDefinition.length,
+      rowCount: inputTableData.length,
       sort: inputTableSort,
       readOnly: false,
       height,
@@ -271,26 +300,26 @@ export const inputsTable = props => {
       columns: [
         {
           size: { basis: 250, grow: 0 },
-          field: 'taskVariable',
-          headerRenderer: () => h(Sortable, { sort: inputTableSort, field: 'taskVariable', onSort: setInputTableSort }, [h(HeaderCell, ['Task name'])]),
+          field: 'taskName',
+          headerRenderer: () => h(Sortable, { sort: inputTableSort, field: 'taskName', onSort: setInputTableSort }, [h(HeaderCell, ['Task name'])]),
           cellRenderer: ({ rowIndex }) => {
-            const { workflow, call } = parseMethodString(configuredInputDefinition[rowIndex].input_name)
-            return h(TextCell, { style: { fontWeight: 500 } }, [call || workflow])
+            return h(TextCell, { style: { fontWeight: 500 } }, [inputTableData[rowIndex].taskName])
           }
         },
         {
           size: { basis: 360, grow: 0 },
-          field: 'workflowVariable',
-          headerRenderer: () => h(Sortable, { sort: inputTableSort, field: 'workflowVariable', onSort: setInputTableSort }, [h(HeaderCell, ['Variable'])]),
+          field: 'variable',
+          headerRenderer: () => h(Sortable, { sort: inputTableSort, field: 'variable', onSort: setInputTableSort }, [h(HeaderCell, ['Variable'])]),
           cellRenderer: ({ rowIndex }) => {
-            return h(TextCell, { style: Utils.typeStyle(configuredInputDefinition[rowIndex].input_type) }, [parseMethodString(configuredInputDefinition[rowIndex].input_name).variable])
+            return h(TextCell, { style: Utils.typeStyle(inputTableData[rowIndex].input_type) }, [inputTableData[rowIndex].variable])
           }
         },
         {
           size: { basis: 160, grow: 0 },
+          field: 'inputTypeStr',
           headerRenderer: () => h(HeaderCell, ['Type']),
           cellRenderer: ({ rowIndex }) => {
-            return h(TextCell, { style: Utils.typeStyle(configuredInputDefinition[rowIndex].input_type) }, [Utils.renderTypeText(configuredInputDefinition[rowIndex].input_type)])
+            return h(TextCell, { style: Utils.typeStyle(inputTableData[rowIndex].input_type) }, [inputTableData[rowIndex].inputTypeStr])
           }
         },
         {
@@ -301,7 +330,7 @@ export const inputsTable = props => {
               isDisabled: false,
               'aria-label': 'Select an Option',
               isClearable: false,
-              value: _.get(_.get(`${rowIndex}.source.type`, configuredInputDefinition), inputSourceLabels) || null,
+              value: _.get(_.get(`${rowIndex}.source.type`, inputTableData), inputSourceLabels) || null,
               onChange: ({ value }) => {
                 const newType = _.get(value, inputSourceTypes)
                 let newSource
@@ -316,12 +345,12 @@ export const inputsTable = props => {
                     [param]: ''
                   }
                 }
-                const newConfig = _.set(`${rowIndex}.source`, newSource, configuredInputDefinition)
+                const newConfig = _.set(`${inputTableData[rowIndex].configurationIndex}.source`, newSource, configuredInputDefinition)
                 setConfiguredInputDefinition(newConfig)
               },
               placeholder: 'Select Source',
               options: _.values(
-                _.has('optional_type', configuredInputDefinition[rowIndex].input_type) ?
+                _.has('optional_type', inputTableData[rowIndex].input_type) ?
                   inputSourceLabels :
                   _.omit('none', inputSourceLabels)
               ),
@@ -333,11 +362,9 @@ export const inputsTable = props => {
           }
         },
         {
-          headerRenderer: () => h(Fragment, [
-            h(HeaderCell, ['Attribute'])
-          ]),
+          headerRenderer: () => h(HeaderCell, ['Attribute']),
           cellRenderer: ({ rowIndex }) => {
-            const source = _.get(`${rowIndex}.source`, configuredInputDefinition)
+            const source = _.get(`${rowIndex}.source`, inputTableData)
             return Utils.switchCase(source.type || 'none',
               ['record_lookup', () => recordLookupSelect(rowIndex)],
               ['literal', () => parameterValueSelect(rowIndex)],
@@ -350,22 +377,30 @@ export const inputsTable = props => {
   }])
 }
 
-const outputValue = (rowIndex, outputDefinition) => {
-  return _.get(`${rowIndex}.destination.type`, outputDefinition) === 'record_update' ?
-    _.get(`${rowIndex}.destination.record_attribute`, outputDefinition) || null :
-    null
-}
-
 export const outputsTable = props => {
   const {
     configuredOutputDefinition, setConfiguredOutputDefinition,
     outputTableSort, setOutputTableSort
   } = props
 
+  const outputTableData = _.flow(
+    _.entries,
+    _.map(([index, row]) => {
+      const { workflow, call, variable } = parseMethodString(row.output_name)
+      return _.flow([
+        _.set('taskName', call || workflow || ''),
+        _.set('variable', variable || ''),
+        _.set('outputTypeStr', Utils.renderTypeText(row.output_type)),
+        _.set('configurationIndex', parseInt(index))
+      ])(row)
+    }),
+    _.orderBy([({ [outputTableSort.field]: field }) => _.lowerCase(field)], [outputTableSort.direction])
+  )(configuredOutputDefinition)
+
   return h(AutoSizer, [({ width, height }) => {
     return h(FlexTable, {
-      'aria-label': 'input-table',
-      rowCount: configuredOutputDefinition.length,
+      'aria-label': 'output-table',
+      rowCount: outputTableData.length,
       sort: outputTableSort,
       readOnly: false,
       height,
@@ -373,43 +408,50 @@ export const outputsTable = props => {
       columns: [
         {
           size: { basis: 250, grow: 0 },
-          field: 'taskVariable',
-          headerRenderer: () => h(Sortable, { sort: outputTableSort, field: 'taskVariable', onSort: setOutputTableSort }, [h(HeaderCell, ['Task name'])]),
+          field: 'taskName',
+          headerRenderer: () => h(Sortable, { sort: outputTableSort, field: 'taskName', onSort: setOutputTableSort }, [h(HeaderCell, ['Task name'])]),
           cellRenderer: ({ rowIndex }) => {
-            const { workflow, call } = parseMethodString(configuredOutputDefinition[rowIndex].output_name)
-            return h(TextCell, { style: { fontWeight: 500 } }, [call || workflow])
+            return h(TextCell, { style: { fontWeight: 500 } }, [outputTableData[rowIndex].taskName])
           }
         },
         {
           size: { basis: 360, grow: 0 },
-          field: 'workflowVariable',
-          headerRenderer: () => h(Sortable, { sort: outputTableSort, field: 'workflowVariable', onSort: setOutputTableSort }, [h(HeaderCell, ['Variable'])]),
+          field: 'variable',
+          headerRenderer: () => h(Sortable, { sort: outputTableSort, field: 'variable', onSort: setOutputTableSort }, [h(HeaderCell, ['Variable'])]),
           cellRenderer: ({ rowIndex }) => {
-            return h(TextCell, {}, [parseMethodString(configuredOutputDefinition[rowIndex].output_name).variable])
+            return h(TextCell, {}, [outputTableData[rowIndex].variable])
           }
         },
         {
           size: { basis: 160, grow: 0 },
+          field: 'outputTypeStr',
           headerRenderer: () => h(HeaderCell, ['Type']),
           cellRenderer: ({ rowIndex }) => {
-            return h(TextCell, {}, [Utils.renderTypeText(configuredOutputDefinition[rowIndex].output_type)])
+            return h(TextCell, {}, [outputTableData[rowIndex].outputTypeStr])
           }
         },
         {
-          headerRenderer: () => h(Fragment, [
-            h(HeaderCell, ['Attribute'])
-          ]),
+          headerRenderer: () => h(HeaderCell, ['Attribute']),
           cellRenderer: ({ rowIndex }) => {
+            const outputValue = configurationIndex => {
+              const destType = _.get('destination.type', configuredOutputDefinition[configurationIndex])
+              if (destType === 'record_update') {
+                return _.get('destination.record_attribute', configuredOutputDefinition[configurationIndex])
+              }
+              return ''
+            }
+
             return h(TextInput, {
               id: `output-parameter-${rowIndex}`,
               style: { display: 'block', width: '100%' },
-              defaultValue: outputValue(rowIndex, configuredOutputDefinition),
+              value: outputValue(outputTableData[rowIndex].configurationIndex),
               placeholder: '[Enter an attribute name to save this output to your data table]',
               onChange: value => {
+                const configurationIndex = outputTableData[rowIndex].configurationIndex
                 if (!!value && value !== '') {
-                  setConfiguredOutputDefinition(_.set(`${rowIndex}.destination`, { type: 'record_update', record_attribute: value }, configuredOutputDefinition))
+                  setConfiguredOutputDefinition(_.set(`${configurationIndex}.destination`, { type: 'record_update', record_attribute: value }, configuredOutputDefinition))
                 } else {
-                  setConfiguredOutputDefinition(_.set(`${rowIndex}.destination`, { type: 'none' }, configuredOutputDefinition))
+                  setConfiguredOutputDefinition(_.set(`${configurationIndex}.destination`, { type: 'none' }, configuredOutputDefinition))
                 }
               }
             })
