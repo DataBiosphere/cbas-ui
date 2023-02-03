@@ -280,7 +280,7 @@ export const inputsTable = props => {
     return h(TextInput, {
       id: `literal-input-${rowIndex}`,
       style: { display: 'block', width: '100%' },
-      defaultValue: _.get(`${rowIndex}.source.parameter_value`, inputTableData) || null,
+      value: _.get(`${rowIndex}.source.parameter_value`, inputTableData) || null,
       onChange: value => {
         const newSource = {
           type: _.get(`${rowIndex}.source.type`, inputTableData),
