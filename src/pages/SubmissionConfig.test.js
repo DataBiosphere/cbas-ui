@@ -675,9 +675,6 @@ describe('SubmissionConfig records selector', () => {
     const cells3 = within(rows[3]).queryAllByRole('cell')
     const cells4 = within(rows[4]).queryAllByRole('cell')
 
-    await act(async () => {
-      await fireEvent.click(within(headers[1]).getByRole('button'))
-    })
     within(cells1[1]).getByText('FOO1')
     within(cells2[1]).getByText('FOO2')
     within(cells3[1]).getByText('FOO3')

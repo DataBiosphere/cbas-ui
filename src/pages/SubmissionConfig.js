@@ -38,9 +38,9 @@ export const SubmissionConfig = ({ methodId }) => {
   const [runSetDescription, setRunSetDescription] = useState('')
 
   // TODO: this should probably be moved to a scope more local to the data selector
-  const [recordsTableSort, setRecordsTableSort] = useState({ field: 'name', direction: 'asc' })
-  const [inputTableSort, setInputTableSort] = useState({ field: 'taskVariable', direction: 'asc' })
-  const [outputTableSort, setOutputTableSort] = useState({ field: 'taskVariable', direction: 'asc' })
+  const [recordsTableSort, setRecordsTableSort] = useState({ field: 'id', direction: 'asc' })
+  const [inputTableSort, setInputTableSort] = useState({ field: 'taskName', direction: 'asc' })
+  const [outputTableSort, setOutputTableSort] = useState({ field: 'taskName', direction: 'asc' })
 
   const [displayLaunchModal, setDisplayLaunchModal] = useState(false)
   const [noRecordTypeData, setNoRecordTypeData] = useState(null)
