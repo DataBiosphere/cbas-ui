@@ -294,12 +294,14 @@ export const inputsTable = props => {
 
   const inputTableData = _.flow(
     // _.filter(({ namespace, name }) => Utils.textMatch(filter, `${namespace}/${name}`)),
-    _.map(row => {
+    _.entries,
+    _.map(([index, row]) => {
       const { workflow, call, variable } = parseMethodString(row.input_name)
       return _.flow([
         _.set('taskName', call || workflow || ''),
         _.set('variable', variable || ''),
-        _.set('inputTypeStr', Utils.renderTypeText(row.input_type))
+        _.set('inputTypeStr', Utils.renderTypeText(row.input_type)),
+        _.set('configurationIndex', parseInt(index))
       ])(row)
     }),
     _.orderBy([({ [inputTableSort.field]: field }) => _.lowerCase(field)], [inputTableSort.direction])
@@ -334,7 +336,7 @@ export const inputsTable = props => {
         {
           size: { basis: 160, grow: 0 },
           field: 'inputTypeStr',
-          headerRenderer: () => h(Sortable, { sort: inputTableSort, field: 'inputTypeStr', onSort: setInputTableSort }, [h(HeaderCell, ['Type'])]),
+          headerRenderer: () => h(HeaderCell, ['Type']),
           cellRenderer: ({ rowIndex }) => {
             return h(TextCell, { style: Utils.typeStyle(inputTableData[rowIndex].input_type) }, [inputTableData[rowIndex].inputTypeStr])
           }
@@ -362,7 +364,7 @@ export const inputsTable = props => {
                     [param]: ''
                   }
                 }
-                const newConfig = _.set(`${rowIndex}.source`, newSource, inputTableData)
+                const newConfig = _.set(`${inputTableData[rowIndex].configurationIndex}.source`, newSource, configuredInputDefinition)
                 setConfiguredInputDefinition(newConfig)
               },
               placeholder: 'Select Source',
@@ -379,9 +381,7 @@ export const inputsTable = props => {
           }
         },
         {
-          headerRenderer: () => h(Fragment, [
-            h(HeaderCell, ['Attribute'])
-          ]),
+          headerRenderer: () => h(HeaderCell, ['Attribute']),
           cellRenderer: ({ rowIndex }) => {
             const source = _.get(`${rowIndex}.source`, inputTableData)
             return Utils.switchCase(source.type || 'none',
@@ -394,12 +394,6 @@ export const inputsTable = props => {
       ]
     })
   }])
-}
-
-const outputValue = (rowIndex, outputDefinition) => {
-  return _.get(`${rowIndex}.destination.type`, outputDefinition) === 'record_update' ?
-    _.get(`${rowIndex}.destination.record_attribute`, outputDefinition) || null :
-    null
 }
 
 export const outputsTable = props => {
@@ -422,19 +416,9 @@ export const outputsTable = props => {
     _.orderBy([({ [outputTableSort.field]: field }) => _.lowerCase(field)], [outputTableSort.direction])
   )(configuredOutputDefinition)
 
-  console.log('outputTableData', outputTableData)
-
-  const updateOutputDefinition = (row, value) => {
-    if (!!value && value !== '') {
-      setConfiguredOutputDefinition(_.set(`${row}.destination`, { type: 'record_update', record_attribute: value }, configuredOutputDefinition))
-    } else {
-      setConfiguredOutputDefinition(_.set(`${row}.destination`, { type: 'none' }, configuredOutputDefinition))
-    }
-  }
-
   return h(AutoSizer, [({ width, height }) => {
     return h(FlexTable, {
-      'aria-label': 'input-table',
+      'aria-label': 'output-table',
       rowCount: outputTableData.length,
       sort: outputTableSort,
       readOnly: false,
@@ -460,25 +444,34 @@ export const outputsTable = props => {
         {
           size: { basis: 160, grow: 0 },
           field: 'outputTypeStr',
-          headerRenderer: () => h(Sortable, { sort: outputTableSort, field: 'outputTypeStr', onSort: setOutputTableSort }, [h(HeaderCell, ['Type'])]),
+          headerRenderer: () => h(HeaderCell, ['Type']),
           cellRenderer: ({ rowIndex }) => {
             return h(TextCell, {}, [outputTableData[rowIndex].outputTypeStr])
           }
         },
         {
-          headerRenderer: () => h(Fragment, [
-            h(HeaderCell, ['Attribute'])
-          ]),
+          headerRenderer: () => h(HeaderCell, ['Attribute']),
           cellRenderer: ({ rowIndex }) => {
+            const outputValue = configurationIndex => {
+              const destType = _.get('destination.type', configuredOutputDefinition[configurationIndex])
+              if (destType === 'record_update') {
+                return _.get('destination.record_attribute', configuredOutputDefinition[configurationIndex])
+              }
+              return ''
+            }
+
             return h(TextInput, {
               id: `output-parameter-${rowIndex}`,
               style: { display: 'block', width: '100%' },
-              defaultValue: outputValue(outputTableData[rowIndex].configurationIndex, configuredOutputDefinition),
-              value: outputValue(outputTableData[rowIndex].configurationIndex, configuredOutputDefinition),
+              value: outputValue(outputTableData[rowIndex].configurationIndex),
               placeholder: '[Enter an attribute name to save this output to your data table]',
               onChange: value => {
-                console.log('rowIndex', rowIndex, 'configIndex', outputTableData[rowIndex].configurationIndex, 'value', value)
-                updateOutputDefinition(outputTableData[rowIndex].configurationIndex, value)
+                const configurationIndex = outputTableData[rowIndex].configurationIndex
+                if (!!value && value !== '') {
+                  setConfiguredOutputDefinition(_.set(`${configurationIndex}.destination`, { type: 'record_update', record_attribute: value }, configuredOutputDefinition))
+                } else {
+                  setConfiguredOutputDefinition(_.set(`${configurationIndex}.destination`, { type: 'none' }, configuredOutputDefinition))
+                }
               }
             })
           }

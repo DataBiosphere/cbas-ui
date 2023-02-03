@@ -75,8 +75,6 @@ const runSetResponse = {
       method_id: '00000000-0000-0000-0000-000000000001',
       method_version_id: '50000000-0000-0000-0000-000000000006',
       is_template: true,
-      run_set_name: 'Target workflow 1, run 1',
-      run_set_description: 'Example run for target workflow 1',
       state: 'COMPLETE',
       record_type: 'FOO',
       submission_timestamp: '2022-12-07T17:26:53.153+00:00',
@@ -986,12 +984,7 @@ describe('SubmissionConfig inputs/outputs definitions', () => {
     const headers = within(rows[0]).queryAllByRole('columnheader')
     const cells1 = within(rows[1]).queryAllByRole('cell')
     const cells2 = within(rows[2]).queryAllByRole('cell')
-
-
-    // sort ascending by column 0
-    await act(async () => {
-      await fireEvent.click(within(headers[0]).getByRole('button'))
-    })
+    const cells3 = within(rows[3]).queryAllByRole('cell')
 
     within(cells1[0]).getByText('foo')
     within(cells1[1]).getByText('foo_rating_workflow_var')
@@ -1005,9 +998,15 @@ describe('SubmissionConfig inputs/outputs definitions', () => {
     within(cells2[3]).getByText('Fetch from Data Table')
     within(cells2[4]).getByText('bar_string')
 
-    // sort descending by column 0
+    within(cells3[0]).getByText('target_workflow_1')
+    within(cells3[1]).getByText('optional_var')
+    within(cells3[2]).getByText('String?')
+    within(cells3[3]).getByText('Type a Value')
+    within(cells3[4]).getByDisplayValue('Hello World')
+
+    // sort ascending by column 1
     await act(async () => {
-      await fireEvent.click(within(headers[0]).getByRole('button'))
+      await fireEvent.click(within(headers[1]).getByRole('button'))
     })
 
     within(cells1[0]).getByText('target_workflow_1')
@@ -1021,6 +1020,35 @@ describe('SubmissionConfig inputs/outputs definitions', () => {
     within(cells2[2]).getByText('Int')
     within(cells2[3]).getByText('Fetch from Data Table')
     within(cells2[4]).getByText('foo_rating')
+
+    within(cells3[0]).getByText('target_workflow_1')
+    within(cells3[1]).getByText('optional_var')
+    within(cells3[2]).getByText('String?')
+    within(cells3[3]).getByText('Type a Value')
+    within(cells3[4]).getByDisplayValue('Hello World')
+
+    // sort descending by column 1
+    await act(async () => {
+      await fireEvent.click(within(headers[1]).getByRole('button'))
+    })
+
+    within(cells1[0]).getByText('target_workflow_1')
+    within(cells1[1]).getByText('optional_var')
+    within(cells1[2]).getByText('String?')
+    within(cells1[3]).getByText('Type a Value')
+    within(cells1[4]).getByDisplayValue('Hello World')
+
+    within(cells2[0]).getByText('foo')
+    within(cells2[1]).getByText('foo_rating_workflow_var')
+    within(cells2[2]).getByText('Int')
+    within(cells2[3]).getByText('Fetch from Data Table')
+    within(cells2[4]).getByText('foo_rating')
+
+    within(cells3[0]).getByText('target_workflow_1')
+    within(cells3[1]).getByText('bar_string_workflow_var')
+    within(cells3[2]).getByText('String')
+    within(cells3[3]).getByText('Fetch from Data Table')
+    within(cells3[4]).getByText('bar_string')
   })
 
   it('should change output table sort order when column headers are clicked', async () => {
@@ -1068,12 +1096,19 @@ describe('SubmissionConfig inputs/outputs definitions', () => {
     const cells1 = within(rows[1]).queryAllByRole('cell')
     const cells2 = within(rows[2]).queryAllByRole('cell')
 
-    // console.log(prettyDOM(cells1[3]))
+    within(cells1[0]).getByText('target_workflow_1')
+    within(cells1[1]).getByText('file_output')
+    within(cells1[2]).getByText('File')
+    within(cells1[3]).getByDisplayValue('target_workflow_1_file_output')
 
+    within(cells2[0]).getByText('target_workflow_1')
+    within(cells2[1]).getByText('unused_output')
+    within(cells2[2]).getByText('String')
+    within(cells2[3]).getByDisplayValue('')
 
-    // sort ascending by column 2
+    // sort ascending by column 1
     await act(async () => {
-      await fireEvent.click(within(headers[2]).getByRole('button'))
+      await fireEvent.click(within(headers[1]).getByRole('button'))
     })
 
     within(cells1[0]).getByText('target_workflow_1')
@@ -1086,20 +1121,20 @@ describe('SubmissionConfig inputs/outputs definitions', () => {
     within(cells2[2]).getByText('String')
     within(cells2[3]).getByDisplayValue('')
 
-    // sort descending by column 0
+    // sort descending by column 1
     await act(async () => {
-      await fireEvent.click(within(headers[2]).getByRole('button'))
+      await fireEvent.click(within(headers[1]).getByRole('button'))
     })
+
+    within(cells1[0]).getByText('target_workflow_1')
+    within(cells1[1]).getByText('unused_output')
+    within(cells1[2]).getByText('String')
+    within(cells1[3]).getByDisplayValue('')
 
     within(cells2[0]).getByText('target_workflow_1')
     within(cells2[1]).getByText('file_output')
     within(cells2[2]).getByText('File')
     within(cells2[3]).getByDisplayValue('target_workflow_1_file_output')
-
-    // within(cells2[0]).getByText('target_workflow_1')
-    // within(cells2[1]).getByText('file_output')
-    // within(cells2[2]).getByText('File')
-    // within(cells2[3]).getByDisplayValue('target_workflow_1_file_output')
   })
 })
 

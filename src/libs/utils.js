@@ -163,7 +163,7 @@ export const convertValue = _.curry((type, value) => {
 
 export const typeStyle = iotype => {
   if (_.get('type', iotype) === 'optional') {
-    return { 'font-style': 'italic' }
+    return { fontStyle: 'italic' }
   } else {
     return {}
   }
