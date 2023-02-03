@@ -103,7 +103,6 @@ export const recordsTable = props => {
   const withDataTableNamePrefix = columnName => `${selectedDataTable.name}/${columnName}`
 
   const recordsTableData = _.flow(
-    // _.filter(({ namespace, name }) => Utils.textMatch(filter, `${namespace}/${name}`)),
     _.map(row => _.merge(row, _.forEach(a => _.set(a, _.get(`attributes.${a}`, row), row), row.attributes))),
     _.orderBy(
       [
@@ -293,7 +292,6 @@ export const inputsTable = props => {
   }
 
   const inputTableData = _.flow(
-    // _.filter(({ namespace, name }) => Utils.textMatch(filter, `${namespace}/${name}`)),
     _.entries,
     _.map(([index, row]) => {
       const { workflow, call, variable } = parseMethodString(row.input_name)

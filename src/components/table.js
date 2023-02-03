@@ -196,7 +196,7 @@ export const HeaderCell = props => {
 export const Sortable = ({ sort, field, onSort, children }) => {
   return h(IdContainer, [id => h(Clickable, {
     style: { flex: 1, display: 'flex', alignItems: 'center', cursor: 'pointer', width: '100%', height: '100%' },
-    onClick: () => { onSort(Utils.nextSort(sort, field)) },
+    onClick: () => onSort(Utils.nextSort(sort, field)),
     'aria-describedby': id
   }, [
     children,
