@@ -752,6 +752,70 @@ describe('SubmissionConfig records selector', () => {
 
     await screen.getByText(/Data table not found: BADFOO/)
   })
+
+  it('should toggle between different states of checked boxes', async () => {
+    const mockRunSetResponse = jest.fn(() => Promise.resolve(runSetResponse))
+    const mockMethodsResponse = jest.fn(() => Promise.resolve(methodsResponse))
+    const mockSearchResponse = jest.fn(recordType => Promise.resolve(searchResponses[recordType]))
+    const mockTypesResponse = jest.fn(() => Promise.resolve(typesResponse))
+
+    await Ajax.mockImplementation(() => {
+      return {
+        Cbas: {
+          runSets: {
+            getForMethod: mockRunSetResponse
+          },
+          methods: {
+            getById: mockMethodsResponse
+          }
+        },
+        Wds: {
+          search: {
+            post: mockSearchResponse
+          },
+          types: {
+            get: mockTypesResponse
+          }
+        }
+      }
+    })
+
+    render(h(SubmissionConfig))
+
+    // ** ASSERT **
+    await waitFor(() => {
+      expect(mockRunSetResponse).toHaveBeenCalledTimes(1)
+      expect(mockTypesResponse).toHaveBeenCalledTimes(1)
+      expect(mockMethodsResponse).toHaveBeenCalledTimes(0)
+      expect(mockSearchResponse).toHaveBeenCalledTimes(0)
+    })
+
+    // after the initial render (not before), records data should have been retrieved once
+    await waitFor(() => {
+      expect(mockSearchResponse).toHaveBeenCalledTimes(1)
+      expect(mockMethodsResponse).toHaveBeenCalledTimes(1)
+    })
+
+    const checkboxes = screen.getAllByRole('checkbox')
+    const checkbox = checkboxes[0]
+    expect(checkbox).not.toBeChecked()
+
+    // Checking all the checkboxes
+    fireEvent.click(checkbox)
+    expect(checkbox).toBeChecked()
+
+    for (const checkbox in checkboxes) {
+      const singleCheckbox = checkboxes[checkbox]
+      expect(singleCheckbox).toBeChecked()
+    }
+
+    // Unchecking all the checkboxes
+    fireEvent.click(checkbox)
+    for (const checkbox in checkboxes) {
+      const singleCheckbox = checkboxes[checkbox]
+      expect(singleCheckbox).not.toBeChecked()
+    }
+  })
 })
 
 describe('SubmissionConfig inputs/outputs definitions', () => {
