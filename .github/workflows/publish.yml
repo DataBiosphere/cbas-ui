@@ -119,7 +119,7 @@ jobs:
           restore-keys: ${{ runner.os }}-sonar
 
       - name: SonarQube scan
-        #run: ./gradlew --build-cache sonarqube # Update this
+        uses: actions/checkout@v2
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
