@@ -13,6 +13,15 @@ on:
       tagOverride:
         description: 'Specify the tag to use for this publish'
         required: true
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - 'README.md'
+  pull_request:
+    branches: [ '**' ]
+    paths-ignore:
+      - 'README.md'
 
 env:
   SERVICE_NAME: cbas-ui
@@ -93,3 +102,26 @@ jobs:
           git config --global user.email "broadbot@broadinstitute.org"
           git commit -am "Auto update CBAS UI version to $HELM_NEW_TAG"
           git push https://broadbot:$BROADBOT_TOKEN@github.com/broadinstitute/cromwhelm.git main
+
+  sonarqube:
+    needs: [ build ]
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+        # Needed by sonar to get the git history for the branch the PR will be merged into.
+        with:
+          fetch-depth: 0
+
+      - name: Cache SonarCloud packages
+        uses: actions/cache@v1
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
+
+      - name: SonarQube scan
+        run: ./gradlew --build-cache sonarqube # Update this
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
