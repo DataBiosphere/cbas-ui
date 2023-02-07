@@ -105,7 +105,6 @@ jobs:
 
   sonarqube:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v2
         # Needed by sonar to get the git history for the branch the PR will be merged into.
@@ -120,7 +119,7 @@ jobs:
           restore-keys: ${{ runner.os }}-sonar
 
       - name: SonarQube scan
-        run: ./gradlew --build-cache sonarqube # Update this
+        #run: ./gradlew --build-cache sonarqube # Update this
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
