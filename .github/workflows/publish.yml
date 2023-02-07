@@ -104,7 +104,6 @@ jobs:
           git push https://broadbot:$BROADBOT_TOKEN@github.com/broadinstitute/cromwhelm.git main
 
   sonarqube:
-    needs: [ build ]
     runs-on: ubuntu-latest
 
     steps:
