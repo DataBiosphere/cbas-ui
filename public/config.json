@@ -1,5 +1,6 @@
 {
   "cbasUrlRoot" : "http://localhost:3000",
   "cromwellUrlRoot" : "http://localhost:3000/cromwell",
-  "wdsUrlRoot" : "http://localhost:3000/wds"
+  "wdsUrlRoot" : "http://localhost:3000/wds",
+  "wdsInstanceId": ""
 }
