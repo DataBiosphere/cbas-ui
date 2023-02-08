@@ -103,13 +103,23 @@ jobs:
           git commit -am "Auto update CBAS UI version to $HELM_NEW_TAG"
           git push https://broadbot:$BROADBOT_TOKEN@github.com/broadinstitute/cromwhelm.git main
 
-  sonarqube:
+  sonarcloud:
+    name: SonarCloud
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
         # Needed by sonar to get the git history for the branch the PR will be merged into.
         with:
           fetch-depth: 0
+      - name: Install dependencies
+        run: yarn
+      - name: Test and coverage
+        run: yarn jest --coverage
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
       - name: Cache SonarCloud packages
         uses: actions/cache@v1
@@ -117,9 +127,3 @@ jobs:
           path: ~/.sonar/cache
           key: ${{ runner.os }}-sonar
           restore-keys: ${{ runner.os }}-sonar
-
-      - name: SonarQube scan
-        uses: actions/checkout@v2
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
