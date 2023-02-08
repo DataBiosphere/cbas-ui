@@ -108,8 +108,8 @@ const Cromwell = signal => ({
   }
 })
 
-// TODO: how to get these values?
-const wdsInstanceId = getConfig().wdsInstanceId
+// this hard-coded fallback UUID is a holdover from our local testing configuration.
+const wdsInstanceId = getConfig().wdsInstanceId || '15f36863-30a5-4cab-91f7-52be439f1175'
 const wdsApiVersion = getConfig().wdsApiVersion || 'v0.2'
 const searchPayload = {}
 
