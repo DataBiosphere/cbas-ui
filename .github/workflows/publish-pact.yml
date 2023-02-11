@@ -32,8 +32,11 @@ jobs:
         env:
           PACT_FULL_PATH: 'pacts/${{inputs.pact-file}}'
         run: |
+          echo $PACT_FULL_PATH
+          echo $(ls pacts)
           NON_BREAKING_B64=$(cat $PACT_FULL_PATH | base64 -w 0)
           echo "nb-b64=${NON_BREAKING_B64}" >> $GITHUB_OUTPUT
+          echo $NON_BREAKING_B64
 
   publish-pact-workflow:
     runs-on: ubuntu-latest
