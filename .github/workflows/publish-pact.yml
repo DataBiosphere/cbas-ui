@@ -36,7 +36,6 @@ jobs:
           token: ${{ secrets.BROADBOT_TOKEN }}
 
       - name: Encode the pact as non-breaking base 64 string
-        uses: databiosphere/github-actions/actions/bumper@bumper-0.0.6
         id: encode
         env:
           PACT_FULL_PATH: 'pacts/${{inputs.pact-file}}'
