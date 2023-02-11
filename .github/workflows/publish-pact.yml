@@ -3,16 +3,8 @@ name: Publish pacts to the Pact Broker
 on:
   workflow_dispatch:
     inputs:
-      consumer-name:
-        description: 'URL-encoded consumer name'
-        required: true
-        type: string
       consumer-version:
         description: 'The consumer version that generated the pact file. Should either be or contain the commit (ie the git SHA)'
-        required: true
-        type: string
-      provider-name:
-        description: 'URL-encoded provider name'
         required: true
         type: string
       pact-file:
