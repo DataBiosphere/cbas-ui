@@ -19,7 +19,7 @@ jobs:
       contents: 'read'
       id-token: 'write'
     outputs:
-      nb-64: ${{ steps.encode.outputs.nb-64 }}
+      nb-b64: ${{ steps.encode.outputs.nb-b64 }}
 
     steps:
       - name: Checkout cbas-ui repository with pacts directory
