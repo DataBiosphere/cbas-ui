@@ -53,6 +53,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["github-markdown-css", "npm:4.0.0"],\
             ["history", "npm:4.10.1"],\
             ["html-webpack-plugin", "virtual:fb20b3957fc03094516f4839bd921e6cbe6fbbbdf6e579aef6a9e0d78799f936b29bbbdf85e777033619e8c90d7b9339b4056e75490ce5faba123bfbab64860f#npm:5.5.0"],\
+            ["http-cache-semantics", "npm:4.1.1"],\
             ["http-proxy-middleware", "virtual:fb20b3957fc03094516f4839bd921e6cbe6fbbbdf6e579aef6a9e0d78799f936b29bbbdf85e777033619e8c90d7b9339b4056e75490ce5faba123bfbab64860f#npm:2.0.6"],\
             ["husky", "npm:7.0.4"],\
             ["lodash", "npm:4.17.21"],\
@@ -7285,6 +7286,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["github-markdown-css", "npm:4.0.0"],\
             ["history", "npm:4.10.1"],\
             ["html-webpack-plugin", "virtual:fb20b3957fc03094516f4839bd921e6cbe6fbbbdf6e579aef6a9e0d78799f936b29bbbdf85e777033619e8c90d7b9339b4056e75490ce5faba123bfbab64860f#npm:5.5.0"],\
+            ["http-cache-semantics", "npm:4.1.1"],\
             ["http-proxy-middleware", "virtual:fb20b3957fc03094516f4839bd921e6cbe6fbbbdf6e579aef6a9e0d78799f936b29bbbdf85e777033619e8c90d7b9339b4056e75490ce5faba123bfbab64860f#npm:2.0.6"],\
             ["husky", "npm:7.0.4"],\
             ["lodash", "npm:4.17.21"],\
@@ -10835,6 +10837,13 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageLocation": "./.yarn/cache/http-cache-semantics-npm-4.1.0-860520a31f-974de94a81.zip/node_modules/http-cache-semantics/",\
           "packageDependencies": [\
             ["http-cache-semantics", "npm:4.1.0"]\
+          ],\
+          "linkType": "HARD"\
+        }],\
+        ["npm:4.1.1", {\
+          "packageLocation": "./.yarn/cache/http-cache-semantics-npm-4.1.1-1120131375-83ac0bc60b.zip/node_modules/http-cache-semantics/",\
+          "packageDependencies": [\
+            ["http-cache-semantics", "npm:4.1.1"]\
           ],\
           "linkType": "HARD"\
         }]\

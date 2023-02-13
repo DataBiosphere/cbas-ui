@@ -16,6 +16,7 @@
     "filesize": "^7.0.0",
     "github-markdown-css": "^4.0.0",
     "history": "^4.10.1",
+    "http-cache-semantics": "^4.1.1",
     "http-proxy-middleware": "^2.0.6",
     "lodash": "^4.17.21",
     "path-to-regexp": "^5.0.0",
