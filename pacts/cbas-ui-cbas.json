@@ -1,6 +1,6 @@
 {
   "consumer": {
-    "name": "cbas-ui:SubmissionHistory"
+    "name": "cbas-ui"
   },
   "interactions": [
     {

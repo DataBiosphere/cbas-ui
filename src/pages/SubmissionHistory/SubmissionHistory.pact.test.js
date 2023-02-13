@@ -44,7 +44,7 @@ const runSetBodyExpectation = {
 }
 
 const provider = new PactV3({
-  consumer: 'cbas-ui:SubmissionHistory',
+  consumer: 'cbas-ui',
   provider: 'cbas',
   log: path.resolve(process.cwd(), 'logs', 'pact.log'),
   logLevel: 'warn',
