@@ -68,8 +68,8 @@ export const SubmissionHistory = () => {
       RUNNING: 'Running',
       COMPLETE: 'Success',
       ERROR: h(
-        Link,
-        { onClick: () => window.alert('TODO: API call to retrieve error messages for this Run Set') },
+        TextCell,
+        { style: { whiteSpace: 'pre-wrap', wordBreak: 'break-word' } },
         [`Failed with ${errorCount} errors`])
     }
 
