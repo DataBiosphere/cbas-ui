@@ -22,6 +22,10 @@ on:
     branches: [ '**' ]
     paths-ignore:
       - 'README.md'
+  merge_group:
+    branches: [ '**' ]
+    paths-ignore:
+      - 'README.md'
 
 env:
   SERVICE_NAME: cbas-ui
