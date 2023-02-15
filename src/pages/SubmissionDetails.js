@@ -4,7 +4,7 @@ import { div, h, h2, h3 } from 'react-hyperscript-helpers'
 import ReactJson from 'react-json-view'
 import { AutoSizer } from 'react-virtualized'
 import { ButtonPrimary, Link, Navbar, Select } from 'src/components/common'
-import { centeredSpinner, spinner } from 'src/components/icons'
+import { centeredSpinner } from 'src/components/icons'
 import { HeaderSection, statusType, SubmitNewWorkflowButton } from 'src/components/job-common'
 import Modal from 'src/components/Modal'
 import { AutoRefreshInterval, makeStatusLine } from 'src/components/submission-common'
@@ -167,7 +167,7 @@ export const SubmissionDetails = ({ submissionId }) => {
 
   const rowWidth = 100
   const rowHeight = 50
-  return div({ id: 'submission-details-page' }, [
+  return loading ? centeredSpinner() : div({ id: 'submission-details-page' }, [
     Navbar('SUBMIT WORKFLOWS WITH CROMWELL'),
     div({
       style: {
@@ -178,10 +178,10 @@ export const SubmissionDetails = ({ submissionId }) => {
     }, [
       div({ style: { marginLeft: '4em', lineHeight: 1.25 } }, [
         header,
-        h2(['Submission name: ', loading ? spinner({ message: '' }) : filteredRunSets[0]?.run_set_name]),
-        h3(['Workflow name: ', loading ? spinner({ message: '' }) : getSpecificMethod[0]?.name]),
-        h3(['Submission date: ', loading ? spinner({ message: '' }) : filteredRunSets[0] && makeCompleteDate(filteredRunSets[0].submission_timestamp)]),
-        h3(['Duration: ', loading ? spinner({ message: '' }) : filteredRunSets[0] && customFormatDuration(duration(filteredRunSets[0]))])
+        h2(['Submission name: ', filteredRunSets[0]?.run_set_name]),
+        h3(['Workflow name: ', getSpecificMethod[0]?.name]),
+        h3(['Submission date: ', filteredRunSets[0] && makeCompleteDate(filteredRunSets[0].submission_timestamp)]),
+        h3(['Duration: ', filteredRunSets[0] && customFormatDuration(duration(filteredRunSets[0]))])
       ])
     ]),
     div({
@@ -192,7 +192,7 @@ export const SubmissionDetails = ({ submissionId }) => {
         flexDirection: 'column',
         padding: '1rem 3rem'
       }
-    }, loading ? [centeredSpinner({ message: '' })] : [
+    }, [
       div({
         style: {
           marginTop: '1em', height: tableHeight({ actualRows: paginatedPreviousRuns.length, maxRows: 12.5, heightPerRow: 250 }), minHeight: '10em'

@@ -3,7 +3,7 @@ import { Fragment, useRef, useState } from 'react'
 import { div, h, h2 } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import { ButtonOutline, Link, Navbar } from 'src/components/common'
-import { icon } from 'src/components/icons'
+import { centeredSpinner, icon } from 'src/components/icons'
 import { AutoRefreshInterval, makeStatusLine, statusType } from 'src/components/submission-common'
 import { FlexTable, paginator, Sortable, tableHeight, TextCell } from 'src/components/table'
 import { Ajax } from 'src/libs/ajax'
@@ -19,6 +19,7 @@ export const SubmissionHistory = () => {
   const [pageNumber, setPageNumber] = useState(1)
   const [itemsPerPage, setItemsPerPage] = useState(50)
   const [runSetsData, setRunSetData] = useState()
+  const [loading, setLoading] = useState(false)
 
   const signal = useCancellation()
   const scheduledRefresh = useRef()
@@ -53,7 +54,8 @@ export const SubmissionHistory = () => {
   }
 
   useOnMount(async () => {
-    await refresh()
+    setLoading(true)
+    await refresh().then(() => setLoading(false))
 
     return () => {
       if (scheduledRefresh.current) {
@@ -92,7 +94,7 @@ export const SubmissionHistory = () => {
 
   const rowHeight = 250
 
-  return h(Fragment, [
+  return loading ? centeredSpinner() : h(Fragment, [
     Navbar(),
     div({ style: { margin: '4em' } }, [
       div({ style: { display: 'flex', marginTop: '1rem', justifyContent: 'space-between' } }, [

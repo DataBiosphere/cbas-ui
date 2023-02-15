@@ -1,7 +1,7 @@
 import { Fragment, useState } from 'react'
 import { div, h, h2, span } from 'react-hyperscript-helpers'
 import { ButtonOutline, Clickable, Navbar } from 'src/components/common'
-import { icon } from 'src/components/icons'
+import { centeredSpinner, icon } from 'src/components/icons'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import * as Nav from 'src/libs/nav'
@@ -25,6 +25,7 @@ export const SubmitWorkflow = () => {
   // State
   const [cbasStatus, setCbasStatus] = useState()
   const [methodsData, setMethodsData] = useState()
+  const [loading, setLoading] = useState(false)
 
   const signal = useCancellation()
 
@@ -42,12 +43,12 @@ export const SubmitWorkflow = () => {
         notify('error', 'Error loading saved workflows', { detail: await (error instanceof Response ? error.text() : error) })
       }
     }
-
+    setLoading(true)
     loadCbasStatus()
-    loadRunsData()
+    loadRunsData().then(() => setLoading(false))
   })
 
-  return div([
+  return loading ? centeredSpinner() : div([
     Navbar(),
     div({ style: { margin: '4rem' } }, [
       div({ style: { display: 'flex', marginTop: '1rem', justifyContent: 'space-between' } }, [
