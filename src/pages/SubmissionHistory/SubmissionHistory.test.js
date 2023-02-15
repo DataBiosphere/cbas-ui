@@ -1,6 +1,6 @@
 import '@testing-library/jest-dom'
 
-import { act, fireEvent, render, screen, within } from '@testing-library/react'
+import { act, fireEvent, render, screen, within, waitFor } from '@testing-library/react'
 import { h } from 'react-hyperscript-helpers'
 import { Ajax } from 'src/libs/ajax'
 import { SubmissionHistory } from 'src/pages/SubmissionHistory/SubmissionHistory'
@@ -101,7 +101,10 @@ describe('SubmissionHistory page', () => {
     render(h(SubmissionHistory))
 
     // Assert
-    expect(getRunSetsMethod).toBeCalledTimes(1)
+    await waitFor(() => {
+      expect(getRunSetsMethod).toBeCalledTimes(1)
+    })
+    
 
     const table = screen.getByRole('table')
     expect(table).toHaveAttribute('aria-colcount', '6')
