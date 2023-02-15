@@ -102,19 +102,6 @@ describe('Submission Details page', () => {
     Object.defineProperty(HTMLElement.prototype, 'offsetWidth', { configurable: true, value: 800 })
   })
 
-  beforeEach(() => {
-    const getRunsMethod = jest.fn(() => Promise.resolve(runsData))
-    Ajax.mockImplementation(() => {
-      return {
-        Cbas: {
-          runs: {
-            get: getRunsMethod
-          }
-        }
-      }
-    })
-  })
-
   afterEach(() => {
     jest.clearAllMocks()
   })
@@ -125,9 +112,34 @@ describe('Submission Details page', () => {
   })
 
   it('should correctly display previous 2 runs', async () => {
+    const getRuns = jest.fn(() => Promise.resolve(runsData))
+    const getRunsSets = jest.fn(() => Promise.resolve(runSetData))
+    const getMethods = jest.fn(() => Promise.resolve(methodData))
+    Ajax.mockImplementation(() => {
+      return {
+        Cbas: {
+          runs: {
+            get: getRuns
+          },
+          runSets: {
+            get: getRunsSets
+          },
+          methods: {
+            getByMethodVersionId: getMethods
+          }
+        }
+      }
+    })
+
     // Act
     await act(async () => {
       await render(h(SubmissionDetails))
+    })
+
+    await waitFor(() => {
+      expect(getRuns).toHaveBeenCalledTimes(1)
+      expect(getRunsSets).toHaveBeenCalledTimes(1)
+      expect(getMethods).toHaveBeenCalledTimes(1)
     })
 
     const table = screen.getByRole('table')
@@ -162,11 +174,37 @@ describe('Submission Details page', () => {
     within(cellsFromDataRow2[3]).getByText('55b36a53-2ff3-41d0-adc4-abc08aea88ad')
   })
 
-  it('should display standard message when there are no saved workflows', () => {
+  it('should display standard message when there are no saved workflows', async () => {
+    const getRuns = jest.fn(() => Promise.resolve([]))
+    const getRunsSets = jest.fn(() => Promise.resolve(runSetData))
+    const getMethods = jest.fn(() => Promise.resolve(methodData))
+    Ajax.mockImplementation(() => {
+      return {
+        Cbas: {
+          runs: {
+            get: getRuns
+          },
+          runSets: {
+            get: getRunsSets
+          },
+          methods: {
+            getByMethodVersionId: getMethods
+          }
+        }
+      }
+    })
+
     // Act
-    act(async () => {
+    await act(async () => {
       await render(h(SubmissionDetails, { submissionId }))
     })
+
+    await waitFor(() => {
+      expect(getRuns).toHaveBeenCalledTimes(1)
+      expect(getRunsSets).toHaveBeenCalledTimes(1)
+      expect(getMethods).toHaveBeenCalledTimes(1)
+    })
+
     const table = screen.getByRole('table')
 
     // Assert
@@ -178,6 +216,25 @@ describe('Submission Details page', () => {
   })
 
   it('should sort columns properly', async () => {
+    const getRuns = jest.fn(() => Promise.resolve(runsData))
+    const getRunsSets = jest.fn(() => Promise.resolve(runSetData))
+    const getMethods = jest.fn(() => Promise.resolve(methodData))
+    Ajax.mockImplementation(() => {
+      return {
+        Cbas: {
+          runs: {
+            get: getRuns
+          },
+          runSets: {
+            get: getRunsSets
+          },
+          methods: {
+            getByMethodVersionId: getMethods
+          }
+        }
+      }
+    })
+
     // Act - click on sort button on Submitted column to sort submission timestamp by ascending order
     await act(async () => {
       await render(h(SubmissionDetails))
@@ -211,11 +268,15 @@ describe('Submission Details page', () => {
   })
 
   it('display run set details', async () => {
+    const getRuns = jest.fn(() => Promise.resolve(runsData))
     const getRunsSets = jest.fn(() => Promise.resolve(runSetData))
     const getMethods = jest.fn(() => Promise.resolve(methodData))
     await Ajax.mockImplementation(() => {
       return {
         Cbas: {
+          runs: {
+            get: getRuns
+          },
           runSets: {
             get: getRunsSets
           },
@@ -251,8 +312,36 @@ describe('Submission Details page', () => {
 
 
   it('should correctly select and change results', async () => {
+    const getRuns = jest.fn(() => Promise.resolve(runsData))
+    const getRunsSets = jest.fn(() => Promise.resolve(runSetData))
+    const getMethods = jest.fn(() => Promise.resolve(methodData))
+    Ajax.mockImplementation(() => {
+      return {
+        Cbas: {
+          runs: {
+            get: getRuns
+          },
+          runSets: {
+            get: getRunsSets
+          },
+          methods: {
+            getByMethodVersionId: getMethods
+          }
+        }
+      }
+    })
+
     await act(async () => {
       await render(h(SubmissionDetails))
+    })
+
+    await waitFor(() => {
+      expect(getRuns).toHaveBeenCalledTimes(1)
+      expect(getRunsSets).toHaveBeenCalledTimes(1)
+      expect(getMethods).toHaveBeenCalledTimes(1)
+    })
+
+    await act(async () => {
       const dropdown = screen.getByLabelText('Filter selection')
       await selectEvent.select(dropdown, ['Error'])
     })
