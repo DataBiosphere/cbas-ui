@@ -4,6 +4,7 @@ import { div, h, h2, h3 } from 'react-hyperscript-helpers'
 import ReactJson from 'react-json-view'
 import { AutoSizer } from 'react-virtualized'
 import { ButtonPrimary, Link, Navbar, Select } from 'src/components/common'
+import { centeredSpinner, spinner } from 'src/components/icons'
 import { HeaderSection, statusType, SubmitNewWorkflowButton } from 'src/components/job-common'
 import Modal from 'src/components/Modal'
 import { AutoRefreshInterval, makeStatusLine } from 'src/components/submission-common'
@@ -25,6 +26,7 @@ export const SubmissionDetails = ({ submissionId }) => {
   const [viewOutputsId, setViewOutputsId] = useState()
   const [viewErrorsId, setViewErrorsId] = useState()
   const [runsData, setRunsData] = useState()
+  const [loading, setLoading] = useState(false)
 
   const [runSetData, setRunSetData] = useState()
   const [methodsData, setMethodsData] = useState()
@@ -104,8 +106,6 @@ export const SubmissionDetails = ({ submissionId }) => {
   }
 
   useOnMount(async () => {
-    await refresh()
-
     const loadRunSetData = async () => {
       try {
         const getRunSets = await Ajax(signal).Cbas.runSets.get()
@@ -128,7 +128,9 @@ export const SubmissionDetails = ({ submissionId }) => {
       }
     }
 
-    loadRunSetData().then(runSet => runSet && loadMethodsData(runSet.method_version_id))
+    setLoading(true)
+    await refresh()
+    loadRunSetData().then(runSet => runSet && loadMethodsData(runSet.method_version_id)).then(() => setLoading(false))
 
     return () => {
       if (scheduledRefresh.current) {
@@ -137,8 +139,8 @@ export const SubmissionDetails = ({ submissionId }) => {
     }
   })
 
-  const specifyRunSet = _.filter(r => r.run_set_id === submissionId, runSetData)
-  const methodId = specifyRunSet[0]?.method_id
+  const filteredRunSets = _.filter(r => r.run_set_id === submissionId, runSetData)
+  const methodId = filteredRunSets[0]?.method_id
   const getSpecificMethod = _.filter(m => m.method_id === methodId, methodsData)
 
   const errorStates = ['SYSTEM_ERROR', 'EXECUTOR_ERROR']
@@ -176,10 +178,10 @@ export const SubmissionDetails = ({ submissionId }) => {
     }, [
       div({ style: { marginLeft: '4em', lineHeight: 1.25 } }, [
         header,
-        h2(['Submission name: ', specifyRunSet[0]?.run_set_name]),
-        h3(['Workflow name: ', getSpecificMethod[0]?.name]),
-        h3(['Submission date: ', specifyRunSet[0] && makeCompleteDate(specifyRunSet[0].submission_timestamp)]),
-        h3(['Duration: ', specifyRunSet[0] && customFormatDuration(duration(specifyRunSet[0]))])
+        h2(['Submission name: ', loading ? spinner({ message: '' }) : filteredRunSets[0]?.run_set_name]),
+        h3(['Workflow name: ', loading ? spinner({ message: '' }) : getSpecificMethod[0]?.name]),
+        h3(['Submission date: ', loading ? spinner({ message: '' }) : filteredRunSets[0] && makeCompleteDate(filteredRunSets[0].submission_timestamp)]),
+        h3(['Duration: ', loading ? spinner({ message: '' }) : filteredRunSets[0] && customFormatDuration(duration(filteredRunSets[0]))])
       ])
     ]),
     div({
@@ -190,7 +192,7 @@ export const SubmissionDetails = ({ submissionId }) => {
         flexDirection: 'column',
         padding: '1rem 3rem'
       }
-    }, [
+    }, loading ? [centeredSpinner({ message: '' })] : [
       div({
         style: {
           marginTop: '1em', height: tableHeight({ actualRows: paginatedPreviousRuns.length, maxRows: 12.5, heightPerRow: 250 }), minHeight: '10em'
