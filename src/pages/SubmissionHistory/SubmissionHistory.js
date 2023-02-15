@@ -4,7 +4,7 @@ import { div, h, h2 } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import { ButtonOutline, Link, Navbar } from 'src/components/common'
 import { icon } from 'src/components/icons'
-import { AutoRefreshInterval, makeStatusLine, statusType } from 'src/components/submission-common'
+import { AutoRefreshInterval, getDuration, isRunSetInTerminalState, makeStatusLine, statusType } from 'src/components/submission-common'
 import { FlexTable, paginator, Sortable, tableHeight, TextCell } from 'src/components/table'
 import { Ajax } from 'src/libs/ajax'
 import * as Nav from 'src/libs/nav'
@@ -23,24 +23,11 @@ export const SubmissionHistory = () => {
   const signal = useCancellation()
   const scheduledRefresh = useRef()
 
-  const RunSetTerminalStates = ['ERROR', 'COMPLETE']
-  const isRunSetInTerminalState = runSetStatus => RunSetTerminalStates.includes(runSetStatus)
-
-  const runSetDuration = ({
-    state,
-    submission_timestamp: submitted,
-    last_modified_timestamp: modified
-  }) => {
-    return isRunSetInTerminalState(state) ?
-      Utils.differenceFromDatesInSeconds(submitted, modified) :
-      Utils.differenceFromNowInSeconds(submitted)
-  }
-
   // helper for auto-refresh
   const refresh = async () => {
     try {
       const runSets = await Ajax(signal).Cbas.runSets.get()
-      const mergedRunSets = _.map(r => _.merge(r, { duration: runSetDuration(r) }), runSets.run_sets)
+      const mergedRunSets = _.map(r => _.merge(r, { duration: getDuration(r.state, r.submission_timestamp, r.last_modified_timestamp, isRunSetInTerminalState) }), runSets.run_sets)
       setRunSetData(mergedRunSets)
 
       // only refresh if there are Run Sets in non-terminal state
@@ -182,7 +169,8 @@ export const SubmissionHistory = () => {
                   field: 'duration',
                   headerRenderer: () => h(Sortable, { sort, field: 'duration', onSort: setSort }, ['Duration']),
                   cellRenderer: ({ rowIndex }) => {
-                    return h(TextCell, [Utils.customFormatDuration(runSetDuration(paginatedPreviousRunSets[rowIndex]))])
+                    const row = paginatedPreviousRunSets[rowIndex]
+                    return h(TextCell, [Utils.customFormatDuration(getDuration(row.state, row.submission_timestamp, row.last_modified_timestamp, isRunSetInTerminalState))])
                   }
                 },
                 {
