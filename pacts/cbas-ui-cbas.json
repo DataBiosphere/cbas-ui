@@ -1,6 +1,6 @@
 {
   "consumer": {
-    "name": "cbas-ui:SubmissionHistory"
+    "name": "cbas-ui"
   },
   "interactions": [
     {
@@ -12,29 +12,31 @@
       ],
       "request": {
         "headers": {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json; charset=utf-8"
         },
         "method": "GET",
         "path": "/api/batch/v1/run_sets"
       },
       "response": {
-        "body": [
-          {
-            "error_count": 0,
-            "last_modified_timestamp": "2022-01-02T13:01:01.000+00:00",
-            "record_type": "FOO",
-            "run_count": 1,
-            "run_set_id": "ea001565-1cd6-4e43-b446-932ac1918081",
-            "state": "COMPLETE",
-            "submission_timestamp": "2022-01-01T12:00:00.000+00:00"
-          }
-        ],
+        "body": {
+          "run_sets": [
+            {
+              "error_count": 0,
+              "last_modified_timestamp": "2022-01-02T13:01:01.000+00:00",
+              "record_type": "FOO",
+              "run_count": 1,
+              "run_set_id": "ea001565-1cd6-4e43-b446-932ac1918081",
+              "state": "COMPLETE",
+              "submission_timestamp": "2022-01-01T12:00:00.000+00:00"
+            }
+          ]
+        },
         "headers": {
           "Content-Type": "application/json"
         },
         "matchingRules": {
           "body": {
-            "$": {
+            "$.run_sets": {
               "combine": "AND",
               "matchers": [
                 {
@@ -42,7 +44,7 @@
                 }
               ]
             },
-            "$[*].error_count": {
+            "$.run_sets[*].error_count": {
               "combine": "AND",
               "matchers": [
                 {
@@ -50,7 +52,7 @@
                 }
               ]
             },
-            "$[*].last_modified_timestamp": {
+            "$.run_sets[*].last_modified_timestamp": {
               "combine": "AND",
               "matchers": [
                 {
@@ -59,7 +61,7 @@
                 }
               ]
             },
-            "$[*].record_type": {
+            "$.run_sets[*].record_type": {
               "combine": "AND",
               "matchers": [
                 {
@@ -67,7 +69,7 @@
                 }
               ]
             },
-            "$[*].run_count": {
+            "$.run_sets[*].run_count": {
               "combine": "AND",
               "matchers": [
                 {
@@ -75,7 +77,7 @@
                 }
               ]
             },
-            "$[*].run_set_id": {
+            "$.run_sets[*].run_set_id": {
               "combine": "AND",
               "matchers": [
                 {
@@ -84,7 +86,7 @@
                 }
               ]
             },
-            "$[*].state": {
+            "$.run_sets[*].state": {
               "combine": "AND",
               "matchers": [
                 {
@@ -93,7 +95,7 @@
                 }
               ]
             },
-            "$[*].submission_timestamp": {
+            "$.run_sets[*].submission_timestamp": {
               "combine": "AND",
               "matchers": [
                 {

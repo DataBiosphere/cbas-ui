@@ -15,7 +15,7 @@ const {
   regex
 } = MatchersV3
 
-const runSetBodyExample = responses['GET /api/batch/v1/run_sets'][0]
+const runSetBodyExample = responses['GET /api/batch/v1/run_sets'].run_sets[0]
 
 const runSetBodyExpectation = {
   error_count: integer(0),
@@ -44,7 +44,7 @@ const runSetBodyExpectation = {
 }
 
 const provider = new PactV3({
-  consumer: 'cbas-ui:SubmissionHistory',
+  consumer: 'cbas-ui',
   provider: 'cbas',
   log: path.resolve(process.cwd(), 'logs', 'pact.log'),
   logLevel: 'warn',
@@ -63,23 +63,23 @@ describe('get run sets', () => {
       withRequest: {
         method: 'GET',
         path: '/api/batch/v1/run_sets',
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json; charset=utf-8' }
       },
       willRespondWith: {
         status: 200,
         headers: {
           'Content-Type': 'application/json'
         },
-        body: eachLike(runSetBodyExpectation)
+        body: { run_sets: eachLike(runSetBodyExpectation) }
       }
     })
 
     await provider.executeTest(async mockService => {
       // make request to Pact mock server
-      const result = await fetchOk(`${mockService.url}/api/batch/v1/run_sets`, { method: 'GET', headers: { 'Content-Type': 'application/json' } })
+      const result = await fetchOk(`${mockService.url}/api/batch/v1/run_sets`, { method: 'GET', headers: { 'Content-Type': 'application/json; charset=utf-8' } })
       const runSets = await result.json()
       console.log(runSets)
-      expect(runSets).toStrictEqual([runSetBodyExample])
+      expect(runSets).toStrictEqual({run_sets: [runSetBodyExample]})
     })
   })
 })
