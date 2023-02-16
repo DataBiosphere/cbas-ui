@@ -93,7 +93,7 @@ export const SubmissionHistory = () => {
   const rowHeight = 250
 
   return h(Fragment, [
-    Navbar(),
+    Navbar('RUN WORKFLOWS WITH CROMWELL'),
     div({ style: { margin: '4em' } }, [
       div({ style: { display: 'flex', marginTop: '1rem', justifyContent: 'space-between' } }, [
         h2(['Submission History']),

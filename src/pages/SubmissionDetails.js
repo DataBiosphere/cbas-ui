@@ -166,7 +166,7 @@ export const SubmissionDetails = ({ submissionId }) => {
   const rowWidth = 100
   const rowHeight = 50
   return div({ id: 'submission-details-page' }, [
-    Navbar('SUBMIT WORKFLOWS WITH CROMWELL'),
+    Navbar('RUN WORKFLOWS WITH CROMWELL'),
     div({
       style: {
         borderBottom: '2px solid rgb(116, 174, 67)',
