@@ -79,7 +79,7 @@ describe('get run sets', () => {
       const result = await fetchOk(`${mockService.url}/api/batch/v1/run_sets`, { method: 'GET', headers: { 'Content-Type': 'application/json; charset=utf-8' } })
       const runSets = await result.json()
       console.log(runSets)
-      expect(runSets).toStrictEqual({run_sets: [runSetBodyExample]})
+      expect(runSets).toStrictEqual(responses['GET /api/batch/v1/run_sets'])
     })
   })
 })
