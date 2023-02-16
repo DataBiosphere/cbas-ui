@@ -34,6 +34,6 @@ describe('getDuration', () => {
     // since run set is in non-terminal state, we get duration as difference in seconds between current time and submission_timestamp
     // so for testing purposes we deduct 20 seconds from current time and pass it as submission_timestamp
     const currentTime = new Date()
-    expect(getDuration(state, currentTime.setTime(currentTime.getTime() - 20000), "doesn't matter what is passed here", stateCallback)).toBe(20)
+    expect(getDuration(state, currentTime.setTime(currentTime.getTime() - 20000), lastModifiedTimestamp, stateCallback)).toBe(20)
   })
 })
