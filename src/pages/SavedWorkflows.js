@@ -52,7 +52,7 @@ const styles = {
   },
   longTitle: {
     ...Style.elements.card.mediumTitle,
-    ...Style.noWrapEllipsis, flex: 1
+    ...Style.noWrapEllipsis, flex: '0 0 50%'
   },
   longDescription: {
     flex: 1,
@@ -65,9 +65,9 @@ export const SavedWorkflows = ({ methodsData }) => {
   const WorkflowCard = memoWithName('WorkflowCard', ({ name, lastRun, description, source, methodId }) => {
     return div({ onClick: () => { Nav.goToPath('submission-config', { methodId }) }, style: { ...styles.card, ...styles.mediumCard, cursor: 'pointer' } }, [
       div({ style: { paddingTop: '0.75rem', ...styles.innerContent, display: 'flex', alignItems: 'center' } }, [
-        div({ style: { ...styles.longTitle, width: 15, paddingRight: '1.5rem' } }, [`${name}`]),
-        div({ style: { width: 500 } }, ['Last run: ', lastRun.previously_run ? `Version ${lastRun.method_version_name} on ${Utils.makeCompleteDate(lastRun.timestamp)}` : '(Never run)']),
-        div({ style: { flex: 'none', width: 275 } }, ['Source: ', source])
+        div({ style: { ...styles.longTitle, paddingRight: '1.5rem' } }, [`${name}`]),
+        div({ style: { flex: 1 } }, ['Last run: ', lastRun.previously_run ? `Version ${lastRun.method_version_name} on ${Utils.makeCompleteDate(lastRun.timestamp)}` : '(Never run)']),
+        div({ style: { flex: '0 0 200px' } }, ['Source: ', source])
       ]),
       div({ style: { ...styles.innerContent, display: 'flex', alignItems: 'center' } }, [description])
     ])
