@@ -217,19 +217,11 @@ describe('Submission Details page', () => {
 
   it('should sort columns properly', async () => {
     const getRuns = jest.fn(() => Promise.resolve(runsData))
-    const getRunsSets = jest.fn(() => Promise.resolve(runSetData))
-    const getMethods = jest.fn(() => Promise.resolve(methodData))
     Ajax.mockImplementation(() => {
       return {
         Cbas: {
           runs: {
             get: getRuns
-          },
-          runSets: {
-            get: getRunsSets
-          },
-          methods: {
-            getByMethodVersionId: getMethods
           }
         }
       }
