@@ -28,6 +28,15 @@
               "run_set_id": "ea001565-1cd6-4e43-b446-932ac1918081",
               "state": "COMPLETE",
               "submission_timestamp": "2022-01-01T12:00:00.000+00:00"
+            },
+            {
+              "error_count": 0,
+              "last_modified_timestamp": "2022-01-02T13:01:01.000+00:00",
+              "record_type": "FOO",
+              "run_count": 1,
+              "run_set_id": "ea001565-1cd6-4e43-b446-932ac1918081",
+              "state": "COMPLETE",
+              "submission_timestamp": "2022-01-01T12:00:00.000+00:00"
             }
           ]
         },
@@ -40,13 +49,18 @@
               "combine": "AND",
               "matchers": [
                 {
-                  "match": "type"
+                  "match": "type",
+                  "max": 2,
+                  "min": 2
                 }
               ]
             },
             "$.run_sets[*].error_count": {
               "combine": "AND",
               "matchers": [
+                {
+                  "match": "integer"
+                },
                 {
                   "match": "integer"
                 }
@@ -58,12 +72,19 @@
                 {
                   "match": "timestamp",
                   "timestamp": "yyyy-MM-dd'T'HH:mm:ss.SSSXXX"
+                },
+                {
+                  "match": "timestamp",
+                  "timestamp": "yyyy-MM-dd'T'HH:mm:ss.SSSXXX"
                 }
               ]
             },
             "$.run_sets[*].record_type": {
               "combine": "AND",
               "matchers": [
+                {
+                  "match": "type"
+                },
                 {
                   "match": "type"
                 }
@@ -74,12 +95,19 @@
               "matchers": [
                 {
                   "match": "integer"
+                },
+                {
+                  "match": "integer"
                 }
               ]
             },
             "$.run_sets[*].run_set_id": {
               "combine": "AND",
               "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"
+                },
                 {
                   "match": "regex",
                   "regex": "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"
@@ -92,12 +120,20 @@
                 {
                   "match": "regex",
                   "regex": "UNKNOWN|RUNNING|COMPLETE|ERROR"
+                },
+                {
+                  "match": "regex",
+                  "regex": "UNKNOWN|RUNNING|COMPLETE|ERROR"
                 }
               ]
             },
             "$.run_sets[*].submission_timestamp": {
               "combine": "AND",
               "matchers": [
+                {
+                  "match": "timestamp",
+                  "timestamp": "yyyy-MM-dd'T'HH:mm:ss.SSSXXX"
+                },
                 {
                   "match": "timestamp",
                   "timestamp": "yyyy-MM-dd'T'HH:mm:ss.SSSXXX"

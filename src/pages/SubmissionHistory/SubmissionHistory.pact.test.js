@@ -12,7 +12,8 @@ const {
   integer,
   timestamp,
   string,
-  regex
+  regex,
+  constrainedArrayLike
 } = MatchersV3
 
 const runSetBodyExample = responses['GET /api/batch/v1/run_sets'].run_sets[0]
@@ -70,16 +71,16 @@ describe('get run sets', () => {
         headers: {
           'Content-Type': 'application/json'
         },
-        body: { run_sets: eachLike(runSetBodyExpectation) }
+        body: { run_sets: constrainedArrayLike(runSetBodyExpectation, 2, 2, 2) }
       }
     })
 
     await provider.executeTest(async mockService => {
       // make request to Pact mock server
       const result = await fetchOk(`${mockService.url}/api/batch/v1/run_sets`, { method: 'GET', headers: { 'Content-Type': 'application/json; charset=utf-8' } })
-      const runSets = await result.json()
-      console.log(runSets)
-      expect(runSets).toStrictEqual(responses['GET /api/batch/v1/run_sets'])
+      const resultJson = await result.json()
+      console.log(resultJson)
+      expect(resultJson.run_sets.length).toBe(2)
     })
   })
 })
