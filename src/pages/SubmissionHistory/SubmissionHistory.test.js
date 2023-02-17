@@ -153,7 +153,6 @@ describe('SubmissionHistory page', () => {
   })
 
   it('should support canceled and canceling submissions', async () => {
-
     jest.clearAllMocks()
     const runSetData = {
       run_sets: [
