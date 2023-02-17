@@ -1458,7 +1458,7 @@ describe('SubmissionConfig submitting a run set', () => {
 
     // ** ASSERT **
     // check that the Attribute column has expected behavior
-    within(thirdInputRow[4]).getByText('The workflow input will either be empty or use a default value from the workflow.')
+    within(thirdInputRow[4]).getByText('Optional')
 
     // ** ACT **
     // user clicks on Submit (inputs and outputs should be rendered based on previous submission)
