@@ -152,6 +152,65 @@ describe('SubmissionHistory page', () => {
     within(cellsFromDataRow2[headerPosition['Duration']]).getByText('1 month 1 day 1 hour 1 minute 1 second')
   })
 
+  it('should support canceled and canceling submissions', async () => {
+
+    jest.clearAllMocks()
+    const runSetData = {
+      run_sets: [
+        {
+          error_count: 0,
+          submission_timestamp: '2022-01-01T12:00:00.000+00:00',
+          last_modified_timestamp: '2022-01-02T13:01:01.000+00:00',
+          record_type: 'FOO',
+          run_count: 1,
+          run_set_id: 'ea001565-1cd6-4e43-b446-932ac1918081',
+          state: 'CANCELED'
+        },
+        {
+          error_count: 0,
+          submission_timestamp: '2021-07-10T12:00:00.000+00:00',
+          last_modified_timestamp: '2021-08-11T13:01:01.000+00:00',
+          record_type: 'FOO',
+          run_count: 2,
+          run_set_id: 'b7234aae-6f43-405e-bb3a-71f924e09825',
+          state: 'CANCELING'
+        }
+      ]
+    }
+
+    const getRunSetsMethod = jest.fn(() => Promise.resolve(runSetData))
+    Ajax.mockImplementation(() => {
+      return {
+        Cbas: {
+          runSets: {
+            get: getRunSetsMethod
+          }
+        }
+      }
+    })
+
+    // Act
+    await act(async () => {
+      await render(h(SubmissionHistory))
+    })
+
+    const table = screen.getByRole('table')
+
+    // Assert
+    expect(table).toHaveAttribute('aria-colcount', '6')
+    expect(table).toHaveAttribute('aria-rowcount', '3')
+
+    const rows = within(table).queryAllByRole('row')
+    expect(rows.length).toBe(3)
+
+    // check data rows are rendered as expected
+    const cellsFromDataRow1 = within(rows[1]).queryAllByRole('cell')
+    within(cellsFromDataRow1[headerPosition['Status']]).getByText('Canceled')
+
+    const cellsFromDataRow2 = within(rows[2]).queryAllByRole('cell')
+    within(cellsFromDataRow2[headerPosition['Status']]).getByText('Canceling')
+  })
+
   it('should sort columns properly', async () => {
     // Act - click on sort button on Submitted column to sort submission timestamp by ascending order
     await act(async () => {
