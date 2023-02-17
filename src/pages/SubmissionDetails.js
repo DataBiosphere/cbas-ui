@@ -1,7 +1,6 @@
 import _ from 'lodash/fp'
 import { useMemo, useRef, useState } from 'react'
 import { div, h, h2, h3 } from 'react-hyperscript-helpers'
-import ReactJson from 'react-json-view'
 import { AutoSizer } from 'react-virtualized'
 import { ButtonPrimary, Link, Navbar, Select } from 'src/components/common'
 import { HeaderSection, statusType, SubmitNewWorkflowButton } from 'src/components/job-common'
