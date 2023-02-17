@@ -303,7 +303,7 @@ export const SubmissionConfig = ({ methodId }) => {
         position: 'relative'
       }
     }, [
-      Navbar('SUBMIT WORKFLOWS WITH CROMWELL'),
+      Navbar('RUN WORKFLOWS WITH CROMWELL'),
       renderSummary()
     ]),
     div({

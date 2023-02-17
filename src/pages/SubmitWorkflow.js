@@ -48,7 +48,7 @@ export const SubmitWorkflow = () => {
   })
 
   return div([
-    Navbar(),
+    Navbar('RUN WORKFLOWS WITH CROMWELL'),
     div({ style: { margin: '4rem' } }, [
       div({ style: { display: 'flex', marginTop: '1rem', justifyContent: 'space-between' } }, [
         h2(['Submit a workflow']),
