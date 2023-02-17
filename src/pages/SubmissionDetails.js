@@ -6,14 +6,14 @@ import { AutoSizer } from 'react-virtualized'
 import { ButtonPrimary, Link, Navbar, Select } from 'src/components/common'
 import { HeaderSection, statusType, SubmitNewWorkflowButton } from 'src/components/job-common'
 import Modal from 'src/components/Modal'
-import { AutoRefreshInterval, makeStatusLine } from 'src/components/submission-common'
+import { AutoRefreshInterval, getDuration, isRunInTerminalState, isRunSetInTerminalState, makeStatusLine } from 'src/components/submission-common'
 import { FlexTable, paginator, Sortable, tableHeight, TextCell } from 'src/components/table'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { goToPath } from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
 import { useCancellation, useOnMount } from 'src/libs/react-utils'
-import { customFormatDuration, differenceFromDatesInSeconds, differenceFromNowInSeconds, makeCompleteDate } from 'src/libs/utils'
+import { customFormatDuration, differenceFromNowInSeconds, makeCompleteDate } from 'src/libs/utils'
 
 
 export const SubmissionDetails = ({ submissionId }) => {
@@ -32,19 +32,6 @@ export const SubmissionDetails = ({ submissionId }) => {
 
   const signal = useCancellation()
   const scheduledRefresh = useRef()
-
-  const RunTerminalStates = ['COMPLETE', 'CANCELED', 'SYSTEM_ERROR', 'ABORTED', 'EXECUTOR_ERROR']
-  const isRunInTerminalState = runStatus => RunTerminalStates.includes(runStatus)
-
-  const duration = ({
-    state,
-    submission_timestamp: submitted,
-    last_modified_timestamp: modified
-  }) => {
-    return isRunInTerminalState(state) ?
-      differenceFromDatesInSeconds(submitted, modified) :
-      differenceFromNowInSeconds(submitted)
-  }
 
   const getFilter = filterOption => {
     let filterStatement
@@ -110,7 +97,7 @@ export const SubmissionDetails = ({ submissionId }) => {
       try {
         const getRunSets = await Ajax(signal).Cbas.runSets.get()
         const allRunSets = getRunSets.run_sets
-        const annotatedWithDurations = _.map(r => _.merge(r, { duration: duration(r) }), allRunSets)
+        const annotatedWithDurations = _.map(r => _.merge(r, { duration: getDuration(r.state, r.submission_timestamp, r.last_modified_timestamp, isRunSetInTerminalState) }), allRunSets)
         setRunSetData(annotatedWithDurations)
         return annotatedWithDurations
       } catch (error) {
@@ -179,7 +166,7 @@ export const SubmissionDetails = ({ submissionId }) => {
         h2(['Submission name: ', specifyRunSet[0]?.run_set_name]),
         h3(['Workflow name: ', getSpecificMethod[0]?.name]),
         h3(['Submission date: ', specifyRunSet[0] && makeCompleteDate(specifyRunSet[0].submission_timestamp)]),
-        h3(['Duration: ', specifyRunSet[0] && customFormatDuration(duration(specifyRunSet[0]))])
+        h3(['Duration: ', specifyRunSet[0] && customFormatDuration(getDuration(specifyRunSet[0].state, specifyRunSet[0].submission_timestamp, specifyRunSet[0].last_modified_timestamp, isRunSetInTerminalState))])
       ])
     ]),
     div({
@@ -251,16 +238,8 @@ export const SubmissionDetails = ({ submissionId }) => {
                 field: 'duration',
                 headerRenderer: () => h(Sortable, { sort, field: 'duration', onSort: setSort }, ['Duration']),
                 cellRenderer: ({ rowIndex }) => {
-                  let durationSeconds
-                  if (isRunInTerminalState(paginatedPreviousRuns[rowIndex].state)) {
-                    durationSeconds = differenceFromDatesInSeconds(
-                      paginatedPreviousRuns[rowIndex].submission_date,
-                      paginatedPreviousRuns[rowIndex].last_modified_timestamp
-                    )
-                  } else {
-                    durationSeconds = differenceFromNowInSeconds(paginatedPreviousRuns[rowIndex].submission_date)
-                  }
-                  return h(TextCell, [customFormatDuration(durationSeconds)])
+                  const row = paginatedPreviousRuns[rowIndex]
+                  return h(TextCell, [customFormatDuration(getDuration(row.state, row.submission_date, row.last_modified_timestamp, isRunInTerminalState))])
                 }
               },
               {

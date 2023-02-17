@@ -8,6 +8,7 @@ import { TextInput } from 'src/components/input'
 import { FlexTable, GridTable, HeaderCell, Resizable, Sortable, TextCell } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import colors from 'src/libs/colors'
+import { differenceFromDatesInSeconds, differenceFromNowInSeconds } from 'src/libs/utils'
 import * as Utils from 'src/libs/utils'
 
 
@@ -64,6 +65,18 @@ export const makeStatusLine = (iconFn, label, style) => div(
 
 const recordMap = records => {
   return _.fromPairs(_.map(e => [e.id, e], records))
+}
+
+const RunSetTerminalStates = ['ERROR', 'COMPLETE']
+export const isRunSetInTerminalState = runSetStatus => RunSetTerminalStates.includes(runSetStatus)
+
+const RunTerminalStates = ['COMPLETE', 'CANCELED', 'SYSTEM_ERROR', 'ABORTED', 'EXECUTOR_ERROR']
+export const isRunInTerminalState = runStatus => RunTerminalStates.includes(runStatus)
+
+export const getDuration = (state, submissionDate, lastModifiedTimestamp, stateCheckCallback) => {
+  return stateCheckCallback(state) ?
+    differenceFromDatesInSeconds(submissionDate, lastModifiedTimestamp) :
+    differenceFromNowInSeconds(submissionDate)
 }
 
 export const recordsTable = props => {
