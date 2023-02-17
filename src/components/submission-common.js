@@ -391,7 +391,7 @@ export const inputsTable = props => {
             return Utils.switchCase(source.type || 'none',
               ['record_lookup', () => recordLookupSelect(rowIndex)],
               ['literal', () => parameterValueSelect(rowIndex)],
-              ['none', () => h(TextCell, {}, ['The workflow input will either be empty or use a default value from the workflow.'])]
+              ['none', () => h(TextCell, { style: { fontStyle: 'italic' } }, ['Optional'])]
             )
           }
         }
