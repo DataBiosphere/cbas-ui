@@ -57,14 +57,18 @@ export const SubmissionHistory = () => {
       ERROR: h(
         TextCell,
         { style: { whiteSpace: 'pre-wrap', wordBreak: 'break-word' } },
-        [`Failed with ${errorCount} errors`])
+        [`Failed with ${errorCount} errors`]),
+      CANCELING: 'Canceling',
+      CANCELED: 'Canceled'
     }
 
     const stateIconKey = {
       UNKNOWN: 'unknown',
       RUNNING: 'running',
       COMPLETE: 'succeeded',
-      ERROR: 'failed'
+      ERROR: 'failed',
+      CANCELING: 'canceling',
+      CANCELED: 'canceled'
     }
 
     return div([
