@@ -26,12 +26,11 @@ describe('SubmissionHistory page', () => {
   const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'offsetWidth')
 
   const headerPosition = {
-    Actions: 0,
-    Submission: 1,
-    Status: 2,
-    'Date Submitted': 3,
-    Duration: 4,
-    Comment: 5
+    Submission: 0,
+    Status: 1,
+    'Date Submitted': 2,
+    Duration: 3,
+    Comment: 4
   }
 
   const runSetData = {
@@ -104,7 +103,7 @@ describe('SubmissionHistory page', () => {
     expect(getRunSetsMethod).toBeCalledTimes(1)
 
     const table = screen.getByRole('table')
-    expect(table).toHaveAttribute('aria-colcount', '6')
+    expect(table).toHaveAttribute('aria-colcount', '5')
     expect(table).toHaveAttribute('aria-rowcount', '1')
 
     const rows = within(table).queryAllByRole('cell')
@@ -120,15 +119,14 @@ describe('SubmissionHistory page', () => {
     const table = screen.getByRole('table')
 
     // Assert
-    expect(table).toHaveAttribute('aria-colcount', '6')
+    expect(table).toHaveAttribute('aria-colcount', '5')
     expect(table).toHaveAttribute('aria-rowcount', '3')
 
     const rows = within(table).queryAllByRole('row')
     expect(rows.length).toBe(3)
 
     const headers = within(rows[0]).queryAllByRole('columnheader')
-    expect(headers.length).toBe(6)
-    within(headers[headerPosition['Actions']]).getByText('Actions')
+    expect(headers.length).toBe(5)
     within(headers[headerPosition['Submission']]).getByText('Submission name')
     within(headers[headerPosition['Status']]).getByText('Status')
     within(headers[headerPosition['Date Submitted']]).getByText('Date Submitted')
@@ -137,7 +135,7 @@ describe('SubmissionHistory page', () => {
 
     // check data rows are rendered as expected
     const cellsFromDataRow1 = within(rows[1]).queryAllByRole('cell')
-    expect(cellsFromDataRow1.length).toBe(6)
+    expect(cellsFromDataRow1.length).toBe(5)
     within(cellsFromDataRow1[headerPosition['Submission']]).getByText('Data used: FOO')
     within(cellsFromDataRow1[headerPosition['Submission']]).getByText('1 workflows')
     within(cellsFromDataRow1[headerPosition['Status']]).getByText('Success')
@@ -145,7 +143,7 @@ describe('SubmissionHistory page', () => {
     within(cellsFromDataRow1[headerPosition['Duration']]).getByText('1 day 1 hour 1 minute 1 second')
 
     const cellsFromDataRow2 = within(rows[2]).queryAllByRole('cell')
-    expect(cellsFromDataRow2.length).toBe(6)
+    expect(cellsFromDataRow2.length).toBe(5)
     within(cellsFromDataRow2[headerPosition['Submission']]).getByText('Data used: FOO')
     within(cellsFromDataRow2[headerPosition['Status']]).getByText('Failed with 1 errors')
     within(cellsFromDataRow2[headerPosition['Date Submitted']]).getByText(/Jul 10, 2021/)
@@ -196,7 +194,7 @@ describe('SubmissionHistory page', () => {
     const table = screen.getByRole('table')
 
     // Assert
-    expect(table).toHaveAttribute('aria-colcount', '6')
+    expect(table).toHaveAttribute('aria-colcount', '5')
     expect(table).toHaveAttribute('aria-rowcount', '3')
 
     const rows = within(table).queryAllByRole('row')
@@ -221,7 +219,7 @@ describe('SubmissionHistory page', () => {
     expect(rows.length).toBe(3)
 
     const headers = within(rows[0]).queryAllByRole('columnheader')
-    expect(headers.length).toBe(6)
+    expect(headers.length).toBe(5)
 
     const topRowCells = column => {
       const topRowCells = within(rows[1]).queryAllByRole('cell')

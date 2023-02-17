@@ -21,8 +21,6 @@ export const SubmissionDetails = ({ submissionId }) => {
   const [sort, setSort] = useState({ field: 'submission_date', direction: 'desc' })
   const [pageNumber, setPageNumber] = useState(1)
   const [itemsPerPage, setItemsPerPage] = useState(50)
-  const [viewInputsId, setViewInputsId] = useState()
-  const [viewOutputsId, setViewOutputsId] = useState()
   const [viewErrorsId, setViewErrorsId] = useState()
   const [runsData, setRunsData] = useState()
 
@@ -272,50 +270,6 @@ export const SubmissionDetails = ({ submissionId }) => {
             setItemsPerPage(v)
           },
           itemsPerPageOptions: [10, 25, 50, 100]
-        })
-      ]),
-      (viewInputsId !== undefined) && h(Modal, {
-        title: 'TODO',
-        width: 600,
-        onDismiss: () => setViewInputsId(undefined),
-        showCancel: false,
-        okButton:
-          h(ButtonPrimary, {
-            disabled: false,
-            onClick: () => setViewInputsId(undefined)
-          }, ['OK'])
-      }, [
-        h(TextCell, {
-          style: { whiteSpace: 'pre-wrap', wordBreak: 'break-word' },
-          name: false,
-          collapsed: 4,
-          enableClipboard: true,
-          displayDataTypes: false,
-          displayObjectSize: false,
-          src: 'Link to workflow details!'//_.isEmpty(paginatedPreviousRuns[viewInputsId].workflow_params) ? {} : JSON.parse(paginatedPreviousRuns[viewInputsId].workflow_params)
-        }, ['Link to workflow details!'])
-      ]),
-      (viewOutputsId !== undefined) && h(Modal, {
-        title: 'Outputs Definition JSON',
-        width: 600,
-        onDismiss: () => setViewOutputsId(undefined),
-        showCancel: false,
-        okButton:
-          h(ButtonPrimary, {
-            disabled: false,
-            onClick: () => setViewOutputsId(undefined)
-          }, ['OK'])
-      }, [
-        h(ReactJson, {
-          style: { whiteSpace: 'pre-wrap', wordBreak: 'break-word' },
-          name: false,
-          collapsed: 4,
-          enableClipboard: true,
-          displayDataTypes: false,
-          displayObjectSize: false,
-          src: _.isEmpty(paginatedPreviousRuns[viewOutputsId].workflow_outputs) ?
-            {} :
-            JSON.parse(paginatedPreviousRuns[viewOutputsId].workflow_outputs)
         })
       ]),
       (viewErrorsId !== undefined) && h(Modal, {
