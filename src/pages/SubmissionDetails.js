@@ -242,11 +242,11 @@ export const SubmissionDetails = ({ submissionId }) => {
               {
                 size: { basis: 550, grow: 0 },
                 field: 'run_id',
-                headerRenderer: () => h(Sortable, { sort, field: 'run_id', onSort: setSort }, ['Run ID']),
+                headerRenderer: () => h(Sortable, { sort, field: 'run_id', onSort: setSort }, ['Workflow ID']),
                 cellRenderer: ({ rowIndex }) => {
                   return div({ style: { width: '100%', textAlign: 'left' } }, [
                     h(Link, { onClick: () => { goToPath('run-details', { submissionId, workflowId: paginatedPreviousRuns[rowIndex].engine_id }) }, style: { fontWeight: 'bold' } },
-                      [paginatedPreviousRuns[rowIndex].run_id])
+                      [paginatedPreviousRuns[rowIndex].engine_id])
                   ])
                 }
               }
