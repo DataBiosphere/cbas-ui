@@ -919,7 +919,7 @@ describe('SubmissionConfig inputs/outputs definitions', () => {
     expect(thirdInputRow.length).toBe(5)
     expect(thirdInputRow[0].textContent).toBe('target_workflow_1')
     within(thirdInputRow[1]).getByText('optional_var')
-    within(thirdInputRow[2]).getByText('String?')
+    within(thirdInputRow[2]).getByText('String')
     within(thirdInputRow[3]).getByText('Type a Value')
     within(thirdInputRow[4]).getByDisplayValue('Hello World')
   })
@@ -1143,7 +1143,7 @@ describe('SubmissionConfig inputs/outputs definitions', () => {
 
     within(cells3[0]).getByText('target_workflow_1')
     within(cells3[1]).getByText('optional_var')
-    within(cells3[2]).getByText('String?')
+    within(cells3[2]).getByText('String')
     within(cells3[3]).getByText('Type a Value')
     within(cells3[4]).getByDisplayValue('Hello World')
 
@@ -1166,7 +1166,7 @@ describe('SubmissionConfig inputs/outputs definitions', () => {
 
     within(cells3[0]).getByText('target_workflow_1')
     within(cells3[1]).getByText('optional_var')
-    within(cells3[2]).getByText('String?')
+    within(cells3[2]).getByText('String')
     within(cells3[3]).getByText('Type a Value')
     within(cells3[4]).getByDisplayValue('Hello World')
 
@@ -1177,7 +1177,7 @@ describe('SubmissionConfig inputs/outputs definitions', () => {
 
     within(cells1[0]).getByText('target_workflow_1')
     within(cells1[1]).getByText('optional_var')
-    within(cells1[2]).getByText('String?')
+    within(cells1[2]).getByText('String')
     within(cells1[3]).getByText('Type a Value')
     within(cells1[4]).getByDisplayValue('Hello World')
 
@@ -1458,7 +1458,7 @@ describe('SubmissionConfig submitting a run set', () => {
 
     // ** ASSERT **
     // check that the Attribute column has expected behavior
-    within(thirdInputRow[4]).getByText('The workflow input will either be empty or use a default value from the workflow.')
+    within(thirdInputRow[4]).getByText('Optional')
 
     // ** ACT **
     // user clicks on Submit (inputs and outputs should be rendered based on previous submission)

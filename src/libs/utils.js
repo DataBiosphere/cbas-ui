@@ -174,7 +174,7 @@ export const renderTypeText = iotype => {
     return iotype.primitive_type
   }
   if (_.has('optional_type', iotype)) {
-    return `${renderTypeText(_.get('optional_type', iotype))}?`
+    return `${renderTypeText(_.get('optional_type', iotype))}`
   }
   if (_.has('array_type', iotype)) {
     return `Array[${renderTypeText(_.get('array_type', iotype))}]`
