@@ -25,7 +25,7 @@ export const SubmissionHistory = () => {
   const scheduledRefresh = useRef()
 
   // helper for auto-refresh
-  const refresh = async () => {
+  const refresh = Utils.withBusyState(setLoading, async () => {
     try {
       const runSets = await Ajax(signal).Cbas.runSets.get()
       const mergedRunSets = _.map(r => _.merge(r, { duration: getDuration(r.state, r.submission_timestamp, r.last_modified_timestamp, isRunSetInTerminalState) }), runSets.run_sets)
@@ -38,11 +38,10 @@ export const SubmissionHistory = () => {
     } catch (error) {
       notify('error', 'Error loading previous run sets', { detail: await (error instanceof Response ? error.text() : error) })
     }
-  }
+  })
 
   useOnMount(async () => {
-    setLoading(true)
-    await refresh().then(() => setLoading(false))
+    await refresh()
 
     return () => {
       if (scheduledRefresh.current) {

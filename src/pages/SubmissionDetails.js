@@ -13,7 +13,7 @@ import colors from 'src/libs/colors'
 import { goToPath } from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
 import { useCancellation, useOnMount } from 'src/libs/react-utils'
-import { customFormatDuration, differenceFromNowInSeconds, makeCompleteDate } from 'src/libs/utils'
+import { customFormatDuration, differenceFromNowInSeconds, makeCompleteDate, withBusyState } from 'src/libs/utils'
 
 
 export const SubmissionDetails = ({ submissionId }) => {
@@ -74,7 +74,7 @@ export const SubmissionDetails = ({ submissionId }) => {
   }
 
   // helper for auto-refresh
-  const refresh = async () => {
+  const refresh = withBusyState(setLoading, async () => {
     try {
       const runsResponse = await Ajax(signal).Cbas.runs.get(submissionId)
       const runs = runsResponse?.runs
@@ -87,7 +87,7 @@ export const SubmissionDetails = ({ submissionId }) => {
     } catch (error) {
       notify('error', 'Error loading previous runs', { detail: await (error instanceof Response ? error.text() : error) })
     }
-  }
+  })
 
   useOnMount(async () => {
     const loadRunSetData = async () => {
@@ -112,9 +112,8 @@ export const SubmissionDetails = ({ submissionId }) => {
       }
     }
 
-    setLoading(true)
     await refresh()
-    loadRunSetData().then(runSet => runSet && loadMethodsData(runSet.method_version_id)).then(() => setLoading(false))
+    loadRunSetData().then(runSet => runSet && loadMethodsData(runSet.method_version_id))
 
     return () => {
       if (scheduledRefresh.current) {

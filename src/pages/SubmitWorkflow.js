@@ -8,6 +8,7 @@ import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
 import { useCancellation, useOnMount } from 'src/libs/react-utils'
 import * as Style from 'src/libs/style'
+import { withBusyState } from 'src/libs/utils'
 import { SavedWorkflows } from 'src/pages/SavedWorkflows'
 
 
@@ -29,7 +30,7 @@ export const SubmitWorkflow = () => {
 
   const signal = useCancellation()
 
-  useOnMount(() => {
+  const refresh = withBusyState(setLoading, async () => {
     const loadCbasStatus = async () => {
       const cbasStatus = await Ajax(signal).Cbas.status()
       setCbasStatus(cbasStatus)
@@ -43,9 +44,12 @@ export const SubmitWorkflow = () => {
         notify('error', 'Error loading saved workflows', { detail: await (error instanceof Response ? error.text() : error) })
       }
     }
-    setLoading(true)
-    loadCbasStatus()
-    loadRunsData().then(() => setLoading(false))
+    await loadCbasStatus()
+    await loadRunsData()
+  })
+
+  useOnMount(async () => {
+    await refresh()
   })
 
   return loading ? centeredSpinner() : div([
