@@ -108,7 +108,7 @@ export const RunDetails = ({ namespace, name, submissionId, workflowId }) => {
       }
     ]
 
-    return h(HeaderSection, { breadcrumbPathObjects, button: SubmitNewWorkflowButton, title: 'Workflow details' })
+    return h(HeaderSection, { breadcrumbPathObjects, button: SubmitNewWorkflowButton, title: 'Workflow Details' })
   }, [workflow, submissionId])
 
   /*
