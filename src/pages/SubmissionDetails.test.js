@@ -102,6 +102,19 @@ describe('Submission Details page', () => {
     Object.defineProperty(HTMLElement.prototype, 'offsetWidth', { configurable: true, value: 800 })
   })
 
+  beforeEach(() => {
+    const getRunsMethod = jest.fn(() => Promise.resolve(runsData))
+    Ajax.mockImplementation(() => {
+      return {
+        Cbas: {
+          runs: {
+            get: getRunsMethod
+          }
+        }
+      }
+    })
+  })
+
   afterEach(() => {
     jest.clearAllMocks()
   })
