@@ -3,7 +3,6 @@ import { Fragment, useRef, useState } from 'react'
 import { div, h, h2 } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import { ButtonOutline, Link, Navbar } from 'src/components/common'
-import { icon } from 'src/components/icons'
 import { AutoRefreshInterval, getDuration, isRunSetInTerminalState, makeStatusLine, statusType } from 'src/components/submission-common'
 import { FlexTable, paginator, Sortable, tableHeight, TextCell } from 'src/components/table'
 import { Ajax } from 'src/libs/ajax'
@@ -118,17 +117,6 @@ export const SubmissionHistory = () => {
               }),
               columns: [
                 {
-                  size: { basis: 100, grow: 0 },
-                  field: 'actions',
-                  headerRenderer: () => h(Sortable, { sort, field: 'actions', onSort: setSort }, ['Actions']),
-                  cellRenderer: () => {
-                    return div(
-                      { style: { textAlign: 'center' } },
-                      [icon('cardMenuIcon', { size: 24, onClick: () => { window.alert('TODO: go to actions menu') } })]
-                    )
-                  }
-                },
-                {
                   size: { basis: 350 },
                   field: 'runset_name',
                   headerRenderer: () => h(Sortable, { sort, field: 'runset_name', onSort: setSort }, ['Submission name']),
@@ -183,8 +171,7 @@ export const SubmissionHistory = () => {
                   headerRenderer: () => h(Sortable, { sort, field: 'comment', onSort: setSort }, ['Comment']),
                   cellRenderer: ({ rowIndex }) => {
                     return div({ style: { width: '100%', textAlign: 'left' } }, [
-                      h(TextCell, { style: { whiteSpace: 'normal' } }, [paginatedPreviousRunSets[rowIndex].run_set_description || 'No Description']),
-                      h(Link, { style: { display: 'block', marginTop: '1em', textDecoration: 'underline' }, onClick: () => window.alert('Comment editing disabled') }, ['Edit'])
+                      h(TextCell, { style: { whiteSpace: 'normal', fontStyle: 'italic' } }, [paginatedPreviousRunSets[rowIndex].run_set_description || 'No Description'])
                     ])
                   }
                 }
