@@ -8,7 +8,6 @@ import responses from './mockResponses.json'
 
 
 const {
-  eachLike,
   integer,
   timestamp,
   string,
