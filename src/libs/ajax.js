@@ -136,10 +136,18 @@ const Wds = signal => ({
   }
 })
 
+const WorkflowScript = signal => ({
+  get: async workflowUrl => {
+    const res = await fetchOk(workflowUrl, { signal, method: 'GET' })
+    return res.text()
+  }
+})
+
 export const Ajax = signal => {
   return {
     Cbas: Cbas(signal),
     Cromwell: Cromwell(signal),
-    Wds: Wds(signal)
+    Wds: Wds(signal),
+    WorkflowScript: WorkflowScript(signal)
   }
 }

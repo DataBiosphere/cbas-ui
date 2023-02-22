@@ -2,10 +2,11 @@ import '@testing-library/jest-dom'
 
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { h } from 'react-hyperscript-helpers'
+import { div, h } from 'react-hyperscript-helpers'
 import selectEvent from 'react-select-event'
 import { Ajax } from 'src/libs/ajax'
 import { SubmissionConfig } from 'src/pages/SubmissionConfig'
+import ViewWorkflowScriptModal from 'src/pages/ViewWorkflowScriptModal'
 
 
 jest.mock('src/libs/ajax')
@@ -16,6 +17,13 @@ jest.mock('src/libs/config', () => ({
   ...jest.requireActual('src/libs/config'),
   getConfig: jest.fn().mockReturnValue({})
 }))
+
+jest.mock('src/pages/ViewWorkflowScriptModal')
+
+// jest.mock('src/pages/ViewWorkflowScriptModal', () => ({
+//   ...jest.requireActual('src/pages/ViewWorkflowScriptModal'),
+//   ViewWorkflowScriptModal: jest.fn()
+// }))
 
 const runSetInputDef = [
   {
@@ -246,6 +254,95 @@ const searchResponses = {
   FOO: searchResponseFOO,
   BAR: searchResponseBAR
 }
+
+describe('SubmissionConfig workflow details', () => {
+  // SubmissionConfig component uses AutoSizer to determine the right size for table to be displayed. As a result we need to
+  // mock out the height and width so that when AutoSizer asks for the width and height of "browser" it can use the mocked
+  // values and render the component properly. Without this the tests will be break.
+  // (see https://github.com/bvaughn/react-virtualized/issues/493 and https://stackoverflow.com/a/62214834)
+  const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'offsetHeight')
+  const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'offsetWidth')
+
+  beforeAll(() => {
+    Object.defineProperty(HTMLElement.prototype, 'offsetHeight', { configurable: true, value: 1000 })
+    Object.defineProperty(HTMLElement.prototype, 'offsetWidth', { configurable: true, value: 800 })
+  })
+
+  afterEach(() => {
+    jest.clearAllMocks()
+  })
+
+  afterAll(() => {
+    Object.defineProperty(HTMLElement.prototype, 'offsetHeight', originalOffsetHeight)
+    Object.defineProperty(HTMLElement.prototype, 'offsetWidth', originalOffsetWidth)
+  })
+
+  it('should render workflow details', async () => {
+    // ** ARRANGE **
+    const mockRunSetResponse = jest.fn(() => Promise.resolve(runSetResponse))
+    const mockMethodsResponse = jest.fn(() => Promise.resolve(methodsResponse))
+    const mockSearchResponse = jest.fn(recordType => Promise.resolve(searchResponses[recordType]))
+    const mockTypesResponse = jest.fn(() => Promise.resolve(typesResponse))
+
+    Ajax.mockImplementation(() => {
+      return {
+        Cbas: {
+          runSets: {
+            getForMethod: mockRunSetResponse
+          },
+          methods: {
+            getById: mockMethodsResponse
+          }
+        },
+        Wds: {
+          search: {
+            post: mockSearchResponse
+          },
+          types: {
+            get: mockTypesResponse
+          }
+        }
+      }
+    })
+
+    ViewWorkflowScriptModal.mockImplementation(({ workflowScript, onDismiss }) => {
+      return div(['Workflow Script'])
+    })
+
+    // ** ACT **
+    render(h(SubmissionConfig))
+
+    // ** ASSERT **
+    await waitFor(() => {
+      expect(mockRunSetResponse).toHaveBeenCalledTimes(1)
+      expect(mockTypesResponse).toHaveBeenCalledTimes(1)
+      expect(mockMethodsResponse).toHaveBeenCalledTimes(0)
+      expect(mockSearchResponse).toHaveBeenCalledTimes(0)
+    })
+
+    expect(screen.getByText('Workflow Version:')).toBeInTheDocument()
+    expect(screen.getByText('1.0')).toBeInTheDocument()
+
+    expect(screen.getByText('Workflow source URL:')).toBeInTheDocument()
+    expect(screen.getByText('https://raw.githubusercontent.com/DataBiosphere/cbas/main/useful_workflows/target_workflow_1/target_workflow_1.wdl')).toBeInTheDocument()
+
+    const workflowScriptLink = screen.getByRole('button', { name: 'View Workflow Script' })
+    expect(workflowScriptLink).toBeInTheDocument()
+    expect(workflowScriptLink).toBeEnabled()
+
+    // ** ACT **
+    await act(async () => {
+      fireEvent.click(workflowScriptLink)
+    })
+
+    // screen.logTestingPlaygroundURL()
+    screen.debug(undefined, Infinity)
+
+    // ** ASSERT **
+    expect(screen.getByText('Workflow Script')).toBeInTheDocument()
+    // expect(screen.querySelector('.Modal')).toBeTruthy();
+  })
+})
 
 describe('SubmissionConfig records selector', () => {
   // SubmissionConfig component uses AutoSizer to determine the right size for table to be displayed. As a result we need to
