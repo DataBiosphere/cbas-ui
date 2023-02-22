@@ -96,9 +96,9 @@ export const SubmissionConfig = ({ methodId }) => {
     }
   }
 
-  useOnMount(async () => {
-    await loadTablesData()
-    await loadRunSet().then(runSet => {
+  useOnMount(() => {
+    loadTablesData()
+    loadRunSet().then(runSet => {
       loadMethodsData(runSet.method_id, runSet.method_version_id)
       loadRecordsData(runSet.record_type)
     })
