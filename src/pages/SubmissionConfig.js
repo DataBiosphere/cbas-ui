@@ -133,7 +133,7 @@ export const SubmissionConfig = ({ methodId }) => {
   useEffect(() => {
     async function getWorkflowScript() {
       try {
-        const script = await Ajax(signal).WorkflowScript.get('https://raw.githubusercontent.com/broadinstitute/cromwell/develop/centaur/src/main/resources/standardTestCases/hello/hello.wdl')
+        const script = await Ajax(signal).WorkflowScript.get(selectedMethodVersion.url)
         setWorkflowScript(script)
       } catch (error) {
         notify('error', 'Error loading workflow script', { detail: await (error instanceof Response ? error.text() : error) })

@@ -1,16 +1,14 @@
 import '@testing-library/jest-dom'
 
-import ViewWorkflowScriptModal from 'src/pages/ViewWorkflowScriptModal'
 import { render, screen } from '@testing-library/react'
 import { h } from 'react-hyperscript-helpers'
+import ViewWorkflowScriptModal from 'src/pages/ViewWorkflowScriptModal'
 
 
 describe('ViewWorkflowScriptModal', () => {
-
-  it('should render workflow details', async () => {
+  it('should render workflow details', () => {
     // ** ARRANGE **
-    // WDL location: https://raw.githubusercontent.com/broadinstitute/cromwell/develop/centaur/src/main/resources/standardTestCases/hello/hello.wdl
-    const helloWdlScript = "task hello {,  String addressee,  command {,    echo \"Hello ${addressee}!\",  },  output {,    String salutation = read_string(stdout()),  },  runtime {,    docker: \"ubuntu@sha256:71cd81252a3563a03ad8daee81047b62ab5d892ebbfbf71cf53415f29c130950\",  },},,workflow wf_hello {,  call hello,  output {,     hello.salutation,  },}"
+    const helloWdlScript = 'workflow myWorkflow {,    call myTask,},,task myTask {,	runtime {,		docker: "ubuntu:latest",	},    command {,        echo "hello world",    },    output {,        String out = read_string(stdout()),    },}'
 
     // ** ACT **
     render(h(ViewWorkflowScriptModal, { workflowScript: helloWdlScript, onDismiss: jest.fn() }))
@@ -25,8 +23,8 @@ describe('ViewWorkflowScriptModal', () => {
     expect(screen.getByText('task')).toBeInTheDocument()
     expect(screen.getByText('workflow')).toBeInTheDocument()
     expect(screen.getByText('command')).toBeInTheDocument()
-    expect(screen.getByText('"Hello ${addressee}!"')).toBeInTheDocument()
-    expect(screen.getByText('wf_hello')).toBeInTheDocument()
-    expect(screen.getByText('"ubuntu@sha256:71cd81252a3563a03ad8daee81047b62ab5d892ebbfbf71cf53415f29c130950"')).toBeInTheDocument()
+    expect(screen.getByText('"hello world"')).toBeInTheDocument()
+    expect(screen.getByText('myWorkflow')).toBeInTheDocument()
+    expect(screen.getByText('"ubuntu:latest"')).toBeInTheDocument()
   })
 })

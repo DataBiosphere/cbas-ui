@@ -2,11 +2,10 @@ import '@testing-library/jest-dom'
 
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { div, h } from 'react-hyperscript-helpers'
+import { h } from 'react-hyperscript-helpers'
 import selectEvent from 'react-select-event'
 import { Ajax } from 'src/libs/ajax'
 import { SubmissionConfig } from 'src/pages/SubmissionConfig'
-import ViewWorkflowScriptModal from 'src/pages/ViewWorkflowScriptModal'
 
 
 jest.mock('src/libs/ajax')
@@ -17,13 +16,6 @@ jest.mock('src/libs/config', () => ({
   ...jest.requireActual('src/libs/config'),
   getConfig: jest.fn().mockReturnValue({})
 }))
-
-jest.mock('src/pages/ViewWorkflowScriptModal')
-
-// jest.mock('src/pages/ViewWorkflowScriptModal', () => ({
-//   ...jest.requireActual('src/pages/ViewWorkflowScriptModal'),
-//   ViewWorkflowScriptModal: jest.fn()
-// }))
 
 const runSetInputDef = [
   {
@@ -283,6 +275,7 @@ describe('SubmissionConfig workflow details', () => {
     const mockMethodsResponse = jest.fn(() => Promise.resolve(methodsResponse))
     const mockSearchResponse = jest.fn(recordType => Promise.resolve(searchResponses[recordType]))
     const mockTypesResponse = jest.fn(() => Promise.resolve(typesResponse))
+    const mockWdlResponse = jest.fn(() => Promise.resolve('mock wdl response'))
 
     Ajax.mockImplementation(() => {
       return {
@@ -301,12 +294,11 @@ describe('SubmissionConfig workflow details', () => {
           types: {
             get: mockTypesResponse
           }
+        },
+        WorkflowScript: {
+          get: mockWdlResponse
         }
       }
-    })
-
-    ViewWorkflowScriptModal.mockImplementation(({ workflowScript, onDismiss }) => {
-      return div(['Workflow Script'])
     })
 
     // ** ACT **
@@ -316,8 +308,9 @@ describe('SubmissionConfig workflow details', () => {
     await waitFor(() => {
       expect(mockRunSetResponse).toHaveBeenCalledTimes(1)
       expect(mockTypesResponse).toHaveBeenCalledTimes(1)
-      expect(mockMethodsResponse).toHaveBeenCalledTimes(0)
-      expect(mockSearchResponse).toHaveBeenCalledTimes(0)
+      expect(mockMethodsResponse).toHaveBeenCalledTimes(1)
+      expect(mockSearchResponse).toHaveBeenCalledTimes(1)
+      expect(mockWdlResponse).toHaveBeenCalledTimes(1)
     })
 
     expect(screen.getByText('Workflow Version:')).toBeInTheDocument()
@@ -328,19 +321,18 @@ describe('SubmissionConfig workflow details', () => {
 
     const workflowScriptLink = screen.getByRole('button', { name: 'View Workflow Script' })
     expect(workflowScriptLink).toBeInTheDocument()
-    expect(workflowScriptLink).toBeEnabled()
+    expect(workflowScriptLink.getAttribute('aria-disabled')).toBe('false')
 
     // ** ACT **
+    // user clicks on View Workflow Script to open the modal
     await act(async () => {
-      fireEvent.click(workflowScriptLink)
+      await userEvent.click(workflowScriptLink)
     })
 
-    // screen.logTestingPlaygroundURL()
-    screen.debug(undefined, Infinity)
-
     // ** ASSERT **
+    // verify that modal was rendered on screen
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
     expect(screen.getByText('Workflow Script')).toBeInTheDocument()
-    // expect(screen.querySelector('.Modal')).toBeTruthy();
   })
 })
 
