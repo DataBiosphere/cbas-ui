@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import { Fragment, useEffect, useRef, useState } from 'react'
 import { a, div, h, h2, span } from 'react-hyperscript-helpers'
 import { ButtonPrimary, Link, Navbar, Select } from 'src/components/common'
-import { icon } from 'src/components/icons'
+import { centeredSpinner, icon } from 'src/components/icons'
 import { TextArea, TextInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import StepButtons from 'src/components/StepButtons'
@@ -25,6 +25,7 @@ export const SubmissionConfig = ({ methodId }) => {
   const [selectedMethodVersion, setSelectedMethodVersion] = useState()
   const [records, setRecords] = useState([])
   const [dataTableColumnWidths, setDataTableColumnWidths] = useState({})
+  const [loading, setLoading] = useState(false)
 
   // Options chosen on this page:
   const [selectedRecordType, setSelectedRecordType] = useState()
@@ -62,9 +63,9 @@ export const SubmissionConfig = ({ methodId }) => {
       const methodsResponse = await Ajax(signal).Cbas.methods.getById(methodId)
       const method = methodsResponse.methods[0]
       if (method) {
+        const selectedVersion = _.filter(mv => mv.method_version_id === methodVersionId, method.method_versions)[0]
         setMethod(method)
         setAvailableMethodVersions(method.method_versions)
-        const selectedVersion = _.filter(mv => mv.method_version_id === methodVersionId, method.method_versions)[0]
         setSelectedMethodVersion(selectedVersion)
       } else {
         notify('error', 'Error loading methods data', { detail: 'Method not found.' })
@@ -85,6 +86,7 @@ export const SubmissionConfig = ({ methodId }) => {
     } catch (error) {
       notify('error', 'Error loading run set data', { detail: await (error instanceof Response ? error.text() : error) })
     }
+
   }
 
   const loadTablesData = async () => {
@@ -95,9 +97,9 @@ export const SubmissionConfig = ({ methodId }) => {
     }
   }
 
-  useOnMount(() => {
-    loadTablesData()
-    loadRunSet().then(runSet => {
+  useOnMount(async () => {
+    await loadTablesData()
+    await loadRunSet().then(runSet => {
       loadMethodsData(runSet.method_id, runSet.method_version_id)
       loadRecordsData(runSet.record_type)
     })
@@ -126,6 +128,14 @@ export const SubmissionConfig = ({ methodId }) => {
   useEffect(() => {
     dataTableRef.current?.recomputeColumnSizes()
   }, [dataTableColumnWidths, records, recordTypes])
+
+  useEffect(() => {
+    if (method && availableMethodVersions && selectedMethodVersion) {
+      setLoading(false)
+    } else {
+      setLoading(true)
+    }
+  }, [method, availableMethodVersions, selectedMethodVersion])
 
   const renderSummary = () => {
     return div({ style: { margin: '4em' } }, [
@@ -175,7 +185,6 @@ export const SubmissionConfig = ({ methodId }) => {
           a({ style: { marginLeft: '1rem', fontSize: 15, marginTop: '1rem', height: '2rem', fontWeight: 'bold' } }, [icon('error-standard', { size: 20, style: { color: colors.warning(), flex: 'none', marginRight: '0.5rem' } }), noRecordTypeData])
         ])
       ]),
-
       h(StepButtons, {
         tabs: [
           { key: 'select-data', title: 'Select Data', isValid: true },
@@ -295,7 +304,7 @@ export const SubmissionConfig = ({ methodId }) => {
     }
   }
 
-  return h(Fragment, [
+  return loading ? centeredSpinner({"role": "spinner"}) : h(Fragment, [
     div({
       style: {
         borderBottom: '2px solid rgb(116, 174, 67)',
