@@ -1,0 +1,121 @@
+{
+  "consumer": {
+    "name": "cbas-ui"
+  },
+  "interactions": [
+    {
+      "description": "get all types",
+      "providerStates": [
+        {
+          "name": "at_least_one_type_exists_in_instance"
+        }
+      ],
+      "request": {
+        "headers": {
+          "Content-Type": "application/json; charset=utf-8"
+        },
+        "method": "GET",
+        "path": "/_instanceId/types/_apiVersion"
+      },
+      "response": {
+        "body": [
+          [
+            {
+              "attributes": [
+                {
+                  "datatype": "STRING",
+                  "name": "biosample_accession"
+                }
+              ],
+              "count": 6,
+              "name": "sample",
+              "primaryKey": "sra_id"
+            }
+          ]
+        ],
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "matchingRules": {
+          "body": {
+            "$[0]": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type",
+                  "min": 1
+                }
+              ]
+            },
+            "$[0][*].attributes": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$[0][*].attributes[*].datatype": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "STRING|ARRAY"
+                }
+              ]
+            },
+            "$[0][*].attributes[*].name": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$[0][*].count": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "integer"
+                }
+              ]
+            },
+            "$[0][*].name": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$[0][*].primaryKey": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          },
+          "header": {}
+        },
+        "status": 200
+      }
+    }
+  ],
+  "metadata": {
+    "pact-js": {
+      "version": "10.2.2"
+    },
+    "pactRust": {
+      "ffi": "0.3.15",
+      "models": "1.0.1"
+    },
+    "pactSpecification": {
+      "version": "3.0.0"
+    }
+  },
+  "provider": {
+    "name": "wds"
+  }
+}

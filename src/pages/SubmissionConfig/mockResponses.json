@@ -1,0 +1,16 @@
+{
+  "GET /<instanceId>/types/<apiVersion>": 
+  [
+    {
+      "name": "sample",
+      "attributes":[
+        {"name": "biosample_accession","datatype":"STRING"},
+        {"name":"reads_ubam","datatype":"STRING"},
+        {"name":"sra_id","datatype":"STRING"}
+      ],
+      "count":6,
+      "primaryKey":"sra_id"
+    }
+  ]
+}
+
