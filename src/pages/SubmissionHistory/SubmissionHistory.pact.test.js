@@ -54,11 +54,11 @@ const provider = new PactV3({
 })
 
 describe('get run sets', () => {
-  it('run sets exists', async () => {
+  it('at least one runset exists', async () => {
     // set up Pact interactions
     await provider.addInteraction({
       states: [
-        { description: 'two_runsets_exist' }
+        { description: 'at_least_one_runset_exists' }
       ],
       uponReceiving: 'get all run sets',
       withRequest: {
@@ -71,7 +71,7 @@ describe('get run sets', () => {
         headers: {
           'Content-Type': 'application/json'
         },
-        body: { run_sets: constrainedArrayLike(runSetBodyExpectation, 2, 2, 2) }
+        body: { run_sets: constrainedArrayLike(runSetBodyExpectation, 1, 999, 5) }
       }
     })
 
