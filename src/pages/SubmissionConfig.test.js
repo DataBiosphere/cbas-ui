@@ -1,6 +1,6 @@
 import '@testing-library/jest-dom'
 
-import { act, fireEvent, render, screen, waitFor, within, waitForElementToBeRemoved } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { h } from 'react-hyperscript-helpers'
 import selectEvent from 'react-select-event'
@@ -730,7 +730,6 @@ describe('SubmissionConfig records selector', () => {
       expect(mockMethodsResponse).toHaveBeenCalledTimes(1)
       expect(mockSearchResponse).toHaveBeenCalledTimes(1)
     })
-    
     await screen.getByText(/Data table not found: BADFOO/)
   })
 
