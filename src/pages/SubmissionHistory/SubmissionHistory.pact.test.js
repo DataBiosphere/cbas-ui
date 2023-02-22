@@ -12,7 +12,7 @@ const {
   timestamp,
   string,
   regex,
-  constrainedArrayLike
+  atLeastOneLike
 } = MatchersV3
 
 const runSetBodyExample = responses['GET /api/batch/v1/run_sets'].run_sets[0]
@@ -70,7 +70,7 @@ describe('get run sets', () => {
         headers: {
           'Content-Type': 'application/json'
         },
-        body: { run_sets: constrainedArrayLike(runSetBodyExpectation, 1, 999, 5) }
+        body: { run_sets: atLeastOneLike(runSetBodyExpectation) }
       }
     })
 
