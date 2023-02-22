@@ -86,7 +86,6 @@ export const SubmissionConfig = ({ methodId }) => {
     } catch (error) {
       notify('error', 'Error loading run set data', { detail: await (error instanceof Response ? error.text() : error) })
     }
-
   }
 
   const loadTablesData = async () => {
@@ -130,12 +129,12 @@ export const SubmissionConfig = ({ methodId }) => {
   }, [dataTableColumnWidths, records, recordTypes])
 
   useEffect(() => {
-    if (method && availableMethodVersions && selectedMethodVersion) {
+    if (method && availableMethodVersions) {
       setLoading(false)
     } else {
       setLoading(true)
     }
-  }, [method, availableMethodVersions, selectedMethodVersion])
+  }, [method, availableMethodVersions])
 
   const renderSummary = () => {
     return div({ style: { margin: '4em' } }, [
@@ -304,7 +303,7 @@ export const SubmissionConfig = ({ methodId }) => {
     }
   }
 
-  return loading ? centeredSpinner({"role": "spinner"}) : h(Fragment, [
+  return loading ? centeredSpinner() : h(Fragment, [
     div({
       style: {
         borderBottom: '2px solid rgb(116, 174, 67)',
