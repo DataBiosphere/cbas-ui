@@ -304,16 +304,10 @@ describe('SubmissionConfig records selector', () => {
     await waitFor(() => {
       expect(mockRunSetResponse).toHaveBeenCalledTimes(1)
       expect(mockTypesResponse).toHaveBeenCalledTimes(1)
-      expect(mockMethodsResponse).toHaveBeenCalledTimes(0)
-      expect(mockSearchResponse).toHaveBeenCalledTimes(0)
+      expect(mockMethodsResponse).toHaveBeenCalledTimes(1)
+      expect(mockSearchResponse).toHaveBeenCalledTimes(1)
     })
     const table = await screen.findByRole('table')
-
-    // after the initial render (not before), records data should have been retrieved once
-    await waitFor(() => {
-      expect(mockSearchResponse).toHaveBeenCalledTimes(1)
-      expect(mockMethodsResponse).toHaveBeenCalledTimes(1)
-    })
 
     const rows = within(table).queryAllByRole('row')
     expect(rows.length).toBe(5)
@@ -360,15 +354,10 @@ describe('SubmissionConfig records selector', () => {
     await waitFor(() => {
       expect(mockRunSetResponse).toHaveBeenCalledTimes(1)
       expect(mockTypesResponse).toHaveBeenCalledTimes(1)
-      expect(mockMethodsResponse).toHaveBeenCalledTimes(0)
-      expect(mockSearchResponse).toHaveBeenCalledTimes(0)
+      expect(mockMethodsResponse).toHaveBeenCalledTimes(1)
+      expect(mockSearchResponse).toHaveBeenCalledTimes(1)
     })
     const table = await screen.findByRole('table')
-    // after the initial render (not before), records data should have been retrieved once
-    await waitFor(() => {
-      expect(mockSearchResponse).toHaveBeenCalledTimes(1)
-      expect(mockMethodsResponse).toHaveBeenCalledTimes(1)
-    })
 
     // ** ACT **
     const dropdown = await screen.findByLabelText('Select a data table')
@@ -738,15 +727,9 @@ describe('SubmissionConfig records selector', () => {
     await waitFor(() => {
       expect(mockRunSetResponse).toHaveBeenCalledTimes(1)
       expect(mockTypesResponse).toHaveBeenCalledTimes(1)
-      expect(mockMethodsResponse).toHaveBeenCalledTimes(0)
-      expect(mockSearchResponse).toHaveBeenCalledTimes(0)
-    })
-
-    await waitFor(() => {
       expect(mockMethodsResponse).toHaveBeenCalledTimes(1)
       expect(mockSearchResponse).toHaveBeenCalledTimes(1)
     })
-
     await screen.getByText(/Data table not found: BADFOO/)
   })
 
@@ -783,14 +766,8 @@ describe('SubmissionConfig records selector', () => {
     await waitFor(() => {
       expect(mockRunSetResponse).toHaveBeenCalledTimes(1)
       expect(mockTypesResponse).toHaveBeenCalledTimes(1)
-      expect(mockMethodsResponse).toHaveBeenCalledTimes(0)
-      expect(mockSearchResponse).toHaveBeenCalledTimes(0)
-    })
-
-    // after the initial render (not before), records data should have been retrieved once
-    await waitFor(() => {
-      expect(mockSearchResponse).toHaveBeenCalledTimes(1)
       expect(mockMethodsResponse).toHaveBeenCalledTimes(1)
+      expect(mockSearchResponse).toHaveBeenCalledTimes(1)
     })
 
     const checkboxes = screen.getAllByRole('checkbox')
@@ -872,16 +849,8 @@ describe('SubmissionConfig inputs/outputs definitions', () => {
     await waitFor(() => {
       expect(mockRunSetResponse).toHaveBeenCalledTimes(1)
       expect(mockTypesResponse).toHaveBeenCalledTimes(1)
-
-      // At initial render these two shouldn't be called. See below for a follow-up await for them to be triggered via callbacks
-      expect(mockMethodsResponse).toHaveBeenCalledTimes(0)
-      expect(mockSearchResponse).toHaveBeenCalledTimes(0)
-    })
-
-    // after the initial render (not before), records data should have been retrieved once
-    await waitFor(() => {
-      expect(mockSearchResponse).toHaveBeenCalledTimes(1)
       expect(mockMethodsResponse).toHaveBeenCalledTimes(1)
+      expect(mockSearchResponse).toHaveBeenCalledTimes(1)
     })
 
     const button = await screen.findByRole('button', { name: 'Inputs' })
@@ -959,16 +928,8 @@ describe('SubmissionConfig inputs/outputs definitions', () => {
     await waitFor(() => {
       expect(mockRunSetResponse).toHaveBeenCalledTimes(1)
       expect(mockTypesResponse).toHaveBeenCalledTimes(1)
-
-      // At initial render these two shouldn't be called. See below for a follow-up await for them to be triggered via callbacks
-      expect(mockMethodsResponse).toHaveBeenCalledTimes(0)
-      expect(mockSearchResponse).toHaveBeenCalledTimes(0)
-    })
-
-    // after the initial render (not before), records data should have been retrieved once
-    await waitFor(() => {
-      expect(mockSearchResponse).toHaveBeenCalledTimes(1)
       expect(mockMethodsResponse).toHaveBeenCalledTimes(1)
+      expect(mockSearchResponse).toHaveBeenCalledTimes(1)
     })
 
     const button = await screen.findByRole('button', { name: 'Inputs' })
@@ -1041,16 +1002,8 @@ describe('SubmissionConfig inputs/outputs definitions', () => {
     await waitFor(() => {
       expect(mockRunSetResponse).toHaveBeenCalledTimes(1)
       expect(mockTypesResponse).toHaveBeenCalledTimes(1)
-
-      // At initial render these two shouldn't be called. See below for a follow-up await for them to be triggered via callbacks
-      expect(mockMethodsResponse).toHaveBeenCalledTimes(0)
-      expect(mockSearchResponse).toHaveBeenCalledTimes(0)
-    })
-
-    // after the initial render (not before), records data should have been retrieved once
-    await waitFor(() => {
-      expect(mockSearchResponse).toHaveBeenCalledTimes(1)
       expect(mockMethodsResponse).toHaveBeenCalledTimes(1)
+      expect(mockSearchResponse).toHaveBeenCalledTimes(1)
     })
 
     const button = await screen.findByRole('button', { name: 'Outputs' })
