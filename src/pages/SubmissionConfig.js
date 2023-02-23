@@ -35,6 +35,7 @@ export const SubmissionConfig = ({ methodId }) => {
   const [configuredInputDefinition, setConfiguredInputDefinition] = useState()
   const [configuredOutputDefinition, setConfiguredOutputDefinition] = useState()
   const [missingRequiredInputs, setMissingRequiredInputs] = useState([])
+  const [missingExpectedAttribute, setMissingExpectedAttributes] = useState([])
   const [viewWorkflowScriptModal, setViewWorkflowScriptModal] = useState(false)
 
   // TODO: These should probably be moved to the modal:
@@ -115,12 +116,18 @@ export const SubmissionConfig = ({ methodId }) => {
         const dataTableAttributes = _.keyBy('name', selectedDataTable.attributes)
         const dataTableAttrKeys = _.keys(dataTableAttributes)
 
-        const inputsWithoutAttrs = _.flow(
-          _.filter(i => i.input_type.type !== 'optional' && i.source.type === 'record_lookup' && !dataTableAttrKeys.includes(i.source.record_attribute)),
+        const requiredInputsWithoutSource = _.flow(
+          _.filter(i => i.input_type.type !== 'optional' && i.source.type === 'none'),
           _.map(i => i.input_name)
         )(configuredInputDefinition)
 
-        setMissingRequiredInputs(inputsWithoutAttrs)
+        const inputsMissingRequiredAttributes = _.flow(
+          _.filter(i => i.source.type === 'record_lookup' && !dataTableAttrKeys.includes(i.source.record_attribute)),
+          _.map(i => i.input_name)
+        )(configuredInputDefinition)
+
+        setMissingExpectedAttributes(inputsMissingRequiredAttributes)
+        setMissingRequiredInputs(requiredInputsWithoutSource)
       }
     }
 
@@ -208,7 +215,7 @@ export const SubmissionConfig = ({ methodId }) => {
       h(StepButtons, {
         tabs: [
           { key: 'select-data', title: 'Select Data', isValid: true },
-          { key: 'inputs', title: 'Inputs', isValid: !missingRequiredInputs.length },
+          { key: 'inputs', title: 'Inputs', isValid: !missingRequiredInputs.length && !missingExpectedAttribute.length },
           { key: 'outputs', title: 'Outputs', isValid: true }
         ],
         activeTab: activeTab.key || 'select-data',
@@ -216,7 +223,7 @@ export const SubmissionConfig = ({ methodId }) => {
         finalStep: h(ButtonPrimary, {
           'aria-label': 'Submit button',
           style: { marginLeft: '1rem' },
-          disabled: _.isEmpty(selectedRecords) || missingRequiredInputs.length,
+          disabled: _.isEmpty(selectedRecords) || missingRequiredInputs.length || missingExpectedAttribute.length,
           tooltip: _.isEmpty(selectedRecords) ? 'No records selected' : '',
           onClick: () => {
             updateRunSetName()
@@ -281,7 +288,7 @@ export const SubmissionConfig = ({ methodId }) => {
       selectedDataTable: _.keyBy('name', recordTypes)[selectedRecordType],
       configuredInputDefinition, setConfiguredInputDefinition,
       inputTableSort, setInputTableSort,
-      missingRequiredInputs
+      missingRequiredInputs, missingExpectedAttribute
     }) : 'No data table rows available or input definition is not configured...'
   }
 
