@@ -35,7 +35,7 @@ export const SubmissionConfig = ({ methodId }) => {
   const [configuredInputDefinition, setConfiguredInputDefinition] = useState()
   const [configuredOutputDefinition, setConfiguredOutputDefinition] = useState()
   const [missingRequiredInputs, setMissingRequiredInputs] = useState([])
-  const [missingExpectedAttribute, setMissingExpectedAttributes] = useState([])
+  const [missingExpectedAttributes, setMissingExpectedAttributes] = useState([])
   const [viewWorkflowScriptModal, setViewWorkflowScriptModal] = useState(false)
 
   // TODO: These should probably be moved to the modal:
@@ -215,7 +215,7 @@ export const SubmissionConfig = ({ methodId }) => {
       h(StepButtons, {
         tabs: [
           { key: 'select-data', title: 'Select Data', isValid: true },
-          { key: 'inputs', title: 'Inputs', isValid: !missingRequiredInputs.length && !missingExpectedAttribute.length },
+          { key: 'inputs', title: 'Inputs', isValid: !missingRequiredInputs.length && !missingExpectedAttributes.length },
           { key: 'outputs', title: 'Outputs', isValid: true }
         ],
         activeTab: activeTab.key || 'select-data',
@@ -223,7 +223,7 @@ export const SubmissionConfig = ({ methodId }) => {
         finalStep: h(ButtonPrimary, {
           'aria-label': 'Submit button',
           style: { marginLeft: '1rem' },
-          disabled: _.isEmpty(selectedRecords) || missingRequiredInputs.length || missingExpectedAttribute.length,
+          disabled: _.isEmpty(selectedRecords) || missingRequiredInputs.length || missingExpectedAttributes.length,
           tooltip: _.isEmpty(selectedRecords) ? 'No records selected' : '',
           onClick: () => {
             updateRunSetName()
@@ -288,7 +288,7 @@ export const SubmissionConfig = ({ methodId }) => {
       selectedDataTable: _.keyBy('name', recordTypes)[selectedRecordType],
       configuredInputDefinition, setConfiguredInputDefinition,
       inputTableSort, setInputTableSort,
-      missingRequiredInputs, missingExpectedAttribute
+      missingRequiredInputs, missingExpectedAttributes
     }) : 'No data table rows available or input definition is not configured...'
   }
 
