@@ -1040,13 +1040,14 @@ describe('SubmissionConfig inputs/outputs definitions', () => {
     within(cellsFoo[2]).getByText('Int')
     within(cellsFoo[3]).getByText('Fetch from Data Table')
     // input configuration expects attribute 'foo_rating' to be present, but it isn't available in the data table.
-    // Hence, the select box will be empty and defaulted to 'Select Attribute' and orange warning icon will be present next to it
-    within(cellsFoo[4]).getByText('Select Attribute')
+    // Hence, the select box will be empty and defaulted to the attribute name as its placeholder,
+    // but there will be an orange warning icon will be present next to it
+    within(cellsFoo[4]).getByText('foo_rating')
     within(cellsFoo[4]).queryByRole('img', { 'data-icon': 'error-standard' })
 
     // ** ACT **
     // user selects the attribute 'rating_for_foo' for input 'foo_rating_workflow_var'
-    await userEvent.click(within(cellsFoo[4]).getByText('Select Attribute'))
+    await userEvent.click(within(cellsFoo[4]).getByText('foo_rating'))
     const selectOption = await screen.findByText(`rating_for_foo`)
     await userEvent.click(selectOption)
 
