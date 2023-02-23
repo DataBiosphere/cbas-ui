@@ -1,13 +1,14 @@
 import { Fragment, useState } from 'react'
 import { div, h, h2, span } from 'react-hyperscript-helpers'
 import { ButtonOutline, Clickable, Navbar } from 'src/components/common'
-import { icon } from 'src/components/icons'
+import { centeredSpinner, icon } from 'src/components/icons'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
 import { useCancellation, useOnMount } from 'src/libs/react-utils'
 import * as Style from 'src/libs/style'
+import { withBusyState } from 'src/libs/utils'
 import { SavedWorkflows } from 'src/pages/SavedWorkflows'
 
 
@@ -25,10 +26,11 @@ export const SubmitWorkflow = () => {
   // State
   const [cbasStatus, setCbasStatus] = useState()
   const [methodsData, setMethodsData] = useState()
+  const [loading, setLoading] = useState(false)
 
   const signal = useCancellation()
 
-  useOnMount(() => {
+  const refresh = withBusyState(setLoading, async () => {
     const loadCbasStatus = async () => {
       const cbasStatus = await Ajax(signal).Cbas.status()
       setCbasStatus(cbasStatus)
@@ -42,12 +44,15 @@ export const SubmitWorkflow = () => {
         notify('error', 'Error loading saved workflows', { detail: await (error instanceof Response ? error.text() : error) })
       }
     }
-
-    loadCbasStatus()
-    loadRunsData()
+    await loadCbasStatus()
+    await loadRunsData()
   })
 
-  return div([
+  useOnMount(async () => {
+    await refresh()
+  })
+
+  return loading ? centeredSpinner() : div([
     Navbar('RUN WORKFLOWS WITH CROMWELL'),
     div({ style: { margin: '4rem' } }, [
       div({ style: { display: 'flex', marginTop: '1rem', justifyContent: 'space-between' } }, [

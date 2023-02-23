@@ -52,6 +52,16 @@ export const statusType = {
     id: 'unknown', // Must match variable name for collection unpacking.
     label: executionStatus => `Unexpected status (${executionStatus})`,
     icon: style => icon('question', { size: iconSize, style: { color: colors.dark(), ...style } })
+  },
+  canceling: {
+    id: 'canceling', // Must match variable name for collection unpacking.
+    label: () => 'Canceling',
+    icon: style => icon('sync', { size: iconSize, style: { color: colors.dark(), ...style } })
+  },
+  canceled: {
+    id: 'canceled', // Must match variable name for collection unpacking.
+    label: () => 'Canceled',
+    icon: style => icon('warning-standard', { size: iconSize, style: { color: colors.dark(), ...style } })
   }
 }
 
@@ -381,7 +391,7 @@ export const inputsTable = props => {
             return Utils.switchCase(source.type || 'none',
               ['record_lookup', () => recordLookupSelect(rowIndex)],
               ['literal', () => parameterValueSelect(rowIndex)],
-              ['none', () => h(TextCell, {}, ['The workflow input will either be empty or use a default value from the workflow.'])]
+              ['none', () => h(TextCell, { style: { fontStyle: 'italic' } }, ['Optional'])]
             )
           }
         }

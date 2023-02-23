@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import { Fragment, useEffect, useRef, useState } from 'react'
 import { a, div, h, h2, span } from 'react-hyperscript-helpers'
 import { ButtonPrimary, Link, Navbar, Select } from 'src/components/common'
-import { icon } from 'src/components/icons'
+import { centeredSpinner, icon } from 'src/components/icons'
 import { TextArea, TextInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import StepButtons from 'src/components/StepButtons'
@@ -26,6 +26,7 @@ export const SubmissionConfig = ({ methodId }) => {
   const [selectedMethodVersion, setSelectedMethodVersion] = useState()
   const [records, setRecords] = useState([])
   const [dataTableColumnWidths, setDataTableColumnWidths] = useState({})
+  const [loading, setLoading] = useState(false)
   const [workflowScript, setWorkflowScript] = useState()
 
   // Options chosen on this page:
@@ -65,9 +66,9 @@ export const SubmissionConfig = ({ methodId }) => {
       const methodsResponse = await Ajax(signal).Cbas.methods.getById(methodId)
       const method = methodsResponse.methods[0]
       if (method) {
+        const selectedVersion = _.filter(mv => mv.method_version_id === methodVersionId, method.method_versions)[0]
         setMethod(method)
         setAvailableMethodVersions(method.method_versions)
-        const selectedVersion = _.filter(mv => mv.method_version_id === methodVersionId, method.method_versions)[0]
         setSelectedMethodVersion(selectedVersion)
       } else {
         notify('error', 'Error loading methods data', { detail: 'Method not found.' })
@@ -129,6 +130,14 @@ export const SubmissionConfig = ({ methodId }) => {
   useEffect(() => {
     dataTableRef.current?.recomputeColumnSizes()
   }, [dataTableColumnWidths, records, recordTypes])
+
+  useEffect(() => {
+    if (method && availableMethodVersions) {
+      setLoading(false)
+    } else {
+      setLoading(true)
+    }
+  }, [method, availableMethodVersions])
 
   useEffect(() => {
     async function getWorkflowScript() {
@@ -196,7 +205,6 @@ export const SubmissionConfig = ({ methodId }) => {
           a({ style: { marginLeft: '1rem', fontSize: 15, marginTop: '1rem', height: '2rem', fontWeight: 'bold' } }, [icon('error-standard', { size: 20, style: { color: colors.warning(), flex: 'none', marginRight: '0.5rem' } }), noRecordTypeData])
         ])
       ]),
-
       h(StepButtons, {
         tabs: [
           { key: 'select-data', title: 'Select Data', isValid: true },
@@ -317,7 +325,7 @@ export const SubmissionConfig = ({ methodId }) => {
     }
   }
 
-  return h(Fragment, [
+  return loading ? centeredSpinner() : h(Fragment, [
     div({
       style: {
         borderBottom: '2px solid rgb(116, 174, 67)',

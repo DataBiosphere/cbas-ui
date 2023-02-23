@@ -3,7 +3,7 @@ import { Fragment, useRef, useState } from 'react'
 import { div, h, h2 } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import { ButtonOutline, Link, Navbar } from 'src/components/common'
-import { icon } from 'src/components/icons'
+import { centeredSpinner } from 'src/components/icons'
 import { AutoRefreshInterval, getDuration, isRunSetInTerminalState, makeStatusLine, statusType } from 'src/components/submission-common'
 import { FlexTable, paginator, Sortable, tableHeight, TextCell } from 'src/components/table'
 import { Ajax } from 'src/libs/ajax'
@@ -19,12 +19,13 @@ export const SubmissionHistory = () => {
   const [pageNumber, setPageNumber] = useState(1)
   const [itemsPerPage, setItemsPerPage] = useState(50)
   const [runSetsData, setRunSetData] = useState()
+  const [loading, setLoading] = useState(false)
 
   const signal = useCancellation()
   const scheduledRefresh = useRef()
 
   // helper for auto-refresh
-  const refresh = async () => {
+  const refresh = Utils.withBusyState(setLoading, async () => {
     try {
       const runSets = await Ajax(signal).Cbas.runSets.get()
       const mergedRunSets = _.map(r => _.merge(r, { duration: getDuration(r.state, r.submission_timestamp, r.last_modified_timestamp, isRunSetInTerminalState) }), runSets.run_sets)
@@ -37,7 +38,7 @@ export const SubmissionHistory = () => {
     } catch (error) {
       notify('error', 'Error loading previous run sets', { detail: await (error instanceof Response ? error.text() : error) })
     }
-  }
+  })
 
   useOnMount(async () => {
     await refresh()
@@ -57,14 +58,18 @@ export const SubmissionHistory = () => {
       ERROR: h(
         TextCell,
         { style: { whiteSpace: 'pre-wrap', wordBreak: 'break-word' } },
-        [`Failed with ${errorCount} errors`])
+        [`Failed with ${errorCount} errors`]),
+      CANCELING: 'Canceling',
+      CANCELED: 'Canceled'
     }
 
     const stateIconKey = {
       UNKNOWN: 'unknown',
       RUNNING: 'running',
       COMPLETE: 'succeeded',
-      ERROR: 'failed'
+      ERROR: 'failed',
+      CANCELING: 'canceling',
+      CANCELED: 'canceled'
     }
 
     return div([
@@ -79,7 +84,7 @@ export const SubmissionHistory = () => {
 
   const rowHeight = 250
 
-  return h(Fragment, [
+  return loading ? centeredSpinner() : h(Fragment, [
     Navbar('RUN WORKFLOWS WITH CROMWELL'),
     div({ style: { margin: '4em' } }, [
       div({ style: { display: 'flex', marginTop: '1rem', justifyContent: 'space-between' } }, [
@@ -113,17 +118,6 @@ export const SubmissionHistory = () => {
                 paddingTop: '1em'
               }),
               columns: [
-                {
-                  size: { basis: 100, grow: 0 },
-                  field: 'actions',
-                  headerRenderer: () => h(Sortable, { sort, field: 'actions', onSort: setSort }, ['Actions']),
-                  cellRenderer: () => {
-                    return div(
-                      { style: { textAlign: 'center' } },
-                      [icon('cardMenuIcon', { size: 24, onClick: () => { window.alert('TODO: go to actions menu') } })]
-                    )
-                  }
-                },
                 {
                   size: { basis: 350 },
                   field: 'runset_name',
@@ -179,8 +173,7 @@ export const SubmissionHistory = () => {
                   headerRenderer: () => h(Sortable, { sort, field: 'comment', onSort: setSort }, ['Comment']),
                   cellRenderer: ({ rowIndex }) => {
                     return div({ style: { width: '100%', textAlign: 'left' } }, [
-                      h(TextCell, { style: { whiteSpace: 'normal' } }, [paginatedPreviousRunSets[rowIndex].run_set_description || 'No Description']),
-                      h(Link, { style: { display: 'block', marginTop: '1em', textDecoration: 'underline' }, onClick: () => window.alert('Comment editing disabled') }, ['Edit'])
+                      h(TextCell, { style: { whiteSpace: 'normal', fontStyle: 'italic' } }, [paginatedPreviousRunSets[rowIndex].run_set_description || 'No Description'])
                     ])
                   }
                 }

@@ -1,9 +1,9 @@
 import _ from 'lodash/fp'
 import { useMemo, useRef, useState } from 'react'
 import { div, h, h2, h3 } from 'react-hyperscript-helpers'
-import ReactJson from 'react-json-view'
 import { AutoSizer } from 'react-virtualized'
 import { ButtonPrimary, Link, Navbar, Select } from 'src/components/common'
+import { centeredSpinner } from 'src/components/icons'
 import { HeaderSection, statusType, SubmitNewWorkflowButton } from 'src/components/job-common'
 import Modal from 'src/components/Modal'
 import { AutoRefreshInterval, getDuration, isRunInTerminalState, isRunSetInTerminalState, makeStatusLine } from 'src/components/submission-common'
@@ -13,7 +13,7 @@ import colors from 'src/libs/colors'
 import { goToPath } from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
 import { useCancellation, useOnMount } from 'src/libs/react-utils'
-import { customFormatDuration, differenceFromNowInSeconds, makeCompleteDate } from 'src/libs/utils'
+import { customFormatDuration, differenceFromNowInSeconds, makeCompleteDate, withBusyState } from 'src/libs/utils'
 
 
 export const SubmissionDetails = ({ submissionId }) => {
@@ -21,10 +21,9 @@ export const SubmissionDetails = ({ submissionId }) => {
   const [sort, setSort] = useState({ field: 'submission_date', direction: 'desc' })
   const [pageNumber, setPageNumber] = useState(1)
   const [itemsPerPage, setItemsPerPage] = useState(50)
-  const [viewInputsId, setViewInputsId] = useState()
-  const [viewOutputsId, setViewOutputsId] = useState()
   const [viewErrorsId, setViewErrorsId] = useState()
   const [runsData, setRunsData] = useState()
+  const [loading, setLoading] = useState(false)
 
   const [runSetData, setRunSetData] = useState()
   const [methodsData, setMethodsData] = useState()
@@ -75,7 +74,7 @@ export const SubmissionDetails = ({ submissionId }) => {
   }
 
   // helper for auto-refresh
-  const refresh = async () => {
+  const refresh = withBusyState(setLoading, async () => {
     try {
       const runsResponse = await Ajax(signal).Cbas.runs.get(submissionId)
       const runs = runsResponse?.runs
@@ -88,11 +87,9 @@ export const SubmissionDetails = ({ submissionId }) => {
     } catch (error) {
       notify('error', 'Error loading previous runs', { detail: await (error instanceof Response ? error.text() : error) })
     }
-  }
+  })
 
   useOnMount(async () => {
-    await refresh()
-
     const loadRunSetData = async () => {
       try {
         const getRunSets = await Ajax(signal).Cbas.runSets.get()
@@ -115,6 +112,7 @@ export const SubmissionDetails = ({ submissionId }) => {
       }
     }
 
+    await refresh()
     loadRunSetData().then(runSet => runSet && loadMethodsData(runSet.method_version_id))
 
     return () => {
@@ -124,8 +122,8 @@ export const SubmissionDetails = ({ submissionId }) => {
     }
   })
 
-  const specifyRunSet = _.filter(r => r.run_set_id === submissionId, runSetData)
-  const methodId = specifyRunSet[0]?.method_id
+  const filteredRunSets = _.filter(r => r.run_set_id === submissionId, runSetData)
+  const methodId = filteredRunSets[0]?.method_id
   const getSpecificMethod = _.filter(m => m.method_id === methodId, methodsData)
 
   const errorStates = ['SYSTEM_ERROR', 'EXECUTOR_ERROR']
@@ -152,7 +150,7 @@ export const SubmissionDetails = ({ submissionId }) => {
 
   const rowWidth = 100
   const rowHeight = 50
-  return div({ id: 'submission-details-page' }, [
+  return loading ? centeredSpinner() : div({ id: 'submission-details-page' }, [
     Navbar('RUN WORKFLOWS WITH CROMWELL'),
     div({
       style: {
@@ -163,10 +161,10 @@ export const SubmissionDetails = ({ submissionId }) => {
     }, [
       div({ style: { marginLeft: '4em', lineHeight: 1.25 } }, [
         header,
-        h2(['Submission name: ', specifyRunSet[0]?.run_set_name]),
+        h2(['Submission name: ', filteredRunSets[0]?.run_set_name]),
         h3(['Workflow name: ', getSpecificMethod[0]?.name]),
-        h3(['Submission date: ', specifyRunSet[0] && makeCompleteDate(specifyRunSet[0].submission_timestamp)]),
-        h3(['Duration: ', specifyRunSet[0] && customFormatDuration(getDuration(specifyRunSet[0].state, specifyRunSet[0].submission_timestamp, specifyRunSet[0].last_modified_timestamp, isRunSetInTerminalState))])
+        h3(['Submission date: ', filteredRunSets[0] && makeCompleteDate(filteredRunSets[0].submission_timestamp)]),
+        h3(['Duration: ', filteredRunSets[0] && customFormatDuration(getDuration(filteredRunSets[0].state, filteredRunSets[0].submission_timestamp, filteredRunSets[0].last_modified_timestamp, isRunSetInTerminalState))])
       ])
     ]),
     div({
@@ -245,11 +243,11 @@ export const SubmissionDetails = ({ submissionId }) => {
               {
                 size: { basis: 550, grow: 0 },
                 field: 'run_id',
-                headerRenderer: () => h(Sortable, { sort, field: 'run_id', onSort: setSort }, ['Run ID']),
+                headerRenderer: () => h(Sortable, { sort, field: 'run_id', onSort: setSort }, ['Workflow ID']),
                 cellRenderer: ({ rowIndex }) => {
                   return div({ style: { width: '100%', textAlign: 'left' } }, [
                     h(Link, { onClick: () => { goToPath('run-details', { submissionId, workflowId: paginatedPreviousRuns[rowIndex].engine_id }) }, style: { fontWeight: 'bold' } },
-                      [paginatedPreviousRuns[rowIndex].run_id])
+                      [paginatedPreviousRuns[rowIndex].engine_id])
                   ])
                 }
               }
@@ -272,50 +270,6 @@ export const SubmissionDetails = ({ submissionId }) => {
             setItemsPerPage(v)
           },
           itemsPerPageOptions: [10, 25, 50, 100]
-        })
-      ]),
-      (viewInputsId !== undefined) && h(Modal, {
-        title: 'TODO',
-        width: 600,
-        onDismiss: () => setViewInputsId(undefined),
-        showCancel: false,
-        okButton:
-          h(ButtonPrimary, {
-            disabled: false,
-            onClick: () => setViewInputsId(undefined)
-          }, ['OK'])
-      }, [
-        h(TextCell, {
-          style: { whiteSpace: 'pre-wrap', wordBreak: 'break-word' },
-          name: false,
-          collapsed: 4,
-          enableClipboard: true,
-          displayDataTypes: false,
-          displayObjectSize: false,
-          src: 'Link to workflow details!'//_.isEmpty(paginatedPreviousRuns[viewInputsId].workflow_params) ? {} : JSON.parse(paginatedPreviousRuns[viewInputsId].workflow_params)
-        }, ['Link to workflow details!'])
-      ]),
-      (viewOutputsId !== undefined) && h(Modal, {
-        title: 'Outputs Definition JSON',
-        width: 600,
-        onDismiss: () => setViewOutputsId(undefined),
-        showCancel: false,
-        okButton:
-          h(ButtonPrimary, {
-            disabled: false,
-            onClick: () => setViewOutputsId(undefined)
-          }, ['OK'])
-      }, [
-        h(ReactJson, {
-          style: { whiteSpace: 'pre-wrap', wordBreak: 'break-word' },
-          name: false,
-          collapsed: 4,
-          enableClipboard: true,
-          displayDataTypes: false,
-          displayObjectSize: false,
-          src: _.isEmpty(paginatedPreviousRuns[viewOutputsId].workflow_outputs) ?
-            {} :
-            JSON.parse(paginatedPreviousRuns[viewOutputsId].workflow_outputs)
         })
       ]),
       (viewErrorsId !== undefined) && h(Modal, {

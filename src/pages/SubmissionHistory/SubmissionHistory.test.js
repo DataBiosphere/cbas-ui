@@ -1,6 +1,6 @@
 import '@testing-library/jest-dom'
 
-import { act, fireEvent, render, screen, within } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { h } from 'react-hyperscript-helpers'
 import { Ajax } from 'src/libs/ajax'
 import { SubmissionHistory } from 'src/pages/SubmissionHistory/SubmissionHistory'
@@ -26,12 +26,11 @@ describe('SubmissionHistory page', () => {
   const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'offsetWidth')
 
   const headerPosition = {
-    Actions: 0,
-    Submission: 1,
-    Status: 2,
-    'Date Submitted': 3,
-    Duration: 4,
-    Comment: 5
+    Submission: 0,
+    Status: 1,
+    'Date Submitted': 2,
+    Duration: 3,
+    Comment: 4
   }
 
   const runSetData = {
@@ -101,10 +100,13 @@ describe('SubmissionHistory page', () => {
     render(h(SubmissionHistory))
 
     // Assert
-    expect(getRunSetsMethod).toBeCalledTimes(1)
+    await waitFor(() => {
+      expect(getRunSetsMethod).toBeCalledTimes(1)
+    })
+
 
     const table = screen.getByRole('table')
-    expect(table).toHaveAttribute('aria-colcount', '6')
+    expect(table).toHaveAttribute('aria-colcount', '5')
     expect(table).toHaveAttribute('aria-rowcount', '1')
 
     const rows = within(table).queryAllByRole('cell')
@@ -120,15 +122,14 @@ describe('SubmissionHistory page', () => {
     const table = screen.getByRole('table')
 
     // Assert
-    expect(table).toHaveAttribute('aria-colcount', '6')
+    expect(table).toHaveAttribute('aria-colcount', '5')
     expect(table).toHaveAttribute('aria-rowcount', '3')
 
     const rows = within(table).queryAllByRole('row')
     expect(rows.length).toBe(3)
 
     const headers = within(rows[0]).queryAllByRole('columnheader')
-    expect(headers.length).toBe(6)
-    within(headers[headerPosition['Actions']]).getByText('Actions')
+    expect(headers.length).toBe(5)
     within(headers[headerPosition['Submission']]).getByText('Submission name')
     within(headers[headerPosition['Status']]).getByText('Status')
     within(headers[headerPosition['Date Submitted']]).getByText('Date Submitted')
@@ -137,7 +138,7 @@ describe('SubmissionHistory page', () => {
 
     // check data rows are rendered as expected
     const cellsFromDataRow1 = within(rows[1]).queryAllByRole('cell')
-    expect(cellsFromDataRow1.length).toBe(6)
+    expect(cellsFromDataRow1.length).toBe(5)
     within(cellsFromDataRow1[headerPosition['Submission']]).getByText('Data used: FOO')
     within(cellsFromDataRow1[headerPosition['Submission']]).getByText('1 workflows')
     within(cellsFromDataRow1[headerPosition['Status']]).getByText('Success')
@@ -145,11 +146,69 @@ describe('SubmissionHistory page', () => {
     within(cellsFromDataRow1[headerPosition['Duration']]).getByText('1 day 1 hour 1 minute 1 second')
 
     const cellsFromDataRow2 = within(rows[2]).queryAllByRole('cell')
-    expect(cellsFromDataRow2.length).toBe(6)
+    expect(cellsFromDataRow2.length).toBe(5)
     within(cellsFromDataRow2[headerPosition['Submission']]).getByText('Data used: FOO')
     within(cellsFromDataRow2[headerPosition['Status']]).getByText('Failed with 1 errors')
     within(cellsFromDataRow2[headerPosition['Date Submitted']]).getByText(/Jul 10, 2021/)
     within(cellsFromDataRow2[headerPosition['Duration']]).getByText('1 month 1 day 1 hour 1 minute 1 second')
+  })
+
+  it('should support canceled and canceling submissions', async () => {
+    jest.clearAllMocks()
+    const runSetData = {
+      run_sets: [
+        {
+          error_count: 0,
+          submission_timestamp: '2022-01-01T12:00:00.000+00:00',
+          last_modified_timestamp: '2022-01-02T13:01:01.000+00:00',
+          record_type: 'FOO',
+          run_count: 1,
+          run_set_id: 'ea001565-1cd6-4e43-b446-932ac1918081',
+          state: 'CANCELED'
+        },
+        {
+          error_count: 0,
+          submission_timestamp: '2021-07-10T12:00:00.000+00:00',
+          last_modified_timestamp: '2021-08-11T13:01:01.000+00:00',
+          record_type: 'FOO',
+          run_count: 2,
+          run_set_id: 'b7234aae-6f43-405e-bb3a-71f924e09825',
+          state: 'CANCELING'
+        }
+      ]
+    }
+
+    const getRunSetsMethod = jest.fn(() => Promise.resolve(runSetData))
+    Ajax.mockImplementation(() => {
+      return {
+        Cbas: {
+          runSets: {
+            get: getRunSetsMethod
+          }
+        }
+      }
+    })
+
+    // Act
+    await act(async () => {
+      await render(h(SubmissionHistory))
+    })
+
+    const table = screen.getByRole('table')
+
+    // Assert
+    expect(table).toHaveAttribute('aria-colcount', '5')
+    expect(table).toHaveAttribute('aria-rowcount', '3')
+
+    const rows = within(table).queryAllByRole('row')
+    expect(rows.length).toBe(3)
+
+    // check data rows are rendered as expected
+    const cellsFromDataRow1 = within(rows[1]).queryAllByRole('cell')
+    within(cellsFromDataRow1[headerPosition['Status']]).getByText('Canceled')
+
+    const cellsFromDataRow2 = within(rows[2]).queryAllByRole('cell')
+    within(cellsFromDataRow2[headerPosition['Status']]).getByText('Canceling')
   })
 
   it('should sort columns properly', async () => {
@@ -163,7 +222,7 @@ describe('SubmissionHistory page', () => {
     expect(rows.length).toBe(3)
 
     const headers = within(rows[0]).queryAllByRole('columnheader')
-    expect(headers.length).toBe(6)
+    expect(headers.length).toBe(5)
 
     const topRowCells = column => {
       const topRowCells = within(rows[1]).queryAllByRole('cell')
