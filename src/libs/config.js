@@ -7,3 +7,8 @@ export const getConfig = () => {
   console.assert(loadedConfigStore.current, 'Called getConfig before initialization')
   return _.merge(loadedConfigStore.current, configOverridesStore.get())
 }
+
+/**
+ * Flags for hidden features
+ */
+export const isFindWorkflowEnabled = () => getConfig().isFindWorkflowEnabled
