@@ -7,15 +7,30 @@
       "description": "get all types",
       "providerStates": [
         {
-          "name": "at_least_one_type_exists_in_instance"
+          "name": "instances_>0"
+        },
+        {
+          "name": "types_>0"
         }
       ],
       "request": {
         "headers": {
           "Content-Type": "application/json; charset=utf-8"
         },
+        "matchingRules": {
+          "header": {},
+          "path": {
+            "combine": "AND",
+            "matchers": [
+              {
+                "match": "regex",
+                "regex": "/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/types/v[0-9]+.[0-9]+"
+              }
+            ]
+          }
+        },
         "method": "GET",
-        "path": "/_instanceId/types/_apiVersion"
+        "path": "/388ea354-dd51-4a2d-8dc1-a5bb96921849/types/v0.2"
       },
       "response": {
         "body": [

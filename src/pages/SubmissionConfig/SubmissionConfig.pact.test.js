@@ -4,22 +4,18 @@ import { MatchersV3, PactV3, SpecificationVersion } from '@pact-foundation/pact'
 import path from 'path'
 import { fetchOk } from 'src/libs/ajax'
 
-import responses from './mockResponses.json'
-
 const {
+  eachLike,
   integer,
   timestamp,
   string,
   regex,
-  eachLike,
   atLeastOneLike
 } = MatchersV3
 
-const typesBodyExample1 = responses['GET /<instanceId>/types/<apiVersion>'][0]
-
 const attributesExpectation = {
   name: string('biosample_accession'),
-  datatype: regex('STRING|ARRAY', 'STRING')
+  datatype: regex('STRING|ARRAY', 'STRING') // TODO: fill in real datatype options instead of STRING|ARRAY
 }
 
 const typesBodyExpectation = {
@@ -38,17 +34,26 @@ const provider = new PactV3({
   spec: SpecificationVersion.SPECIFICATION_VERSION_V3
 })
 
-describe('get types', () => {
+const regexUUID = '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'
+const regexApiVersion = 'v[0-9]+\.[0-9]+'
+const exampleUUID = '388ea354-dd51-4a2d-8dc1-a5bb96921849'
+const exampleApiVersion = 'v0.2'
+
+describe('GET /wds/<instanceId>/types/<apiVersion>', () => {
   it('at least one type exists', async () => {
     // set up Pact interactions
     await provider.addInteraction({
       states: [
-        { description: 'at_least_one_type_exists_in_instance' }
+        { description: 'instances_>0' },
+        { description: 'types_>0' }
       ],
       uponReceiving: 'get all types',
       withRequest: {
         method: 'GET',
-        path: '/_instanceId/types/_apiVersion',
+        path: regex(
+          `/${regexUUID}/types/${regexApiVersion}`,
+          `/${exampleUUID}/types/${exampleApiVersion}`
+        ),
         headers: { 'Content-Type': 'application/json; charset=utf-8' }
       },
       willRespondWith: {
@@ -62,9 +67,10 @@ describe('get types', () => {
 
     await provider.executeTest(async mockService => {
       // make request to Pact mock server
-      const result = await fetchOk(`${mockService.url}/_instanceId/types/_apiVersion`, { method: 'GET', headers: { 'Content-Type': 'application/json; charset=utf-8' } })
+      const result = await fetchOk(`${mockService.url}/${exampleUUID}/types/${exampleApiVersion}`, { method: 'GET', headers: { 'Content-Type': 'application/json; charset=utf-8' } })
       const resultJson = await result.json()
       expect(resultJson.length).toBeGreaterThan(0)
     })
   })
 })
+
