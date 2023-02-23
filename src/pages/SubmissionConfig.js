@@ -15,6 +15,7 @@ import { notify } from 'src/libs/notifications'
 import { useCancellation, useOnMount } from 'src/libs/react-utils'
 import { maybeParseJSON } from 'src/libs/utils'
 import * as Utils from 'src/libs/utils'
+import ViewWorkflowScriptModal from 'src/pages/ViewWorkflowScriptModal'
 
 
 export const SubmissionConfig = ({ methodId }) => {
@@ -26,6 +27,7 @@ export const SubmissionConfig = ({ methodId }) => {
   const [records, setRecords] = useState([])
   const [dataTableColumnWidths, setDataTableColumnWidths] = useState({})
   const [loading, setLoading] = useState(false)
+  const [workflowScript, setWorkflowScript] = useState()
 
   // Options chosen on this page:
   const [selectedRecordType, setSelectedRecordType] = useState()
@@ -33,6 +35,7 @@ export const SubmissionConfig = ({ methodId }) => {
   const [configuredInputDefinition, setConfiguredInputDefinition] = useState()
   const [configuredOutputDefinition, setConfiguredOutputDefinition] = useState()
   const [missingRequiredInputs, setMissingRequiredInputs] = useState([])
+  const [viewWorkflowScriptModal, setViewWorkflowScriptModal] = useState(false)
 
   // TODO: These should probably be moved to the modal:
   const [runSetName, setRunSetName] = useState('')
@@ -136,6 +139,21 @@ export const SubmissionConfig = ({ methodId }) => {
     }
   }, [method, availableMethodVersions])
 
+  useEffect(() => {
+    async function getWorkflowScript() {
+      try {
+        const script = await Ajax(signal).WorkflowScript.get(selectedMethodVersion.url)
+        setWorkflowScript(script)
+      } catch (error) {
+        notify('error', 'Error loading workflow script', { detail: await (error instanceof Response ? error.text() : error) })
+      }
+    }
+
+    if (selectedMethodVersion != null) {
+      getWorkflowScript()
+    }
+  }, [signal, selectedMethodVersion])
+
   const renderSummary = () => {
     return div({ style: { margin: '4em' } }, [
       div({ style: { display: 'flex', marginTop: '1rem', justifyContent: 'space-between' } }, [
@@ -160,7 +178,10 @@ export const SubmissionConfig = ({ methodId }) => {
         div([
           span({ style: { fontWeight: 'bold' } }, ['Workflow source URL: ']),
           selectedMethodVersion ?
-            h(Link, { href: selectedMethodVersion.url }, [selectedMethodVersion.url]) : 'No workflow version selected'
+            selectedMethodVersion.url : 'No workflow version selected'
+        ]),
+        div([
+          h(Link, { disabled: workflowScript == null, onClick: () => setViewWorkflowScriptModal(true) }, 'View Workflow Script')
         ])
       ]),
       div({ style: { marginTop: '2rem', height: '2rem', fontWeight: 'bold' } }, ['Select a data table']),
@@ -239,7 +260,8 @@ export const SubmissionConfig = ({ methodId }) => {
           div([h(TextCell, ['This will launch ', span({ style: { fontWeight: 'bold' } }, [_.keys(selectedRecords).length]), ' workflow(s).'])]),
           h(TextCell, { style: { marginTop: '1rem' } }, ['Running workflows will generate cloud compute charges.'])
         ])
-      ])
+      ]),
+      viewWorkflowScriptModal && h(ViewWorkflowScriptModal, { workflowScript, onDismiss: () => setViewWorkflowScriptModal(false) })
     ])
   }
 
