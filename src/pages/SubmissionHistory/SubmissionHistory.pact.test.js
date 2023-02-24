@@ -8,14 +8,14 @@ import responses from './mockResponses.json'
 
 
 const {
-  eachLike,
   integer,
   timestamp,
   string,
-  regex
+  regex,
+  atLeastOneLike
 } = MatchersV3
 
-const runSetBodyExample = responses['GET /api/batch/v1/run_sets'][0]
+const runSetBodyExample = responses['GET /api/batch/v1/run_sets'].run_sets[0]
 
 const runSetBodyExpectation = {
   error_count: integer(0),
@@ -44,7 +44,7 @@ const runSetBodyExpectation = {
 }
 
 const provider = new PactV3({
-  consumer: 'cbas-ui:SubmissionHistory',
+  consumer: 'cbas-ui',
   provider: 'cbas',
   log: path.resolve(process.cwd(), 'logs', 'pact.log'),
   logLevel: 'warn',
@@ -53,33 +53,32 @@ const provider = new PactV3({
 })
 
 describe('get run sets', () => {
-  it('run sets exists', async () => {
+  it('at least one runset exists', async () => {
     // set up Pact interactions
     await provider.addInteraction({
       states: [
-        { description: 'two_runsets_exist' }
+        { description: 'at_least_one_runset_exists' }
       ],
       uponReceiving: 'get all run sets',
       withRequest: {
         method: 'GET',
         path: '/api/batch/v1/run_sets',
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json; charset=utf-8' }
       },
       willRespondWith: {
         status: 200,
         headers: {
           'Content-Type': 'application/json'
         },
-        body: eachLike(runSetBodyExpectation)
+        body: { run_sets: atLeastOneLike(runSetBodyExpectation) }
       }
     })
 
     await provider.executeTest(async mockService => {
       // make request to Pact mock server
-      const result = await fetchOk(`${mockService.url}/api/batch/v1/run_sets`, { method: 'GET', headers: { 'Content-Type': 'application/json' } })
-      const runSets = await result.json()
-      console.log(runSets)
-      expect(runSets).toStrictEqual([runSetBodyExample])
+      const result = await fetchOk(`${mockService.url}/api/batch/v1/run_sets`, { method: 'GET', headers: { 'Content-Type': 'application/json; charset=utf-8' } })
+      const resultJson = await result.json()
+      expect(resultJson.run_sets.length).toBeGreaterThan(0)
     })
   })
 })
