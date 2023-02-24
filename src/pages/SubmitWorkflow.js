@@ -9,6 +9,7 @@ import { notify } from 'src/libs/notifications'
 import { useCancellation, useOnMount } from 'src/libs/react-utils'
 import * as Style from 'src/libs/style'
 import { withBusyState } from 'src/libs/utils'
+import FindWorkflowModal from 'src/pages/FindWorkflowModal'
 import { SavedWorkflows } from 'src/pages/SavedWorkflows'
 
 
@@ -68,12 +69,13 @@ export const SubmitWorkflow = () => {
         // TODO: color of card is "disabled", revert back when we enable this clickable's functionality
         style: { ...styles.card, ...styles.shortCard, color: colors.dark(0.7), /*colors.accent()*/ fontSize: 18, lineHeight: '22px' },
         onClick: () => null
-      }, ['Find a Workflow', icon('plus-circle', { size: 32 })])),
+      }, ['Find a Workflow', icon('plus-circle', { size: 24 })])),
       (h(Fragment, [h(SavedWorkflows, { methodsData })])),
       div({ style: { bottom: 0, position: 'absolute', marginBottom: '1em' } }, [
         span(['CBAS Status OK: ']),
         (cbasStatus && span([JSON.stringify(cbasStatus.ok)])) || 'Not Found'
-      ])])
+      ])]),
+      h(FindWorkflowModal)
     ])
   ])
 }
