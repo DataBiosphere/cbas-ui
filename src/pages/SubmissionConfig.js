@@ -6,7 +6,7 @@ import { centeredSpinner, icon } from 'src/components/icons'
 import { TextArea, TextInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import StepButtons from 'src/components/StepButtons'
-import { inputsTable, outputsTable, recordsTable } from 'src/components/submission-common'
+import { InputsTable, outputsTable, recordsTable } from 'src/components/submission-common'
 import { TextCell } from 'src/components/table'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
@@ -88,7 +88,75 @@ export const SubmissionConfig = ({ methodId }) => {
     try {
       const runSet = await Ajax(signal).Cbas.runSets.getForMethod(methodId, 1)
       const newRunSetData = runSet.run_sets[0]
-      setConfiguredInputDefinition(maybeParseJSON(newRunSetData.input_definition))
+      console.log(maybeParseJSON(newRunSetData.input_definition))
+      const mockInputDefinition = [
+        {
+          input_name: 'fetch_sra_to_bam.Fetch_SRA_to_BAM.myStruct',
+          input_type: { type: 'struct' },
+          source: {
+            parameter_value: `{
+              String level1_string
+              String? level1_optional_string
+              struct {
+                String level2_string
+                struct {
+                  String level3_string
+                }
+              }
+            }`,
+            type: 'literal'
+          }
+        },
+        {
+          input_name: 'fetch_sra_to_bam.Fetch_SRA_to_BAM.filler1',
+          input_type: {
+            type: 'primitive',
+            primitive_type: 'String'
+          },
+          source: {
+            type: 'literal',
+            parameter_value: 'filler1'
+          }
+        },
+        {
+          input_name: 'fetch_sra_to_bam.Fetch_SRA_to_BAM.filler2',
+          input_type: {
+            type: 'primitive',
+            primitive_type: 'String'
+          },
+          source: {
+            type: 'literal',
+            parameter_value: 'filler2'
+          }
+        },
+        {
+          input_name: 'fetch_sra_to_bam.Fetch_SRA_to_BAM.filler3',
+          input_type: {
+            type: 'primitive',
+            primitive_type: 'String'
+          },
+          source: {
+            type: 'literal',
+            parameter_value: 'filler3'
+          }
+        },
+        {
+          input_name: 'fetch_sra_to_bam.Fetch_SRA_to_BAM.filler4',
+          input_type: {
+            type: 'primitive',
+            primitive_type: 'String'
+          },
+          source: {
+            type: 'literal',
+            parameter_value: 'filler4'
+          }
+        },
+        ...maybeParseJSON(newRunSetData.input_definition)
+      ]
+
+      // setConfiguredInputDefinition(maybeParseJSON(newRunSetData.input_definition))
+      setConfiguredInputDefinition(mockInputDefinition)
+
       setConfiguredOutputDefinition(maybeParseJSON(newRunSetData.output_definition))
       setSelectedRecordType(newRunSetData.record_type)
       return newRunSetData
@@ -291,7 +359,7 @@ export const SubmissionConfig = ({ methodId }) => {
   }
 
   const renderInputs = () => {
-    return configuredInputDefinition && recordTypes && records.length ? h(inputsTable, {
+    return configuredInputDefinition && recordTypes && records.length ? h(InputsTable, {
       selectedDataTable: _.keyBy('name', recordTypes)[selectedRecordType],
       configuredInputDefinition, setConfiguredInputDefinition,
       inputTableSort, setInputTableSort,

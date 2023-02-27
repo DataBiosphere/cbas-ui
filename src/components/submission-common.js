@@ -1,8 +1,8 @@
 import _ from 'lodash/fp'
-import { Fragment } from 'react'
+import { Fragment, useState } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
-import { Checkbox, Select } from 'src/components/common'
+import { Checkbox, Link, Select } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { TextInput } from 'src/components/input'
 import { FlexTable, GridTable, HeaderCell, Resizable, Sortable, TextCell } from 'src/components/table'
@@ -12,6 +12,7 @@ import colors from 'src/libs/colors'
 import { notify } from 'src/libs/notifications'
 import * as Utils from 'src/libs/utils'
 import { differenceFromDatesInSeconds, differenceFromNowInSeconds } from 'src/libs/utils'
+import { StructBuilderModal } from 'src/pages/StructBuilderModal'
 
 
 export const AutoRefreshInterval = 1000 * 60 // 1 minute
@@ -244,7 +245,13 @@ const parseMethodString = methodString => {
   }
 }
 
-export const inputsTable = props => {
+const inputSourceLabels = {
+  literal: 'Type a Value',
+  record_lookup: 'Fetch from Data Table',
+  none: 'None'
+}
+
+export const InputsTable = props => {
   const {
     selectedDataTable,
     configuredInputDefinition, setConfiguredInputDefinition,
@@ -252,13 +259,11 @@ export const inputsTable = props => {
     missingRequiredInputs, missingExpectedAttributes
   } = props
 
+  const [structBuilderVisible, setStructBuilderVisible] = useState(false)
+  const [rowDetailsVisible, setRowDetailsVisible] = useState({})
+
   const dataTableAttributes = _.keyBy('name', selectedDataTable.attributes)
 
-  const inputSourceLabels = {
-    literal: 'Type a Value',
-    record_lookup: 'Fetch from Data Table',
-    none: 'None'
-  }
   const inputSourceTypes = _.invert(inputSourceLabels)
 
   const recordLookupSelect = rowIndex => {
@@ -299,6 +304,22 @@ export const inputsTable = props => {
     ])
   }
 
+  const structBuilderSelect = rowIndex => {
+    return h(
+      Link,
+      {
+        display: 'block',
+        width: '100%',
+        onClick: () => {
+          const newRowDetailState = _.get(rowIndex, rowDetailsVisible) ? {} : { [rowIndex]: true }
+          setRowDetailsVisible(newRowDetailState)
+          setStructBuilderVisible(true)
+        }
+      },
+      _.get(rowIndex, rowDetailsVisible) ? 'Hide Struct' : 'View Struct'
+    )
+  }
+
   const parameterValueSelect = rowIndex => {
     return h(TextInput, {
       id: `literal-input-${rowIndex}`,
@@ -331,90 +352,100 @@ export const inputsTable = props => {
 
 
   return h(AutoSizer, [({ width, height }) => {
-    return h(FlexTable, {
-      'aria-label': 'input-table',
-      rowCount: inputTableData.length,
-      sort: inputTableSort,
-      readOnly: false,
-      height,
-      width,
-      columns: [
-        {
-          size: { basis: 250, grow: 0 },
-          field: 'taskName',
-          headerRenderer: () => h(Sortable, { sort: inputTableSort, field: 'taskName', onSort: setInputTableSort }, [h(HeaderCell, ['Task name'])]),
-          cellRenderer: ({ rowIndex }) => {
-            return h(TextCell, { style: { fontWeight: 500 } }, [inputTableData[rowIndex].taskName])
-          }
-        },
-        {
-          size: { basis: 360, grow: 0 },
-          field: 'variable',
-          headerRenderer: () => h(Sortable, { sort: inputTableSort, field: 'variable', onSort: setInputTableSort }, [h(HeaderCell, ['Variable'])]),
-          cellRenderer: ({ rowIndex }) => {
-            return h(TextCell, { style: Utils.typeStyle(inputTableData[rowIndex].input_type) }, [inputTableData[rowIndex].variable])
-          }
-        },
-        {
-          size: { basis: 160, grow: 0 },
-          field: 'inputTypeStr',
-          headerRenderer: () => h(HeaderCell, ['Type']),
-          cellRenderer: ({ rowIndex }) => {
-            return h(TextCell, { style: Utils.typeStyle(inputTableData[rowIndex].input_type) }, [inputTableData[rowIndex].inputTypeStr])
-          }
-        },
-        {
-          size: { basis: 350, grow: 0 },
-          headerRenderer: () => h(HeaderCell, ['Input sources']),
-          cellRenderer: ({ rowIndex }) => {
-            return h(Select, {
-              isDisabled: false,
-              'aria-label': 'Select an Option',
-              isClearable: false,
-              value: _.get(_.get(`${rowIndex}.source.type`, inputTableData), inputSourceLabels) || null,
-              onChange: ({ value }) => {
-                const newType = _.get(value, inputSourceTypes)
-                let newSource
-                if (newType === 'none') {
-                  newSource = {
-                    type: newType
-                  }
-                } else {
-                  const param = newType === 'record_lookup' ? 'record_attribute' : 'parameter_value'
-                  newSource = {
-                    type: newType,
-                    [param]: ''
-                  }
-                }
-                const newConfig = _.set(`${inputTableData[rowIndex].configurationIndex}.source`, newSource, configuredInputDefinition)
-                setConfiguredInputDefinition(newConfig)
-              },
-              placeholder: 'Select Source',
-              options: _.values(
-                _.has('optional_type', inputTableData[rowIndex].input_type) ?
-                  inputSourceLabels :
-                  _.omit('none', inputSourceLabels)
-              ),
-              // ** https://stackoverflow.com/questions/55830799/how-to-change-zindex-in-react-select-drowpdown
-              styles: { container: old => ({ ...old, display: 'inline-block', width: '100%' }), menuPortal: base => ({ ...base, zIndex: 9999 }) },
-              menuPortalTarget: document.body,
-              menuPlacement: 'top'
-            })
-          }
-        },
-        {
-          headerRenderer: () => h(HeaderCell, ['Attribute']),
-          cellRenderer: ({ rowIndex }) => {
-            const source = _.get(`${rowIndex}.source`, inputTableData)
-            return Utils.switchCase(source.type || 'none',
-              ['record_lookup', () => recordLookupSelect(rowIndex)],
-              ['literal', () => parameterValueSelect(rowIndex)],
-              ['none', () => h(TextCell, { style: { fontStyle: 'italic' } }, ['Optional'])]
-            )
-          }
+    return h(div, {}, [
+      structBuilderVisible && _.size(rowDetailsVisible) ? h(StructBuilderModal, {
+        inputSourceLabels,
+        onDismiss: () => {
+          setStructBuilderVisible(false)
+          setRowDetailsVisible({})
         }
-      ]
-    })
+      }) : null,
+      h(FlexTable, {
+        'aria-label': 'input-table',
+        rowCount: inputTableData.length,
+        sort: inputTableSort,
+        readOnly: false,
+        height,
+        width,
+        columns: [
+          {
+            size: { basis: 250, grow: 0 },
+            field: 'taskName',
+            headerRenderer: () => h(Sortable, { sort: inputTableSort, field: 'taskName', onSort: setInputTableSort }, [h(HeaderCell, ['Task name'])]),
+            cellRenderer: ({ rowIndex }) => {
+              return h(TextCell, { style: { fontWeight: 500 } }, [inputTableData[rowIndex].taskName])
+            }
+          },
+          {
+            size: { basis: 360, grow: 0 },
+            field: 'variable',
+            headerRenderer: () => h(Sortable, { sort: inputTableSort, field: 'variable', onSort: setInputTableSort }, [h(HeaderCell, ['Variable'])]),
+            cellRenderer: ({ rowIndex }) => {
+              return h(TextCell, { style: Utils.typeStyle(inputTableData[rowIndex].input_type) }, [inputTableData[rowIndex].variable])
+            }
+          },
+          {
+            size: { basis: 160, grow: 0 },
+            field: 'inputTypeStr',
+            headerRenderer: () => h(HeaderCell, ['Type']),
+            cellRenderer: ({ rowIndex }) => {
+              return h(TextCell, { style: Utils.typeStyle(inputTableData[rowIndex].input_type) }, [inputTableData[rowIndex].inputTypeStr])
+            }
+          },
+          {
+            size: { basis: 350, grow: 0 },
+            headerRenderer: () => h(HeaderCell, ['Input sources']),
+            cellRenderer: ({ rowIndex }) => {
+              return h(Select, {
+                isDisabled: false,
+                'aria-label': 'Select an Option',
+                isClearable: false,
+                value: _.get(_.get(`${rowIndex}.source.type`, inputTableData), inputSourceLabels) || null,
+                onChange: ({ value }) => {
+                  const newType = _.get(value, inputSourceTypes)
+                  let newSource
+                  if (newType === 'none') {
+                    newSource = {
+                      type: newType
+                    }
+                  } else {
+                    const param = newType === 'record_lookup' ? 'record_attribute' : 'parameter_value'
+                    newSource = {
+                      type: newType,
+                      [param]: ''
+                    }
+                  }
+                  const newConfig = _.set(`${inputTableData[rowIndex].configurationIndex}.source`, newSource, configuredInputDefinition)
+                  setConfiguredInputDefinition(newConfig)
+                },
+                placeholder: 'Select Source',
+                options: _.values(
+                  _.has('optional_type', inputTableData[rowIndex].input_type) ?
+                    inputSourceLabels :
+                    _.omit('none', inputSourceLabels)
+                ),
+                // ** https://stackoverflow.com/questions/55830799/how-to-change-zindex-in-react-select-drowpdown
+                styles: { container: old => ({ ...old, display: 'inline-block', width: '100%' }), menuPortal: base => ({ ...base, zIndex: 9999 }) },
+                menuPortalTarget: document.body,
+                menuPlacement: 'top'
+              })
+            }
+          },
+          {
+            headerRenderer: () => h(HeaderCell, ['Attribute']),
+            cellRenderer: ({ rowIndex }) => {
+              const source = _.get(`${rowIndex}.source`, inputTableData)
+              const isStruct = inputTableData[rowIndex].input_type.type === 'struct'
+              return Utils.switchCase(source.type || 'none',
+                ['record_lookup', () => recordLookupSelect(rowIndex)],
+                ['literal', () => isStruct ? structBuilderSelect(rowIndex) : parameterValueSelect(rowIndex)],
+                ['none', () => h(TextCell, { style: { fontStyle: 'italic' } }, ['Optional'])]
+              )
+            }
+          }
+        ]
+      })
+    ])
   }])
 }
 
