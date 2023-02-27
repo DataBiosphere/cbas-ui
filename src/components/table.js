@@ -270,11 +270,12 @@ export const flexTableDefaultRowHeight = 48
  */
 export const FlexTable = ({
   initialY = 0, width, height, rowCount, variant, columns = [], hoverHighlight = false,
-  onScroll = _.noop, noContentMessage, noContentRenderer = _.noop, headerHeight = flexTableDefaultRowHeight, rowHeight = flexTableDefaultRowHeight,
+  onScroll = _.noop, noContentMessage, noContentRenderer = _.noop, rowDetailsRenderer, headerHeight = flexTableDefaultRowHeight, rowHeight = flexTableDefaultRowHeight,
   styleCell = () => ({}), styleHeader = () => ({}), 'aria-label': ariaLabel, sort = null, readOnly = false,
   border = true,
   ...props
 }) => {
+  console.log('height', height - headerHeight)
   useLabelAssert('FlexTable', { 'aria-label': ariaLabel, allowLabelledBy: false })
 
   const [scrollbarSize, setScrollbarSize] = useState(0)
@@ -283,6 +284,11 @@ export const FlexTable = ({
   useOnMount(() => {
     body.current.scrollToPosition({ scrollTop: initialY })
   })
+
+  const showDetails = {
+    0: true,
+    2: true,
+  }
 
   return div({
     role: 'table',
@@ -319,6 +325,10 @@ export const FlexTable = ({
       ref: body,
       role: 'rowgroup',
       containerRole: 'presentation', // Clear out unnecessary ARIA roles
+      containerStyle: {
+        height: rowHeight * (rowCount + _.size(showDetails)),
+        maxHeight: rowHeight * (rowCount + _.size(showDetails)),
+      },
       'aria-label': `${ariaLabel} content`, // The whole table is a tab stop so it needs a label
       'aria-readonly': null, // Clear out ARIA properties which should be at the table level, not here
       width,
@@ -331,29 +341,67 @@ export const FlexTable = ({
         setScrollbarSize(vertical ? size : 0)
       },
       cellRenderer: data => {
-        return h(Interactive, {
+        const rowDetailOffset = 48 * _.filter(item => item < data.rowIndex, _.keys(showDetails)).length
+        // console.log('FlexTable.cellRenderer data', data)
+        console.log('rowDetailOffset', data.rowIndex, rowDetailOffset)
+        return h(div, {
           key: data.key,
-          role: 'row',
-          as: 'div',
           className: 'table-row',
-          style: { ...data.style, backgroundColor: 'white', display: 'flex' },
-          hover: hoverHighlight ? { backgroundColor: colors.light(0.4) } : undefined
+          role: 'row',
+          style: {
+            ...data.style, 
+            height: showDetails[data.rowIndex] ? data.style.height + 48 : data.style.height,
+            top: data.style.top + rowDetailOffset
+          }
         }, [
-          _.map(([i, { size, cellRenderer }]) => {
-            return div({
-              key: i,
+          h(Interactive, {
+            id: 'interactive',
+            as: 'div',
+            style: { 
+              height: data.style.height,
+              position: 'absolute', 
+              width: data.style.width, 
+              backgroundColor: 'white', 
+              display: 'flex',
+            },
+            hover: hoverHighlight ? { backgroundColor: colors.light(0.4) } : undefined
+          }, [
+            _.map(([i, { size, cellRenderer }]) => {
+              return div({
+                key: i,
+                role: 'cell',
+                // ARIA row and column indexes start with 1 https://www.digitala11y.com/aria-colindexproperties/
+                'aria-rowindex': data.rowIndex + 2, // The header row is 1, so the first body row is 2
+                'aria-colindex': i + 1, // The first column is 1
+                className: 'table-cell',
+                style: {
+                  ...styles.flexCell(size),
+                  ...(variant === 'light' ? {} : styles.cell(i * 1, columns.length, { border })),
+                  ...(styleCell ? styleCell({ ...data, columnIndex: i, rowIndex: data.rowIndex }) : {})
+                }
+              }, [cellRenderer({ ...data, columnIndex: i, rowIndex: data.rowIndex })])
+            }, Utils.toIndexPairs(columns))
+          ]),
+          div({
+            id: 'row-details',
+            style: { 
+              textAlign: 'center', 
+              fontStyle: 'italic', 
+              display: 'flex', 
+              alignItems: 'center', 
+              height: 48, 
+              position: 'absolute', 
+              top: 48,
+            }
+          }, [
+            div({
               role: 'cell',
-              // ARIA row and column indexes start with 1 https://www.digitala11y.com/aria-colindexproperties/
-              'aria-rowindex': data.rowIndex + 2, // The header row is 1, so the first body row is 2
-              'aria-colindex': i + 1, // The first column is 1
               className: 'table-cell',
-              style: {
-                ...styles.flexCell(size),
-                ...(variant === 'light' ? {} : styles.cell(i * 1, columns.length, { border })),
-                ...(styleCell ? styleCell({ ...data, columnIndex: i, rowIndex: data.rowIndex }) : {})
-              }
-            }, [cellRenderer({ ...data, columnIndex: i, rowIndex: data.rowIndex })])
-          }, Utils.toIndexPairs(columns))
+              'aria-colspan': 5,
+            }, [
+              h(TextCell, {}, data.key)
+            ])
+          ])
         ])
       },
       style: { outline: 'none' },
@@ -374,6 +422,7 @@ FlexTable.propTypes = {
   variant: PropTypes.oneOf(['light']),
   noContentMessage: PropTypes.node,
   noContentRenderer: PropTypes.func,
+  rowDetailsRenderer: PropTypes.func,
   columns: PropTypes.arrayOf(PropTypes.shape({
     field: PropTypes.string,
     headerRenderer: PropTypes.func.isRequired,
