@@ -105,6 +105,7 @@ export const parseMethodString = methodString => {
 export const inputSourceLabels = {
   literal: 'Type a Value',
   record_lookup: 'Fetch from Data Table',
+  object_builder: 'Use Struct Builder',
   none: 'None'
 }
 
@@ -199,4 +200,17 @@ export const InputSourceSelect = props => {
     menuPortalTarget: document.body,
     menuPlacement: 'top'
   })
+}
+
+export const StructBuilderLink = props => {
+  const {
+    onClick, structBuilderVisible
+  } = props
+  return h(Link, {
+    display: 'block',
+    width: '100%',
+    onClick
+  },
+  structBuilderVisible ? 'Hide Struct' : 'View Struct'
+  )
 }

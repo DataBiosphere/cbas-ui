@@ -1,4 +1,5 @@
 import _ from 'lodash/fp'
+import { useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import { icon } from 'src/components/icons'
@@ -6,13 +7,45 @@ import {
   InputSourceSelect,
   ParameterValueTextInput,
   parseMethodString,
-  RecordLookupSelect
+  RecordLookupSelect,
+  StructBuilderLink
 } from 'src/components/submission-common'
 import { FlexTable, HeaderCell, Sortable, TextCell } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import colors from 'src/libs/colors'
 import * as Utils from 'src/libs/utils'
+import { StructBuilderModal } from 'src/pages/StructBuilderModal'
 
+
+const buildStructPath = ({ structBuilderPath, headTemplate, pathTemplate, lastTemplate }) => {
+  const pathParts = [
+    headTemplate(_.head(structBuilderPath)),
+    ..._.size(structBuilderPath) > 2 ? _.map(pathTemplate, _.initial(_.tail(structBuilderPath))) : [],
+    ..._.size(structBuilderPath) > 1 ? [lastTemplate(_.last(structBuilderPath))] : []
+  ]
+  return _.join('.', pathParts)
+}
+
+const buildStructInputTypePath = structBuilderPath => buildStructPath({
+  structBuilderPath,
+  headTemplate: head => `${head}.input_type`,
+  pathTemplate: path => `fields.${path}.field_type`,
+  lastTemplate: last => `fields.${last}.field_type`
+})
+
+const buildStructSourcePath = structBuilderPath => buildStructPath({
+  structBuilderPath,
+  headTemplate: head => `${head}.source`,
+  pathTemplate: path => `fields.${path}.source`,
+  lastTemplate: last => `fields.${last}.source`
+})
+
+const buildStructNamePath = structBuilderPath => buildStructPath({
+  structBuilderPath,
+  headTemplate: head => _.size(structBuilderPath) === 1 ? `${head}.variable` : `${head}.input_type`,
+  pathTemplate: path => `fields.${path}.field_type`,
+  lastTemplate: last => `fields.${last}.field_name`
+})
 
 const InputsTable = props => {
   const {
@@ -21,6 +54,9 @@ const InputsTable = props => {
     inputTableSort, setInputTableSort,
     missingRequiredInputs, missingExpectedAttributes
   } = props
+
+  const [structBuilderVisible, setStructBuilderVisible] = useState(false)
+  const [structBuilderPath, setStructBuilderPath] = useState([])
 
   const dataTableAttributes = _.keyBy('name', selectedDataTable.attributes)
 
@@ -74,8 +110,36 @@ const InputsTable = props => {
     })
   }
 
+  const structBuilderLink = rowIndex => {
+    return h(StructBuilderLink, {
+      structBuilderVisible,
+      onClick: () => {
+        setStructBuilderVisible(true)
+        setStructBuilderPath([rowIndex])
+      }
+    })
+  }
+
   return h(AutoSizer, [({ width, height }) => {
     return h(div, {}, [
+      structBuilderVisible ? h(StructBuilderModal, {
+        structBuilderName: _.get(buildStructNamePath(structBuilderPath), inputTableData),
+        structBuilderBreadcrumbs: _.map(
+          end => _.get(buildStructNamePath(_.slice(0, end, structBuilderPath)), inputTableData),
+          _.range(1, _.size(structBuilderPath))
+        ),
+        structBuilderInputType: _.get(buildStructInputTypePath(structBuilderPath), inputTableData),
+        dataTableAttributes,
+        structBuilderSource: _.get(buildStructSourcePath(structBuilderPath), inputTableData),
+        setStructBuilderSource: source => {
+          const sourcePath = buildStructSourcePath(structBuilderPath)
+          setConfiguredInputDefinition(_.set(sourcePath, source, configuredInputDefinition))
+        },
+        structBuilderPath, setStructBuilderPath,
+        onDismiss: () => {
+          setStructBuilderVisible(false)
+        }
+      }) : null,
       h(FlexTable, {
         'aria-label': 'input-table',
         rowCount: inputTableData.length,
@@ -127,6 +191,7 @@ const InputsTable = props => {
               return Utils.switchCase(source.type || 'none',
                 ['record_lookup', () => recordLookupWithWarnings(rowIndex)],
                 ['literal', () => parameterValueSelect(rowIndex)],
+                ['object_builder', () => structBuilderLink(rowIndex)],
                 ['none', () => h(TextCell, { style: { fontStyle: 'italic' } }, ['Optional'])]
               )
             }

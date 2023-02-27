@@ -182,5 +182,8 @@ export const renderTypeText = iotype => {
   if (_.get('type', iotype) === 'map') {
     return `Map[${_.get('key_type', iotype)}, ${renderTypeText(_.get('value_type', iotype))}]`
   }
+  if (_.get('type', iotype) === 'struct') {
+    return `Struct` // TODO
+  }
   return 'Unsupported Type'
 }
