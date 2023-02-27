@@ -8,6 +8,40 @@ import { maybeParseJSON, subscribable } from 'src/libs/utils'
  * values might be deleted in case of space overflow. For critical data, use the 'static' version.
  */
 
+class InMemoryStorage {
+  storage = Object.create(null)
+
+  get length() {
+    return _.size(this.storage)
+  }
+
+  key(index) {
+    return Object.keys(this.storage)[index] || null
+  }
+
+  getItem(key) {
+    return _.has(key, this.storage) ? _.get(key, this.storage) : null
+  }
+
+  setItem(key, value) {
+    this.storage[key] = value
+  }
+
+  removeItem(key) {
+    delete this.storage[key]
+  }
+
+  clear() {
+    this.storage = Object.create(null)
+  }
+}
+
+/**
+ * This library provides a higher level interface on top of localStorage and sessionStorage.
+ * Values must be JSON-serializable. The 'dynamic' version is preferred if possible, but dynamic
+ * values might be deleted in case of space overflow. For critical data, use the 'static' version.
+ */
+
 const forceSetItem = (storage, key, value) => {
   while (true) {
     try {
@@ -118,3 +152,11 @@ export const staticStorageSlot = (storage, key) => {
   listenStatic(storage, key, next)
   return { subscribe, get, set, update: fn => set(fn(get())) }
 }
+
+export const getSessionStorage = _.once(() => {
+  try {
+    return window.sessionStorage
+  } catch (error) {
+    return new InMemoryStorage()
+  }
+})
