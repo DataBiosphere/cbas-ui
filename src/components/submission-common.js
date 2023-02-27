@@ -105,6 +105,7 @@ export const parseMethodString = methodString => {
 export const inputSourceLabels = {
   literal: 'Type a Value',
   record_lookup: 'Fetch from Data Table',
+  object_builder: 'Use Struct Builder',
   none: 'None'
 }
 
@@ -166,6 +167,9 @@ export const InputSourceSelect = props => {
     inputType,
     updateSource
   } = props
+  const isOptional = inputType.type === 'optional'
+  const innerInputType = isOptional ? inputType.optional_type.type : inputType.type
+  const editorType = innerInputType === 'struct' ? 'object_builder' : 'literal'
 
   return h(Select, {
     isDisabled: false,
@@ -189,14 +193,27 @@ export const InputSourceSelect = props => {
       updateSource(newSource)
     },
     placeholder: 'Select Source',
-    options: _.values(
-      _.has('optional_type', inputType) ?
-        inputSourceLabels :
-        _.omit('none', inputSourceLabels)
-    ),
+    options: [
+      inputSourceLabels[editorType],
+      inputSourceLabels['record_lookup'],
+      ...isOptional ? [inputSourceLabels.none] : []
+    ],
     // ** https://stackoverflow.com/questions/55830799/how-to-change-zindex-in-react-select-drowpdown
     styles: { container: old => ({ ...old, display: 'inline-block', width: '100%' }), menuPortal: base => ({ ...base, zIndex: 9999 }) },
     menuPortalTarget: document.body,
     menuPlacement: 'top'
   })
+}
+
+export const StructBuilderLink = props => {
+  const {
+    onClick, structBuilderVisible
+  } = props
+  return h(Link, {
+    display: 'block',
+    width: '100%',
+    onClick
+  },
+  structBuilderVisible ? 'Hide Struct' : 'View Struct'
+  )
 }
