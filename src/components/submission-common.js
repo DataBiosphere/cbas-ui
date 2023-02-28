@@ -1,8 +1,8 @@
 import _ from 'lodash/fp'
-import { Fragment } from 'react'
+import { Fragment, useState } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
-import { Checkbox, Select } from 'src/components/common'
+import { Checkbox, Select, Link } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { TextInput } from 'src/components/input'
 import { FlexTable, GridTable, HeaderCell, Resizable, Sortable, TextCell } from 'src/components/table'
@@ -239,6 +239,8 @@ export const inputsTable = props => {
     missingRequiredInputs, missingExpectedAttributes
   } = props
 
+  const [rowDetailsVisible, setRowDetailsVisible] = useState({})
+
   const dataTableAttributes = _.keyBy('name', selectedDataTable.attributes)
 
   const inputSourceLabels = {
@@ -284,6 +286,21 @@ export const inputsTable = props => {
         })
       ])
     ])
+  }
+
+  const structBuilderSelect = rowIndex => {
+    return h(
+      Link, 
+      { 
+        display: 'block',
+        width: '100%', 
+        onClick: () => {
+          const newRowDetailState = _.get(rowIndex, rowDetailsVisible) ? {} : {[rowIndex]: true}
+          setRowDetailsVisible(newRowDetailState)
+        }
+      }, 
+      _.get(rowIndex, rowDetailsVisible) ? 'Hide Struct' : 'View Struct'
+    )
   }
 
   const parameterValueSelect = rowIndex => {
@@ -393,14 +410,18 @@ export const inputsTable = props => {
           headerRenderer: () => h(HeaderCell, ['Attribute']),
           cellRenderer: ({ rowIndex }) => {
             const source = _.get(`${rowIndex}.source`, inputTableData)
+            const isStruct = inputTableData[rowIndex].input_type.type === 'primitive' // 'struct'
+            console.log(isStruct, rowIndex)
             return Utils.switchCase(source.type || 'none',
               ['record_lookup', () => recordLookupSelect(rowIndex)],
-              ['literal', () => parameterValueSelect(rowIndex)],
+              ['literal', () => isStruct ? structBuilderSelect(rowIndex) : parameterValueSelect(rowIndex)],
               ['none', () => h(TextCell, { style: { fontStyle: 'italic' } }, ['Optional'])]
             )
           }
         }
-      ]
+      ],
+      rowDetailsRenderer: data => h(TextCell, {}, data.key),
+      rowDetailsVisible
     })
   }])
 }

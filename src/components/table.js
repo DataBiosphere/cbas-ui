@@ -270,12 +270,13 @@ export const flexTableDefaultRowHeight = 48
  */
 export const FlexTable = ({
   initialY = 0, width, height, rowCount, variant, columns = [], hoverHighlight = false,
-  onScroll = _.noop, noContentMessage, noContentRenderer = _.noop, rowDetailsRenderer, headerHeight = flexTableDefaultRowHeight, rowHeight = flexTableDefaultRowHeight,
+  onScroll = _.noop, noContentMessage, noContentRenderer = _.noop, 
+  rowDetailsRenderer = _.noop, rowDetailsVisible = {}, 
+  headerHeight = flexTableDefaultRowHeight, rowHeight = flexTableDefaultRowHeight,
   styleCell = () => ({}), styleHeader = () => ({}), 'aria-label': ariaLabel, sort = null, readOnly = false,
   border = true,
   ...props
 }) => {
-  console.log('height', height - headerHeight)
   useLabelAssert('FlexTable', { 'aria-label': ariaLabel, allowLabelledBy: false })
 
   const [scrollbarSize, setScrollbarSize] = useState(0)
@@ -284,11 +285,6 @@ export const FlexTable = ({
   useOnMount(() => {
     body.current.scrollToPosition({ scrollTop: initialY })
   })
-
-  const showDetails = {
-    0: true,
-    2: true,
-  }
 
   return div({
     role: 'table',
@@ -326,8 +322,8 @@ export const FlexTable = ({
       role: 'rowgroup',
       containerRole: 'presentation', // Clear out unnecessary ARIA roles
       containerStyle: {
-        height: rowHeight * (rowCount + _.size(showDetails)),
-        maxHeight: rowHeight * (rowCount + _.size(showDetails)),
+        height: rowHeight * (rowCount + _.size(rowDetailsVisible)),
+        maxHeight: rowHeight * (rowCount + _.size(rowDetailsVisible)),
       },
       'aria-label': `${ariaLabel} content`, // The whole table is a tab stop so it needs a label
       'aria-readonly': null, // Clear out ARIA properties which should be at the table level, not here
@@ -341,22 +337,20 @@ export const FlexTable = ({
         setScrollbarSize(vertical ? size : 0)
       },
       cellRenderer: data => {
-        const rowDetailOffset = 48 * _.filter(item => item < data.rowIndex, _.keys(showDetails)).length
-        // console.log('FlexTable.cellRenderer data', data)
-        console.log('rowDetailOffset', data.rowIndex, rowDetailOffset)
-        return h(div, {
+        const rowDetailOffset = 48 * _.filter(item => item < data.rowIndex, _.keys(rowDetailsVisible)).length
+        return h(Interactive, {
           key: data.key,
-          className: 'table-row',
           role: 'row',
+          as: 'div',
+          className: 'table-row',
           style: {
             ...data.style, 
-            height: showDetails[data.rowIndex] ? data.style.height + 48 : data.style.height,
+            height: rowDetailsVisible[data.rowIndex] ? data.style.height + 48 : data.style.height,
             top: data.style.top + rowDetailOffset
-          }
+          },
+          hover: hoverHighlight ? { backgroundColor: colors.light(0.4) } : undefined
         }, [
-          h(Interactive, {
-            id: 'interactive',
-            as: 'div',
+          h(div, {
             style: { 
               height: data.style.height,
               position: 'absolute', 
@@ -364,7 +358,6 @@ export const FlexTable = ({
               backgroundColor: 'white', 
               display: 'flex',
             },
-            hover: hoverHighlight ? { backgroundColor: colors.light(0.4) } : undefined
           }, [
             _.map(([i, { size, cellRenderer }]) => {
               return div({
@@ -392,15 +385,14 @@ export const FlexTable = ({
               height: 48, 
               position: 'absolute', 
               top: 48,
+              hidden: !(_.get(data.rowIndex, rowDetailsVisible))
             }
           }, [
             div({
               role: 'cell',
               className: 'table-cell',
-              'aria-colspan': 5,
-            }, [
-              h(TextCell, {}, data.key)
-            ])
+              'aria-colspan': columns.length,
+            }, [rowDetailsRenderer(data)])
           ])
         ])
       },
