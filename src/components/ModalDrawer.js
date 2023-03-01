@@ -46,15 +46,6 @@ const ModalDrawer = ({ isOpen, onDismiss, width = 450, children, onExited, ...pr
   }, [children])])
 }
 
-export const withModalDrawer = ({ width, ...modalProps } = {}) => WrappedComponent => {
-  const Wrapper = ({ isOpen, onDismiss, onExited, ...props }) => {
-    return h(ModalDrawer, { isOpen, width, onDismiss, onExited, ...modalProps }, [
-      isOpen && h(WrappedComponent, { onDismiss, ...props })
-    ])
-  }
-  return Wrapper
-}
-
 ModalDrawer.propTypes = {
   isOpen: PropTypes.bool,
   onDismiss: PropTypes.func.isRequired,
