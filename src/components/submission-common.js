@@ -14,7 +14,7 @@ import * as Utils from 'src/libs/utils'
 import { differenceFromDatesInSeconds, differenceFromNowInSeconds } from 'src/libs/utils'
 
 
-export const AutoRefreshInterval = 1000 * 15 // 1 minute
+export const AutoRefreshInterval = 1000 * 60 // 1 minute
 
 const iconSize = 24
 export const addCountSuffix = (label, count = undefined) => {
@@ -102,7 +102,7 @@ export const loadRunSetData = async signal => {
   }
 }
 
-export const loadRunData = async (signal, submissionId) => {
+export const loadRunsData = async (signal, submissionId) => {
   try {
     const runsResponse = await Ajax(signal).Cbas.runs.get(submissionId)
     return runsResponse?.runs

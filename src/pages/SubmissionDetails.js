@@ -6,7 +6,7 @@ import { ButtonPrimary, Link, Navbar, Select } from 'src/components/common'
 import { centeredSpinner } from 'src/components/icons'
 import { HeaderSection, statusType, SubmitNewWorkflowButton } from 'src/components/job-common'
 import Modal from 'src/components/Modal'
-import { AutoRefreshInterval, getDuration, isRunInTerminalState, isRunSetInTerminalState, makeStatusLine, loadRunSetData, loadRunData } from 'src/components/submission-common'
+import { AutoRefreshInterval, getDuration, isRunInTerminalState, isRunSetInTerminalState, makeStatusLine, loadRunSetData, loadRunsData } from 'src/components/submission-common'
 import { FlexTable, paginator, Sortable, tableHeight, TextCell } from 'src/components/table'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
@@ -79,7 +79,7 @@ export const SubmissionDetails = ({ submissionId }) => {
       const loadedRunSetData = await loadRunSetData(signal)
       setRunSetData(loadedRunSetData)
 
-      const loadedRuns = await loadRunData(signal, submissionId)
+      const loadedRuns = await loadRunsData(signal, submissionId)
       setRunsData(loadedRuns)
 
       // only refresh if there are Run Sets/Runs in non-terminal state
