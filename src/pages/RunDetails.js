@@ -194,7 +194,16 @@ export const RunDetails = ({ namespace, name, submissionId, workflowId }) => {
                     div({ style: styles.sectionTableLabel }, ['End:']),
                     div([end ? makeCompleteDate(end) : 'N/A'])
                   ])
-                ])
+                ]),
+                makeSection(
+                  'Workflow Engine Id',
+                  [
+                    div({ style: { lineHeight: '24px', marginTop: '0.5rem' } }, [
+                      div([workflowId])
+                    ])
+                  ],
+                  {}
+                )
               ]),
               failures &&
                 h(Collapse,

@@ -20,7 +20,7 @@ const runDetailsProps = {
   namespace: 'example-billing-project',
   name: 'workspace',
   submissionId: 1,
-  workflowId: 2
+  workflowId: '5d96fd3c-1a89-40ae-8095-c364181cda46'
 }
 
 const end = new Date()
@@ -141,6 +141,14 @@ describe('RunDetails - render smoke test', () => {
       expect(startTime).toBeDefined
       const endTime = screen.getByText(makeCompleteDate(runDetailsMetadata.end))
       expect(endTime).toBeDefined
+    })
+  })
+
+  it('shows the workflow id', async () => {
+    render(h(RunDetails, runDetailsProps))
+    await waitFor(() => {
+      const workflowId = screen.getByText(runDetailsMetadata.id)
+      expect(workflowId).toBeDefined
     })
   })
 
