@@ -6,7 +6,7 @@ import { ButtonPrimary, Link, Navbar, Select } from 'src/components/common'
 import { centeredSpinner } from 'src/components/icons'
 import { HeaderSection, statusType, SubmitNewWorkflowButton } from 'src/components/job-common'
 import Modal from 'src/components/Modal'
-import { AutoRefreshInterval, getDuration, isRunInTerminalState, isRunSetInTerminalState, makeStatusLine } from 'src/components/submission-common'
+import { AutoRefreshInterval, getDuration, isRunInTerminalState, isRunSetInTerminalState, makeStatusLine, loadRunSetData, loadRunData } from 'src/components/submission-common'
 import { FlexTable, paginator, Sortable, tableHeight, TextCell } from 'src/components/table'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
@@ -76,13 +76,18 @@ export const SubmissionDetails = ({ submissionId }) => {
   // helper for auto-refresh
   const refresh = withBusyState(setLoading, async () => {
     try {
-      const runsResponse = await Ajax(signal).Cbas.runs.get(submissionId)
-      const runs = runsResponse?.runs
-      setRunsData(runs)
+      const loadedRunSetData = await loadRunSetData(signal)
+      setRunSetData(loadedRunSetData)
 
-      // only refresh if there are Runs in non-terminal state
-      if (_.some(({ state }) => !isRunInTerminalState(state), runs)) {
-        scheduledRefresh.current = setTimeout(refresh, AutoRefreshInterval)
+      const loadedRuns = await loadRunData(signal, submissionId)
+      setRunsData(loadedRuns)
+
+      // only refresh if there are Run Sets/Runs in non-terminal state
+      if (_.some(({ state }) => !isRunSetInTerminalState(state), loadedRunSetData)) {
+        // Nesting these checks to avoid a "double refresh"
+        if (_.some(({ state }) => !isRunInTerminalState(state), loadedRuns)) {
+          scheduledRefresh.current = setTimeout(refresh, AutoRefreshInterval)
+        }
       }
     } catch (error) {
       notify('error', 'Error loading previous runs', { detail: await (error instanceof Response ? error.text() : error) })
@@ -90,17 +95,7 @@ export const SubmissionDetails = ({ submissionId }) => {
   })
 
   useOnMount(async () => {
-    const loadRunSetData = async () => {
-      try {
-        const getRunSets = await Ajax(signal).Cbas.runSets.get()
-        const allRunSets = getRunSets.run_sets
-        const annotatedWithDurations = _.map(r => _.merge(r, { duration: getDuration(r.state, r.submission_timestamp, r.last_modified_timestamp, isRunSetInTerminalState) }), allRunSets)
-        setRunSetData(annotatedWithDurations)
-        return annotatedWithDurations
-      } catch (error) {
-        notify('error', 'Error getting run set data', { detail: await (error instanceof Response ? error.text() : error) })
-      }
-    }
+    await loadRunSetData(signal)
 
     const loadMethodsData = async methodVersionId => {
       try {

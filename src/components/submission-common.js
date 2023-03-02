@@ -7,12 +7,14 @@ import { icon } from 'src/components/icons'
 import { TextInput } from 'src/components/input'
 import { FlexTable, GridTable, HeaderCell, Resizable, Sortable, TextCell } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
+import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
-import { differenceFromDatesInSeconds, differenceFromNowInSeconds } from 'src/libs/utils'
+import { notify } from 'src/libs/notifications'
 import * as Utils from 'src/libs/utils'
+import { differenceFromDatesInSeconds, differenceFromNowInSeconds } from 'src/libs/utils'
 
 
-export const AutoRefreshInterval = 1000 * 60 // 1 minute
+export const AutoRefreshInterval = 1000 * 15 // 1 minute
 
 const iconSize = 24
 export const addCountSuffix = (label, count = undefined) => {
@@ -87,6 +89,26 @@ export const getDuration = (state, submissionDate, lastModifiedTimestamp, stateC
   return stateCheckCallback(state) ?
     differenceFromDatesInSeconds(submissionDate, lastModifiedTimestamp) :
     differenceFromNowInSeconds(submissionDate)
+}
+
+export const loadRunSetData = async signal => {
+  try {
+    const getRunSets = await Ajax(signal).Cbas.runSets.get()
+    const allRunSets = getRunSets.run_sets
+    return _.map(r => _.merge(r, { duration: getDuration(r.state, r.submission_timestamp, r.last_modified_timestamp, isRunSetInTerminalState) }),
+      allRunSets)
+  } catch (error) {
+    notify('error', 'Error getting run set data', { detail: await (error instanceof Response ? error.text() : error) })
+  }
+}
+
+export const loadRunData = async (signal, submissionId) => {
+  try {
+    const runsResponse = await Ajax(signal).Cbas.runs.get(submissionId)
+    return runsResponse?.runs
+  } catch (error) {
+    notify('error', 'Error getting run set data', { detail: await (error instanceof Response ? error.text() : error) })
+  }
 }
 
 export const recordsTable = props => {
