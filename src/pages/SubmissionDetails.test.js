@@ -151,7 +151,7 @@ describe('Submission Details page', () => {
 
     await waitFor(() => {
       expect(getRuns).toHaveBeenCalledTimes(1)
-      expect(getRunsSets).toHaveBeenCalledTimes(1)
+      expect(getRunsSets).toHaveBeenCalledTimes(3)
       expect(getMethods).toHaveBeenCalledTimes(1)
     })
 
@@ -214,7 +214,7 @@ describe('Submission Details page', () => {
 
     await waitFor(() => {
       expect(getRuns).toHaveBeenCalledTimes(1)
-      expect(getRunsSets).toHaveBeenCalledTimes(1)
+      expect(getRunsSets).toHaveBeenCalledTimes(3)
       expect(getMethods).toHaveBeenCalledTimes(1)
     })
 
@@ -295,7 +295,7 @@ describe('Submission Details page', () => {
     render(h(SubmissionDetails, { submissionId }))
 
     await waitFor(() => {
-      expect(getRunsSets).toHaveBeenCalledTimes(1)
+      expect(getRunsSets).toHaveBeenCalledTimes(3)
       expect(getMethods).toHaveBeenCalledTimes(1)
     })
 
@@ -342,7 +342,7 @@ describe('Submission Details page', () => {
 
     await waitFor(() => {
       expect(getRuns).toHaveBeenCalledTimes(1)
-      expect(getRunsSets).toHaveBeenCalledTimes(1)
+      expect(getRunsSets).toHaveBeenCalledTimes(3)
       expect(getMethods).toHaveBeenCalledTimes(1)
     })
 
