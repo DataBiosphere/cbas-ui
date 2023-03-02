@@ -18,7 +18,7 @@ import { customFormatDuration, differenceFromNowInSeconds, makeCompleteDate, wit
 
 export const SubmissionDetails = ({ submissionId }) => {
   // State
-  const [sort, setSort] = useState({ field: 'submission_date', direction: 'desc' })
+  const [sort, setSort] = useState({ field: 'duration', direction: 'desc' })
   const [pageNumber, setPageNumber] = useState(1)
   const [itemsPerPage, setItemsPerPage] = useState(50)
   const [viewErrorsId, setViewErrorsId] = useState()
