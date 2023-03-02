@@ -18,7 +18,7 @@ import { customFormatDuration, differenceFromNowInSeconds, makeCompleteDate, wit
 
 export const SubmissionDetails = ({ submissionId }) => {
   // State
-  const [sort, setSort] = useState({ field: 'submission_date', direction: 'desc' })
+  const [sort, setSort] = useState({ field: 'duration', direction: 'desc' })
   const [pageNumber, setPageNumber] = useState(1)
   const [itemsPerPage, setItemsPerPage] = useState(50)
   const [viewErrorsId, setViewErrorsId] = useState()
@@ -78,7 +78,8 @@ export const SubmissionDetails = ({ submissionId }) => {
     try {
       const runsResponse = await Ajax(signal).Cbas.runs.get(submissionId)
       const runs = runsResponse?.runs
-      setRunsData(runs)
+      const runsAnnotatedWithDurations = _.map(r => _.merge(r, { duration: getDuration(r.state, r.submission_date, r.last_modified_timestamp, isRunInTerminalState) }), runs)
+      setRunsData(runsAnnotatedWithDurations)
 
       // only refresh if there are Runs in non-terminal state
       if (_.some(({ state }) => !isRunInTerminalState(state), runs)) {
@@ -236,8 +237,7 @@ export const SubmissionDetails = ({ submissionId }) => {
                 field: 'duration',
                 headerRenderer: () => h(Sortable, { sort, field: 'duration', onSort: setSort }, ['Duration']),
                 cellRenderer: ({ rowIndex }) => {
-                  const row = paginatedPreviousRuns[rowIndex]
-                  return h(TextCell, [customFormatDuration(getDuration(row.state, row.submission_date, row.last_modified_timestamp, isRunInTerminalState))])
+                  return h(TextCell, [customFormatDuration(paginatedPreviousRuns[rowIndex].duration)])
                 }
               },
               {
