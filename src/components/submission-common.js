@@ -102,15 +102,6 @@ export const loadRunSetData = async signal => {
   }
 }
 
-export const loadRunsData = async (signal, submissionId) => {
-  try {
-    const runsResponse = await Ajax(signal).Cbas.runs.get(submissionId)
-    return runsResponse?.runs
-  } catch (error) {
-    notify('error', 'Error getting run set data', { detail: await (error instanceof Response ? error.text() : error) })
-  }
-}
-
 export const recordsTable = props => {
   const {
     dataTableColumnWidths, setDataTableColumnWidths,

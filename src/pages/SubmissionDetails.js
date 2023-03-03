@@ -6,7 +6,7 @@ import { ButtonPrimary, Link, Navbar, Select } from 'src/components/common'
 import { centeredSpinner } from 'src/components/icons'
 import { HeaderSection, statusType, SubmitNewWorkflowButton } from 'src/components/job-common'
 import Modal from 'src/components/Modal'
-import { AutoRefreshInterval, getDuration, isRunInTerminalState, isRunSetInTerminalState, makeStatusLine, loadRunSetData, loadRunsData } from 'src/components/submission-common'
+import { AutoRefreshInterval, getDuration, isRunInTerminalState, isRunSetInTerminalState, makeStatusLine, loadRunSetData } from 'src/components/submission-common'
 import { FlexTable, paginator, Sortable, tableHeight, TextCell } from 'src/components/table'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
@@ -76,16 +76,18 @@ export const SubmissionDetails = ({ submissionId }) => {
   // helper for auto-refresh
   const refresh = withBusyState(setLoading, async () => {
     try {
+      const runsResponse = await Ajax(signal).Cbas.runs.get(submissionId)
+      const runs = runsResponse?.runs
+      const runsAnnotatedWithDurations = _.map(r => _.merge(r, { duration: getDuration(r.state, r.submission_date, r.last_modified_timestamp, isRunInTerminalState) }), runs)
+      setRunsData(runsAnnotatedWithDurations)
+
       const loadedRunSetData = await loadRunSetData(signal)
       setRunSetData(loadedRunSetData)
-
-      const loadedRuns = await loadRunsData(signal, submissionId)
-      setRunsData(loadedRuns)
 
       // only refresh if there are Run Sets/Runs in non-terminal state
       if (_.some(({ state }) => !isRunSetInTerminalState(state), loadedRunSetData)) {
         // Nesting these checks to avoid a "double refresh"
-        if (_.some(({ state }) => !isRunInTerminalState(state), loadedRuns)) {
+        if (_.some(({ state }) => !isRunInTerminalState(state), runsAnnotatedWithDurations)) {
           scheduledRefresh.current = setTimeout(refresh, AutoRefreshInterval)
         }
       }
