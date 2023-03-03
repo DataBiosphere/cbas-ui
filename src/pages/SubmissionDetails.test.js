@@ -171,15 +171,15 @@ describe('Submission Details page', () => {
     within(headers[2]).getByText('Duration')
     within(headers[3]).getByText('Workflow ID')
 
-    // check data rows are rendered as expected
-    const cellsFromDataRow1 = within(rows[2]).queryAllByRole('cell')
+    // check data rows are rendered as expected (default sorting is by duration in desc order)
+    const cellsFromDataRow1 = within(rows[1]).queryAllByRole('cell')
     expect(cellsFromDataRow1.length).toBe(4)
     within(cellsFromDataRow1[0]).getByText('FOO2')
     within(cellsFromDataRow1[1]).getByText('Failed with error(s)')
     within(cellsFromDataRow1[2]).getByText('52 minutes 10 seconds')
     within(cellsFromDataRow1[3]).getByText('b29e84b1-ad1b-4462-a9a0-7ec849bf30a8')
 
-    const cellsFromDataRow2 = within(rows[1]).queryAllByRole('cell')
+    const cellsFromDataRow2 = within(rows[2]).queryAllByRole('cell')
     expect(cellsFromDataRow2.length).toBe(4)
     within(cellsFromDataRow2[0]).getByText('FOO1')
     within(cellsFromDataRow2[1]).getByText('Succeeded')
@@ -228,7 +228,7 @@ describe('Submission Details page', () => {
     screen.getByText('Nothing here yet! Your previously run workflows will be displayed here.')
   })
 
-  it('should sort columns properly', async () => {
+  it('should sort by duration column properly', async () => {
     const getRuns = jest.fn(() => Promise.resolve(runsData))
     Ajax.mockImplementation(() => {
       return {
@@ -240,11 +240,12 @@ describe('Submission Details page', () => {
       }
     })
 
-    // Act - click on sort button on Submitted column to sort submission timestamp by ascending order
+    // Act
     await act(async () => {
       await render(h(SubmissionDetails))
     })
 
+    // Assert
     const table = screen.getByRole('table')
     const rows = within(table).queryAllByRole('row')
     expect(rows.length).toBe(3)
@@ -252,11 +253,34 @@ describe('Submission Details page', () => {
     const headers = within(rows[0]).queryAllByRole('columnheader')
     expect(headers.length).toBe(4)
 
+    // Act - click on sort button on Duration column to sort by ascending order
     await act(async () => {
       await fireEvent.click(within(headers[2]).getByRole('button'))
     })
 
-    // Assert - rows are now sorted by duration in ascending order
+    // Assert
+    // check that rows are now sorted by duration in ascending order
+    const cellsFromDataRow1 = within(rows[1]).queryAllByRole('cell')
+    expect(cellsFromDataRow1.length).toBe(4)
+    within(cellsFromDataRow1[0]).getByText('FOO1')
+    within(cellsFromDataRow1[1]).getByText('Succeeded')
+    within(cellsFromDataRow1[2]).getByText('37 seconds')
+    within(cellsFromDataRow1[3]).getByText('d16721eb-8745-4aa2-b71e-9ade2d6575aa')
+
+    const cellsFromDataRow2 = within(rows[2]).queryAllByRole('cell')
+    expect(cellsFromDataRow2.length).toBe(4)
+    within(cellsFromDataRow2[0]).getByText('FOO2')
+    within(cellsFromDataRow2[1]).getByText('Failed with error(s)')
+    within(cellsFromDataRow2[2]).getByText('52 minutes 10 seconds')
+    within(cellsFromDataRow2[3]).getByText('b29e84b1-ad1b-4462-a9a0-7ec849bf30a8')
+
+    // Act - click on sort button on Duration column to sort by descending order
+    await act(async () => {
+      await fireEvent.click(within(headers[2]).getByRole('button'))
+    })
+
+    // Assert
+    // check that rows are now sorted by duration in descending order
     const cellsFromUpdatedDataRow1 = within(rows[1]).queryAllByRole('cell')
     expect(cellsFromUpdatedDataRow1.length).toBe(4)
     within(cellsFromUpdatedDataRow1[0]).getByText('FOO2')

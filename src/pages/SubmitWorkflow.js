@@ -10,6 +10,7 @@ import { notify } from 'src/libs/notifications'
 import { useCancellation, useOnMount } from 'src/libs/react-utils'
 import * as Style from 'src/libs/style'
 import { withBusyState } from 'src/libs/utils'
+import FindWorkflowModal from 'src/pages/FindWorkflow/FindWorkflowModal'
 import { SavedWorkflows } from 'src/pages/SavedWorkflows'
 
 
@@ -28,6 +29,7 @@ export const SubmitWorkflow = () => {
   const [cbasStatus, setCbasStatus] = useState()
   const [methodsData, setMethodsData] = useState()
   const [loading, setLoading] = useState(false)
+  const [viewFindWorkflowModal, setViewFindWorkflowModal] = useState(false)
 
   const signal = useCancellation()
 
@@ -67,13 +69,14 @@ export const SubmitWorkflow = () => {
         'aria-haspopup': 'dialog',
         disabled: !isFindWorkflowEnabled(),
         style: { ...styles.card, ...styles.shortCard, color: isFindWorkflowEnabled() ? colors.accent() : colors.dark(0.7), fontSize: 18, lineHeight: '22px' },
-        onClick: () => console.log('Clicked on "Find a Workflow" card')
+        onClick: () => setViewFindWorkflowModal(true)
       }, ['Find a Workflow', icon('plus-circle', { size: 32 })])),
       (h(Fragment, [h(SavedWorkflows, { methodsData })])),
       div({ style: { bottom: 0, position: 'absolute', marginBottom: '1em' } }, [
         span(['CBAS Status OK: ']),
         (cbasStatus && span([JSON.stringify(cbasStatus.ok)])) || 'Not Found'
-      ])])
+      ])]),
+      viewFindWorkflowModal && h(FindWorkflowModal, { onDismiss: () => setViewFindWorkflowModal(false) })
     ])
   ])
 }

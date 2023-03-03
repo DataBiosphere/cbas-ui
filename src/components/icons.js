@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { Children, Fragment } from 'react'
-import { h, span } from 'react-hyperscript-helpers'
+import { div, h, span } from 'react-hyperscript-helpers'
 import DelayedRender from 'src/components/DelayedRender'
 import colors from 'src/libs/colors'
 import iconDict from 'src/libs/icon-dict'
@@ -60,3 +60,13 @@ export const icon = (shape, { size = 16, ...props } = {}) => {
 
   return _.invokeArgs(shape, [{ size, 'data-icon': shape, ...props }], iconDict)
 }
+
+export const wdlIcon = ({ style = {}, ...props } = {}) => div({
+  style: {
+    color: 'white', fontSize: 6, fontWeight: 'bold',
+    backgroundColor: colors.dark(),
+    padding: '10px 2px 3px 2px',
+    ...style
+  },
+  ...props
+}, ['WDL'])
