@@ -6,7 +6,7 @@ import { ButtonPrimary, Link, Navbar, Select } from 'src/components/common'
 import { centeredSpinner } from 'src/components/icons'
 import { HeaderSection, statusType, SubmitNewWorkflowButton } from 'src/components/job-common'
 import Modal from 'src/components/Modal'
-import { AutoRefreshInterval, getDuration, isRunInTerminalState, isRunSetInTerminalState, makeStatusLine, loadRunSetData } from 'src/components/submission-common'
+import { AutoRefreshInterval, getDuration, isRunInTerminalState, isRunSetInTerminalState, loadRunSetData, makeStatusLine } from 'src/components/submission-common'
 import { FlexTable, paginator, Sortable, tableHeight, TextCell } from 'src/components/table'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
@@ -97,8 +97,6 @@ export const SubmissionDetails = ({ submissionId }) => {
   })
 
   useOnMount(async () => {
-    await loadRunSetData(signal)
-
     const loadMethodsData = async methodVersionId => {
       try {
         const methodsResponse = await Ajax(signal).Cbas.methods.getByMethodVersionId(methodVersionId)
@@ -110,7 +108,7 @@ export const SubmissionDetails = ({ submissionId }) => {
     }
 
     await refresh()
-    loadRunSetData().then(runSet => runSet && loadMethodsData(runSet.method_version_id))
+    loadRunSetData(signal).then(runSet => runSet && loadMethodsData(runSet.method_version_id))
 
     return () => {
       if (scheduledRefresh.current) {
