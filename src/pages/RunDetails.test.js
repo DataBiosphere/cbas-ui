@@ -20,7 +20,7 @@ const runDetailsProps = {
   namespace: 'example-billing-project',
   name: 'workspace',
   submissionId: 1,
-  workflowId: '5d96fd3c-1a89-40ae-8095-c364181cda46'
+  workflowId: '00001111-2222-3333-aaaa-bbbbccccdddd'
 }
 
 const end = new Date()
@@ -74,7 +74,7 @@ const runDetailsMetadata = {
   ],
   end: '2022-11-16T18:48:24.858Z',
   start: '2022-11-16T19:48:23.195Z',
-  id: '5d96fd3c-1a89-40ae-8095-c364181cda46',
+  id: '00001111-2222-3333-aaaa-bbbbccccdddd',
   inputs: {
     'fileChecksum.inputFile': 'https://coaexternalstorage.blob.core.windows.net/cromwell/user-inputs/inputFile.txt'
   },
