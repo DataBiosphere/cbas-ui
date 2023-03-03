@@ -2,13 +2,15 @@ import _ from 'lodash/fp'
 import { useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { Clickable, Link } from 'src/components/common'
-import { icon } from 'src/components/icons'
+import { centeredSpinner, icon } from 'src/components/icons'
 import ModalDrawer from 'src/components/ModalDrawer'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
+import { useCancellation } from 'src/libs/react-utils'
 import * as Style from 'src/libs/style'
+import { withBusyState } from 'src/libs/utils'
 import { MethodCard } from 'src/pages/FindWorkflow/MethodCard'
 
 
@@ -28,7 +30,7 @@ const suggestedWorkflowsList = [
     method_name: 'Optimus',
     method_description: 'The optimus 3 pipeline processes 10x genomics sequencing data based on the v2 chemistry. It corrects cell barcodes and UMIs, aligns reads, marks duplicates, and returns data as alignments in BAM format and as counts in sparse matrix exchange format.',
     method_source: 'GitHub',
-    method_version: '1.0',
+    method_version: 'Optimus_v5.5.0',
     method_url: 'https://raw.githubusercontent.com/broadinstitute/warp/develop/pipelines/skylab/optimus/Optimus.wdl'
   },
   {
@@ -47,34 +49,31 @@ const suggestedWorkflowsList = [
   }
 ]
 
-const submitMethod = async () => {
-  try {
-    const methodPayload = {
-      run_set_name: runSetName,
-      run_set_description: runSetDescription,
-      method_version_id: selectedMethodVersion.method_version_id,
-      workflow_input_definitions: configuredInputDefinition,
-      workflow_output_definitions: configuredOutputDefinition,
-      wds_records: {
-        record_type: selectedRecordType,
-        record_ids: _.keys(selectedRecords)
-      }
-    }
-
-    setDisplayLaunchModal(false)
-    const methodObject = await Ajax(signal).Cbas.runSets.post(methodPayload)
-    notify('success', 'Workflow successfully submitted', { message: 'You may check on the progress of workflow on this page anytime.', timeout: 5000 })
-    Nav.goToPath('submission-details', {
-      submissionId: runSetObject.run_set_id
-    })
-  } catch (error) {
-    notify('error', 'Error submitting workflow', { detail: await (error instanceof Response ? error.text() : error) })
-  }
-}
-
 
 const FindWorkflowModal = ({ onDismiss }) => {
   const [selectedSubHeader, setSelectedSubHeader] = useState('browse-suggested-workflows')
+  const [loading, setLoading] = useState()
+
+  const signal = useCancellation()
+
+  const submitMethod = withBusyState(setLoading, async () => {
+    try {
+      const methodPayload = {
+        method_name: suggestedWorkflowsList[0].method_name,
+        method_description: suggestedWorkflowsList[0].method_description,
+        method_source: suggestedWorkflowsList[0].method_source,
+        method_version: suggestedWorkflowsList[0].method_version,
+        method_url: suggestedWorkflowsList[0].method_url
+      }
+
+      const methodObject = await Ajax(signal).Cbas.methods.post(methodPayload)
+      Nav.goToPath('submission-config', {
+        methodId: methodObject.method_id
+      })
+    } catch (error) {
+      notify('error', 'Error creating new method', { detail: await (error instanceof Response ? error.text() : error) })
+    }
+  })
 
   const subHeadersMap = {
     'browse-suggested-workflows': 'Browse Suggested Workflows'
@@ -101,7 +100,7 @@ const FindWorkflowModal = ({ onDismiss }) => {
       div({ style: { minWidth: 330, maxWidth: 330, overflowY: 'auto' } }, [
         _.map(([subHeaderKey, subHeaderName]) => {
           const isActive = isSubHeaderActive(subHeaderKey)
-          return h(Clickable, {
+          return loading ? centeredSpinner() : h(Clickable, {
             'aria-label': `${subHeaderKey}-header-button`,
             style: { ...styles.findWorkflowSubHeader(isActive), color: isActive ? colors.accent(1.1) : colors.accent(), fontSize: 16 },
             onClick: () => setSelectedSubHeader(subHeaderKey),
