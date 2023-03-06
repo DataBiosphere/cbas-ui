@@ -84,7 +84,7 @@ export const SubmissionDetails = ({ submissionId }) => {
       const loadedRunSetData = await loadRunSetData(signal)
       setRunSetData(loadedRunSetData)
 
-      // only refresh if there are Run Sets/Runs in non-terminal state
+      // only refresh if there are run sets in non-terminal state
       if (_.some(({ state }) => !isRunSetInTerminalState(state), loadedRunSetData)) {
         scheduledRefresh.current = setTimeout(refresh, AutoRefreshInterval)
       }
