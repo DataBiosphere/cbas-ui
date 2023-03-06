@@ -4,9 +4,8 @@ import { div, h, h2 } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import { ButtonOutline, Link, Navbar } from 'src/components/common'
 import { centeredSpinner } from 'src/components/icons'
-import { AutoRefreshInterval, getDuration, isRunSetInTerminalState, makeStatusLine, statusType } from 'src/components/submission-common'
+import { AutoRefreshInterval, getDuration, isRunSetInTerminalState, loadRunSetData, makeStatusLine, statusType } from 'src/components/submission-common'
 import { FlexTable, paginator, Sortable, tableHeight, TextCell } from 'src/components/table'
-import { Ajax } from 'src/libs/ajax'
 import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
 import { useCancellation, useOnMount } from 'src/libs/react-utils'
@@ -27,12 +26,11 @@ export const SubmissionHistory = () => {
   // helper for auto-refresh
   const refresh = Utils.withBusyState(setLoading, async () => {
     try {
-      const runSets = await Ajax(signal).Cbas.runSets.get()
-      const mergedRunSets = _.map(r => _.merge(r, { duration: getDuration(r.state, r.submission_timestamp, r.last_modified_timestamp, isRunSetInTerminalState) }), runSets.run_sets)
-      setRunSetData(mergedRunSets)
+      const loadedRunSetData = await loadRunSetData(signal)
+      setRunSetData(loadedRunSetData)
 
       // only refresh if there are Run Sets in non-terminal state
-      if (_.some(({ state }) => !isRunSetInTerminalState(state), mergedRunSets)) {
+      if (_.some(({ state }) => !isRunSetInTerminalState(state), loadedRunSetData)) {
         scheduledRefresh.current = setTimeout(refresh, AutoRefreshInterval)
       }
     } catch (error) {

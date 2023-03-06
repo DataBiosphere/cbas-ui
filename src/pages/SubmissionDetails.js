@@ -6,7 +6,7 @@ import { ButtonPrimary, Link, Navbar, Select } from 'src/components/common'
 import { centeredSpinner } from 'src/components/icons'
 import { HeaderSection, statusType, SubmitNewWorkflowButton } from 'src/components/job-common'
 import Modal from 'src/components/Modal'
-import { AutoRefreshInterval, getDuration, isRunInTerminalState, isRunSetInTerminalState, makeStatusLine } from 'src/components/submission-common'
+import { AutoRefreshInterval, getDuration, isRunInTerminalState, isRunSetInTerminalState, loadRunSetData, makeStatusLine } from 'src/components/submission-common'
 import { FlexTable, paginator, Sortable, tableHeight, TextCell } from 'src/components/table'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
@@ -81,8 +81,11 @@ export const SubmissionDetails = ({ submissionId }) => {
       const runsAnnotatedWithDurations = _.map(r => _.merge(r, { duration: getDuration(r.state, r.submission_date, r.last_modified_timestamp, isRunInTerminalState) }), runs)
       setRunsData(runsAnnotatedWithDurations)
 
-      // only refresh if there are Runs in non-terminal state
-      if (_.some(({ state }) => !isRunInTerminalState(state), runs)) {
+      const loadedRunSetData = await loadRunSetData(signal)
+      setRunSetData(loadedRunSetData)
+
+      // only refresh if there are run sets in non-terminal state
+      if (_.some(({ state }) => !isRunSetInTerminalState(state), loadedRunSetData)) {
         scheduledRefresh.current = setTimeout(refresh, AutoRefreshInterval)
       }
     } catch (error) {
@@ -91,18 +94,6 @@ export const SubmissionDetails = ({ submissionId }) => {
   })
 
   useOnMount(async () => {
-    const loadRunSetData = async () => {
-      try {
-        const getRunSets = await Ajax(signal).Cbas.runSets.get()
-        const allRunSets = getRunSets.run_sets
-        const annotatedWithDurations = _.map(r => _.merge(r, { duration: getDuration(r.state, r.submission_timestamp, r.last_modified_timestamp, isRunSetInTerminalState) }), allRunSets)
-        setRunSetData(annotatedWithDurations)
-        return annotatedWithDurations
-      } catch (error) {
-        notify('error', 'Error getting run set data', { detail: await (error instanceof Response ? error.text() : error) })
-      }
-    }
-
     const loadMethodsData = async methodVersionId => {
       try {
         const methodsResponse = await Ajax(signal).Cbas.methods.getByMethodVersionId(methodVersionId)
@@ -114,7 +105,7 @@ export const SubmissionDetails = ({ submissionId }) => {
     }
 
     await refresh()
-    loadRunSetData().then(runSet => runSet && loadMethodsData(runSet.method_version_id))
+    loadRunSetData(signal).then(runSet => runSet && loadMethodsData(runSet.method_version_id))
 
     return () => {
       if (scheduledRefresh.current) {
