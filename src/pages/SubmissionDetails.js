@@ -86,10 +86,7 @@ export const SubmissionDetails = ({ submissionId }) => {
 
       // only refresh if there are Run Sets/Runs in non-terminal state
       if (_.some(({ state }) => !isRunSetInTerminalState(state), loadedRunSetData)) {
-        // Nesting these checks to avoid a "double refresh"
-        if (_.some(({ state }) => !isRunInTerminalState(state), runsAnnotatedWithDurations)) {
-          scheduledRefresh.current = setTimeout(refresh, AutoRefreshInterval)
-        }
+        scheduledRefresh.current = setTimeout(refresh, AutoRefreshInterval)
       }
     } catch (error) {
       notify('error', 'Error loading previous runs', { detail: await (error instanceof Response ? error.text() : error) })
