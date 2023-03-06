@@ -56,14 +56,14 @@ const FindWorkflowModal = ({ onDismiss }) => {
 
   const signal = useCancellation()
 
-  const submitMethod = withBusyState(setLoading, async () => {
+  const submitMethod = withBusyState(setLoading, async ({ method }) => {
     try {
       const methodPayload = {
-        method_name: suggestedWorkflowsList[0].method_name,
-        method_description: suggestedWorkflowsList[0].method_description,
-        method_source: suggestedWorkflowsList[0].method_source,
-        method_version: suggestedWorkflowsList[0].method_version,
-        method_url: suggestedWorkflowsList[0].method_url
+        method_name: method.method_name,
+        method_description: method.method_description,
+        method_source: method.method_source,
+        method_version: method.method_version,
+        method_url: method.method_url
       }
 
       const methodObject = await Ajax(signal).Cbas.methods.post(methodPayload)
@@ -112,7 +112,7 @@ const FindWorkflowModal = ({ onDismiss }) => {
       ]),
       isSubHeaderActive('browse-suggested-workflows') && div({ style: { overflowY: 'auto', flexGrow: 1, display: 'flex', flexDirection: 'column', paddingLeft: '20px' } }, [
         div({ style: { display: 'flex', flexWrap: 'wrap', overflowY: 'auto', paddingBottom: 5, paddingLeft: 5 } }, [
-          _.map(method => h(MethodCard, { method, onClick: () => submitMethod(), key: method.method_name }), suggestedWorkflowsList)
+          _.map(method => h(MethodCard, { method, onClick: () => submitMethod({ method }), key: method.method_name }), suggestedWorkflowsList)
         ])
       ])
     ])
