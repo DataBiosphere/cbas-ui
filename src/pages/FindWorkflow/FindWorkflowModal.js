@@ -52,7 +52,7 @@ const suggestedWorkflowsList = [
 
 const FindWorkflowModal = ({ onDismiss }) => {
   const [selectedSubHeader, setSelectedSubHeader] = useState('browse-suggested-workflows')
-  const [loading, setLoading] = useState()
+  const [loading, setLoading] = useState(false)
 
   const signal = useCancellation()
 
@@ -67,6 +67,7 @@ const FindWorkflowModal = ({ onDismiss }) => {
       }
 
       const methodObject = await Ajax(signal).Cbas.methods.post(methodPayload)
+      onDismiss()
       Nav.goToPath('submission-config', {
         methodId: methodObject.method_id
       })
