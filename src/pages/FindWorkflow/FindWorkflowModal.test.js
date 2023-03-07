@@ -49,12 +49,12 @@ describe('FindWorkflowModal', () => {
     expect(screen.getByText('Find a Workflow')).toBeInTheDocument()
 
     // select and click on method in modal
-    // const firstWorkflow = screen.getByText('Optimus')
-    // fireEvent.click(firstWorkflow)
-    //
-    // // ** ASSERT **
-    // // assert POST /methods endpoint was called with expected parameters
-    // expect(postMethodFunction).toHaveBeenCalled()
+    const firstWorkflow = screen.getByText('Optimus')
+    fireEvent.click(firstWorkflow)
+
+    // ** ASSERT **
+    // assert POST /methods endpoint was called with expected parameters
+    expect(postMethodFunction).toHaveBeenCalled()
     // expect(postMethodFunction).toBeCalledWith(
     //   {
     //     method_name: 'Optimus',
