@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
-import { Checkbox, Select, Link } from 'src/components/common'
+import { Checkbox, Link, Select } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { TextInput } from 'src/components/input'
 import { FlexTable, GridTable, HeaderCell, Resizable, Sortable, TextCell } from 'src/components/table'
@@ -231,6 +231,12 @@ const parseMethodString = methodString => {
   }
 }
 
+const inputSourceLabels = {
+  literal: 'Type a Value',
+  record_lookup: 'Fetch from Data Table',
+  none: 'None'
+}
+
 export const inputsTable = props => {
   const {
     selectedDataTable,
@@ -243,11 +249,6 @@ export const inputsTable = props => {
 
   const dataTableAttributes = _.keyBy('name', selectedDataTable.attributes)
 
-  const inputSourceLabels = {
-    literal: 'Type a Value',
-    record_lookup: 'Fetch from Data Table',
-    none: 'None'
-  }
   const inputSourceTypes = _.invert(inputSourceLabels)
 
   const recordLookupSelect = rowIndex => {
@@ -290,15 +291,15 @@ export const inputsTable = props => {
 
   const structBuilderSelect = rowIndex => {
     return h(
-      Link, 
-      { 
+      Link,
+      {
         display: 'block',
-        width: '100%', 
+        width: '100%',
         onClick: () => {
-          const newRowDetailState = _.get(rowIndex, rowDetailsVisible) ? {} : {[rowIndex]: true}
+          const newRowDetailState = _.get(rowIndex, rowDetailsVisible) ? {} : { [rowIndex]: true }
           setRowDetailsVisible(newRowDetailState)
         }
-      }, 
+      },
       _.get(rowIndex, rowDetailsVisible) ? 'Hide Struct' : 'View Struct'
     )
   }
@@ -333,6 +334,7 @@ export const inputsTable = props => {
     _.orderBy([({ [inputTableSort.field]: field }) => _.lowerCase(field)], [inputTableSort.direction])
   )(configuredInputDefinition)
 
+  console.log('inputTableData', inputTableData)
 
   return h(AutoSizer, [({ width, height }) => {
     return h(FlexTable, {
@@ -410,8 +412,7 @@ export const inputsTable = props => {
           headerRenderer: () => h(HeaderCell, ['Attribute']),
           cellRenderer: ({ rowIndex }) => {
             const source = _.get(`${rowIndex}.source`, inputTableData)
-            const isStruct = inputTableData[rowIndex].input_type.type === 'primitive' // 'struct'
-            console.log(isStruct, rowIndex)
+            const isStruct = inputTableData[rowIndex].input_type.type === 'struct'
             return Utils.switchCase(source.type || 'none',
               ['record_lookup', () => recordLookupSelect(rowIndex)],
               ['literal', () => isStruct ? structBuilderSelect(rowIndex) : parameterValueSelect(rowIndex)],
@@ -420,10 +421,152 @@ export const inputsTable = props => {
           }
         }
       ],
-      rowDetailsRenderer: data => h(TextCell, {}, data.key),
-      rowDetailsVisible
+      rowDetailsRenderer: data => {
+        return h(div, {
+          style: {
+            backgroundColor: 'rgb(235, 236, 238)',
+            padding: '1em',
+            display: 'flex',
+            flex: '1 1 auto',
+            flexDirection: 'column'
+          }
+        }, [
+          h(structBuilder, {}, [])
+        ])
+      },
+      rowDetailsVisible,
+      rowDetailsHeight: height
     })
   }])
+}
+
+const structBuilder = props => {
+  const structBuilderData = [
+    {
+      input_type: { type: 'struct' },
+      variable: 'variable_1',
+      inputTypeStr: 'Struct',
+      source: {
+        type: 'literal',
+        parameter_value: 'some value'
+      }
+    },
+    {
+      input_type: { type: 'struct' },
+      variable: 'variable_2',
+      inputTypeStr: 'Struct',
+      source: {
+        type: 'literal',
+        parameter_value: 'some value'
+      }
+    }
+  ]
+
+  return h(Fragment, {}, [
+    h(div, {
+      style: {
+        height: 35,
+        fontSize: 15,
+        display: 'flex',
+        alignItems: 'center'
+      }
+    }, [
+      h(TextCell, {}, [
+        h(Link, {}, `SRA_ID`),
+        h(span, {}, ' / '),
+        h(Link, {}, `some-inner-field`)
+      ])
+    ]),
+    h(AutoSizer, [({ width, height }) => {
+      return h(FlexTable, {
+        'aria-label': 'struct-table',
+        rowCount: 2,
+        readOnly: false,
+        height,
+        width,
+        columns: [
+          {
+            size: { basis: 250, grow: 0 },
+            field: 'taskName',
+            headerRenderer: () => h(HeaderCell, ['Struct name']),
+            cellRenderer: ({ rowIndex }) => {
+              return h(TextCell, { style: { fontWeight: 500 } }, ['<struct name>'])
+            }
+          },
+          {
+            size: { basis: 360, grow: 0 },
+            field: 'variable',
+            headerRenderer: () => h(HeaderCell, ['Variable']),
+            cellRenderer: ({ rowIndex }) => {
+              return h(TextCell, { style: Utils.typeStyle(structBuilderData[rowIndex].input_type) }, [structBuilderData[rowIndex].variable])
+            }
+          },
+          {
+            size: { basis: 160, grow: 0 },
+            field: 'inputTypeStr',
+            headerRenderer: () => h(HeaderCell, ['Type']),
+            cellRenderer: ({ rowIndex }) => {
+              return h(TextCell, { style: Utils.typeStyle(structBuilderData[rowIndex].input_type) }, [structBuilderData[rowIndex].inputTypeStr])
+              return h(TextCell, { }, ['<input type str>'])
+            }
+          },
+          {
+            size: { basis: 350, grow: 0 },
+            headerRenderer: () => h(HeaderCell, ['Input sources']),
+            cellRenderer: ({ rowIndex }) => {
+              return h(Select, {
+                isDisabled: false,
+                'aria-label': 'Select an Option',
+                isClearable: false,
+                value: _.get(_.get(`${rowIndex}.source.type`, structBuilderData), inputSourceLabels) || null,
+                // onChange: ({ value }) => {
+                //   const newType = _.get(value, inputSourceTypes)
+                //   let newSource
+                //   if (newType === 'none') {
+                //     newSource = {
+                //       type: newType
+                //     }
+                //   } else {
+                //     const param = newType === 'record_lookup' ? 'record_attribute' : 'parameter_value'
+                //     newSource = {
+                //       type: newType,
+                //       [param]: ''
+                //     }
+                //   }
+                //   const newConfig = _.set(`${inputTableData[rowIndex].configurationIndex}.source`, newSource, configuredInputDefinition)
+                //   setConfiguredInputDefinition(newConfig)
+                // },
+                placeholder: 'Select Source',
+                options: _.values(
+                  _.has('optional_type', structBuilderData[rowIndex].input_type) ?
+                    inputSourceLabels :
+                    _.omit('none', inputSourceLabels)
+                ),
+                // options: ['a', 'b', 'c'],
+                // ** https://stackoverflow.com/questions/55830799/how-to-change-zindex-in-react-select-drowpdown
+                styles: { container: old => ({ ...old, display: 'inline-block', width: '100%' }), menuPortal: base => ({ ...base, zIndex: 9999 }) },
+                menuPortalTarget: document.body,
+                menuPlacement: 'top'
+              })
+            }
+          },
+          {
+            headerRenderer: () => h(HeaderCell, ['Attribute']),
+            cellRenderer: ({ rowIndex }) => {
+              // const source = _.get(`${rowIndex}.source`, inputTableData)
+              // const isStruct = inputTableData[rowIndex].input_type.type === 'primitive' // 'struct'
+              // return Utils.switchCase(source.type || 'none',
+              //   ['record_lookup', () => recordLookupSelect(rowIndex)],
+              //   ['literal', () => isStruct ? structBuilderSelect(rowIndex) : parameterValueSelect(rowIndex)],
+              //   ['none', () => h(TextCell, { style: { fontStyle: 'italic' } }, ['Optional'])]
+              // )
+              return h(TextCell, { style: { fontStyle: 'italic' } }, ['<attribute>'])
+            }
+          }
+        ]
+      })
+    }])
+  ])
 }
 
 export const outputsTable = props => {
