@@ -237,6 +237,7 @@ export const recordsTable = props => {
 }
 
 const parseMethodString = methodString => {
+  console.log('methodString', methodString)
   const methodNameParts = methodString.split('.')
   return {
     workflow: methodNameParts[0],
@@ -260,7 +261,8 @@ export const InputsTable = props => {
   } = props
 
   const [structBuilderVisible, setStructBuilderVisible] = useState(false)
-  const [rowDetailsVisible, setRowDetailsVisible] = useState({})
+  const [structBuilderRowIndex, setStructBuilderRowIndex] = useState(null)
+  const [structBuilderPathComponents, setStructBuilderPathComponents] = useState([])
 
   const dataTableAttributes = _.keyBy('name', selectedDataTable.attributes)
 
@@ -311,12 +313,11 @@ export const InputsTable = props => {
         display: 'block',
         width: '100%',
         onClick: () => {
-          const newRowDetailState = _.get(rowIndex, rowDetailsVisible) ? {} : { [rowIndex]: true }
-          setRowDetailsVisible(newRowDetailState)
           setStructBuilderVisible(true)
+          setStructBuilderRowIndex(rowIndex)
         }
       },
-      _.get(rowIndex, rowDetailsVisible) ? 'Hide Struct' : 'View Struct'
+      structBuilderVisible ? 'Hide Struct' : 'View Struct'
     )
   }
 
@@ -350,14 +351,18 @@ export const InputsTable = props => {
     _.orderBy([({ [inputTableSort.field]: field }) => _.lowerCase(field)], [inputTableSort.direction])
   )(configuredInputDefinition)
 
+  console.log('inputTableData', inputTableData)
 
   return h(AutoSizer, [({ width, height }) => {
     return h(div, {}, [
-      structBuilderVisible && _.size(rowDetailsVisible) ? h(StructBuilderModal, {
-        inputSourceLabels,
+      structBuilderVisible ? h(StructBuilderModal, {
+        structBuilderData: inputTableData[structBuilderRowIndex],
+        inputSourceTypes, inputSourceLabels,
+        structBuilderPathComponents, setStructBuilderPathComponents,
+        configuredInputDefinition, setConfiguredInputDefinition,
         onDismiss: () => {
           setStructBuilderVisible(false)
-          setRowDetailsVisible({})
+          setStructBuilderRowIndex(null)
         }
       }) : null,
       h(FlexTable, {
@@ -435,10 +440,10 @@ export const InputsTable = props => {
             headerRenderer: () => h(HeaderCell, ['Attribute']),
             cellRenderer: ({ rowIndex }) => {
               const source = _.get(`${rowIndex}.source`, inputTableData)
-              const isStruct = inputTableData[rowIndex].input_type.type === 'struct'
               return Utils.switchCase(source.type || 'none',
                 ['record_lookup', () => recordLookupSelect(rowIndex)],
-                ['literal', () => isStruct ? structBuilderSelect(rowIndex) : parameterValueSelect(rowIndex)],
+                ['literal', () => parameterValueSelect(rowIndex)],
+                ['object_builder', () => structBuilderSelect(rowIndex)],
                 ['none', () => h(TextCell, { style: { fontStyle: 'italic' } }, ['Optional'])]
               )
             }

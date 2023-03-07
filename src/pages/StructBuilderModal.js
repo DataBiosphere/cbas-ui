@@ -4,7 +4,6 @@ import { StructBuilder } from 'src/components/StructBuilder'
 
 
 export const StructBuilderModal = ({ onDismiss, ...props }) => {
-  const { inputSourceLabels } = props
   return h(Modal,
     {
       title: 'Struct Builder',
@@ -14,7 +13,7 @@ export const StructBuilderModal = ({ onDismiss, ...props }) => {
       okButton: 'Done',
       width: '90%'
     }, [
-      h(StructBuilder, { inputSourceLabels, style: { height: 500 } }, [])
+      h(StructBuilder, { ...props, style: { height: 500 } }, [])
     ]
   )
 }
