@@ -32,7 +32,7 @@ describe('FindWorkflowModal', () => {
   })
 
   it('should call POST /methods endpoint with expected parameters', async () => {
-    const postMethodFunction = jest.fn(() => Promise.resolve({method_id: 'abc123'}))
+    const postMethodFunction = jest.fn(() => Promise.resolve({ method_id: 'abc123' }))
 
     await Ajax.mockImplementation(() => {
       return {
@@ -52,7 +52,7 @@ describe('FindWorkflowModal', () => {
 
     // select and click on method in modal
     const firstWorkflow = screen.getByText('Optimus')
-    act (() => {fireEvent.click(firstWorkflow)})
+    await act(async () => { fireEvent.click(firstWorkflow) })
 
     // ** ASSERT **
     // assert POST /methods endpoint was called with expected parameters
