@@ -1,12 +1,14 @@
 import '@testing-library/jest-dom'
 
-import { fireEvent, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen } from '@testing-library/react'
 import { h } from 'react-hyperscript-helpers'
 import { Ajax } from 'src/libs/ajax'
 import FindWorkflowModal from 'src/pages/FindWorkflow/FindWorkflowModal'
 
 
 jest.mock('src/libs/ajax')
+jest.mock('src/libs/notifications.js')
+jest.mock('src/libs/nav.js')
 
 
 describe('FindWorkflowModal', () => {
@@ -30,7 +32,7 @@ describe('FindWorkflowModal', () => {
   })
 
   it('should call POST /methods endpoint with expected parameters', async () => {
-    const postMethodFunction = jest.fn()
+    const postMethodFunction = jest.fn(() => Promise.resolve({method_id: 'abc123'}))
 
     await Ajax.mockImplementation(() => {
       return {
@@ -50,18 +52,18 @@ describe('FindWorkflowModal', () => {
 
     // select and click on method in modal
     const firstWorkflow = screen.getByText('Optimus')
-    fireEvent.click(firstWorkflow)
-    //
-    // // ** ASSERT **
-    // // assert POST /methods endpoint was called with expected parameters
-    //expect(postMethodFunction).toHaveBeenCalled()
-    // expect(postMethodFunction).toBeCalledWith(
-    //   {
-    //     method_name: 'Optimus',
-    //     method_description: 'The optimus 3 pipeline processes 10x genomics sequencing data based on the v2 chemistry. It corrects cell barcodes and UMIs, aligns reads, marks duplicates, and returns data as alignments in BAM format and as counts in sparse matrix exchange format.',
-    //     method_source: 'GitHub',
-    //     method_version: 'Optimus_v5.5.0',
-    //     method_url: 'https://raw.githubusercontent.com/broadinstitute/warp/develop/pipelines/skylab/optimus/Optimus.wdl'
-    //   })
+    act (() => {fireEvent.click(firstWorkflow)})
+
+    // ** ASSERT **
+    // assert POST /methods endpoint was called with expected parameters
+    expect(postMethodFunction).toHaveBeenCalled()
+    expect(postMethodFunction).toBeCalledWith(
+      {
+        method_name: 'Optimus',
+        method_description: 'The optimus 3 pipeline processes 10x genomics sequencing data based on the v2 chemistry. It corrects cell barcodes and UMIs, aligns reads, marks duplicates, and returns data as alignments in BAM format and as counts in sparse matrix exchange format.',
+        method_source: 'GitHub',
+        method_version: 'Optimus_v5.5.0',
+        method_url: 'https://raw.githubusercontent.com/broadinstitute/warp/develop/pipelines/skylab/optimus/Optimus.wdl'
+      })
   })
 })

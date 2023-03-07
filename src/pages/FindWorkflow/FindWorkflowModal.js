@@ -52,7 +52,7 @@ const suggestedWorkflowsList = [
 
 const FindWorkflowModal = ({ onDismiss }) => {
   const [selectedSubHeader, setSelectedSubHeader] = useState('browse-suggested-workflows')
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState()
 
   const signal = useCancellation()
 
@@ -73,6 +73,7 @@ const FindWorkflowModal = ({ onDismiss }) => {
       })
     } catch (error) {
       notify('error', 'Error creating new method', { detail: await (error instanceof Response ? error.text() : error) })
+      console.log(await (error instanceof Response ? error.text() : error))
     }
   })
 
