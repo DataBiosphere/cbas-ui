@@ -819,7 +819,6 @@ describe('SubmissionConfig records selector', () => {
       expect(mockMethodsResponse).toHaveBeenCalledTimes(1)
       expect(mockSearchResponse).toHaveBeenCalledTimes(1)
     })
-    //await screen.getByText(/Select a data table/)
 
     const warning = screen.getByLabelText('Error message')
     expect(warning).toContainHTML('Select a data table')
