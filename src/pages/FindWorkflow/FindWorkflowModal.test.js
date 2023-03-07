@@ -62,6 +62,6 @@ describe('FindWorkflowModal', () => {
         method_source: 'GitHub',
         method_version: 'Optimus_v5.5.0',
         method_url: 'https://raw.githubusercontent.com/broadinstitute/warp/develop/pipelines/skylab/optimus/Optimus.wdl'
-            })
+      })
   })
 })
