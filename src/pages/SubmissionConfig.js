@@ -58,7 +58,11 @@ export const SubmissionConfig = ({ methodId }) => {
       const searchResult = await Ajax(signal).Wds.search.post(recordType)
       setRecords(searchResult.records)
     } catch (error) {
-      setNoRecordTypeData('Select a data table')
+      if (recordType === undefined){
+        setNoRecordTypeData('Select a data table')
+      } else {
+        setNoRecordTypeData(`Data table not found: ${recordType}`)
+      }
     }
   }
 
@@ -209,7 +213,7 @@ export const SubmissionConfig = ({ methodId }) => {
           options: _.map(t => t.name, recordTypes)
         }),
         noRecordTypeData && h(Fragment, [
-          a({ 'aria-label': 'Error message', style: { marginLeft: '1rem', fontSize: 15, marginTop: '1rem', height: '2rem', fontWeight: 'bold' } }, [icon('error-standard', { size: 20, style: { color: colors.warning(), flex: 'none', marginRight: '0.5rem' } }), noRecordTypeData])
+          a({ 'aria-label': 'warning message', style: { marginLeft: '1rem', fontSize: 15, marginTop: '1rem', height: '2rem', fontWeight: 'bold' } }, [icon('error-standard', { size: 20, style: { color: colors.warning(), flex: 'none', marginRight: '0.5rem' } }), noRecordTypeData])
         ])
       ]),
       h(StepButtons, {
