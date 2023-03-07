@@ -822,7 +822,6 @@ describe('SubmissionConfig records selector', () => {
 
     const warning = screen.getByLabelText('Error message')
     expect(warning).toContainHTML('Select a data table')
-
   })
 
   it('should toggle between different states of checked boxes', async () => {
