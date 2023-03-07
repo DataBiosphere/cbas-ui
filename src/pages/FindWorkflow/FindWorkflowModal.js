@@ -34,18 +34,32 @@ const suggestedWorkflowsList = [
     method_url: 'https://raw.githubusercontent.com/broadinstitute/warp/develop/pipelines/skylab/optimus/Optimus.wdl'
   },
   {
-    method_name: 'mock_method_2',
-    method_description: 'mock_method_2 description. Lorem ipsum dolor sit amet.',
+    method_name: 'SmartSeq2SingleSample',
+    method_description: 'Process SmartSeq2 scRNA-Seq data, include reads alignment, QC metrics collection, and gene expression quantitication.',
     method_source: 'GitHub',
-    method_version: 'master',
-    method_url: 'https://raw.githubusercontent.com/broadinstitute/mock_method_2.wdl'
+    method_version: 'smartseq2_v5.1.1',
+    method_url: 'https://raw.githubusercontent.com/broadinstitute/warp/develop/pipelines/skylab/smartseq2_single_sample/SmartSeq2SingleSample.wdl'
   },
   {
-    method_name: 'mock_method_3',
-    method_description: 'mock_method_3 description',
+    method_name: 'MultiSampleSmartSeq2',
+    method_description: 'The MultiSampleSmartSeq2 pipeline runs multiple SS2 samples in a single pipeline invocation',
     method_source: 'GitHub',
-    method_version: 'master',
-    method_url: 'https://raw.githubusercontent.com/broadinstitute/mock_method_3.wdl'
+    method_version: 'MultiSampleSmartSeq2_v2.2.1',
+    method_url: 'https://raw.githubusercontent.com/broadinstitute/warp/4fc16dc61ddc2e72cede479607643047fecf1dde/pipelines/skylab/smartseq2_multisample/MultiSampleSmartSeq2.wdl'
+  },
+  {
+    method_name: 'MultiSampleSmartSeq2SingleNucleus',
+    method_description: 'The MultiSampleSmartSeq2SingleNucleus pipeline runs multiple snSS2 samples in a single pipeline invocation',
+    method_source: 'GitHub',
+    method_version: 'MultiSampleSmartSeq2SingleNuclei_v1.2.14',
+    method_url: 'https://raw.githubusercontent.com/broadinstitute/warp/develop/pipelines/skylab/smartseq2_single_nucleus_multisample/MultiSampleSmartSeq2SingleNucleus.wdl'
+  },
+  {
+    method_name: 'scATAC',
+    method_description: 'Processing of single-cell ATAC-seq data with the scATAC pipeline.',
+    method_source: 'GitHub',
+    method_version: 'scATAC 1.2.0',
+    method_url: 'https://raw.githubusercontent.com/broadinstitute/warp/develop/pipelines/skylab/scATAC/scATAC.wdl'
   }
 ]
 

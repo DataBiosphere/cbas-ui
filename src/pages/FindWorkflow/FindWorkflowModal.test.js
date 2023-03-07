@@ -12,7 +12,7 @@ jest.mock('src/libs/nav.js')
 
 
 describe('FindWorkflowModal', () => {
-  it('should render FindWorkflowModal with 3 hardcoded Method cards', () => {
+  it('should render FindWorkflowModal with 5 hardcoded Method cards', () => {
     // ** ACT **
     render(h(FindWorkflowModal, { onDismiss: jest.fn() }))
 
@@ -27,8 +27,10 @@ describe('FindWorkflowModal', () => {
     // verify 3 methods are present on screen
     // we only check for name because we are testing the MethodCard layout in different test file
     expect(screen.getByText('Optimus')).toBeInTheDocument()
-    expect(screen.getByText('mock_method_2')).toBeInTheDocument()
-    expect(screen.getByText('mock_method_3')).toBeInTheDocument()
+    expect(screen.getByText('SmartSeq2SingleSample')).toBeInTheDocument()
+    expect(screen.getByText('MultiSampleSmartSeq2')).toBeInTheDocument()
+    expect(screen.getByText('MultiSampleSmartSeq2SingleNucleus')).toBeInTheDocument()
+    expect(screen.getByText('scATAC')).toBeInTheDocument()
   })
 
   it('should call POST /methods endpoint with expected parameters', async () => {
