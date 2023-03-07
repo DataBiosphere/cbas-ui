@@ -52,7 +52,7 @@ describe('FindWorkflowModal', () => {
 
     // select and click on method in modal
     const firstWorkflow = screen.getByText('Optimus')
-    await act(async () => { fireEvent.click(firstWorkflow) })
+    act(async () => { fireEvent.click(firstWorkflow) })
 
     // ** ASSERT **
     // assert POST /methods endpoint was called with expected parameters
