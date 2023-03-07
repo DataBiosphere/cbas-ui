@@ -29,7 +29,8 @@ const suggestedWorkflowsList = [
   {
     method_name: 'Optimus',
     method_description: 'The optimus 3 pipeline processes 10x genomics sequencing data based on the v2 chemistry. It corrects cell barcodes and UMIs, aligns reads, marks duplicates, and returns data as alignments in BAM format and as counts in sparse matrix exchange format.',
-    method_source: 'Dockstore',
+    // TODO: Change to Dockstore when we accept Dockstore imports
+    method_source: 'GitHub',
     method_version: 'Optimus_v5.5.0',
     method_url: 'https://raw.githubusercontent.com/broadinstitute/warp/develop/pipelines/skylab/optimus/Optimus.wdl'
   },
