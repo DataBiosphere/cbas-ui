@@ -819,7 +819,11 @@ describe('SubmissionConfig records selector', () => {
       expect(mockMethodsResponse).toHaveBeenCalledTimes(1)
       expect(mockSearchResponse).toHaveBeenCalledTimes(1)
     })
-    await screen.getByText(/Data table not found: BADFOO/)
+    //await screen.getByText(/Select a data table/)
+
+    const warning = screen.getByLabelText('Error message')
+    expect(warning).toContainHTML('Select a data table')
+
   })
 
   it('should toggle between different states of checked boxes', async () => {

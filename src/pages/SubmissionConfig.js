@@ -209,7 +209,7 @@ export const SubmissionConfig = ({ methodId }) => {
           options: _.map(t => t.name, recordTypes)
         }),
         noRecordTypeData && h(Fragment, [
-          a({ style: { marginLeft: '1rem', fontSize: 15, marginTop: '1rem', height: '2rem', fontWeight: 'bold' } }, [icon('error-standard', { size: 20, style: { color: colors.warning(), flex: 'none', marginRight: '0.5rem' } }), noRecordTypeData])
+          a({ 'aria-label': 'Error message', style: { marginLeft: '1rem', fontSize: 15, marginTop: '1rem', height: '2rem', fontWeight: 'bold' } }, [icon('error-standard', { size: 20, style: { color: colors.warning(), flex: 'none', marginRight: '0.5rem' } }), noRecordTypeData])
         ])
       ]),
       h(StepButtons, {
