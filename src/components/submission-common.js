@@ -102,6 +102,48 @@ export const loadRunSetData = async signal => {
   }
 }
 
+// Invokes logic to determine the appropriate app for WDS
+// If WDS is not running, a URL will not be present -- in this case we return empty string
+// Note: This logic has been copied from how DataTable finds WDS app in Terra UI (https://github.com/DataBiosphere/terra-ui/blob/ac13bdf3954788ca7c8fd27b8fd4cfc755f150ff/src/libs/ajax/data-table-providers/WdsDataTableProvider.ts#L94-L147)
+export const resolveWdsApp = apps => {
+  // WDS looks for Kubernetes deployment statuses (such as RUNNING or PROVISIONING), expressed by Leo
+  // See here for specific enumerations -- https://github.com/DataBiosphere/leonardo/blob/develop/core/src/main/scala/org/broadinstitute/dsde/workbench/leonardo/kubernetesModels.scala
+  // look explicitly for a RUNNING app named 'wds-${app.workspaceId}' -- if WDS is healthy and running, there should only be one app RUNNING
+  // an app may be in the 'PROVISIONING', 'STOPPED', 'STOPPING', which can still be deemed as an OK state for WDS
+  const healthyStates = ['RUNNING', 'PROVISIONING', 'STOPPED', 'STOPPING']
+  const namedApp = apps.filter(app => app.appType === 'CROMWELL' && app.appName === `wds-${app.workspaceId}` && healthyStates.includes(app.status))
+  if (namedApp.length === 1) {
+    return namedApp[0]
+  }
+
+  //Failed to find an app with the proper name, look for a RUNNING CROMWELL app
+  const runningCromwellApps = apps.filter(app => app.appType === 'CROMWELL' && app.status === 'RUNNING')
+  if (runningCromwellApps.length > 0) {
+    // Evaluate the earliest-created WDS app
+    runningCromwellApps.sort((a, b) => new Date(a.auditInfo.createdDate).valueOf() - new Date(b.auditInfo.createdDate).valueOf())
+    return runningCromwellApps[0]
+  }
+
+  // If we reach this logic, we have more than one Leo app with the associated workspace Id...
+  const allCromwellApps = apps.filter(app => app.appType === 'CROMWELL' && ['PROVISIONING', 'STOPPED', 'STOPPING'].includes(app.status))
+  if (allCromwellApps.length > 0) {
+    // Evaluate the earliest-created WDS app
+    allCromwellApps.sort((a, b) => new Date(a.auditInfo.createdDate).valueOf() - new Date(b.auditInfo.createdDate).valueOf())
+    return allCromwellApps[0]
+  }
+
+  return ''
+}
+
+// Extract wds URL from Leo response. exported for testing
+export const resolveWdsUrl = apps => {
+  const foundApp = resolveWdsApp(apps)
+  if (foundApp?.status === 'RUNNING') {
+    return foundApp.proxyUrls.wds
+  }
+  return ''
+}
+
 export const recordsTable = props => {
   const {
     dataTableColumnWidths, setDataTableColumnWidths,

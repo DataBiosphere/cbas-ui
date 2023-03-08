@@ -1,12 +1,12 @@
 import _ from 'lodash/fp'
-import { Fragment, useEffect, useRef, useState } from 'react'
+import { Fragment, useCallback, useEffect, useRef, useState } from 'react'
 import { a, div, h, h2, span } from 'react-hyperscript-helpers'
 import { ButtonPrimary, Link, Navbar, Select } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { TextArea, TextInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import StepButtons from 'src/components/StepButtons'
-import { inputsTable, outputsTable, recordsTable } from 'src/components/submission-common'
+import {inputsTable, outputsTable, recordsTable, resolveWdsUrl} from 'src/components/submission-common'
 import { TextCell } from 'src/components/table'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
@@ -28,6 +28,7 @@ export const SubmissionConfig = ({ methodId }) => {
   const [dataTableColumnWidths, setDataTableColumnWidths] = useState({})
   const [loading, setLoading] = useState(false)
   const [workflowScript, setWorkflowScript] = useState()
+  const [wdsProxyUrl, setWdsProxyUrl] = useState({ status: 'None', url: '' })
 
   // Options chosen on this page:
   const [selectedRecordType, setSelectedRecordType] = useState()
@@ -53,14 +54,44 @@ export const SubmissionConfig = ({ methodId }) => {
   const dataTableRef = useRef()
   const signal = useCancellation()
 
-  const loadRecordsData = async recordType => {
+  const loadWdsUrl = useCallback(async () => {
     try {
-      const searchResult = await Ajax(signal).Wds.search.post(recordType)
-      setRecords(searchResult.records)
+      const apps = await Ajax().Leonardo.listAppsV2()
+      console.log(`Apps: ${apps}`)
+      const wdsUrl = resolveWdsUrl(apps)
+      console.log(`wdsUrl: ${wdsUrl}`)
+      // if (!!wdsUrl)
+      setWdsProxyUrl({ status: 'Ready', url: wdsUrl })
+      console.log(`wdsProxyUrl: ${wdsProxyUrl.status}, ${wdsProxyUrl.url}`) // TODO: WHAT IS HAPPENING HERE!!!
+
+      return wdsUrl
+    } catch (error) {
+      setWdsProxyUrl({ status: 'Error', url: error })
+      return ''
+    }
+  }, [])
+
+  const loadRecordsData = useCallback(async recordType => {
+    try {
+      // Try to load the WDS proxy URL if it doesn't already exist
+      if (!wdsProxyUrl || (wdsProxyUrl.status !== 'Ready')) {
+        const wdsUrl = await loadWdsUrl()
+        if (!!wdsUrl) {
+          const searchResult = await Ajax(signal).Wds.search.post(wdsUrl, recordType)
+          setRecords(searchResult.records)
+        } else {
+          // ???
+        }
+      } else {
+        // If we have the WDS proxy URL try to load records for given type
+        const wdsUrl = wdsProxyUrl.url
+        const searchResult = await Ajax(signal).Wds.search.post(wdsUrl, recordType)
+        setRecords(searchResult.records)
+      }
     } catch (error) {
       setNoRecordTypeData(`Data table not found: ${recordType}`)
     }
-  }
+  }, [signal, wdsProxyUrl, loadWdsUrl])
 
   const loadMethodsData = async (methodId, methodVersionId) => {
     try {
@@ -92,19 +123,29 @@ export const SubmissionConfig = ({ methodId }) => {
     }
   }
 
-  const loadTablesData = async () => {
-    try {
-      setRecordTypes(await Ajax(signal).Wds.types.get())
-    } catch (error) {
-      notify('error', 'Error loading tables data', { detail: await (error instanceof Response ? error.text() : error) })
+  // This method is called only when mounting the page. If WDS URL doesn't exist when this is called we throw error
+  const loadTablesData = useCallback(async () => {
+    // console.log(wdsProxyUrl)
+    if (!wdsProxyUrl || (wdsProxyUrl.status !== 'Ready')) {
+      notify('error', 'Error loading tables data', { detail: 'Data Table app not found in the workspace' })
+    } else {
+      // If we have the WDS proxy URL try to load the WDS types
+      try {
+        setRecordTypes(await Ajax(signal).Wds.types.get(wdsProxyUrl.url))
+      } catch (error) {
+        notify('error', 'Error loading tables data', { detail: await (error instanceof Response ? error.text() : error) })
+      }
     }
-  }
+  }, [signal, wdsProxyUrl])
 
   useOnMount(() => {
-    loadTablesData()
-    loadRunSet().then(runSet => {
-      loadMethodsData(runSet.method_id, runSet.method_version_id)
-      loadRecordsData(runSet.record_type)
+    // Initial attempt to load WDS proxy URL when the user arrives on this page
+    loadWdsUrl().then(() => {
+      loadTablesData()
+      loadRunSet().then(runSet => {
+        loadMethodsData(runSet.method_id, runSet.method_version_id)
+        loadRecordsData(runSet.record_type)
+      })
     })
   })
 

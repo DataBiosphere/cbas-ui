@@ -49,6 +49,7 @@ export const fetchOk = _.flow(withInstrumentation, withCancellation, withErrorRe
 const fetchCbas = withUrlPrefix(`${getConfig().cbasUrlRoot}/api/batch/v1/`, fetchOk)
 const fetchCromwell = withUrlPrefix(`${getConfig().cromwellUrlRoot}/api/workflows/v1/`, fetchOk)
 const fetchWds = withUrlPrefix(`${getConfig().wdsUrlRoot}/`, fetchOk)
+const fetchLeo = withUrlPrefix(`${getConfig().leoUrlRoot}/`, fetchOk) // TODO: How to add this config to Cromwhelm?
 
 const Cbas = signal => ({
   status: async () => {
@@ -115,7 +116,7 @@ const searchPayload = { limit: 100 }
 
 const Wds = signal => ({
   types: {
-    get: async () => {
+    get: async (wdsUrl) => {
       const res = await fetchWds(`${wdsInstanceId}/types/${wdsApiVersion}`, { signal, method: 'GET' })
       return _.map(
         type => _.set('attributes', _.filter(attr => attr.name !== 'sys_name', type.attributes), type),
@@ -124,7 +125,7 @@ const Wds = signal => ({
     }
   },
   search: {
-    post: async wdsType => {
+    post: async (wdsUrl, wdsType) => {
       const res = await fetchWds(
         `${wdsInstanceId}/search/${wdsApiVersion}/${wdsType}`,
         _.mergeAll([{ signal, method: 'POST' }, jsonBody(searchPayload)])
@@ -143,11 +144,24 @@ const WorkflowScript = signal => ({
   }
 })
 
+// TODO: REMOVE BEFORE COMMITTING!!!
+// TODO: We don't need token call Leo when running locally and we might not need token when in app setup
+export const authOpts = { headers: { Authorization: `Bearer redacted` } }
+
+const Leonardo = signal => ({
+  listAppsV2: async () => {
+    // TODO: change to using wdsInstanceId
+    const res = await fetchLeo(`api/apps/v2/b4362ae3-bcf4-4b1d-80b4-6f3cdb9f205e`, _.mergeAll([authOpts, { signal, method: 'GET' }])) // TODO: How to get auth token?
+    return res.json()
+  }
+})
+
 export const Ajax = signal => {
   return {
     Cbas: Cbas(signal),
     Cromwell: Cromwell(signal),
     Wds: Wds(signal),
-    WorkflowScript: WorkflowScript(signal)
+    WorkflowScript: WorkflowScript(signal),
+    Leonardo: Leonardo(signal)
   }
 }
