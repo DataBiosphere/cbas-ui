@@ -56,42 +56,40 @@ export const SubmissionConfig = ({ methodId }) => {
 
   const loadWdsUrl = useCallback(async () => {
     try {
-      const apps = await Ajax().Leonardo.listAppsV2()
-      console.log(`Apps: ${apps}`)
+      const apps = await Ajax(signal).Leonardo.listAppsV2()
       const wdsUrl = resolveWdsUrl(apps)
-      console.log(`wdsUrl: ${wdsUrl}`)
-      // if (!!wdsUrl)
-      setWdsProxyUrl({ status: 'Ready', url: wdsUrl })
-      console.log(`wdsProxyUrl: ${wdsProxyUrl.status}, ${wdsProxyUrl.url}`) // TODO: WHAT IS HAPPENING HERE!!!
+      if (!!wdsUrl) setWdsProxyUrl({ status: 'Ready', url: wdsUrl })
+
+      console.log(`loadWdsUrl wdsUrl: ${wdsUrl}`)
 
       return wdsUrl
     } catch (error) {
       setWdsProxyUrl({ status: 'Error', url: error })
       return ''
     }
-  }, [])
+  }, [signal])
 
-  const loadRecordsData = useCallback(async recordType => {
+  const loadRecordsData = useCallback(async (recordType, wdsUrl) => {
     try {
-      // Try to load the WDS proxy URL if it doesn't already exist
-      if (!wdsProxyUrl || (wdsProxyUrl.status !== 'Ready')) {
-        const wdsUrl = await loadWdsUrl()
-        if (!!wdsUrl) {
-          const searchResult = await Ajax(signal).Wds.search.post(wdsUrl, recordType)
-          setRecords(searchResult.records)
-        } else {
-          // ???
-        }
-      } else {
-        // If we have the WDS proxy URL try to load records for given type
-        const wdsUrl = wdsProxyUrl.url
+      if(wdsUrl) {
         const searchResult = await Ajax(signal).Wds.search.post(wdsUrl, recordType)
         setRecords(searchResult.records)
+      } else {
+        // Try to load the WDS proxy URL as it doesn't already exist
+        const reloadedWdsUrl = await loadWdsUrl()
+        if (!!reloadedWdsUrl) {
+          const searchResult = await Ajax(signal).Wds.search.post(reloadedWdsUrl, recordType)
+          setRecords(searchResult.records)
+        } else {
+          // We couldn't load WDS URL for some reason, schedule to try again in sometime
+          // TODO: call the scheduler
+          setNoRecordTypeData(`Couldn't fetch records for Data table '${recordType}'. Will retry in 30 seconds.`)
+        }
       }
     } catch (error) {
       setNoRecordTypeData(`Data table not found: ${recordType}`)
     }
-  }, [signal, wdsProxyUrl, loadWdsUrl])
+  }, [signal, loadWdsUrl])
 
   const loadMethodsData = async (methodId, methodVersionId) => {
     try {
@@ -124,24 +122,24 @@ export const SubmissionConfig = ({ methodId }) => {
   }
 
   // This method is called only when mounting the page. If WDS URL doesn't exist when this is called we throw error
-  const loadTablesData = useCallback(async () => {
-    // console.log(wdsProxyUrl)
-    if (!wdsProxyUrl || (wdsProxyUrl.status !== 'Ready')) {
-      notify('error', 'Error loading tables data', { detail: 'Data Table app not found in the workspace' })
-    } else {
+  const loadTablesData = useCallback(async (wdsUrl) => {
+    console.log(`loadTablesData wdsUrl: ${wdsUrl}`)
+    if (wdsUrl) {
       // If we have the WDS proxy URL try to load the WDS types
       try {
-        setRecordTypes(await Ajax(signal).Wds.types.get(wdsProxyUrl.url))
+        setRecordTypes(await Ajax(signal).Wds.types.get(wdsUrl))
       } catch (error) {
         notify('error', 'Error loading tables data', { detail: await (error instanceof Response ? error.text() : error) })
       }
+    } else {
+      notify('error', 'Error loading tables data', { detail: 'Data Table app not found in the workspace. Will retry in 30 seconds.' })
     }
-  }, [signal, wdsProxyUrl])
+  }, [signal])
 
   useOnMount(() => {
     // Initial attempt to load WDS proxy URL when the user arrives on this page
-    loadWdsUrl().then(() => {
-      loadTablesData()
+    loadWdsUrl().then(wdsUrl => {
+      loadTablesData(wdsUrl)
       loadRunSet().then(runSet => {
         loadMethodsData(runSet.method_id, runSet.method_version_id)
         loadRecordsData(runSet.record_type)
