@@ -242,7 +242,7 @@ export const SubmissionConfig = ({ methodId }) => {
             disabled: isSubmitting,
             'aria-label': 'Launch Submission',
             onClick: () => submitRun()
-          }, [ isSubmitting ? 'Submitting...' : 'Submit'])
+          }, [isSubmitting ? 'Submitting...' : 'Submit'])
       }, [
         div({ style: { lineHeight: 2.0 } }, [
           h(TextCell, { style: { marginTop: '1.5rem', fontSize: 16, fontWeight: 'bold' } }, ['Submission name']),
