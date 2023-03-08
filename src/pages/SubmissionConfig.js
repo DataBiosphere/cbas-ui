@@ -41,6 +41,7 @@ export const SubmissionConfig = ({ methodId }) => {
   // TODO: These should probably be moved to the modal:
   const [runSetName, setRunSetName] = useState('')
   const [runSetDescription, setRunSetDescription] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   // TODO: this should probably be moved to a scope more local to the data selector
   const [recordsTableSort, setRecordsTableSort] = useState({ field: 'id', direction: 'asc' })
@@ -234,18 +235,19 @@ export const SubmissionConfig = ({ methodId }) => {
       displayLaunchModal && h(Modal, {
         title: 'Send submission',
         width: 600,
-        onDismiss: () => setDisplayLaunchModal(false),
-        showCancel: true,
+        onDismiss: () => { if (!isSubmitting) { setDisplayLaunchModal(false) } },
+        showCancel: !isSubmitting,
         okButton:
           h(ButtonPrimary, {
-            disabled: false,
+            disabled: isSubmitting,
             'aria-label': 'Launch Submission',
             onClick: () => submitRun()
-          }, ['Submit'])
+          }, [ isSubmitting ? 'Submitting...' : 'Submit'])
       }, [
         div({ style: { lineHeight: 2.0 } }, [
           h(TextCell, { style: { marginTop: '1.5rem', fontSize: 16, fontWeight: 'bold' } }, ['Submission name']),
           h(TextInput, {
+            disabled: isSubmitting,
             'aria-label': 'Submission name',
             value: runSetName,
             onChange: setRunSetName,
@@ -258,6 +260,7 @@ export const SubmissionConfig = ({ methodId }) => {
           h(TextArea, {
             style: { height: 200, borderTopLeftRadius: 0, borderTopRightRadius: 0 },
             'aria-label': 'Enter a comment',
+            disabled: isSubmitting,
             value: runSetDescription,
             onChange: setRunSetDescription,
             placeholder: 'Enter comments'
@@ -321,7 +324,7 @@ export const SubmissionConfig = ({ methodId }) => {
         }
       }
 
-      setDisplayLaunchModal(false)
+      setIsSubmitting(true)
       const runSetObject = await Ajax(signal).Cbas.runSets.post(runSetsPayload)
       notify('success', 'Workflow successfully submitted', { message: 'You may check on the progress of workflow on this page anytime.', timeout: 5000 })
       Nav.goToPath('submission-details', {
