@@ -4,9 +4,11 @@ import { a, div, h, h2, span } from 'react-hyperscript-helpers'
 import { ButtonPrimary, Link, Navbar, Select } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { TextArea, TextInput } from 'src/components/input'
+import InputsTable from 'src/components/InputsTable'
 import Modal from 'src/components/Modal'
+import OutputsTable from 'src/components/OutputsTable'
+import RecordsTable from 'src/components/RecordsTable'
 import StepButtons from 'src/components/StepButtons'
-import { InputsTable, outputsTable, recordsTable } from 'src/components/submission-common'
 import { TextCell } from 'src/components/table'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
@@ -283,7 +285,7 @@ export const SubmissionConfig = ({ methodId }) => {
   }
 
   const renderRecordSelector = () => {
-    return recordTypes && records.length ? h(recordsTable, {
+    return recordTypes && records.length ? h(RecordsTable, {
       dataTableColumnWidths, setDataTableColumnWidths,
       dataTableRef,
       records,
@@ -303,7 +305,7 @@ export const SubmissionConfig = ({ methodId }) => {
   }
 
   const renderOutputs = () => {
-    return configuredOutputDefinition ? h(outputsTable, {
+    return configuredOutputDefinition ? h(OutputsTable, {
       selectedDataTable: _.keyBy('name', recordTypes)[selectedRecordType],
       configuredOutputDefinition, setConfiguredOutputDefinition,
       outputTableSort, setOutputTableSort
