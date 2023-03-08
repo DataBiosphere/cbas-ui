@@ -1,5 +1,5 @@
 import { Fragment, useState } from 'react'
-import { div, h, h2, span } from 'react-hyperscript-helpers'
+import { div, h, h2 } from 'react-hyperscript-helpers'
 import { ButtonOutline, Clickable, Navbar } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { Ajax } from 'src/libs/ajax'
@@ -26,7 +26,6 @@ const styles = {
 
 export const SubmitWorkflow = () => {
   // State
-  const [cbasStatus, setCbasStatus] = useState()
   const [methodsData, setMethodsData] = useState()
   const [loading, setLoading] = useState(false)
   const [viewFindWorkflowModal, setViewFindWorkflowModal] = useState(false)
@@ -34,11 +33,6 @@ export const SubmitWorkflow = () => {
   const signal = useCancellation()
 
   const refresh = withBusyState(setLoading, async () => {
-    const loadCbasStatus = async () => {
-      const cbasStatus = await Ajax(signal).Cbas.status()
-      setCbasStatus(cbasStatus)
-    }
-
     const loadRunsData = async () => {
       try {
         const runs = await Ajax(signal).Cbas.methods.getWithoutVersions()
@@ -47,7 +41,6 @@ export const SubmitWorkflow = () => {
         notify('error', 'Error loading saved workflows', { detail: await (error instanceof Response ? error.text() : error) })
       }
     }
-    await loadCbasStatus()
     await loadRunsData()
   })
 
@@ -71,11 +64,7 @@ export const SubmitWorkflow = () => {
         style: { ...styles.card, ...styles.shortCard, color: isFindWorkflowEnabled() ? colors.accent() : colors.dark(0.7), fontSize: 18, lineHeight: '22px' },
         onClick: () => setViewFindWorkflowModal(true)
       }, ['Find a Workflow', icon('plus-circle', { size: 32 })])),
-      (h(Fragment, [h(SavedWorkflows, { methodsData })])),
-      div({ style: { bottom: 0, position: 'absolute', marginBottom: '1em' } }, [
-        span(['CBAS Status OK: ']),
-        (cbasStatus && span([JSON.stringify(cbasStatus.ok)])) || 'Not Found'
-      ])]),
+      (h(Fragment, [h(SavedWorkflows, { methodsData })]))]),
       viewFindWorkflowModal && h(FindWorkflowModal, { onDismiss: () => setViewFindWorkflowModal(false) })
     ])
   ])
