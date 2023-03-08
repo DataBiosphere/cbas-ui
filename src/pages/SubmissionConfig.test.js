@@ -108,6 +108,27 @@ const badRecordTypeRunSetResponse = {
   ]
 }
 
+const undefinedRecordTypeRunSetResponse = {
+  run_sets: [
+    {
+      run_set_id: '20000000-0000-0000-0000-000000000002',
+      method_id: '00000000-0000-0000-0000-000000000002',
+      method_version_id: '50000000-0000-0000-0000-000000000005',
+      is_template: true,
+      run_set_name: 'Target workflow 2, run 1',
+      run_set_description: 'Example run for target workflow 2',
+      state: 'COMPLETE',
+      record_type: undefined,
+      submission_timestamp: '2022-12-07T17:26:53.153+00:00',
+      last_modified_timestamp: '2022-12-07T17:26:53.153+00:00',
+      run_count: 1,
+      error_count: 0,
+      input_definition: JSON.stringify(runSetInputDef),
+      output_definition: JSON.stringify(runSetOutputDef)
+    }
+  ]
+}
+
 const methodsResponse = {
   methods: [
     {
@@ -820,6 +841,46 @@ describe('SubmissionConfig records selector', () => {
       expect(mockSearchResponse).toHaveBeenCalledTimes(1)
     })
     await screen.getByText(/Data table not found: BADFOO/)
+  })
+
+  it('should display select message when record type is undefined', async () => {
+    const mockRunSetResponse = jest.fn(() => Promise.resolve(undefinedRecordTypeRunSetResponse))
+    const mockMethodsResponse = jest.fn(() => Promise.resolve(methodsResponse))
+    const mockSearchResponse = jest.fn(recordType => Promise.resolve(searchResponses[recordType]))
+    const mockTypesResponse = jest.fn(() => Promise.resolve(typesResponse))
+
+    await Ajax.mockImplementation(() => {
+      return {
+        Cbas: {
+          runSets: {
+            getForMethod: mockRunSetResponse
+          },
+          methods: {
+            getById: mockMethodsResponse
+          }
+        },
+        Wds: {
+          search: {
+            post: mockSearchResponse
+          },
+          types: {
+            get: mockTypesResponse
+          }
+        }
+      }
+    })
+
+    // ** ACT **
+    render(h(SubmissionConfig))
+
+    await waitFor(() => {
+      expect(mockRunSetResponse).toHaveBeenCalledTimes(1)
+      expect(mockTypesResponse).toHaveBeenCalledTimes(1)
+      expect(mockMethodsResponse).toHaveBeenCalledTimes(1)
+      expect(mockSearchResponse).toHaveBeenCalledTimes(1)
+    })
+    const warning = screen.getByLabelText('warning message')
+    expect(warning).toContainHTML('Select a data table')
   })
 
   it('should toggle between different states of checked boxes', async () => {

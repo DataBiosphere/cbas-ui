@@ -24,7 +24,7 @@ describe('FindWorkflowModal', () => {
     expect(selectedSubHeader).toBeInTheDocument()
     expect(selectedSubHeader).toHaveAttribute('aria-current', 'true')
 
-    // verify 3 methods are present on screen
+    // verify 5 methods are present on screen
     // we only check for name because we are testing the MethodCard layout in different test file
     expect(screen.getByText('Optimus')).toBeInTheDocument()
     expect(screen.getByText('SmartSeq2SingleSample')).toBeInTheDocument()
@@ -63,7 +63,7 @@ describe('FindWorkflowModal', () => {
       {
         method_name: 'Optimus',
         method_description: 'The optimus 3 pipeline processes 10x genomics sequencing data based on the v2 chemistry. It corrects cell barcodes and UMIs, aligns reads, marks duplicates, and returns data as alignments in BAM format and as counts in sparse matrix exchange format.',
-        method_source: 'Dockstore',
+        method_source: 'GitHub',
         method_version: 'Optimus_v5.5.0',
         method_url: 'https://raw.githubusercontent.com/broadinstitute/warp/develop/pipelines/skylab/optimus/Optimus.wdl'
       })
