@@ -112,8 +112,15 @@ export const collapseCromwellStatus = (executionStatus, backendStatus) => {
     case 'Aborting':
     case 'Aborted':
     case 'Failed':
+    case 'Unstartable':
       return statusType.failed
     case 'Running':
+    case 'NotStarted':
+    case 'WaitingForQueueSpace':
+    case 'QueuedInCromwell':
+    case 'Starting':
+    case 'Bypassed':
+    case 'RetryableFailure':
       return backendStatus === 'AwaitingCloudQuota' ? statusType.waitingForQuota : statusType.running
     default:
       return statusType.unknown
