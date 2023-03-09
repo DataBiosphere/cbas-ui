@@ -163,13 +163,10 @@ export const ParameterValueTextInput = props => {
 
 export const InputSourceSelect = props => {
   const {
-    inputDefinitionIndex,
     source,
     inputType,
     update
   } = props
-
-  console.log('InputSourceSelect')
 
   return h(Select, {
     isDisabled: false,

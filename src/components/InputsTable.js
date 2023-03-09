@@ -2,12 +2,9 @@ import _ from 'lodash/fp'
 import { useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
-import { Link } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import {
-  inputSourceLabels,
   InputSourceSelect,
-  inputSourceTypes,
   ParameterValueTextInput,
   parseMethodString,
   RecordLookupSelect,
@@ -20,6 +17,36 @@ import * as Utils from 'src/libs/utils'
 import { StructBuilderModal } from 'src/pages/StructBuilderModal'
 
 
+const buildStructPath = ({ structBuilderPath, headTemplate, pathTemplate, lastTemplate }) => {
+  const pathParts = [
+    headTemplate(_.head(structBuilderPath)),
+    ..._.size(structBuilderPath) > 2 ? _.map(pathTemplate, _.initial(_.tail(structBuilderPath))) : [],
+    ..._.size(structBuilderPath) > 1 ? [lastTemplate(_.last(structBuilderPath))] : []
+  ]
+  return _.join('.', pathParts)
+}
+
+const buildStructInputTypePath = structBuilderPath => buildStructPath({
+  structBuilderPath,
+  headTemplate: head => `${head}.input_type`,
+  pathTemplate: path => `fields.${path}.field_type`,
+  lastTemplate: last => `fields.${last}.field_type`
+})
+
+const buildStructSourcePath = structBuilderPath => buildStructPath({
+  structBuilderPath,
+  headTemplate: head => `${head}.source`,
+  pathTemplate: path => `fields.${path}.source`,
+  lastTemplate: last => `fields.${last}.source`
+})
+
+const buildStructNamePath = structBuilderPath => buildStructPath({
+  structBuilderPath,
+  headTemplate: head => _.size(structBuilderPath) === 1 ? `${head}.variable` : `${head}.input_type`,
+  pathTemplate: path => `fields.${path}.field_type`,
+  lastTemplate: last => `fields.${last}.field_name`
+})
+
 const InputsTable = props => {
   const {
     selectedDataTable,
@@ -29,15 +56,13 @@ const InputsTable = props => {
   } = props
 
   const [structBuilderVisible, setStructBuilderVisible] = useState(false)
-  const [structBuilderRowIndex, setStructBuilderRowIndex] = useState(null)
+  const [structBuilderPath, setStructBuilderPath] = useState([])
 
   const dataTableAttributes = _.keyBy('name', selectedDataTable.attributes)
 
-  console.log('configuredInputDefinition', configuredInputDefinition)
   const inputTableData = _.flow(
     _.entries,
     _.map(([index, row]) => {
-      console.log('row.input_name', row.input_name)
       const { workflow, call, variable } = parseMethodString(row.input_name)
       return _.flow([
         _.set('taskName', call || workflow || ''),
@@ -49,8 +74,6 @@ const InputsTable = props => {
     _.orderBy([({ [inputTableSort.field]: field }) => _.lowerCase(field)], [inputTableSort.direction])
   )(configuredInputDefinition)
 
-  console.log('inputTableData', inputTableData)
-
   const recordLookupWithWarnings = rowIndex => {
     const currentInputName = _.get(`${rowIndex}.input_name`, inputTableData)
 
@@ -58,7 +81,10 @@ const InputsTable = props => {
       RecordLookupSelect({
         source: _.get(`${inputTableData[rowIndex].configurationIndex}.source`, configuredInputDefinition),
         dataTableAttributes,
-        update: updateInputSource(`${inputTableData[rowIndex].configurationIndex}.source`)
+        update: source => {
+          setConfiguredInputDefinition(
+            _.set(`${inputTableData[rowIndex].configurationIndex}.source`, source, configuredInputDefinition))
+        }
       }),
       missingRequiredInputs.includes(currentInputName) && h(TooltipTrigger, { content: 'This attribute is required' }, [
         icon('error-standard', {
@@ -75,9 +101,12 @@ const InputsTable = props => {
 
   const parameterValueSelect = rowIndex => {
     return ParameterValueTextInput({
-      // inputDefinitionIndex: rowIndex,
+      id: `input-table-value-select-${rowIndex}`,
       source: _.get(`${inputTableData[rowIndex].configurationIndex}.source`, configuredInputDefinition),
-      update: updateInputSource(`${inputTableData[rowIndex].configurationIndex}.source`)
+      update: source => {
+        setConfiguredInputDefinition(
+          _.set(`${inputTableData[rowIndex].configurationIndex}.source`, source, configuredInputDefinition))
+      }
     })
   }
 
@@ -86,29 +115,29 @@ const InputsTable = props => {
       structBuilderVisible,
       onClick: () => {
         setStructBuilderVisible(true)
-        setStructBuilderRowIndex(rowIndex)
+        setStructBuilderPath([rowIndex])
       }
     })
-  }
-
-  const updateInputSource = sourcePath => source => {
-    console.log('updateInputSource', sourcePath, source)
-    setConfiguredInputDefinition(_.set(sourcePath, source, configuredInputDefinition))
   }
 
   return h(AutoSizer, [({ width, height }) => {
     return h(div, {}, [
       structBuilderVisible ? h(StructBuilderModal, {
-        structBuilderName: inputTableData[structBuilderRowIndex].variable,
-        structBuilderSource: inputTableData[structBuilderRowIndex].source,
-        structBuilderInputType: inputTableData[structBuilderRowIndex].input_type,
-        inputSourceTypes,
-        inputSourceLabels,
+        structBuilderName: _.get(buildStructNamePath(structBuilderPath), inputTableData),
+        structBuilderBreadcrumbs: _.map(
+          end => _.get(buildStructNamePath(_.slice(0, end, structBuilderPath)), inputTableData),
+          _.range(1, _.size(structBuilderPath))
+        ),
+        structBuilderSource: _.get(buildStructSourcePath(structBuilderPath), inputTableData),
+        structBuilderInputType: _.get(buildStructInputTypePath(structBuilderPath), inputTableData),
+        structBuilderPath, setStructBuilderPath,
         dataTableAttributes,
-        updateSource: updateInputSource(`[${structBuilderRowIndex}].source`),
+        updateSource: source => {
+          const sourcePath = buildStructSourcePath(structBuilderPath)
+          setConfiguredInputDefinition(_.set(sourcePath, source, configuredInputDefinition))
+        },
         onDismiss: () => {
           setStructBuilderVisible(false)
-          setStructBuilderRowIndex(null)
         }
       }) : null,
       h(FlexTable, {
@@ -148,10 +177,10 @@ const InputsTable = props => {
             headerRenderer: () => h(HeaderCell, ['Input sources']),
             cellRenderer: ({ rowIndex }) => {
               return InputSourceSelect({
-                inputDefinitionIndex: inputTableData[rowIndex].configurationIndex,
                 source: _.get('source', inputTableData[rowIndex]),
                 inputType: _.get('input_type', inputTableData[rowIndex]),
-                update: updateInputSource(`[${inputTableData[rowIndex].configurationIndex}].source`)
+                update: source => setConfiguredInputDefinition(
+                  _.set(`[${inputTableData[rowIndex].configurationIndex}].source`, source, configuredInputDefinition))
               })
             }
           },

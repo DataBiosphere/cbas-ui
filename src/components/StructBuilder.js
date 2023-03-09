@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
-import { div, h, span } from 'react-hyperscript-helpers'
+import { div, h } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
-import { Link, Select } from 'src/components/common'
+import { Link } from 'src/components/common'
 import { InputSourceSelect, ParameterValueTextInput, RecordLookupSelect, StructBuilderLink } from 'src/components/submission-common'
 import { FlexTable, HeaderCell, TextCell } from 'src/components/table'
 import * as Utils from 'src/libs/utils'
@@ -10,14 +10,13 @@ import * as Utils from 'src/libs/utils'
 export const StructBuilder = props => {
   const {
     structBuilderName,
+    structBuilderBreadcrumbs,
     structBuilderSource,
     structBuilderInputType,
-    inputSourceTypes,
-    inputSourceLabels,
+    structBuilderPath, setStructBuilderPath,
     dataTableAttributes,
     updateSource
   } = props
-
   const structBuilderFields = structBuilderInputType.fields
 
   const updateStructBuilderSource = rowIndex => newSource => {
@@ -26,7 +25,6 @@ export const StructBuilder = props => {
   }
 
   const breadcrumbsHeight = 35
-  // const structBuilderPath
 
   return h(div, { style: { height: 500 } }, [
     h(div, {
@@ -38,15 +36,20 @@ export const StructBuilder = props => {
       }
     }, [
       h(TextCell, {}, [
-        h(Link, {}, `myStruct`),
-        h(span, {}, ' / '),
-        h(Link, { onClick: () => console.log('clicked species') }, `species`)
+        ..._.map(([i, name]) => h(Link, {
+          onClick: () => {
+            const end = parseInt(i) + 1
+            const newPath = _.slice(0, end, structBuilderPath)
+            setStructBuilderPath(newPath)
+          }
+        }, `${name} / `), _.toPairs(structBuilderBreadcrumbs)),
+        structBuilderName
       ])
     ]),
     h(AutoSizer, [({ width, height }) => {
       return h(FlexTable, {
         'aria-label': 'struct-table',
-        rowCount: 2,
+        rowCount: _.size(structBuilderFields),
         readOnly: false,
         height: height - breadcrumbsHeight,
         width,
@@ -55,7 +58,7 @@ export const StructBuilder = props => {
             size: { basis: 250, grow: 0 },
             field: 'struct',
             headerRenderer: () => h(HeaderCell, ['Struct']),
-            cellRenderer: ({ rowIndex }) => {
+            cellRenderer: () => {
               return h(TextCell, { style: { fontWeight: 500 } }, [structBuilderName])
             }
           },
@@ -80,7 +83,6 @@ export const StructBuilder = props => {
             headerRenderer: () => h(HeaderCell, ['Input sources']),
             cellRenderer: ({ rowIndex }) => {
               return InputSourceSelect({
-                inputDefinitionIndex: rowIndex,
                 source: _.get(`fields.[${rowIndex}].source`, structBuilderSource),
                 inputType: _.get(`fields.[${rowIndex}].field_type.type`, structBuilderInputType),
                 update: updateStructBuilderSource(rowIndex)
@@ -91,14 +93,13 @@ export const StructBuilder = props => {
             headerRenderer: () => h(HeaderCell, ['Attribute']),
             cellRenderer: ({ rowIndex }) => {
               const source = _.get(`fields.[${rowIndex}].source`, structBuilderSource)
-              const input_type = _.get(`fields.[${rowIndex}].field_type`, structBuilderInputType)
+              const id = `structbuilder-table-value-select-${rowIndex}`
               return Utils.switchCase(source.type || 'none',
-                ['literal', () => ParameterValueTextInput({ source, update: updateStructBuilderSource(rowIndex) })],
+                ['literal', () => ParameterValueTextInput({ id, source, update: updateStructBuilderSource(rowIndex) })],
                 ['record_lookup', () => RecordLookupSelect({ source, dataTableAttributes, update: updateStructBuilderSource(rowIndex) })],
-                ['object_builder', () => StructBuilderLink({ onClick: console.log('TODO: update struct to ', source, input_type) })],
+                ['object_builder', () => StructBuilderLink({ onClick: () => setStructBuilderPath([...structBuilderPath, rowIndex]) })],
                 ['none', () => h(TextCell, { style: { fontStyle: 'italic' } }, ['Optional'])]
               )
-              return h(TextCell, { style: { fontStyle: 'italic' } }, [`<attribute ${rowIndex}>, <type ${source.type}>`])
             }
           }
         ]
