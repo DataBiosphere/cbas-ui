@@ -129,10 +129,18 @@ const InputsTable = props => {
             headerRenderer: () => h(HeaderCell, ['Input sources']),
             cellRenderer: ({ rowIndex }) => {
               return InputSourceSelect({
-                rowIndex,
-                inputTableData,
-                dataTableAttributes,
-                configuredInputDefinition, setConfiguredInputDefinition
+                inputDefinitionIndex: inputTableData[rowIndex].configurationIndex,
+                source: _.get('source', inputTableData[rowIndex]),
+                inputType: _.get('input_type', inputTableData[rowIndex]),
+                update: newSource => {
+                  setConfiguredInputDefinition(
+                    _.set(
+                      `[${inputTableData[rowIndex].configurationIndex}].source`, 
+                      newSource, 
+                      configuredInputDefinition
+                    )
+                  )
+                }
               })
             }
           },

@@ -13,7 +13,7 @@ export const StructBuilderModal = ({ onDismiss, ...props }) => {
       okButton: 'Done',
       width: '90%'
     }, [
-      h(StructBuilder, { ...props, style: { height: 500 } }, [])
+      h(StructBuilder, { ...props }, [])
     ]
   )
 }

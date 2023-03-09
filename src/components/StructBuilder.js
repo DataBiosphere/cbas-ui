@@ -2,9 +2,9 @@ import _ from 'lodash/fp'
 import { div, h, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import { Link, Select } from 'src/components/common'
+import { InputSourceSelect } from 'src/components/submission-common'
 import { FlexTable, HeaderCell, TextCell } from 'src/components/table'
 import * as Utils from 'src/libs/utils'
-import { InputSourceSelect } from 'src/components/submission-common'
 
 
 export const StructBuilder = props => {
@@ -21,7 +21,7 @@ export const StructBuilder = props => {
   const breadcrumbsHeight = 35
   // const structBuilderPath
 
-  return h(div, { ...props }, [
+  return h(div, { style: { height: 500 } }, [
     h(div, {
       style: {
         height: breadcrumbsHeight,
@@ -72,39 +72,11 @@ export const StructBuilder = props => {
             size: { basis: 350, grow: 0 },
             headerRenderer: () => h(HeaderCell, ['Input sources']),
             cellRenderer: ({ rowIndex }) => {
-              return h(Select, {
-                isDisabled: false,
-                'aria-label': 'Select an Option',
-                isClearable: false,
-                value: null, // _.get(_.get(`${rowIndex}.source.type`, configuredInputDefinition), inputSourceLabels) || null,
-                onChange: ({ value }) => {
-                  // const newType = _.get(value, inputSourceTypes)
-                  // let newSource
-                  // if (newType === 'none') {
-                  //   newSource = {
-                  //     type: newType
-                  //   }
-                  // } else {
-                  //   const param = newType === 'record_lookup' ? 'record_attribute' : 'parameter_value'
-                  //   newSource = {
-                  //     type: newType,
-                  //     [param]: ''
-                  //   }
-                  // }
-                  // const newConfig = _.set(`${structBuilderData[rowIndex].configurationIndex}.source`, newSource, configuredInputDefinition)
-                  // setConfiguredInputDefinition(newConfig)
-                },
-                placeholder: 'Select Source',
-                // options: _.values(
-                //   _.has('optional_type', structBuilderData[rowIndex].input_type) ?
-                //     inputSourceLabels :
-                //     _.omit('none', inputSourceLabels)
-                // ),
-                options: ['a', 'b', 'c'],
-                // ** https://stackoverflow.com/questions/55830799/how-to-change-zindex-in-react-select-drowpdown
-                styles: { container: old => ({ ...old, display: 'inline-block', width: '100%' }), menuPortal: base => ({ ...base, zIndex: 9999 }) },
-                menuPortalTarget: document.body,
-                menuPlacement: 'top'
+              return InputSourceSelect({
+                inputDefinitionIndex: rowIndex,
+                source: _.get(`source.fields.[${rowIndex}].source`, structBuilderData),
+                inputType: _.get(`input_type.fields.[${rowIndex}].field_type.type`, structBuilderData),
+                update: newSource => console.log(`updating ${rowIndex}:`, newSource)
               })
             }
           },

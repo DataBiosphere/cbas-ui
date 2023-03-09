@@ -166,16 +166,19 @@ export const ParameterValueTextInput = props => {
 
 export const InputSourceSelect = props => {
   const {
-    rowIndex,
-    inputTableData,
-    dataTableAttributes,
-    configuredInputDefinition, setConfiguredInputDefinition
+    inputDefinitionIndex,
+    source,
+    inputType,
+    update
   } = props
+
+  console.log('source', source)
+
   return h(Select, {
     isDisabled: false,
     'aria-label': 'Select an Option',
     isClearable: false,
-    value: _.get(_.get(`${rowIndex}.source.type`, inputTableData), inputSourceLabels) || null,
+    value: _.get(source.type, inputSourceLabels) || null,
     onChange: ({ value }) => {
       const newType = _.get(value, inputSourceTypes)
       let newSource
@@ -190,12 +193,11 @@ export const InputSourceSelect = props => {
           [param]: ''
         }
       }
-      const newConfig = _.set(`${inputTableData[rowIndex].configurationIndex}.source`, newSource, configuredInputDefinition)
-      setConfiguredInputDefinition(newConfig)
+      update(newSource)
     },
     placeholder: 'Select Source',
     options: _.values(
-      _.has('optional_type', inputTableData[rowIndex].input_type) ?
+      _.has('optional_type', inputType) ?
         inputSourceLabels :
         _.omit('none', inputSourceLabels)
     ),
