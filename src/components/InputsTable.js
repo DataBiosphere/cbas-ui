@@ -5,7 +5,7 @@ import { AutoSizer } from 'react-virtualized'
 import { Link, Select } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { TextInput } from 'src/components/input'
-import { inputSourceLabels, inputSourceTypes, parseMethodString, RecordLookupSelect } from 'src/components/submission-common'
+import { inputSourceLabels, inputSourceTypes, parseMethodString, RecordLookupSelect, ParameterValueTextInput } from 'src/components/submission-common'
 import { FlexTable, HeaderCell, Sortable, TextCell } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import colors from 'src/libs/colors'
@@ -44,6 +44,11 @@ const InputsTable = props => {
     ])
   }
 
+  const parameterValueSelect = rowIndex => {
+    return ParameterValueTextInput({
+      rowIndex, inputTableData, configuredInputDefinition, setConfiguredInputDefinition})
+  }
+
   const structBuilderSelect = rowIndex => {
     return h(
       Link,
@@ -57,22 +62,6 @@ const InputsTable = props => {
       },
       structBuilderVisible ? 'Hide Struct' : 'View Struct'
     )
-  }
-
-  const parameterValueSelect = rowIndex => {
-    return h(TextInput, {
-      id: `literal-input-${rowIndex}`,
-      style: { display: 'block', width: '100%' },
-      value: _.get(`${rowIndex}.source.parameter_value`, inputTableData) || null,
-      onChange: value => {
-        const newSource = {
-          type: _.get(`${rowIndex}.source.type`, inputTableData),
-          parameter_value: value
-        }
-        const newConfig = _.set(`${inputTableData[rowIndex].configurationIndex}.source`, newSource, configuredInputDefinition)
-        setConfiguredInputDefinition(newConfig)
-      }
-    })
   }
 
   const inputTableData = _.flow(

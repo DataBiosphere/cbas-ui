@@ -6,7 +6,7 @@ import colors from 'src/libs/colors'
 import { notify } from 'src/libs/notifications'
 import { Link, Select } from 'src/components/common'
 import { differenceFromDatesInSeconds, differenceFromNowInSeconds } from 'src/libs/utils'
-
+import { TextInput } from 'src/components/input'
 
 export const AutoRefreshInterval = 1000 * 60 // 1 minute
 
@@ -109,7 +109,14 @@ export const inputSourceLabels = {
 
 export const inputSourceTypes = _.invert(inputSourceLabels)
 
-export const RecordLookupSelect = ({rowIndex, inputTableData, dataTableAttributes, configuredInputDefinition, setConfiguredInputDefinition}) => {
+export const RecordLookupSelect = props => {
+  const {
+    rowIndex, 
+    inputTableData, 
+    dataTableAttributes, 
+    configuredInputDefinition, setConfiguredInputDefinition
+  } = props
+
   return h(Select, {
     isDisabled: false,
     'aria-label': 'Select an Attribute',
@@ -130,5 +137,27 @@ export const RecordLookupSelect = ({rowIndex, inputTableData, dataTableAttribute
     styles: { container: old => ({ ...old, display: 'inline-block', width: '100%' }), menuPortal: base => ({ ...base, zIndex: 9999 }) },
     menuPortalTarget: document.body,
     menuPlacement: 'top'
+  })
+}
+
+export const ParameterValueTextInput = props => {
+  const {
+    rowIndex, 
+    inputTableData, 
+    configuredInputDefinition, setConfiguredInputDefinition
+  } = props
+  
+  return h(TextInput, {
+    id: `literal-input-${rowIndex}`,
+    style: { display: 'block', width: '100%' },
+    value: _.get(`${rowIndex}.source.parameter_value`, inputTableData) || null,
+    onChange: value => {
+      const newSource = {
+        type: _.get(`${rowIndex}.source.type`, inputTableData),
+        parameter_value: value
+      }
+      const newConfig = _.set(`${inputTableData[rowIndex].configurationIndex}.source`, newSource, configuredInputDefinition)
+      setConfiguredInputDefinition(newConfig)
+    }
   })
 }
