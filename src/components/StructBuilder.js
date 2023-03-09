@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import { div, h, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import { Link, Select } from 'src/components/common'
-import { InputSourceSelect } from 'src/components/submission-common'
+import { InputSourceSelect, ParameterValueTextInput, RecordLookupSelect } from 'src/components/submission-common'
 import { FlexTable, HeaderCell, TextCell } from 'src/components/table'
 import * as Utils from 'src/libs/utils'
 
@@ -10,13 +10,18 @@ import * as Utils from 'src/libs/utils'
 export const StructBuilder = props => {
   const {
     structBuilderData,
-    inputSourceTypes, inputSourceLabels,
-    structBuilderPathComponents, setStructBuilderPathComponents,
-    configuredInputDefinition, setConfiguredInputDefinition
+    inputSourceTypes,
+    inputSourceLabels,
+    dataTableAttributes,
+    update
   } = props
 
-  console.log('structBuilderData', structBuilderData)
   const structBuilderFields = structBuilderData.input_type.fields
+
+  const updateStructBuilderSource = rowIndex => newSource => {
+    const newStructBuilderData = _.set(`source.fields.[${rowIndex}].source`, newSource, structBuilderData)
+    update(newStructBuilderData.source)
+  }
 
   const breadcrumbsHeight = 35
   // const structBuilderPath
@@ -76,21 +81,20 @@ export const StructBuilder = props => {
                 inputDefinitionIndex: rowIndex,
                 source: _.get(`source.fields.[${rowIndex}].source`, structBuilderData),
                 inputType: _.get(`input_type.fields.[${rowIndex}].field_type.type`, structBuilderData),
-                update: newSource => console.log(`updating ${rowIndex}:`, newSource)
+                update: updateStructBuilderSource(rowIndex)
               })
             }
           },
           {
             headerRenderer: () => h(HeaderCell, ['Attribute']),
             cellRenderer: ({ rowIndex }) => {
-              const source = _.get(`source`, structBuilderData)
-              const isStruct = structBuilderFields[rowIndex].field_type.type === 'struct'
-              // return Utils.switchCase(source.type || 'none',
-              //   ['record_lookup', () => recordLookupSelect(rowIndex)],
-              //   ['literal', () => isStruct ? structBuilderSelect(rowIndex) : parameterValueSelect(rowIndex)],
-              //   ['none', () => h(TextCell, { style: { fontStyle: 'italic' } }, ['Optional'])]
-              // )
-              return h(TextCell, { style: { fontStyle: 'italic' } }, [`<attribute ${rowIndex}>, <isStruct: ${isStruct}>`])
+              const source = _.get(`source.fields.[${rowIndex}].source`, structBuilderData)
+              return Utils.switchCase(source.type || 'none',
+                ['literal', () => ParameterValueTextInput({ source, update: updateStructBuilderSource(rowIndex) })],
+                ['record_lookup', () => RecordLookupSelect({ source, dataTableAttributes, update: updateStructBuilderSource(rowIndex) })],
+                ['none', () => h(TextCell, { style: { fontStyle: 'italic' } }, ['Optional'])]
+              )
+              return h(TextCell, { style: { fontStyle: 'italic' } }, [`<attribute ${rowIndex}>, <type ${source.type}>`])
             }
           }
         ]

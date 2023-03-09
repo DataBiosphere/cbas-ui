@@ -22,15 +22,36 @@ const InputsTable = props => {
 
   const [structBuilderVisible, setStructBuilderVisible] = useState(false)
   const [structBuilderRowIndex, setStructBuilderRowIndex] = useState(null)
-  const [structBuilderPathComponents, setStructBuilderPathComponents] = useState([])
 
   const dataTableAttributes = _.keyBy('name', selectedDataTable.attributes)
+
+  console.log('configuredInputDefinition', configuredInputDefinition)
+  const inputTableData = _.flow(
+    _.entries,
+    _.map(([index, row]) => {
+      console.log('row.input_name', row.input_name)
+      const { workflow, call, variable } = parseMethodString(row.input_name)
+      return _.flow([
+        _.set('taskName', call || workflow || ''),
+        _.set('variable', variable || ''),
+        _.set('inputTypeStr', Utils.renderTypeText(row.input_type)),
+        _.set('configurationIndex', parseInt(index))
+      ])(row)
+    }),
+    _.orderBy([({ [inputTableSort.field]: field }) => _.lowerCase(field)], [inputTableSort.direction])
+  )(configuredInputDefinition)
+
+  console.log('inputTableData', inputTableData)
 
   const recordLookupWithWarnings = rowIndex => {
     const currentInputName = _.get(`${rowIndex}.input_name`, inputTableData)
 
     return div({ style: { display: 'flex', alignItems: 'center', width: '100%', paddingTop: '0.5rem', paddingBottom: '0.5rem' } }, [
-      RecordLookupSelect({ rowIndex, inputTableData, dataTableAttributes, configuredInputDefinition, setConfiguredInputDefinition }),
+      RecordLookupSelect({
+        source: _.get(`${inputTableData[rowIndex].configurationIndex}.source`, configuredInputDefinition),
+        dataTableAttributes,
+        update: updateInputSource(`${inputTableData[rowIndex].configurationIndex}.source`)
+      }),
       missingRequiredInputs.includes(currentInputName) && h(TooltipTrigger, { content: 'This attribute is required' }, [
         icon('error-standard', {
           size: 14, style: { marginLeft: '0.5rem', color: colors.warning(), cursor: 'help' }
@@ -45,7 +66,11 @@ const InputsTable = props => {
   }
 
   const parameterValueSelect = rowIndex => {
-    return ParameterValueTextInput({ rowIndex, inputTableData, configuredInputDefinition, setConfiguredInputDefinition })
+    return ParameterValueTextInput({
+      // inputDefinitionIndex: rowIndex,
+      source: _.get(`${inputTableData[rowIndex].configurationIndex}.source`, configuredInputDefinition),
+      update: updateInputSource(`${inputTableData[rowIndex].configurationIndex}.source`)
+    })
   }
 
   const structBuilderSelect = rowIndex => {
@@ -63,30 +88,19 @@ const InputsTable = props => {
     )
   }
 
-  const inputTableData = _.flow(
-    _.entries,
-    _.map(([index, row]) => {
-      const { workflow, call, variable } = parseMethodString(row.input_name)
-      return _.flow([
-        _.set('taskName', call || workflow || ''),
-        _.set('variable', variable || ''),
-        _.set('inputTypeStr', Utils.renderTypeText(row.input_type)),
-        _.set('configurationIndex', parseInt(index))
-      ])(row)
-    }),
-    _.orderBy([({ [inputTableSort.field]: field }) => _.lowerCase(field)], [inputTableSort.direction])
-  )(configuredInputDefinition)
-
-  console.log('inputTableData', inputTableData)
-  console.log('configuredInputDefinition', configuredInputDefinition)
+  const updateInputSource = sourcePath => source => {
+    console.log('updateInputSource', sourcePath, source)
+    setConfiguredInputDefinition(_.set(sourcePath, source, configuredInputDefinition))
+  }
 
   return h(AutoSizer, [({ width, height }) => {
     return h(div, {}, [
       structBuilderVisible ? h(StructBuilderModal, {
         structBuilderData: inputTableData[structBuilderRowIndex],
-        inputSourceTypes, inputSourceLabels,
-        structBuilderPathComponents, setStructBuilderPathComponents,
-        configuredInputDefinition, setConfiguredInputDefinition,
+        inputSourceTypes,
+        inputSourceLabels,
+        dataTableAttributes,
+        update: updateInputSource(`[${structBuilderRowIndex}].source`),
         onDismiss: () => {
           setStructBuilderVisible(false)
           setStructBuilderRowIndex(null)
@@ -132,15 +146,7 @@ const InputsTable = props => {
                 inputDefinitionIndex: inputTableData[rowIndex].configurationIndex,
                 source: _.get('source', inputTableData[rowIndex]),
                 inputType: _.get('input_type', inputTableData[rowIndex]),
-                update: newSource => {
-                  setConfiguredInputDefinition(
-                    _.set(
-                      `[${inputTableData[rowIndex].configurationIndex}].source`, 
-                      newSource, 
-                      configuredInputDefinition
-                    )
-                  )
-                }
+                update: updateInputSource(`[${inputTableData[rowIndex].configurationIndex}].source`)
               })
             }
           },

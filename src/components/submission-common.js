@@ -113,27 +113,25 @@ export const inputSourceTypes = _.invert(inputSourceLabels)
 
 export const RecordLookupSelect = props => {
   const {
-    rowIndex,
-    inputTableData,
+    source,
     dataTableAttributes,
-    configuredInputDefinition, setConfiguredInputDefinition
+    update
   } = props
 
   return h(Select, {
     isDisabled: false,
     'aria-label': 'Select an Attribute',
     isClearable: false,
-    value: _.get(`${rowIndex}.source.record_attribute`, inputTableData),
+    value: source.record_attribute,
     onChange: ({ value }) => {
       const newAttribute = _.get(`${value}.name`, dataTableAttributes)
       const newSource = {
-        type: _.get(`${rowIndex}.source.type`, inputTableData),
+        type: source.type,
         record_attribute: newAttribute
       }
-      const newConfig = _.set(`${inputTableData[rowIndex].configurationIndex}.source`, newSource, configuredInputDefinition)
-      setConfiguredInputDefinition(newConfig)
+      update(newSource)
     },
-    placeholder: _.get(`${rowIndex}.source.record_attribute`, inputTableData) || 'Select Attribute',
+    placeholder: source.record_attribute || 'Select Attribute',
     options: _.keys(dataTableAttributes),
     // ** https://stackoverflow.com/questions/55830799/how-to-change-zindex-in-react-select-drowpdown
     styles: { container: old => ({ ...old, display: 'inline-block', width: '100%' }), menuPortal: base => ({ ...base, zIndex: 9999 }) },
@@ -144,22 +142,21 @@ export const RecordLookupSelect = props => {
 
 export const ParameterValueTextInput = props => {
   const {
-    rowIndex,
-    inputTableData,
-    configuredInputDefinition, setConfiguredInputDefinition
+    id,
+    source,
+    update
   } = props
 
   return h(TextInput, {
-    id: `literal-input-${rowIndex}`,
+    id,
     style: { display: 'block', width: '100%' },
-    value: _.get(`${rowIndex}.source.parameter_value`, inputTableData) || null,
+    value: source.parameter_value,
     onChange: value => {
       const newSource = {
-        type: _.get(`${rowIndex}.source.type`, inputTableData),
+        type: source.type,
         parameter_value: value
       }
-      const newConfig = _.set(`${inputTableData[rowIndex].configurationIndex}.source`, newSource, configuredInputDefinition)
-      setConfiguredInputDefinition(newConfig)
+      update(newSource)
     }
   })
 }
@@ -172,7 +169,7 @@ export const InputSourceSelect = props => {
     update
   } = props
 
-  console.log('source', source)
+  console.log('InputSourceSelect')
 
   return h(Select, {
     isDisabled: false,
