@@ -90,8 +90,6 @@ export const SubmissionConfig = ({ methodId }) => {
     try {
       const runSet = await Ajax(signal).Cbas.runSets.getForMethod(methodId, 1)
       const newRunSetData = runSet.run_sets[0]
-      console.log(maybeParseJSON(newRunSetData.input_definition))
-
       setConfiguredInputDefinition(maybeParseJSON(newRunSetData.input_definition))
 
       setConfiguredOutputDefinition(maybeParseJSON(newRunSetData.output_definition))

@@ -2,15 +2,15 @@ import _ from 'lodash/fp'
 import { useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
-import { Link, Select } from 'src/components/common'
+import { Link } from 'src/components/common'
 import { icon } from 'src/components/icons'
-import { TextInput } from 'src/components/input'
-import { inputSourceLabels, inputSourceTypes, parseMethodString, RecordLookupSelect, ParameterValueTextInput } from 'src/components/submission-common'
+import { inputSourceLabels, InputSourceSelect, inputSourceTypes, ParameterValueTextInput, parseMethodString, RecordLookupSelect } from 'src/components/submission-common'
 import { FlexTable, HeaderCell, Sortable, TextCell } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import colors from 'src/libs/colors'
 import * as Utils from 'src/libs/utils'
 import { StructBuilderModal } from 'src/pages/StructBuilderModal'
+
 
 const InputsTable = props => {
   const {
@@ -30,7 +30,7 @@ const InputsTable = props => {
     const currentInputName = _.get(`${rowIndex}.input_name`, inputTableData)
 
     return div({ style: { display: 'flex', alignItems: 'center', width: '100%', paddingTop: '0.5rem', paddingBottom: '0.5rem' } }, [
-      RecordLookupSelect({rowIndex, inputTableData, dataTableAttributes, configuredInputDefinition, setConfiguredInputDefinition}),
+      RecordLookupSelect({ rowIndex, inputTableData, dataTableAttributes, configuredInputDefinition, setConfiguredInputDefinition }),
       missingRequiredInputs.includes(currentInputName) && h(TooltipTrigger, { content: 'This attribute is required' }, [
         icon('error-standard', {
           size: 14, style: { marginLeft: '0.5rem', color: colors.warning(), cursor: 'help' }
@@ -45,8 +45,7 @@ const InputsTable = props => {
   }
 
   const parameterValueSelect = rowIndex => {
-    return ParameterValueTextInput({
-      rowIndex, inputTableData, configuredInputDefinition, setConfiguredInputDefinition})
+    return ParameterValueTextInput({ rowIndex, inputTableData, configuredInputDefinition, setConfiguredInputDefinition })
   }
 
   const structBuilderSelect = rowIndex => {
@@ -79,6 +78,7 @@ const InputsTable = props => {
   )(configuredInputDefinition)
 
   console.log('inputTableData', inputTableData)
+  console.log('configuredInputDefinition', configuredInputDefinition)
 
   return h(AutoSizer, [({ width, height }) => {
     return h(div, {}, [
@@ -128,38 +128,11 @@ const InputsTable = props => {
             size: { basis: 350, grow: 0 },
             headerRenderer: () => h(HeaderCell, ['Input sources']),
             cellRenderer: ({ rowIndex }) => {
-              return h(Select, {
-                isDisabled: false,
-                'aria-label': 'Select an Option',
-                isClearable: false,
-                value: _.get(_.get(`${rowIndex}.source.type`, inputTableData), inputSourceLabels) || null,
-                onChange: ({ value }) => {
-                  const newType = _.get(value, inputSourceTypes)
-                  let newSource
-                  if (newType === 'none') {
-                    newSource = {
-                      type: newType
-                    }
-                  } else {
-                    const param = newType === 'record_lookup' ? 'record_attribute' : 'parameter_value'
-                    newSource = {
-                      type: newType,
-                      [param]: ''
-                    }
-                  }
-                  const newConfig = _.set(`${inputTableData[rowIndex].configurationIndex}.source`, newSource, configuredInputDefinition)
-                  setConfiguredInputDefinition(newConfig)
-                },
-                placeholder: 'Select Source',
-                options: _.values(
-                  _.has('optional_type', inputTableData[rowIndex].input_type) ?
-                    inputSourceLabels :
-                    _.omit('none', inputSourceLabels)
-                ),
-                // ** https://stackoverflow.com/questions/55830799/how-to-change-zindex-in-react-select-drowpdown
-                styles: { container: old => ({ ...old, display: 'inline-block', width: '100%' }), menuPortal: base => ({ ...base, zIndex: 9999 }) },
-                menuPortalTarget: document.body,
-                menuPlacement: 'top'
+              return InputSourceSelect({
+                rowIndex,
+                inputTableData,
+                dataTableAttributes,
+                configuredInputDefinition, setConfiguredInputDefinition
               })
             }
           },

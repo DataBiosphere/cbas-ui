@@ -1,12 +1,13 @@
 import _ from 'lodash/fp'
-import { h, div } from 'react-hyperscript-helpers'
+import { div, h } from 'react-hyperscript-helpers'
+import { Link, Select } from 'src/components/common'
 import { icon } from 'src/components/icons'
+import { TextInput } from 'src/components/input'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { notify } from 'src/libs/notifications'
-import { Link, Select } from 'src/components/common'
 import { differenceFromDatesInSeconds, differenceFromNowInSeconds } from 'src/libs/utils'
-import { TextInput } from 'src/components/input'
+
 
 export const AutoRefreshInterval = 1000 * 60 // 1 minute
 
@@ -104,6 +105,7 @@ export const parseMethodString = methodString => {
 export const inputSourceLabels = {
   literal: 'Type a Value',
   record_lookup: 'Fetch from Data Table',
+  object_builder: 'Use Struct Builder',
   none: 'None'
 }
 
@@ -111,9 +113,9 @@ export const inputSourceTypes = _.invert(inputSourceLabels)
 
 export const RecordLookupSelect = props => {
   const {
-    rowIndex, 
-    inputTableData, 
-    dataTableAttributes, 
+    rowIndex,
+    inputTableData,
+    dataTableAttributes,
     configuredInputDefinition, setConfiguredInputDefinition
   } = props
 
@@ -142,11 +144,11 @@ export const RecordLookupSelect = props => {
 
 export const ParameterValueTextInput = props => {
   const {
-    rowIndex, 
-    inputTableData, 
+    rowIndex,
+    inputTableData,
     configuredInputDefinition, setConfiguredInputDefinition
   } = props
-  
+
   return h(TextInput, {
     id: `literal-input-${rowIndex}`,
     style: { display: 'block', width: '100%' },
@@ -159,5 +161,47 @@ export const ParameterValueTextInput = props => {
       const newConfig = _.set(`${inputTableData[rowIndex].configurationIndex}.source`, newSource, configuredInputDefinition)
       setConfiguredInputDefinition(newConfig)
     }
+  })
+}
+
+export const InputSourceSelect = props => {
+  const {
+    rowIndex,
+    inputTableData,
+    dataTableAttributes,
+    configuredInputDefinition, setConfiguredInputDefinition
+  } = props
+  return h(Select, {
+    isDisabled: false,
+    'aria-label': 'Select an Option',
+    isClearable: false,
+    value: _.get(_.get(`${rowIndex}.source.type`, inputTableData), inputSourceLabels) || null,
+    onChange: ({ value }) => {
+      const newType = _.get(value, inputSourceTypes)
+      let newSource
+      if (newType === 'none') {
+        newSource = {
+          type: newType
+        }
+      } else {
+        const param = newType === 'record_lookup' ? 'record_attribute' : 'parameter_value'
+        newSource = {
+          type: newType,
+          [param]: ''
+        }
+      }
+      const newConfig = _.set(`${inputTableData[rowIndex].configurationIndex}.source`, newSource, configuredInputDefinition)
+      setConfiguredInputDefinition(newConfig)
+    },
+    placeholder: 'Select Source',
+    options: _.values(
+      _.has('optional_type', inputTableData[rowIndex].input_type) ?
+        inputSourceLabels :
+        _.omit('none', inputSourceLabels)
+    ),
+    // ** https://stackoverflow.com/questions/55830799/how-to-change-zindex-in-react-select-drowpdown
+    styles: { container: old => ({ ...old, display: 'inline-block', width: '100%' }), menuPortal: base => ({ ...base, zIndex: 9999 }) },
+    menuPortalTarget: document.body,
+    menuPlacement: 'top'
   })
 }

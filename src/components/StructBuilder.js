@@ -4,6 +4,7 @@ import { AutoSizer } from 'react-virtualized'
 import { Link, Select } from 'src/components/common'
 import { FlexTable, HeaderCell, TextCell } from 'src/components/table'
 import * as Utils from 'src/libs/utils'
+import { InputSourceSelect } from 'src/components/submission-common'
 
 
 export const StructBuilder = props => {
@@ -52,7 +53,7 @@ export const StructBuilder = props => {
             }
           },
           {
-            size: { basis: 360, grow: 0 },
+            size: { basis: 160, grow: 0 },
             field: 'field',
             headerRenderer: () => h(HeaderCell, ['Field']),
             cellRenderer: ({ rowIndex }) => {
