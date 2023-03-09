@@ -152,7 +152,7 @@ const WorkflowScript = signal => ({
 
 const Leonardo = signal => ({
   listAppsV2: async () => {
-    const res = await fetchOk(`https://leonardo.dsde-dev.broadinstitute.org/api/apps/v2/${wdsInstanceId}`, { signal, method: 'GET' })
+    const res = await fetchLeo(`api/apps/v2/${wdsInstanceId}`, { signal, method: 'GET' })
     return res.json()
   }
 })
