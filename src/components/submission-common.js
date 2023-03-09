@@ -1,9 +1,10 @@
 import _ from 'lodash/fp'
-import { div } from 'react-hyperscript-helpers'
+import { h, div } from 'react-hyperscript-helpers'
 import { icon } from 'src/components/icons'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { notify } from 'src/libs/notifications'
+import { Link, Select } from 'src/components/common'
 import { differenceFromDatesInSeconds, differenceFromNowInSeconds } from 'src/libs/utils'
 
 
@@ -108,3 +109,26 @@ export const inputSourceLabels = {
 
 export const inputSourceTypes = _.invert(inputSourceLabels)
 
+export const RecordLookupSelect = ({rowIndex, inputTableData, dataTableAttributes, configuredInputDefinition, setConfiguredInputDefinition}) => {
+  return h(Select, {
+    isDisabled: false,
+    'aria-label': 'Select an Attribute',
+    isClearable: false,
+    value: _.get(`${rowIndex}.source.record_attribute`, inputTableData),
+    onChange: ({ value }) => {
+      const newAttribute = _.get(`${value}.name`, dataTableAttributes)
+      const newSource = {
+        type: _.get(`${rowIndex}.source.type`, inputTableData),
+        record_attribute: newAttribute
+      }
+      const newConfig = _.set(`${inputTableData[rowIndex].configurationIndex}.source`, newSource, configuredInputDefinition)
+      setConfiguredInputDefinition(newConfig)
+    },
+    placeholder: _.get(`${rowIndex}.source.record_attribute`, inputTableData) || 'Select Attribute',
+    options: _.keys(dataTableAttributes),
+    // ** https://stackoverflow.com/questions/55830799/how-to-change-zindex-in-react-select-drowpdown
+    styles: { container: old => ({ ...old, display: 'inline-block', width: '100%' }), menuPortal: base => ({ ...base, zIndex: 9999 }) },
+    menuPortalTarget: document.body,
+    menuPlacement: 'top'
+  })
+}

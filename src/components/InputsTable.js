@@ -5,13 +5,12 @@ import { AutoSizer } from 'react-virtualized'
 import { Link, Select } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { TextInput } from 'src/components/input'
-import { inputSourceLabels, inputSourceTypes, parseMethodString } from 'src/components/submission-common'
+import { inputSourceLabels, inputSourceTypes, parseMethodString, RecordLookupSelect } from 'src/components/submission-common'
 import { FlexTable, HeaderCell, Sortable, TextCell } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import colors from 'src/libs/colors'
 import * as Utils from 'src/libs/utils'
 import { StructBuilderModal } from 'src/pages/StructBuilderModal'
-
 
 const InputsTable = props => {
   const {
@@ -27,31 +26,11 @@ const InputsTable = props => {
 
   const dataTableAttributes = _.keyBy('name', selectedDataTable.attributes)
 
-  const recordLookupSelect = rowIndex => {
+  const recordLookupWithWarnings = rowIndex => {
     const currentInputName = _.get(`${rowIndex}.input_name`, inputTableData)
 
     return div({ style: { display: 'flex', alignItems: 'center', width: '100%', paddingTop: '0.5rem', paddingBottom: '0.5rem' } }, [
-      h(Select, {
-        isDisabled: false,
-        'aria-label': 'Select an Attribute',
-        isClearable: false,
-        value: _.get(`${rowIndex}.source.record_attribute`, inputTableData),
-        onChange: ({ value }) => {
-          const newAttribute = _.get(`${value}.name`, dataTableAttributes)
-          const newSource = {
-            type: _.get(`${rowIndex}.source.type`, inputTableData),
-            record_attribute: newAttribute
-          }
-          const newConfig = _.set(`${inputTableData[rowIndex].configurationIndex}.source`, newSource, configuredInputDefinition)
-          setConfiguredInputDefinition(newConfig)
-        },
-        placeholder: _.get(`${rowIndex}.source.record_attribute`, inputTableData) || 'Select Attribute',
-        options: _.keys(dataTableAttributes),
-        // ** https://stackoverflow.com/questions/55830799/how-to-change-zindex-in-react-select-drowpdown
-        styles: { container: old => ({ ...old, display: 'inline-block', width: '100%' }), menuPortal: base => ({ ...base, zIndex: 9999 }) },
-        menuPortalTarget: document.body,
-        menuPlacement: 'top'
-      }),
+      RecordLookupSelect({rowIndex, inputTableData, dataTableAttributes, configuredInputDefinition, setConfiguredInputDefinition}),
       missingRequiredInputs.includes(currentInputName) && h(TooltipTrigger, { content: 'This attribute is required' }, [
         icon('error-standard', {
           size: 14, style: { marginLeft: '0.5rem', color: colors.warning(), cursor: 'help' }
@@ -200,7 +179,7 @@ const InputsTable = props => {
             cellRenderer: ({ rowIndex }) => {
               const source = _.get(`${rowIndex}.source`, inputTableData)
               return Utils.switchCase(source.type || 'none',
-                ['record_lookup', () => recordLookupSelect(rowIndex)],
+                ['record_lookup', () => recordLookupWithWarnings(rowIndex)],
                 ['literal', () => parameterValueSelect(rowIndex)],
                 ['object_builder', () => structBuilderSelect(rowIndex)],
                 ['none', () => h(TextCell, { style: { fontStyle: 'italic' } }, ['Optional'])]
