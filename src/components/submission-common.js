@@ -204,3 +204,16 @@ export const InputSourceSelect = props => {
     menuPlacement: 'top'
   })
 }
+
+export const StructBuilderLink = props => {
+  const {
+    onClick, structBuilderVisible
+  } = props
+  return h(Link, {
+    display: 'block',
+    width: '100%',
+    onClick
+  },
+  structBuilderVisible ? 'Hide Struct' : 'View Struct'
+  )
+}

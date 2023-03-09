@@ -4,7 +4,15 @@ import { div, h } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import { Link } from 'src/components/common'
 import { icon } from 'src/components/icons'
-import { inputSourceLabels, InputSourceSelect, inputSourceTypes, ParameterValueTextInput, parseMethodString, RecordLookupSelect } from 'src/components/submission-common'
+import {
+  inputSourceLabels,
+  InputSourceSelect,
+  inputSourceTypes,
+  ParameterValueTextInput,
+  parseMethodString,
+  RecordLookupSelect,
+  StructBuilderLink
+} from 'src/components/submission-common'
 import { FlexTable, HeaderCell, Sortable, TextCell } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import colors from 'src/libs/colors'
@@ -73,19 +81,14 @@ const InputsTable = props => {
     })
   }
 
-  const structBuilderSelect = rowIndex => {
-    return h(
-      Link,
-      {
-        display: 'block',
-        width: '100%',
-        onClick: () => {
-          setStructBuilderVisible(true)
-          setStructBuilderRowIndex(rowIndex)
-        }
-      },
-      structBuilderVisible ? 'Hide Struct' : 'View Struct'
-    )
+  const structBuilderLink = rowIndex => {
+    return h(StructBuilderLink, {
+      structBuilderVisible,
+      onClick: () => {
+        setStructBuilderVisible(true)
+        setStructBuilderRowIndex(rowIndex)
+      }
+    })
   }
 
   const updateInputSource = sourcePath => source => {
@@ -96,11 +99,13 @@ const InputsTable = props => {
   return h(AutoSizer, [({ width, height }) => {
     return h(div, {}, [
       structBuilderVisible ? h(StructBuilderModal, {
-        structBuilderData: inputTableData[structBuilderRowIndex],
+        structBuilderName: inputTableData[structBuilderRowIndex].variable,
+        structBuilderSource: inputTableData[structBuilderRowIndex].source,
+        structBuilderInputType: inputTableData[structBuilderRowIndex].input_type,
         inputSourceTypes,
         inputSourceLabels,
         dataTableAttributes,
-        update: updateInputSource(`[${structBuilderRowIndex}].source`),
+        updateSource: updateInputSource(`[${structBuilderRowIndex}].source`),
         onDismiss: () => {
           setStructBuilderVisible(false)
           setStructBuilderRowIndex(null)
@@ -157,7 +162,7 @@ const InputsTable = props => {
               return Utils.switchCase(source.type || 'none',
                 ['record_lookup', () => recordLookupWithWarnings(rowIndex)],
                 ['literal', () => parameterValueSelect(rowIndex)],
-                ['object_builder', () => structBuilderSelect(rowIndex)],
+                ['object_builder', () => structBuilderLink(rowIndex)],
                 ['none', () => h(TextCell, { style: { fontStyle: 'italic' } }, ['Optional'])]
               )
             }
