@@ -6,9 +6,9 @@ import { centeredSpinner, icon } from 'src/components/icons'
 import { TextArea, TextInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import StepButtons from 'src/components/StepButtons'
-import {inputsTable, outputsTable, recordsTable, resolveWdsUrl} from 'src/components/submission-common'
+import { inputsTable, outputsTable, recordsTable, resolveWdsUrl, WdsPollInterval } from 'src/components/submission-common'
 import { TextCell } from 'src/components/table'
-import { Ajax } from 'src/libs/ajax'
+import { Ajax, wdsInstanceId, wdsInstanceIdForLocalTesting, wdsUrlRootForLocalTesting } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
@@ -28,7 +28,9 @@ export const SubmissionConfig = ({ methodId }) => {
   const [dataTableColumnWidths, setDataTableColumnWidths] = useState({})
   const [loading, setLoading] = useState(false)
   const [workflowScript, setWorkflowScript] = useState()
-  const [wdsProxyUrl, setWdsProxyUrl] = useState({ status: 'None', url: '' })
+  const [runSetRecordType, setRunSetRecordType] = useState()
+  const [wdsProxyUrl, setWdsProxyUrl] = useState({ status: 'None', state: '' })
+  const pollWdsInterval = useRef()
 
   // Options chosen on this page:
   const [selectedRecordType, setSelectedRecordType] = useState()
@@ -54,42 +56,38 @@ export const SubmissionConfig = ({ methodId }) => {
   const dataTableRef = useRef()
   const signal = useCancellation()
 
-  const loadWdsUrl = useCallback(async () => {
-    try {
-      const apps = await Ajax(signal).Leonardo.listAppsV2()
-      const wdsUrl = resolveWdsUrl(apps)
-      if (!!wdsUrl) setWdsProxyUrl({ status: 'Ready', url: wdsUrl })
-
-      console.log(`loadWdsUrl wdsUrl: ${wdsUrl}`)
-
-      return wdsUrl
-    } catch (error) {
-      setWdsProxyUrl({ status: 'Error', url: error })
-      return ''
+  const loadWdsUrl = useCallback(() => {
+    // for local testing we use local WDS setup and hence we don't need to call Leo to get proxy url
+    if (wdsInstanceId === wdsInstanceIdForLocalTesting) {
+      setWdsProxyUrl({ status: 'Ready', state: wdsUrlRootForLocalTesting })
+      return wdsUrlRootForLocalTesting
     }
+
+    return Ajax(signal).Leonardo.listAppsV2().then(resolveWdsUrl)
+      .then(url => {
+        if (!!url) {
+          setWdsProxyUrl({ status: 'Ready', state: url })
+        }
+        return url
+      })
+      .catch(err => {
+        setWdsProxyUrl({ status: 'Error', state: err })
+        return ''
+      })
   }, [signal])
 
-  const loadRecordsData = useCallback(async (recordType, wdsUrl) => {
+  const loadRecordsData = useCallback(async (recordType, wdsUrlRoot) => {
     try {
-      if(wdsUrl) {
-        const searchResult = await Ajax(signal).Wds.search.post(wdsUrl, recordType)
-        setRecords(searchResult.records)
-      } else {
-        // Try to load the WDS proxy URL as it doesn't already exist
-        const reloadedWdsUrl = await loadWdsUrl()
-        if (!!reloadedWdsUrl) {
-          const searchResult = await Ajax(signal).Wds.search.post(reloadedWdsUrl, recordType)
-          setRecords(searchResult.records)
-        } else {
-          // We couldn't load WDS URL for some reason, schedule to try again in sometime
-          // TODO: call the scheduler
-          setNoRecordTypeData(`Couldn't fetch records for Data table '${recordType}'. Will retry in 30 seconds.`)
-        }
-      }
+      const searchResult = await Ajax(signal).Wds.search.post(wdsUrlRoot, recordType)
+      setRecords(searchResult.records)
     } catch (error) {
-      setNoRecordTypeData(`Data table not found: ${recordType}`)
+      if (recordType === undefined) {
+        setNoRecordTypeData('Select a data table')
+      } else {
+        setNoRecordTypeData(`Data table not found: ${recordType}`)
+      }
     }
-  }, [signal, loadWdsUrl])
+  }, [signal])
 
   const loadMethodsData = async (methodId, methodVersionId) => {
     try {
@@ -121,29 +119,42 @@ export const SubmissionConfig = ({ methodId }) => {
     }
   }
 
-  // This method is called only when mounting the page. If WDS URL doesn't exist when this is called we throw error
-  const loadTablesData = useCallback(async (wdsUrl) => {
-    console.log(`loadTablesData wdsUrl: ${wdsUrl}`)
-    if (wdsUrl) {
-      // If we have the WDS proxy URL try to load the WDS types
-      try {
-        setRecordTypes(await Ajax(signal).Wds.types.get(wdsUrl))
-      } catch (error) {
-        notify('error', 'Error loading tables data', { detail: await (error instanceof Response ? error.text() : error) })
-      }
-    } else {
-      notify('error', 'Error loading tables data', { detail: 'Data Table app not found in the workspace. Will retry in 30 seconds.' })
+  const loadTablesData = useCallback(async wdsUrlRoot => {
+    try {
+      setRecordTypes(await Ajax(signal).Wds.types.get(wdsUrlRoot))
+    } catch (error) {
+      notify('error', 'Error loading tables data', { detail: await (error instanceof Response ? error.text() : error) })
     }
   }, [signal])
 
+  const loadWdsData = useCallback(async recordType => {
+    try {
+      // try to load WDS proxy URL if one doesn't exist
+      if (!wdsProxyUrl || (wdsProxyUrl.status !== 'Ready')) {
+        const wdsUrlRoot = await loadWdsUrl()
+        if (!!wdsUrlRoot) {
+          await loadTablesData(wdsUrlRoot)
+          await loadRecordsData(recordType, wdsUrlRoot)
+        } else {
+          // to avoid stacked warning banners due to auto-poll for WDS url, we remove the current banner at 29th second
+          notify('warn', 'Error loading tables data', { detail: 'Data Table app not found. Will retry in 30 seconds.', timeout: WdsPollInterval - 1000 })
+        }
+      } else {
+        // if we have the WDS proxy URL load the WDS data
+        const wdsUrlRoot = wdsProxyUrl.state
+        await loadTablesData(wdsUrlRoot)
+        await loadRecordsData(recordType, wdsUrlRoot)
+      }
+    } catch (error) {
+      notify('error', 'Error loading tables data', { detail: await (error instanceof Response ? error.text() : error) })
+    }
+  }, [loadRecordsData, loadTablesData, loadWdsUrl, wdsProxyUrl])
+
   useOnMount(() => {
-    // Initial attempt to load WDS proxy URL when the user arrives on this page
-    loadWdsUrl().then(wdsUrl => {
-      loadTablesData(wdsUrl)
-      loadRunSet().then(runSet => {
-        loadMethodsData(runSet.method_id, runSet.method_version_id)
-        loadRecordsData(runSet.record_type)
-      })
+    loadRunSet().then(runSet => {
+      setRunSetRecordType(runSet.record_type)
+      loadMethodsData(runSet.method_id, runSet.method_version_id)
+      loadWdsData(runSet.record_type)
     })
   })
 
@@ -200,6 +211,21 @@ export const SubmissionConfig = ({ methodId }) => {
     }
   }, [signal, selectedMethodVersion])
 
+  useEffect(() => {
+    // Start polling if we're missing WDS proxy url and stop polling when we have it
+    if ((!wdsProxyUrl || (wdsProxyUrl.status !== 'Ready')) && !pollWdsInterval.current) {
+      pollWdsInterval.current = setInterval(() => loadWdsData(runSetRecordType), WdsPollInterval)
+    } else if (!!wdsProxyUrl && wdsProxyUrl.status === 'Ready' && pollWdsInterval.current) {
+      clearInterval(pollWdsInterval.current)
+      pollWdsInterval.current = undefined
+    }
+
+    return () => {
+      clearInterval(pollWdsInterval.current)
+      pollWdsInterval.current = undefined
+    }
+  }, [loadWdsData, wdsProxyUrl, runSetRecordType])
+
   const renderSummary = () => {
     return div({ style: { margin: '4em' } }, [
       div({ style: { display: 'flex', marginTop: '1rem', justifyContent: 'space-between' } }, [
@@ -241,7 +267,7 @@ export const SubmissionConfig = ({ methodId }) => {
             setNoRecordTypeData(null)
             setSelectedRecordType(value)
             setSelectedRecords(null)
-            loadRecordsData(value)
+            loadWdsData(value) //TODO: should some kind of flag be added so that only loadRecordData is called?
           },
           placeholder: 'None selected',
           styles: { container: old => ({ ...old, display: 'inline-block', width: 200 }), paddingRight: '2rem' },

@@ -15,6 +15,7 @@ import { differenceFromDatesInSeconds, differenceFromNowInSeconds } from 'src/li
 
 
 export const AutoRefreshInterval = 1000 * 60 // 1 minute
+export const WdsPollInterval = 1000 * 30 // 30 seconds
 
 const iconSize = 24
 export const addCountSuffix = (label, count = undefined) => {

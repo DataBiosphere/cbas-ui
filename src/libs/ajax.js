@@ -48,7 +48,7 @@ export const fetchOk = _.flow(withInstrumentation, withCancellation, withErrorRe
 
 const fetchCbas = withUrlPrefix(`${getConfig().cbasUrlRoot}/api/batch/v1/`, fetchOk)
 const fetchCromwell = withUrlPrefix(`${getConfig().cromwellUrlRoot}/api/workflows/v1/`, fetchOk)
-const fetchWds = withUrlPrefix(`${getConfig().wdsUrlRoot}/`, fetchOk)
+const fetchWds = wdsProxyUrlRoot => withUrlPrefix(`${wdsProxyUrlRoot}/`, fetchOk)
 const fetchLeo = withUrlPrefix(`${getConfig().leoUrlRoot}/`, fetchOk) // TODO: How to add this config to Cromwhelm?
 
 const Cbas = signal => ({
@@ -110,14 +110,16 @@ const Cromwell = signal => ({
 })
 
 // this hard-coded fallback UUID is a holdover from our local testing configuration.
-const wdsInstanceId = getConfig().wdsInstanceId || '15f36863-30a5-4cab-91f7-52be439f1175'
+export const wdsInstanceIdForLocalTesting = '15f36863-30a5-4cab-91f7-52be439f1175'
+export const wdsUrlRootForLocalTesting = 'http://localhost:3000/wds'
+export const wdsInstanceId = getConfig().wdsInstanceId || wdsInstanceIdForLocalTesting
 const wdsApiVersion = getConfig().wdsApiVersion || 'v0.2'
 const searchPayload = { limit: 100 }
 
 const Wds = signal => ({
   types: {
-    get: async (wdsUrl) => {
-      const res = await fetchWds(`${wdsInstanceId}/types/${wdsApiVersion}`, { signal, method: 'GET' })
+    get: async wdsUrlRoot => {
+      const res = await fetchWds(wdsUrlRoot)(`${wdsInstanceId}/types/${wdsApiVersion}`, { signal, method: 'GET' })
       return _.map(
         type => _.set('attributes', _.filter(attr => attr.name !== 'sys_name', type.attributes), type),
         await res.json()
@@ -125,8 +127,8 @@ const Wds = signal => ({
     }
   },
   search: {
-    post: async (wdsUrl, wdsType) => {
-      const res = await fetchWds(
+    post: async (wdsUrlRoot, wdsType) => {
+      const res = await fetchWds(wdsUrlRoot)(
         `${wdsInstanceId}/search/${wdsApiVersion}/${wdsType}`,
         _.mergeAll([{ signal, method: 'POST' }, jsonBody(searchPayload)])
       )
@@ -146,12 +148,11 @@ const WorkflowScript = signal => ({
 
 // TODO: REMOVE BEFORE COMMITTING!!!
 // TODO: We don't need token call Leo when running locally and we might not need token when in app setup
-export const authOpts = { headers: { Authorization: `Bearer redacted` } }
+// export const authOpts = { headers: { Authorization: `Bearer redacted` } }
 
 const Leonardo = signal => ({
   listAppsV2: async () => {
-    // TODO: change to using wdsInstanceId
-    const res = await fetchLeo(`api/apps/v2/b4362ae3-bcf4-4b1d-80b4-6f3cdb9f205e`, _.mergeAll([authOpts, { signal, method: 'GET' }])) // TODO: How to get auth token?
+    const res = await fetchLeo(`api/apps/v2/${wdsInstanceId}`, { signal, method: 'GET' })
     return res.json()
   }
 })
