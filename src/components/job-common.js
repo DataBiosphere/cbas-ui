@@ -61,13 +61,28 @@ export const statusType = {
     label: () => 'Canceling',
     icon: style => icon('sync', { size: iconSize, style: { color: colors.dark(), ...style } })
   },
-  waitingForQuota: {
-    id: 'waitingForQuota', // Must match variable name for collection unpacking.
+  waitingForGCPQuota: {
+    id: 'waitingForGCPQuota', // Must match variable name for collection unpacking.
     label: () => 'Submitted, Awaiting Cloud Quota',
     icon: style => icon('error-standard', { size: iconSize, style: { color: colors.warning(), ...style } }),
     moreInfoLink: 'https://support.terra.bio/hc/en-us/articles/360029071251',
     moreInfoLabel: 'Learn more about cloud quota',
     tooltip: 'Delayed by Google Cloud Platform (GCP) quota limits. Contact Terra Support to request a quota increase.'
+  },
+  aborted: {
+    id: 'aborted', // Must match variable name for collection unpacking.
+    label: () => 'Aborted',
+    icon: style => icon('error-standard', { size: iconSize, style: { color: colors.warning(), ...style } })
+  },
+  retryableFailure: {
+    id: 'retryableFailure', // Must match variable name for collection unpacking.
+    label: () => 'Retryable Failure',
+    icon: style => icon('error-standard', { size: iconSize, style: { color: colors.warning(), ...style } })
+  },
+  waitingForCromwellQuota: {
+    id: 'waitingForCromwellQuota', // Must match variable name for collection unpacking.
+    label: () => 'Submitted, Awaiting Cromwell Quota',
+    icon: style => icon('clock', { size: iconSize, style: { color: colors.dark(), ...style } })
   },
   unknown: {
     id: 'unknown', // Must match variable name for collection unpacking.
@@ -103,7 +118,9 @@ export const collapseStatus = rawStatus => {
  *
  * @param {string} executionStatus from metadata
  * @param {string} backendStatus from metadata
- * @returns {Object} one of `statusType.succeeded`, `statusType.failed`, `statusType.running`, `statusType.waitingForQuota`, or `statusType.unknown`
+ * @returns {Object} one of:
+ *  `statusType.succeeded`, `statusType.aborted, `statusType.failed`, `statusType.retryableFailure`,
+ *  `statusType.waitingForGCPQuota`, `statusType.waitingForCromwellQuota`, or `statusType.unknown`
  */
 export const collapseCromwellStatus = (executionStatus, backendStatus) => {
   switch (executionStatus) {
@@ -111,10 +128,20 @@ export const collapseCromwellStatus = (executionStatus, backendStatus) => {
       return statusType.succeeded
     case 'Aborting':
     case 'Aborted':
+      return statusType.aborted
     case 'Failed':
+    case 'Unstartable':
       return statusType.failed
+    case 'RetryableFailure':
+      return statusType.retryableFailure
+    case 'NotStarted':
+    case 'WaitingForQueueSpace':
+    case 'QueuedInCromwell':
+    case 'Starting':
+      return statusType.waitingForCromwellQuota
     case 'Running':
-      return backendStatus === 'AwaitingCloudQuota' ? statusType.waitingForQuota : statusType.running
+    case 'Bypassed':
+      return backendStatus === 'AwaitingCloudQuota' ? statusType.waitingForGCPQuota : statusType.running
     default:
       return statusType.unknown
   }
