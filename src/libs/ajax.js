@@ -119,9 +119,7 @@ const Cromwell = signal => ({
 })
 
 // this hard-coded fallback UUID is a holdover from our local testing configuration.
-export const wdsInstanceIdForLocalTesting = '15f36863-30a5-4cab-91f7-52be439f1175'
-export const wdsUrlRootForLocalTesting = 'http://localhost:3000/wds'
-export const wdsInstanceId = getConfig().wdsInstanceId || wdsInstanceIdForLocalTesting
+const wdsInstanceId = getConfig().wdsInstanceId || '15f36863-30a5-4cab-91f7-52be439f1175'
 const wdsApiVersion = getConfig().wdsApiVersion || 'v0.2'
 const searchPayload = { limit: 100 }
 

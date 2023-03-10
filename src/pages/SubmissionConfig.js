@@ -8,8 +8,9 @@ import Modal from 'src/components/Modal'
 import StepButtons from 'src/components/StepButtons'
 import { inputsTable, outputsTable, recordsTable, resolveWdsUrl, WdsPollInterval } from 'src/components/submission-common'
 import { TextCell } from 'src/components/table'
-import { Ajax, wdsInstanceId, wdsInstanceIdForLocalTesting, wdsUrlRootForLocalTesting } from 'src/libs/ajax'
+import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
+import { getConfig } from 'src/libs/config'
 import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
 import { useCancellation, useOnMount } from 'src/libs/react-utils'
@@ -57,10 +58,14 @@ export const SubmissionConfig = ({ methodId }) => {
   const signal = useCancellation()
 
   const loadWdsUrl = useCallback(() => {
-    // for local testing we use local WDS setup and hence we don't need to call Leo to get proxy url
-    if (wdsInstanceId === wdsInstanceIdForLocalTesting) {
-      setWdsProxyUrl({ status: 'Ready', state: wdsUrlRootForLocalTesting })
-      return wdsUrlRootForLocalTesting
+    // for local testing - since we use local WDS setup, we don't need to call Leo to get proxy url
+    // for CBAS UI deployed in app - we don't want to decouple CBAS and WDS yet. Until then we keep using WDS url passed in config.
+    //                               When we are ready for that change to be released, we should remove `wdsUrlRoot` from cromwhelm configs
+    //                               and then CBAS UI will talk to Leo to get WDS url root.
+    const wdsUrlRoot = getConfig().wdsUrlRoot
+    if(wdsUrlRoot) {
+      setWdsProxyUrl({ status: 'Ready', state: wdsUrlRoot })
+      return wdsUrlRoot
     }
 
     // TODO: Change this logic to be called only when flag is enabled?
