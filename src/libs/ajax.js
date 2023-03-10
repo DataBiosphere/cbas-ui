@@ -7,6 +7,15 @@ import * as Utils from 'src/libs/utils'
 
 const jsonBody = body => ({ body: JSON.stringify(body), headers: { 'Content-Type': 'application/json' } })
 
+const leoToken = () => {
+  const cookies = document.cookie.split(';')
+  const leoTokens = cookies.filter(c => c.startsWith('LeoToken=')).map(c => c.substring(9)) // token value starting after `LeoToken=`
+
+  // only 1 LeoToken should have been sent to browser, hence return the first element in array
+  return leoTokens[0]
+}
+const authHeader = { headers: { Authorization: `Bearer ${leoToken()}` } }
+
 // Allows use of ajaxOverrideStore to stub responses for testing
 const withInstrumentation = wrappedFetch => (...args) => {
   return _.flow(
@@ -146,13 +155,9 @@ const WorkflowScript = signal => ({
   }
 })
 
-// TODO: REMOVE BEFORE COMMITTING!!!
-// TODO: We don't need token call Leo when running locally and we might not need token when in app setup
-// export const authOpts = { headers: { Authorization: `Bearer redacted` } }
-
 const Leonardo = signal => ({
   listAppsV2: async () => {
-    const res = await fetchLeo(`api/apps/v2/${wdsInstanceId}`, { signal, method: 'GET' })
+    const res = await fetchLeo(`api/apps/v2/${wdsInstanceId}`, _.mergeAll([authHeader, { signal, method: 'GET' }]))
     return res.json()
   }
 })

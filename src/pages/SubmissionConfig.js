@@ -63,6 +63,7 @@ export const SubmissionConfig = ({ methodId }) => {
       return wdsUrlRootForLocalTesting
     }
 
+    // TODO: Change this logic to be called only when flag is enabled?
     return Ajax(signal).Leonardo.listAppsV2().then(resolveWdsUrl)
       .then(url => {
         if (!!url) {
