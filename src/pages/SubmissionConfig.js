@@ -63,7 +63,7 @@ export const SubmissionConfig = ({ methodId }) => {
     //                               When we are ready for that change to be released, we should remove `wdsUrlRoot` from cromwhelm configs
     //                               and then CBAS UI will talk to Leo to get WDS url root.
     const wdsUrlRoot = getConfig().wdsUrlRoot
-    if(wdsUrlRoot) {
+    if (wdsUrlRoot) {
       setWdsProxyUrl({ status: 'Ready', state: wdsUrlRoot })
       return wdsUrlRoot
     }

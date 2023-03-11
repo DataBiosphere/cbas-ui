@@ -104,7 +104,7 @@ export const loadRunSetData = async signal => {
 }
 
 // Invokes logic to determine the appropriate app for WDS
-// If WDS is not running, a URL will not be present -- in this case we return empty string
+// If WDS is not running, a URL will not be present, in this case we return empty string
 // Note: This logic has been copied from how DataTable finds WDS app in Terra UI (https://github.com/DataBiosphere/terra-ui/blob/ac13bdf3954788ca7c8fd27b8fd4cfc755f150ff/src/libs/ajax/data-table-providers/WdsDataTableProvider.ts#L94-L147)
 export const resolveWdsApp = apps => {
   // WDS looks for Kubernetes deployment statuses (such as RUNNING or PROVISIONING), expressed by Leo
@@ -136,7 +136,7 @@ export const resolveWdsApp = apps => {
   return ''
 }
 
-// Extract wds URL from Leo response. exported for testing
+// Extract WDS proxy URL from Leo response. Exported for testing
 export const resolveWdsUrl = apps => {
   const foundApp = resolveWdsApp(apps)
   if (foundApp?.status === 'RUNNING') {

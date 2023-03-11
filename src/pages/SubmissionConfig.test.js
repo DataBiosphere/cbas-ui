@@ -5,6 +5,7 @@ import userEvent from '@testing-library/user-event'
 import { h } from 'react-hyperscript-helpers'
 import selectEvent from 'react-select-event'
 import { Ajax } from 'src/libs/ajax'
+import { getConfig } from 'src/libs/config'
 import { SubmissionConfig } from 'src/pages/SubmissionConfig'
 
 
@@ -247,6 +248,13 @@ const searchResponses = {
   BAR: searchResponseBAR
 }
 
+const mockWdsProxyUrl = 'https://lzabc123.servicebus.windows.net/abc-proxy-url/wds'
+const mockApps = [
+  {
+    appType: 'CROMWELL', workspaceId: 'abc-123', appName: `wds-abc-123`, status: 'RUNNING', proxyUrls: { wds: mockWdsProxyUrl }
+  }
+]
+
 describe('SubmissionConfig workflow details', () => {
   // SubmissionConfig component uses AutoSizer to determine the right size for table to be displayed. As a result we need to
   // mock out the height and width so that when AutoSizer asks for the width and height of "browser" it can use the mocked
@@ -258,6 +266,10 @@ describe('SubmissionConfig workflow details', () => {
   beforeAll(() => {
     Object.defineProperty(HTMLElement.prototype, 'offsetHeight', { configurable: true, value: 1000 })
     Object.defineProperty(HTMLElement.prototype, 'offsetWidth', { configurable: true, value: 800 })
+  })
+
+  beforeEach(() => {
+    getConfig.mockReturnValue(({ wdsUrlRoot: 'http://localhost:3000/wds' }))
   })
 
   afterEach(() => {
@@ -273,9 +285,10 @@ describe('SubmissionConfig workflow details', () => {
     // ** ARRANGE **
     const mockRunSetResponse = jest.fn(() => Promise.resolve(runSetResponse))
     const mockMethodsResponse = jest.fn(() => Promise.resolve(methodsResponse))
-    const mockSearchResponse = jest.fn(recordType => Promise.resolve(searchResponses[recordType]))
+    const mockSearchResponse = jest.fn((_, recordType) => Promise.resolve(searchResponses[recordType]))
     const mockTypesResponse = jest.fn(() => Promise.resolve(typesResponse))
     const mockWdlResponse = jest.fn(() => Promise.resolve('mock wdl response'))
+    const mockLeoResponse = jest.fn(() => Promise.resolve(mockApps))
 
     Ajax.mockImplementation(() => {
       return {
@@ -297,6 +310,9 @@ describe('SubmissionConfig workflow details', () => {
         },
         WorkflowScript: {
           get: mockWdlResponse
+        },
+        Leonardo: {
+          listAppsV2: mockLeoResponse
         }
       }
     })
@@ -311,6 +327,7 @@ describe('SubmissionConfig workflow details', () => {
       expect(mockMethodsResponse).toHaveBeenCalledTimes(1)
       expect(mockSearchResponse).toHaveBeenCalledTimes(1)
       expect(mockWdlResponse).toHaveBeenCalledTimes(1)
+      expect(mockLeoResponse).toHaveBeenCalledTimes(0)
     })
 
     expect(screen.getByText('Workflow Version:')).toBeInTheDocument()
@@ -349,6 +366,10 @@ describe('SubmissionConfig records selector', () => {
     Object.defineProperty(HTMLElement.prototype, 'offsetWidth', { configurable: true, value: 800 })
   })
 
+  beforeEach(() => {
+    getConfig.mockReturnValue(({ wdsUrlRoot: 'http://localhost:3000/wds' }))
+  })
+
   afterEach(() => {
     jest.clearAllMocks()
   })
@@ -362,7 +383,7 @@ describe('SubmissionConfig records selector', () => {
     // ** ARRANGE **
     const mockRunSetResponse = jest.fn(() => Promise.resolve(runSetResponse))
     const mockMethodsResponse = jest.fn(() => Promise.resolve(methodsResponse))
-    const mockSearchResponse = jest.fn(recordType => Promise.resolve(searchResponses[recordType]))
+    const mockSearchResponse = jest.fn((_, recordType) => Promise.resolve(searchResponses[recordType]))
     const mockTypesResponse = jest.fn(() => Promise.resolve(typesResponse))
 
     await Ajax.mockImplementation(() => {
@@ -412,7 +433,7 @@ describe('SubmissionConfig records selector', () => {
     // ** ARRANGE **
     const mockRunSetResponse = jest.fn(() => Promise.resolve(runSetResponse))
     const mockMethodsResponse = jest.fn(() => Promise.resolve(methodsResponse))
-    const mockSearchResponse = jest.fn(recordType => Promise.resolve(searchResponses[recordType]))
+    const mockSearchResponse = jest.fn((_, recordType) => Promise.resolve(searchResponses[recordType]))
     const mockTypesResponse = jest.fn(() => Promise.resolve(typesResponse))
 
     await Ajax.mockImplementation(() => {
@@ -484,7 +505,7 @@ describe('SubmissionConfig records selector', () => {
     // ** ARRANGE **
     const mockRunSetResponse = jest.fn(() => Promise.resolve(runSetResponse))
     const mockMethodsResponse = jest.fn(() => Promise.resolve(methodsResponse))
-    const mockSearchResponse = jest.fn(recordType => Promise.resolve(searchResponses[recordType]))
+    const mockSearchResponse = jest.fn((_, recordType) => Promise.resolve(searchResponses[recordType]))
     const mockTypesResponse = jest.fn(() => Promise.resolve(typesResponse))
 
     await Ajax.mockImplementation(() => {
@@ -583,7 +604,7 @@ describe('SubmissionConfig records selector', () => {
   it('when records are selected, should display modal when Submit button is clicked', async () => {
     const mockRunSetResponse = jest.fn(() => Promise.resolve(runSetResponse))
     const mockMethodsResponse = jest.fn(() => Promise.resolve(methodsResponse))
-    const mockSearchResponse = jest.fn(recordType => Promise.resolve(searchResponses[recordType]))
+    const mockSearchResponse = jest.fn((_, recordType) => Promise.resolve(searchResponses[recordType]))
     const mockTypesResponse = jest.fn(() => Promise.resolve(typesResponse))
 
     await Ajax.mockImplementation(() => {
@@ -626,7 +647,7 @@ describe('SubmissionConfig records selector', () => {
   it('clear selected records when data type is changed', async () => {
     const mockRunSetResponse = jest.fn(() => Promise.resolve(runSetResponse))
     const mockMethodsResponse = jest.fn(() => Promise.resolve(methodsResponse))
-    const mockSearchResponse = jest.fn(recordType => Promise.resolve(searchResponses[recordType]))
+    const mockSearchResponse = jest.fn((_, recordType) => Promise.resolve(searchResponses[recordType]))
     const mockTypesResponse = jest.fn(() => Promise.resolve(typesResponse))
 
     await Ajax.mockImplementation(() => {
@@ -708,7 +729,7 @@ describe('SubmissionConfig records selector', () => {
   it('should change record table sort order when column headers are clicked', async () => {
     const mockRunSetResponse = jest.fn(() => Promise.resolve(runSetResponse))
     const mockMethodsResponse = jest.fn(() => Promise.resolve(methodsResponse))
-    const mockSearchResponse = jest.fn(recordType => Promise.resolve(searchResponses[recordType]))
+    const mockSearchResponse = jest.fn((_, recordType) => Promise.resolve(searchResponses[recordType]))
     const mockTypesResponse = jest.fn(() => Promise.resolve(typesResponse))
 
     await Ajax.mockImplementation(() => {
@@ -786,7 +807,7 @@ describe('SubmissionConfig records selector', () => {
   it('should display error message when WDS is unable to find a record type', async () => {
     const mockRunSetResponse = jest.fn(() => Promise.resolve(badRecordTypeRunSetResponse))
     const mockMethodsResponse = jest.fn(() => Promise.resolve(methodsResponse))
-    const mockSearchResponse = jest.fn(recordType => Promise.resolve(searchResponses[recordType]))
+    const mockSearchResponse = jest.fn((_, recordType) => Promise.resolve(searchResponses[recordType]))
     const mockTypesResponse = jest.fn(() => Promise.resolve(typesResponse))
 
     await Ajax.mockImplementation(() => {
@@ -825,7 +846,7 @@ describe('SubmissionConfig records selector', () => {
   it('should toggle between different states of checked boxes', async () => {
     const mockRunSetResponse = jest.fn(() => Promise.resolve(runSetResponse))
     const mockMethodsResponse = jest.fn(() => Promise.resolve(methodsResponse))
-    const mockSearchResponse = jest.fn(recordType => Promise.resolve(searchResponses[recordType]))
+    const mockSearchResponse = jest.fn((_, recordType) => Promise.resolve(searchResponses[recordType]))
     const mockTypesResponse = jest.fn(() => Promise.resolve(typesResponse))
 
     await Ajax.mockImplementation(() => {
@@ -894,6 +915,10 @@ describe('SubmissionConfig inputs/outputs definitions', () => {
     Object.defineProperty(HTMLElement.prototype, 'offsetWidth', { configurable: true, value: 800 })
   })
 
+  beforeEach(() => {
+    getConfig.mockReturnValue(({ wdsUrlRoot: 'http://localhost:3000/wds' }))
+  })
+
   afterEach(() => {
     jest.clearAllMocks()
   })
@@ -907,7 +932,7 @@ describe('SubmissionConfig inputs/outputs definitions', () => {
     // ** ARRANGE **
     const mockRunSetResponse = jest.fn(() => Promise.resolve(runSetResponse))
     const mockMethodsResponse = jest.fn(() => Promise.resolve(methodsResponse))
-    const mockSearchResponse = jest.fn(recordType => Promise.resolve(searchResponses[recordType]))
+    const mockSearchResponse = jest.fn((_, recordType) => Promise.resolve(searchResponses[recordType]))
     const mockTypesResponse = jest.fn(() => Promise.resolve(typesResponse))
 
     await Ajax.mockImplementation(() => {
@@ -986,7 +1011,7 @@ describe('SubmissionConfig inputs/outputs definitions', () => {
     // ** ARRANGE **
     const mockRunSetResponse = jest.fn(() => Promise.resolve(runSetResponse))
     const mockMethodsResponse = jest.fn(() => Promise.resolve(methodsResponse))
-    const mockSearchResponse = jest.fn(recordType => Promise.resolve(searchResponses[recordType]))
+    const mockSearchResponse = jest.fn((_, recordType) => Promise.resolve(searchResponses[recordType]))
     const mockTypesResponse = jest.fn(() => Promise.resolve(typesResponseWithoutFooRating))
 
     await Ajax.mockImplementation(() => {
@@ -1061,7 +1086,7 @@ describe('SubmissionConfig inputs/outputs definitions', () => {
     // ** ARRANGE **
     const mockRunSetResponse = jest.fn(() => Promise.resolve(runSetResponse))
     const mockMethodsResponse = jest.fn(() => Promise.resolve(methodsResponse))
-    const mockSearchResponse = jest.fn(recordType => Promise.resolve(searchResponses[recordType]))
+    const mockSearchResponse = jest.fn((_, recordType) => Promise.resolve(searchResponses[recordType]))
     const mockTypesResponse = jest.fn(() => Promise.resolve(typesResponse))
 
     await Ajax.mockImplementation(() => {
@@ -1129,7 +1154,7 @@ describe('SubmissionConfig inputs/outputs definitions', () => {
   it('should change input table sort order when column headers are clicked', async () => {
     const mockRunSetResponse = jest.fn(() => Promise.resolve(runSetResponse))
     const mockMethodsResponse = jest.fn(() => Promise.resolve(methodsResponse))
-    const mockSearchResponse = jest.fn(recordType => Promise.resolve(searchResponses[recordType]))
+    const mockSearchResponse = jest.fn((_, recordType) => Promise.resolve(searchResponses[recordType]))
     const mockTypesResponse = jest.fn(() => Promise.resolve(typesResponse))
 
     await Ajax.mockImplementation(() => {
@@ -1240,7 +1265,7 @@ describe('SubmissionConfig inputs/outputs definitions', () => {
   it('should change output table sort order when column headers are clicked', async () => {
     const mockRunSetResponse = jest.fn(() => Promise.resolve(runSetResponse))
     const mockMethodsResponse = jest.fn(() => Promise.resolve(methodsResponse))
-    const mockSearchResponse = jest.fn(recordType => Promise.resolve(searchResponses[recordType]))
+    const mockSearchResponse = jest.fn((_, recordType) => Promise.resolve(searchResponses[recordType]))
     const mockTypesResponse = jest.fn(() => Promise.resolve(typesResponse))
 
     await Ajax.mockImplementation(() => {
@@ -1335,6 +1360,10 @@ describe('SubmissionConfig submitting a run set', () => {
   beforeAll(() => {
     Object.defineProperty(HTMLElement.prototype, 'offsetHeight', { configurable: true, value: 1000 })
     Object.defineProperty(HTMLElement.prototype, 'offsetWidth', { configurable: true, value: 800 })
+  })
+
+  beforeEach(() => {
+    getConfig.mockReturnValue(({ wdsUrlRoot: 'http://localhost:3000/wds' }))
   })
 
   afterEach(() => {
@@ -1549,5 +1578,95 @@ describe('SubmissionConfig submitting a run set', () => {
         }
       })
     )
+  })
+})
+
+describe('SubmissionConfig gets WDS url from Leo and render config page', () => {
+  // SubmissionConfig component uses AutoSizer to determine the right size for table to be displayed. As a result we need to
+  // mock out the height and width so that when AutoSizer asks for the width and height of "browser" it can use the mocked
+  // values and render the component properly. Without this the tests will be break.
+  // (see https://github.com/bvaughn/react-virtualized/issues/493 and https://stackoverflow.com/a/62214834)
+  const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'offsetHeight')
+  const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'offsetWidth')
+
+  beforeAll(() => {
+    Object.defineProperty(HTMLElement.prototype, 'offsetHeight', { configurable: true, value: 1000 })
+    Object.defineProperty(HTMLElement.prototype, 'offsetWidth', { configurable: true, value: 800 })
+  })
+
+  beforeEach(() => {
+    getConfig.mockReturnValue(({ leoUrlRoot: 'https://leonardo.mock.org/' }))
+  })
+
+  afterEach(() => {
+    jest.clearAllMocks()
+  })
+
+  afterAll(() => {
+    Object.defineProperty(HTMLElement.prototype, 'offsetHeight', originalOffsetHeight)
+    Object.defineProperty(HTMLElement.prototype, 'offsetWidth', originalOffsetWidth)
+  })
+
+  it('should call Leo to get WDS url and render data details', async () => {
+    // ** ARRANGE **
+    const mockRunSetResponse = jest.fn(() => Promise.resolve(runSetResponse))
+    const mockMethodsResponse = jest.fn(() => Promise.resolve(methodsResponse))
+    const mockSearchResponse = jest.fn((_, recordType) => Promise.resolve(searchResponses[recordType]))
+    const mockTypesResponse = jest.fn(() => Promise.resolve(typesResponse))
+    const mockWdlResponse = jest.fn(() => Promise.resolve('mock wdl response'))
+    const mockLeoResponse = jest.fn(() => Promise.resolve(mockApps))
+
+    Ajax.mockImplementation(() => {
+      return {
+        Cbas: {
+          runSets: {
+            getForMethod: mockRunSetResponse
+          },
+          methods: {
+            getById: mockMethodsResponse
+          }
+        },
+        Wds: {
+          search: {
+            post: mockSearchResponse
+          },
+          types: {
+            get: mockTypesResponse
+          }
+        },
+        WorkflowScript: {
+          get: mockWdlResponse
+        },
+        Leonardo: {
+          listAppsV2: mockLeoResponse
+        }
+      }
+    })
+
+    // ** ACT **
+    render(h(SubmissionConfig))
+
+    // ** ASSERT **
+    await waitFor(() => {
+      expect(mockRunSetResponse).toHaveBeenCalledTimes(1)
+      expect(mockTypesResponse).toHaveBeenCalledTimes(1)
+      expect(mockMethodsResponse).toHaveBeenCalledTimes(1)
+      expect(mockSearchResponse).toHaveBeenCalledTimes(1)
+      expect(mockWdlResponse).toHaveBeenCalledTimes(1)
+      expect(mockLeoResponse).toHaveBeenCalledTimes(1)
+    })
+
+    expect(screen.getByText('FOO')).toBeInTheDocument()
+
+    const table = await screen.findByRole('table')
+
+    const rows = within(table).queryAllByRole('row')
+    expect(rows.length).toBe(5)
+
+    const headers = within(rows[0]).queryAllByRole('columnheader')
+    expect(headers.length).toBe(4)
+
+    const cells = within(rows[1]).queryAllByRole('cell')
+    expect(cells.length).toBe(4)
   })
 })

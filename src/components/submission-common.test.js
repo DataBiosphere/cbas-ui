@@ -1,5 +1,10 @@
-import { getDuration, isRunInTerminalState, isRunSetInTerminalState } from 'src/components/submission-common'
+import { getDuration, isRunInTerminalState, isRunSetInTerminalState, resolveWdsUrl } from 'src/components/submission-common'
 
+
+jest.mock('src/libs/config', () => ({
+  ...jest.requireActual('src/libs/config'),
+  getConfig: jest.fn().mockReturnValue({})
+}))
 
 describe('getDuration', () => {
   const submissionTimestamp = '2023-02-15T20:46:06.242+00:00'
@@ -35,5 +40,44 @@ describe('getDuration', () => {
     // so for testing purposes we deduct 20 seconds from current time and pass it as submission_timestamp
     const currentTime = new Date()
     expect(getDuration(state, currentTime.setTime(currentTime.getTime() - 20000), lastModifiedTimestamp, stateCallback)).toBe(20)
+  })
+})
+
+describe('resolveWdsUrl', () => {
+  const mockWdsProxyUrl = 'https://lzabc123.servicebus.windows.net/abc-proxy-url/wds'
+  const firstWdsProxyUrl = 'https://lzabc123.servicebus.windows.net/first-wds-app-proxy-url/wds'
+
+  const generateMockApp = (appType, status, wdsUrl, createdDate) => {
+    return {
+      appType, workspaceId: 'abc-123', appName: `wds-abc-123`, status, proxyUrls: { wds: wdsUrl }, auditInfo: {
+        createdDate
+      }
+    }
+  }
+
+  const testCases = [
+    { appStatus: 'RUNNING', expectedUrl: mockWdsProxyUrl },
+    { appStatus: 'PROVISIONING', expectedUrl: '' },
+    { appStatus: 'STOPPED', expectedUrl: '' },
+    { appStatus: 'STOPPING', expectedUrl: '' },
+    { appStatus: 'ERROR', expectedUrl: '' }
+  ]
+
+  test.each(testCases)('properly extracts the correct value for a WDS app in \'$appStatus\' state from the Leo response ', ({ appStatus, expectedUrl }) => {
+    const mockAppList = [generateMockApp('CROMWELL', appStatus, mockWdsProxyUrl, '2022-01-24T14:27:28.740880Z')]
+    expect(resolveWdsUrl(mockAppList)).toBe(expectedUrl)
+  })
+
+  it('returns empty string if no CROMWELL app exists but other apps are present', () => {
+    const mockAppList = [generateMockApp('GALAXY', 'RUNNING', mockWdsProxyUrl, '2022-01-24T14:27:28.740880Z')]
+    expect(resolveWdsUrl(mockAppList)).toBe('')
+  })
+
+  it('returns the earliest created RUNNING app url if more than one exists', () => {
+    const mockAppList = [
+      generateMockApp('CROMWELL', 'RUNNING', firstWdsProxyUrl, '2022-01-24T14:27:28.740880Z'),
+      generateMockApp('CROMWELL', 'RUNNING', mockWdsProxyUrl, '2023-01-24T15:27:28.740880Z')
+    ]
+    expect(resolveWdsUrl(mockAppList)).toBe(firstWdsProxyUrl)
   })
 })
