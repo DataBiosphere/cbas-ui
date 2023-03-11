@@ -57,29 +57,34 @@ export const SubmissionConfig = ({ methodId }) => {
   const dataTableRef = useRef()
   const signal = useCancellation()
 
-  const loadWdsUrl = useCallback(() => {
+  const loadWdsUrl = useCallback(async () => {
     // for local testing - since we use local WDS setup, we don't need to call Leo to get proxy url
     // for CBAS UI deployed in app - we don't want to decouple CBAS and WDS yet. Until then we keep using WDS url passed in config.
     //                               When we are ready for that change to be released, we should remove `wdsUrlRoot` from cromwhelm configs
     //                               and then CBAS UI will talk to Leo to get WDS url root.
     const wdsUrlRoot = getConfig().wdsUrlRoot
     if (wdsUrlRoot) {
-      setWdsProxyUrl({ status: 'Ready', state: wdsUrlRoot })
-      return wdsUrlRoot
+      const res = { status: 'Ready', state: wdsUrlRoot }
+      setWdsProxyUrl(res)
+      return res
     }
 
-    // TODO: Change this logic to be called only when flag is enabled?
-    return Ajax(signal).Leonardo.listAppsV2().then(resolveWdsUrl)
-      .then(url => {
-        if (!!url) {
-          setWdsProxyUrl({ status: 'Ready', state: url })
-        }
-        return url
-      })
-      .catch(err => {
-        setWdsProxyUrl({ status: 'Error', state: err })
-        return ''
-      })
+    try {
+      const wdsUrl = await Ajax(signal).Leonardo.listAppsV2().then(resolveWdsUrl)
+      let res = { status: 'None', state: '' }
+      if (!!wdsUrl) {
+        res = { status: 'Ready', state: wdsUrl }
+        setWdsProxyUrl(res)
+      }
+      return res
+    } catch (error) {
+      let res
+      if (error.status === 401) res = { status: 'Unauthorized', state: error }
+      else res = { status: 'Error', state: error }
+
+      setWdsProxyUrl(res)
+      return res
+    }
   }, [signal])
 
   const loadRecordsData = useCallback(async (recordType, wdsUrlRoot) => {
@@ -87,10 +92,10 @@ export const SubmissionConfig = ({ methodId }) => {
       const searchResult = await Ajax(signal).Wds.search.post(wdsUrlRoot, recordType)
       setRecords(searchResult.records)
     } catch (error) {
-      if (recordType === undefined) {
-        setNoRecordTypeData('Select a data table')
-      } else {
+      if (recordType) {
         setNoRecordTypeData(`Data table not found: ${recordType}`)
+      } else {
+        setNoRecordTypeData('Select a data table')
       }
     }
   }, [signal])
@@ -125,42 +130,44 @@ export const SubmissionConfig = ({ methodId }) => {
     }
   }
 
-  const loadTablesData = useCallback(async wdsUrlRoot => {
+  const loadRecordTypes = useCallback(async wdsUrlRoot => {
     try {
       setRecordTypes(await Ajax(signal).Wds.types.get(wdsUrlRoot))
     } catch (error) {
-      notify('error', 'Error loading tables data', { detail: await (error instanceof Response ? error.text() : error) })
+      notify('error', 'Error loading data types', { detail: await (error instanceof Response ? error.text() : error) })
     }
   }, [signal])
 
-  const loadWdsData = useCallback(async recordType => {
+  const loadWdsData = useCallback(async (recordType, isLoadRecordTypes) => {
     try {
       // try to load WDS proxy URL if one doesn't exist
       if (!wdsProxyUrl || (wdsProxyUrl.status !== 'Ready')) {
-        const wdsUrlRoot = await loadWdsUrl()
-        if (!!wdsUrlRoot) {
-          await loadTablesData(wdsUrlRoot)
+        const { status, state: wdsUrlRoot } = await loadWdsUrl()
+        if (status === 'Unauthorized') {
+          notify('warn', 'Error loading data tables', { detail: 'Data Table service returned Unauthorized error. Session might have expired. Please close the app and re-open it.' })
+        } else if (!!wdsUrlRoot) {
+          if (isLoadRecordTypes) await loadRecordTypes(wdsUrlRoot)
           await loadRecordsData(recordType, wdsUrlRoot)
         } else {
           // to avoid stacked warning banners due to auto-poll for WDS url, we remove the current banner at 29th second
-          notify('warn', 'Error loading tables data', { detail: 'Data Table app not found. Will retry in 30 seconds.', timeout: WdsPollInterval - 1000 })
+          notify('warn', 'Error loading data tables', { detail: 'Data Table app not found. Will retry in 30 seconds.', timeout: WdsPollInterval - 1000 })
         }
       } else {
         // if we have the WDS proxy URL load the WDS data
         const wdsUrlRoot = wdsProxyUrl.state
-        await loadTablesData(wdsUrlRoot)
+        if (isLoadRecordTypes) await loadRecordTypes(wdsUrlRoot)
         await loadRecordsData(recordType, wdsUrlRoot)
       }
     } catch (error) {
-      notify('error', 'Error loading tables data', { detail: await (error instanceof Response ? error.text() : error) })
+      notify('error', 'Error loading data tables', { detail: await (error instanceof Response ? error.text() : error) })
     }
-  }, [loadRecordsData, loadTablesData, loadWdsUrl, wdsProxyUrl])
+  }, [loadRecordsData, loadRecordTypes, loadWdsUrl, wdsProxyUrl])
 
   useOnMount(() => {
     loadRunSet().then(runSet => {
       setRunSetRecordType(runSet.record_type)
       loadMethodsData(runSet.method_id, runSet.method_version_id)
-      loadWdsData(runSet.record_type)
+      loadWdsData(runSet.record_type, true)
     })
   })
 
@@ -219,8 +226,8 @@ export const SubmissionConfig = ({ methodId }) => {
 
   useEffect(() => {
     // Start polling if we're missing WDS proxy url and stop polling when we have it
-    if ((!wdsProxyUrl || (wdsProxyUrl.status !== 'Ready')) && !pollWdsInterval.current) {
-      pollWdsInterval.current = setInterval(() => loadWdsData(runSetRecordType), WdsPollInterval)
+    if ((!wdsProxyUrl || (wdsProxyUrl.status !== 'Ready')) && wdsProxyUrl.status !== 'Unauthorized' && !pollWdsInterval.current) {
+      pollWdsInterval.current = setInterval(() => loadWdsData(runSetRecordType, true), WdsPollInterval)
     } else if (!!wdsProxyUrl && wdsProxyUrl.status === 'Ready' && pollWdsInterval.current) {
       clearInterval(pollWdsInterval.current)
       pollWdsInterval.current = undefined
@@ -273,7 +280,7 @@ export const SubmissionConfig = ({ methodId }) => {
             setNoRecordTypeData(null)
             setSelectedRecordType(value)
             setSelectedRecords(null)
-            loadWdsData(value) //TODO: should some kind of flag be added so that only loadRecordData is called?
+            loadWdsData(value, false)
           },
           placeholder: 'None selected',
           styles: { container: old => ({ ...old, display: 'inline-block', width: 200 }), paddingRight: '2rem' },
