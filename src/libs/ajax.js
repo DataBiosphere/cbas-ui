@@ -102,6 +102,10 @@ const Cbas = signal => ({
       const keyParams = qs.stringify({ method_version_id: methodVersionId })
       const res = await fetchCbas(`methods?${keyParams}`, { signal, method: 'GET' })
       return await res.json()
+    },
+    post: async payload => {
+      const res = await fetchCbas(`methods`, _.mergeAll([{ signal, method: 'POST' }, jsonBody(payload)]))
+      return res.json()
     }
   }
 })
