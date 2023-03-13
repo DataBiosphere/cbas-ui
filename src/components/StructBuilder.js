@@ -69,6 +69,7 @@ export const StructBuilder = props => {
             field: 'type',
             headerRenderer: () => h(HeaderCell, ['Type']),
             cellRenderer: ({ rowIndex }) => {
+              console.log('structBuilderFields', structBuilderFields[rowIndex])
               return h(TextCell, {}, [Utils.renderTypeText(structBuilderFields[rowIndex].field_type)])
             }
           },
@@ -78,7 +79,7 @@ export const StructBuilder = props => {
             cellRenderer: ({ rowIndex }) => {
               return InputSourceSelect({
                 source: _.get(`fields.[${rowIndex}].source`, structBuilderSource),
-                inputType: _.get(`fields.[${rowIndex}].field_type.type`, structBuilderInputType),
+                inputType: _.get(`fields.[${rowIndex}].field_type`, structBuilderInputType),
                 updateSource: source => setStructBuilderSource(_.set(`fields.[${rowIndex}].source`, source, structBuilderSource))
               })
             }
