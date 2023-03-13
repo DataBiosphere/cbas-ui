@@ -69,16 +69,15 @@ export const SubmissionConfig = ({ methodId }) => {
       return res
     }
 
+    let res = { status: 'None', state: '' }
     try {
       const wdsUrl = await Ajax(signal).Leonardo.listAppsV2().then(resolveWdsUrl)
-      let res = { status: 'None', state: '' }
       if (!!wdsUrl) {
         res = { status: 'Ready', state: wdsUrl }
         setWdsProxyUrl(res)
       }
       return res
     } catch (error) {
-      let res
       if (error.status === 401) res = { status: 'Unauthorized', state: error }
       else res = { status: 'Error', state: error }
 
@@ -144,13 +143,14 @@ export const SubmissionConfig = ({ methodId }) => {
       if (!wdsProxyUrl || (wdsProxyUrl.status !== 'Ready')) {
         const { status, state: wdsUrlRoot } = await loadWdsUrl()
         if (status === 'Unauthorized') {
-          notify('warn', 'Error loading data tables', { detail: 'Data Table service returned Unauthorized error. Session might have expired. Please close the app and re-open it.' })
+          notify('warn', 'Error loading data tables', { detail: 'Service returned Unauthorized error. Session might have expired. Please close the tab and re-open it.' })
         } else if (!!wdsUrlRoot) {
           if (isLoadRecordTypes) await loadRecordTypes(wdsUrlRoot)
           await loadRecordsData(recordType, wdsUrlRoot)
         } else {
+          const errorDetails = await (wdsUrlRoot instanceof Response ? wdsUrlRoot.text() : wdsUrlRoot)
           // to avoid stacked warning banners due to auto-poll for WDS url, we remove the current banner at 29th second
-          notify('warn', 'Error loading data tables', { detail: 'Data Table app not found. Will retry in 30 seconds.', timeout: WdsPollInterval - 1000 })
+          notify('warn', 'Error loading data tables', { detail: `Data Table app not found. Will retry in 30 seconds. Error details: ${errorDetails}`, timeout: WdsPollInterval - 1000 })
         }
       } else {
         // if we have the WDS proxy URL load the WDS data
