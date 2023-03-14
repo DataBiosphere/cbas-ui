@@ -4,7 +4,7 @@ import { div, h, h2 } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import { ButtonOutline, Link, Navbar } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
-import { AutoRefreshInterval, getDuration, isRunSetInTerminalState, loadRunSetData, makeStatusLine, statusType } from 'src/components/submission-common'
+import { AutoRefreshInterval, getDuration, isRunSetInTerminalState, loadAllRunSets, makeStatusLine, statusType } from 'src/components/submission-common'
 import { FlexTable, paginator, Sortable, tableHeight, TextCell } from 'src/components/table'
 import colors from 'src/libs/colors'
 import * as Nav from 'src/libs/nav'
@@ -28,7 +28,7 @@ export const SubmissionHistory = () => {
   // helper for auto-refresh
   const refresh = Utils.withBusyState(setLoading, async () => {
     try {
-      const loadedRunSetData = await loadRunSetData(signal)
+      const loadedRunSetData = await loadAllRunSets(signal)
       setRunSetData(loadedRunSetData)
       setRunSetsFullyUpdated(true)
 

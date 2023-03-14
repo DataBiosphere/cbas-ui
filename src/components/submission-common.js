@@ -91,7 +91,7 @@ export const getDuration = (state, submissionDate, lastModifiedTimestamp, stateC
     differenceFromNowInSeconds(submissionDate)
 }
 
-export const loadRunSetData = async signal => {
+export const loadAllRunSets = async signal => {
   try {
     const getRunSets = await Ajax(signal).Cbas.runSets.get()
     const allRunSets = getRunSets.run_sets
