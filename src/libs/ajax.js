@@ -7,6 +7,15 @@ import * as Utils from 'src/libs/utils'
 
 const jsonBody = body => ({ body: JSON.stringify(body), headers: { 'Content-Type': 'application/json' } })
 
+const leoToken = () => {
+  const cookies = document.cookie.split(';')
+  const leoTokens = cookies.filter(c => c.startsWith('LeoToken=')).map(c => c.substring(9)) // token value starting after `LeoToken=`
+
+  // only 1 LeoToken should have been sent to browser, hence return the first element in array
+  return leoTokens[0]
+}
+const authHeader = { headers: { Authorization: `Bearer ${leoToken()}` } }
+
 // Allows use of ajaxOverrideStore to stub responses for testing
 const withInstrumentation = wrappedFetch => (...args) => {
   return _.flow(
@@ -48,7 +57,8 @@ export const fetchOk = _.flow(withInstrumentation, withCancellation, withErrorRe
 
 const fetchCbas = withUrlPrefix(`${getConfig().cbasUrlRoot}/api/batch/v1/`, fetchOk)
 const fetchCromwell = withUrlPrefix(`${getConfig().cromwellUrlRoot}/api/workflows/v1/`, fetchOk)
-const fetchWds = withUrlPrefix(`${getConfig().wdsUrlRoot}/`, fetchOk)
+const fetchWds = wdsProxyUrlRoot => withUrlPrefix(`${wdsProxyUrlRoot}/`, fetchOk)
+const fetchLeo = withUrlPrefix(`${getConfig().leoUrlRoot}/`, fetchOk) // TODO: How to add this config to Cromwhelm?
 
 const Cbas = signal => ({
   status: async () => {
@@ -119,8 +129,8 @@ const searchPayload = { limit: 100 }
 
 const Wds = signal => ({
   types: {
-    get: async () => {
-      const res = await fetchWds(`${wdsInstanceId}/types/${wdsApiVersion}`, { signal, method: 'GET' })
+    get: async wdsUrlRoot => {
+      const res = await fetchWds(wdsUrlRoot)(`${wdsInstanceId}/types/${wdsApiVersion}`, { signal, method: 'GET' })
       return _.map(
         type => _.set('attributes', _.filter(attr => attr.name !== 'sys_name', type.attributes), type),
         await res.json()
@@ -128,8 +138,8 @@ const Wds = signal => ({
     }
   },
   search: {
-    post: async wdsType => {
-      const res = await fetchWds(
+    post: async (wdsUrlRoot, wdsType) => {
+      const res = await fetchWds(wdsUrlRoot)(
         `${wdsInstanceId}/search/${wdsApiVersion}/${wdsType}`,
         _.mergeAll([{ signal, method: 'POST' }, jsonBody(searchPayload)])
       )
@@ -147,11 +157,19 @@ const WorkflowScript = signal => ({
   }
 })
 
+const Leonardo = signal => ({
+  listAppsV2: async () => {
+    const res = await fetchLeo(`api/apps/v2/${wdsInstanceId}`, _.mergeAll([authHeader, { signal, method: 'GET' }]))
+    return res.json()
+  }
+})
+
 export const Ajax = signal => {
   return {
     Cbas: Cbas(signal),
     Cromwell: Cromwell(signal),
     Wds: Wds(signal),
-    WorkflowScript: WorkflowScript(signal)
+    WorkflowScript: WorkflowScript(signal),
+    Leonardo: Leonardo(signal)
   }
 }
