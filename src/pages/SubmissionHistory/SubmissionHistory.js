@@ -3,9 +3,10 @@ import { Fragment, useRef, useState } from 'react'
 import { div, h, h2 } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import { ButtonOutline, Link, Navbar } from 'src/components/common'
-import { centeredSpinner } from 'src/components/icons'
+import { centeredSpinner, icon } from 'src/components/icons'
 import { AutoRefreshInterval, getDuration, isRunSetInTerminalState, loadRunSetData, makeStatusLine, statusType } from 'src/components/submission-common'
 import { FlexTable, paginator, Sortable, tableHeight, TextCell } from 'src/components/table'
+import colors from 'src/libs/colors'
 import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
 import { useCancellation, useOnMount } from 'src/libs/react-utils'
@@ -18,6 +19,7 @@ export const SubmissionHistory = () => {
   const [pageNumber, setPageNumber] = useState(1)
   const [itemsPerPage, setItemsPerPage] = useState(50)
   const [runSetsData, setRunSetData] = useState()
+  const [runSetsFullyUpdated, setRunSetsFullyUpdated] = useState()
   const [loading, setLoading] = useState(false)
 
   const signal = useCancellation()
@@ -28,6 +30,7 @@ export const SubmissionHistory = () => {
     try {
       const loadedRunSetData = await loadRunSetData(signal)
       setRunSetData(loadedRunSetData)
+      setRunSetsFullyUpdated(true)
 
       // only refresh if there are Run Sets in non-terminal state
       if (_.some(({ state }) => !isRunSetInTerminalState(state), loadedRunSetData)) {
@@ -91,6 +94,9 @@ export const SubmissionHistory = () => {
           onClick: () => Nav.goToPath('root')
         }, ['Submit another workflow'])
       ]),
+      runSetsFullyUpdated ?
+        div([icon('check', { size: 15, style: { color: colors.success() } }), ' Submission statuses are all up to date.']) :
+        div([icon('warning-standard', { size: 15, style: { color: colors.warning() } }), ' Some submission statuses are not up to date. Refreshing the page may update more statuses.']),
       div(
         {
           style: {

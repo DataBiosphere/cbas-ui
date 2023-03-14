@@ -3,7 +3,7 @@ import { useMemo, useRef, useState } from 'react'
 import { div, h, h2, h3 } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import { ButtonPrimary, Link, Navbar, Select } from 'src/components/common'
-import { centeredSpinner } from 'src/components/icons'
+import { centeredSpinner, icon } from 'src/components/icons'
 import { HeaderSection, statusType, SubmitNewWorkflowButton } from 'src/components/job-common'
 import Modal from 'src/components/Modal'
 import { AutoRefreshInterval, getDuration, isRunInTerminalState, isRunSetInTerminalState, loadRunSetData, makeStatusLine } from 'src/components/submission-common'
@@ -23,6 +23,7 @@ export const SubmissionDetails = ({ submissionId }) => {
   const [itemsPerPage, setItemsPerPage] = useState(50)
   const [viewErrorsId, setViewErrorsId] = useState()
   const [runsData, setRunsData] = useState()
+  const [runsFullyUpdated, setRunsFullyUpdated] = useState()
   const [loading, setLoading] = useState(false)
 
   const [runSetData, setRunSetData] = useState()
@@ -80,6 +81,7 @@ export const SubmissionDetails = ({ submissionId }) => {
       const runs = runsResponse?.runs
       const runsAnnotatedWithDurations = _.map(r => _.merge(r, { duration: getDuration(r.state, r.submission_date, r.last_modified_timestamp, isRunInTerminalState) }), runs)
       setRunsData(runsAnnotatedWithDurations)
+      setRunsFullyUpdated(runsResponse?.fully_updated)
 
       const loadedRunSetData = await loadRunSetData(signal)
       setRunSetData(loadedRunSetData)
@@ -174,6 +176,9 @@ export const SubmissionDetails = ({ submissionId }) => {
         }
       }, [
         div([h2(['Workflows'])]),
+        runsFullyUpdated ?
+          div([icon('check', { size: 15, style: { color: colors.success() } }), ' Workflow statuses are all up to date.']) :
+          div([icon('warning-standard', { size: 15, style: { color: colors.warning() } }), ' Some workflow statuses are not up to date. Refreshing the page may update more statuses.']),
         div([h3(['Filter by: '])]),
         h(Select, {
           isDisabled: false,
