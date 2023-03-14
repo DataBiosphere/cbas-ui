@@ -106,8 +106,7 @@ export const SubmissionDetails = ({ submissionId }) => {
       }
     }
 
-    await refresh()
-    loadAllRunSets(signal).then(runSet => runSet && loadMethodsData(runSet.method_version_id))
+    await refresh().then(() => loadMethodsData(undefined))
 
     return () => {
       if (scheduledRefresh.current) {
