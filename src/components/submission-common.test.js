@@ -1,4 +1,5 @@
 import { getDuration, isRunInTerminalState, isRunSetInTerminalState, resolveWdsUrl } from 'src/components/submission-common'
+import { getConfig } from 'src/libs/config'
 
 
 jest.mock('src/libs/config', () => ({
@@ -62,6 +63,10 @@ describe('resolveWdsUrl', () => {
     { appStatus: 'STOPPING', expectedUrl: '' },
     { appStatus: 'ERROR', expectedUrl: '' }
   ]
+
+  beforeEach(() => {
+    getConfig.mockReturnValue(({ wdsAppTypeName: 'CROMWELL' }))
+  })
 
   test.each(testCases)('properly extracts the correct value for a WDS app in \'$appStatus\' state from the Leo response ', ({ appStatus, expectedUrl }) => {
     const mockAppList = [generateMockApp('CROMWELL', appStatus, mockWdsProxyUrl, '2022-01-24T14:27:28.740880Z')]
