@@ -138,7 +138,7 @@ export const SubmissionConfig = ({ methodId }) => {
     }
   }, [signal])
 
-  const loadWdsData = useCallback(async (recordType, isLoadRecordTypes) => {
+  const loadWdsData = useCallback(async ({ recordType, includeLoadRecordTypes = true }) => {
     try {
       // try to load WDS proxy URL if one doesn't exist
       if (!wdsProxyUrl || (wdsProxyUrl.status !== 'Ready')) {
@@ -146,7 +146,7 @@ export const SubmissionConfig = ({ methodId }) => {
         if (status === 'Unauthorized') {
           notify('warn', 'Error loading data tables', { detail: 'Service returned Unauthorized error. Session might have expired. Please close the tab and re-open it.' })
         } else if (!!wdsUrlRoot) {
-          if (isLoadRecordTypes) await loadRecordTypes(wdsUrlRoot)
+          if (includeLoadRecordTypes) { await loadRecordTypes(wdsUrlRoot) }
           await loadRecordsData(recordType, wdsUrlRoot)
         } else {
           const errorDetails = await (wdsUrlRoot instanceof Response ? wdsUrlRoot.text() : wdsUrlRoot)
@@ -156,7 +156,7 @@ export const SubmissionConfig = ({ methodId }) => {
       } else {
         // if we have the WDS proxy URL load the WDS data
         const wdsUrlRoot = wdsProxyUrl.state
-        if (isLoadRecordTypes) await loadRecordTypes(wdsUrlRoot)
+        if (includeLoadRecordTypes) { await loadRecordTypes(wdsUrlRoot) }
         await loadRecordsData(recordType, wdsUrlRoot)
       }
     } catch (error) {
@@ -168,7 +168,7 @@ export const SubmissionConfig = ({ methodId }) => {
     loadRunSet().then(runSet => {
       setRunSetRecordType(runSet.record_type)
       loadMethodsData(runSet.method_id, runSet.method_version_id)
-      loadWdsData(runSet.record_type, true)
+      loadWdsData({ recordType: runSet.record_type })
     })
   })
 
@@ -228,7 +228,7 @@ export const SubmissionConfig = ({ methodId }) => {
   useEffect(() => {
     // Start polling if we're missing WDS proxy url and stop polling when we have it
     if ((!wdsProxyUrl || (wdsProxyUrl.status !== 'Ready')) && wdsProxyUrl.status !== 'Unauthorized' && !pollWdsInterval.current) {
-      pollWdsInterval.current = setInterval(() => loadWdsData(runSetRecordType, true), WdsPollInterval)
+      pollWdsInterval.current = setInterval(() => loadWdsData({ recordType: runSetRecordType }), WdsPollInterval)
     } else if (!!wdsProxyUrl && wdsProxyUrl.status === 'Ready' && pollWdsInterval.current) {
       clearInterval(pollWdsInterval.current)
       pollWdsInterval.current = undefined
@@ -281,7 +281,7 @@ export const SubmissionConfig = ({ methodId }) => {
             setNoRecordTypeData(null)
             setSelectedRecordType(value)
             setSelectedRecords(null)
-            loadWdsData(value, false)
+            loadWdsData({ recordType: value, includeLoadRecordTypes: false })
           },
           placeholder: 'None selected',
           styles: { container: old => ({ ...old, display: 'inline-block', width: 200 }), paddingRight: '2rem' },
