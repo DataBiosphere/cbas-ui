@@ -20,7 +20,7 @@ export const StructBuilder = props => {
 
   const breadcrumbsHeight = 35
 
-  return h(div, { style: { height: 500 } }, [
+  return h(div, { 'aria-label': 'struct-breadcrumbs', style: { height: 500 } }, [
     h(div, {
       style: {
         height: breadcrumbsHeight,
