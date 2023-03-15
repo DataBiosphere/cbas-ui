@@ -1656,7 +1656,7 @@ describe('SubmissionConfig gets WDS url from Leo and render config page', () => 
   })
 
   beforeEach(() => {
-    getConfig.mockReturnValue(({ leoUrlRoot: 'https://leonardo.mock.org/' }))
+    getConfig.mockReturnValue(({ leoUrlRoot: 'https://leonardo.mock.org/', wdsAppTypeName: 'CROMWELL' }))
   })
 
   afterEach(() => {
