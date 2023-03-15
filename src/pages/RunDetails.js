@@ -55,7 +55,7 @@ const statusCell = ({ calls }) => {
 }
 
 
-export const RunDetails = ({ namespace, name, submissionId, workflowId }) => {
+export const RunDetails = ({ submissionId, workflowId }) => {
   /*
    * State setup
    */
@@ -73,8 +73,8 @@ export const RunDetails = ({ namespace, name, submissionId, workflowId }) => {
   useOnMount(() => {
     const loadWorkflow = async () => {
       const includeKey = [
-        'end', 'executionStatus', 'failures', 'start', 'status', 'submittedFiles:workflow', 'workflowLog', 'workflowRoot', 'callCaching:result',
-        'callCaching:effectiveCallCachingMode', 'backendStatus'
+        'end', 'executionStatus', 'failures', 'start', 'status', 'submittedFiles:workflow', 'workflowLog', 'workflowRoot',
+        'backendStatus'
       ]
       const excludeKey = []
 
@@ -255,7 +255,7 @@ export const RunDetails = ({ namespace, name, submissionId, workflowId }) => {
                                 title: div({ style: { ...codeFont, ...elements.sectionHeader } }, [`${callName} × ${calls[callName].length}`]),
                                 initialOpenState: !every({ executionStatus: 'Done' }, calls[callName])
                               },
-                              [h(CallTable, { namespace, name, submissionId, workflowId, callName, callObjects: calls[callName] })]
+                              [h(CallTable, { callName, callObjects: calls[callName] })]
                             )
                           }, callNames)
                         ],
