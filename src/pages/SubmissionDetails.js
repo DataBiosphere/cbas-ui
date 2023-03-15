@@ -83,7 +83,8 @@ export const SubmissionDetails = ({ submissionId }) => {
       setRunsData(runsAnnotatedWithDurations)
       setRunsFullyUpdated(runsResponse?.fully_updated)
 
-      const loadedRunSetData = await loadAllRunSets(signal)
+      const loadedAllRunSets = await loadAllRunSets(signal)
+      const loadedRunSetData = loadedAllRunSets.run_sets
       setRunSetData(loadedRunSetData)
 
       // only refresh if there are run sets in non-terminal state

@@ -29,11 +29,11 @@ export const SubmissionHistory = () => {
   const refresh = Utils.withBusyState(setLoading, async () => {
     try {
       const loadedRunSetData = await loadAllRunSets(signal)
-      setRunSetData(loadedRunSetData)
-      setRunSetsFullyUpdated(true)
+      setRunSetData(loadedRunSetData.run_sets)
+      setRunSetsFullyUpdated(loadedRunSetData.fully_updated)
 
       // only refresh if there are Run Sets in non-terminal state
-      if (_.some(({ state }) => !isRunSetInTerminalState(state), loadedRunSetData)) {
+      if (_.some(({ state }) => !isRunSetInTerminalState(state), loadedRunSetData.run_sets)) {
         scheduledRefresh.current = setTimeout(refresh, AutoRefreshInterval)
       }
     } catch (error) {
