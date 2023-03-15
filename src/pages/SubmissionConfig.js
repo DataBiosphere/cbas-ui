@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import { Fragment, useEffect, useRef, useState } from 'react'
+import { Fragment, useCallback, useEffect, useRef, useState } from 'react'
 import { a, div, h, h2, span } from 'react-hyperscript-helpers'
 import { ButtonPrimary, Link, Navbar, Select } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
@@ -9,9 +9,11 @@ import Modal from 'src/components/Modal'
 import OutputsTable from 'src/components/OutputsTable'
 import RecordsTable from 'src/components/RecordsTable'
 import StepButtons from 'src/components/StepButtons'
+import { resolveWdsUrl, WdsPollInterval } from 'src/components/submission-common'
 import { TextCell } from 'src/components/table'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
+import { getConfig } from 'src/libs/config'
 import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
 import { useCancellation, useOnMount } from 'src/libs/react-utils'
@@ -30,6 +32,9 @@ export const SubmissionConfig = ({ methodId }) => {
   const [dataTableColumnWidths, setDataTableColumnWidths] = useState({})
   const [loading, setLoading] = useState(false)
   const [workflowScript, setWorkflowScript] = useState()
+  const [runSetRecordType, setRunSetRecordType] = useState()
+  const [wdsProxyUrl, setWdsProxyUrl] = useState({ status: 'None', state: '' })
+  const pollWdsInterval = useRef()
 
   // Options chosen on this page:
   const [selectedRecordType, setSelectedRecordType] = useState()
@@ -56,9 +61,38 @@ export const SubmissionConfig = ({ methodId }) => {
   const dataTableRef = useRef()
   const signal = useCancellation()
 
-  const loadRecordsData = async recordType => {
+  const loadWdsUrl = useCallback(async () => {
+    // for local testing - since we use local WDS setup, we don't need to call Leo to get proxy url
+    // for CBAS UI deployed in app - we don't want to decouple CBAS and WDS yet. Until then we keep using WDS url passed in config.
+    //                               When we are ready for that change to be released, we should remove `wdsUrlRoot` from cromwhelm configs
+    //                               and then CBAS UI will talk to Leo to get WDS url root.
+    const wdsUrlRoot = getConfig().wdsUrlRoot
+    if (wdsUrlRoot) {
+      const res = { status: 'Ready', state: wdsUrlRoot }
+      setWdsProxyUrl(res)
+      return res
+    }
+
+    let res = { status: 'None', state: '' }
     try {
-      const searchResult = await Ajax(signal).Wds.search.post(recordType)
+      const wdsUrl = await Ajax(signal).Leonardo.listAppsV2().then(resolveWdsUrl)
+      if (!!wdsUrl) {
+        res = { status: 'Ready', state: wdsUrl }
+        setWdsProxyUrl(res)
+      }
+      return res
+    } catch (error) {
+      if (error.status === 401) res = { status: 'Unauthorized', state: error }
+      else res = { status: 'Error', state: error }
+
+      setWdsProxyUrl(res)
+      return res
+    }
+  }, [signal])
+
+  const loadRecordsData = useCallback(async (recordType, wdsUrlRoot) => {
+    try {
+      const searchResult = await Ajax(signal).Wds.search.post(wdsUrlRoot, recordType)
       setRecords(searchResult.records)
     } catch (error) {
       if (recordType === undefined) {
@@ -67,7 +101,7 @@ export const SubmissionConfig = ({ methodId }) => {
         setNoRecordTypeData(`Data table not found: ${recordType}`)
       }
     }
-  }
+  }, [signal])
 
   const loadMethodsData = async (methodId, methodVersionId) => {
     try {
@@ -100,19 +134,45 @@ export const SubmissionConfig = ({ methodId }) => {
     }
   }
 
-  const loadTablesData = async () => {
+  const loadRecordTypes = useCallback(async wdsUrlRoot => {
     try {
-      setRecordTypes(await Ajax(signal).Wds.types.get())
+      setRecordTypes(await Ajax(signal).Wds.types.get(wdsUrlRoot))
     } catch (error) {
-      notify('error', 'Error loading tables data', { detail: await (error instanceof Response ? error.text() : error) })
+      notify('error', 'Error loading data types', { detail: await (error instanceof Response ? error.text() : error) })
     }
-  }
+  }, [signal])
+
+  const loadWdsData = useCallback(async ({ recordType, includeLoadRecordTypes = true }) => {
+    try {
+      // try to load WDS proxy URL if one doesn't exist
+      if (!wdsProxyUrl || (wdsProxyUrl.status !== 'Ready')) {
+        const { status, state: wdsUrlRoot } = await loadWdsUrl()
+        if (status === 'Unauthorized') {
+          notify('warn', 'Error loading data tables', { detail: 'Service returned Unauthorized error. Session might have expired. Please close the tab and re-open it.' })
+        } else if (!!wdsUrlRoot) {
+          if (includeLoadRecordTypes) { await loadRecordTypes(wdsUrlRoot) }
+          await loadRecordsData(recordType, wdsUrlRoot)
+        } else {
+          const errorDetails = await (wdsUrlRoot instanceof Response ? wdsUrlRoot.text() : wdsUrlRoot)
+          // to avoid stacked warning banners due to auto-poll for WDS url, we remove the current banner at 29th second
+          notify('warn', 'Error loading data tables', { detail: `Data Table app not found. Will retry in 30 seconds. Error details: ${errorDetails}`, timeout: WdsPollInterval - 1000 })
+        }
+      } else {
+        // if we have the WDS proxy URL load the WDS data
+        const wdsUrlRoot = wdsProxyUrl.state
+        if (includeLoadRecordTypes) { await loadRecordTypes(wdsUrlRoot) }
+        await loadRecordsData(recordType, wdsUrlRoot)
+      }
+    } catch (error) {
+      notify('error', 'Error loading data tables', { detail: await (error instanceof Response ? error.text() : error) })
+    }
+  }, [loadRecordsData, loadRecordTypes, loadWdsUrl, wdsProxyUrl])
 
   useOnMount(() => {
-    loadTablesData()
     loadRunSet().then(runSet => {
+      setRunSetRecordType(runSet.record_type)
       loadMethodsData(runSet.method_id, runSet.method_version_id)
-      loadRecordsData(runSet.record_type)
+      loadWdsData({ recordType: runSet.record_type })
     })
   })
 
@@ -169,6 +229,21 @@ export const SubmissionConfig = ({ methodId }) => {
     }
   }, [signal, selectedMethodVersion])
 
+  useEffect(() => {
+    // Start polling if we're missing WDS proxy url and stop polling when we have it
+    if ((!wdsProxyUrl || (wdsProxyUrl.status !== 'Ready')) && wdsProxyUrl.status !== 'Unauthorized' && !pollWdsInterval.current) {
+      pollWdsInterval.current = setInterval(() => loadWdsData({ recordType: runSetRecordType }), WdsPollInterval)
+    } else if (!!wdsProxyUrl && wdsProxyUrl.status === 'Ready' && pollWdsInterval.current) {
+      clearInterval(pollWdsInterval.current)
+      pollWdsInterval.current = undefined
+    }
+
+    return () => {
+      clearInterval(pollWdsInterval.current)
+      pollWdsInterval.current = undefined
+    }
+  }, [loadWdsData, wdsProxyUrl, runSetRecordType])
+
   const renderSummary = () => {
     return div({ style: { margin: '4em' } }, [
       div({ style: { display: 'flex', marginTop: '1rem', justifyContent: 'space-between' } }, [
@@ -210,7 +285,7 @@ export const SubmissionConfig = ({ methodId }) => {
             setNoRecordTypeData(null)
             setSelectedRecordType(value)
             setSelectedRecords(null)
-            loadRecordsData(value)
+            loadWdsData({ recordType: value, includeLoadRecordTypes: false })
           },
           placeholder: 'None selected',
           styles: { container: old => ({ ...old, display: 'inline-block', width: 200 }), paddingRight: '2rem' },
