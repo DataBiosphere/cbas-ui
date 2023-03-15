@@ -482,7 +482,6 @@ describe('Submission Details page', () => {
   }
 
   it('should indicate fully updated polls', async () => {
-
     const getRecentRunsMethod = jest.fn(() => Promise.resolve(simpleRunsData))
     Ajax.mockImplementation(() => {
       return {
@@ -503,7 +502,6 @@ describe('Submission Details page', () => {
   })
 
   it('should indicate fully updated polls', async () => {
-
     const getRecentRunsMethod = jest.fn(() => Promise.resolve(_.merge(simpleRunsData, { fully_updated: false })))
     Ajax.mockImplementation(() => {
       return {

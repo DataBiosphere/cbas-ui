@@ -1,6 +1,7 @@
-import _ from 'lodash/fp'
 import '@testing-library/jest-dom'
+
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import _ from 'lodash/fp'
 import { h } from 'react-hyperscript-helpers'
 import { Ajax } from 'src/libs/ajax'
 import { SubmissionHistory } from 'src/pages/SubmissionHistory/SubmissionHistory'
