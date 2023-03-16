@@ -501,7 +501,7 @@ describe('Submission Details page', () => {
     expect(screen.getByText('Workflow statuses are all up to date.')).toBeInTheDocument()
   })
 
-  it('should indicate fully updated polls', async () => {
+  it('should indicate incompletely updated polls', async () => {
     const getRecentRunsMethod = jest.fn(() => Promise.resolve(_.merge(simpleRunsData, { fully_updated: false })))
     Ajax.mockImplementation(() => {
       return {
