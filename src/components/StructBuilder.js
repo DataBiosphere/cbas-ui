@@ -36,7 +36,7 @@ export const StructBuilder = props => {
             const newPath = _.slice(0, end, structBuilderPath)
             setStructBuilderPath(newPath)
           }
-        }, `${name} / `), _.toPairs(structBuilderBreadcrumbs)),
+        }, `${name} / `), _.toPairs(_.initial(structBuilderBreadcrumbs))),
         structBuilderName
       ])
     ]),
