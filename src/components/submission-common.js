@@ -93,12 +93,11 @@ export const getDuration = (state, submissionDate, lastModifiedTimestamp, stateC
     differenceFromNowInSeconds(submissionDate)
 }
 
-export const loadRunSetData = async signal => {
+export const loadAllRunSets = async signal => {
   try {
     const getRunSets = await Ajax(signal).Cbas.runSets.get()
-    const allRunSets = getRunSets.run_sets
-    return _.map(r => _.merge(r, { duration: getDuration(r.state, r.submission_timestamp, r.last_modified_timestamp, isRunSetInTerminalState) }),
-      allRunSets)
+    const durationEnhancedRunSets = _.map(r => _.merge(r, { duration: getDuration(r.state, r.submission_timestamp, r.last_modified_timestamp, isRunSetInTerminalState) }), getRunSets.run_sets)
+    return _.merge(getRunSets, { run_sets: durationEnhancedRunSets })
   } catch (error) {
     notify('error', 'Error getting run set data', { detail: await (error instanceof Response ? error.text() : error) })
   }

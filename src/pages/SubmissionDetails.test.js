@@ -1,6 +1,7 @@
 import '@testing-library/jest-dom'
 
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import _ from 'lodash/fp'
 import { h } from 'react-hyperscript-helpers'
 import selectEvent from 'react-select-event'
 import { Ajax } from 'src/libs/ajax'
@@ -151,7 +152,7 @@ describe('Submission Details page', () => {
 
     await waitFor(() => {
       expect(getRuns).toHaveBeenCalledTimes(1)
-      expect(getRunsSets).toHaveBeenCalledTimes(2)
+      expect(getRunsSets).toHaveBeenCalledTimes(1)
       expect(getMethods).toHaveBeenCalledTimes(1)
     })
 
@@ -214,7 +215,7 @@ describe('Submission Details page', () => {
 
     await waitFor(() => {
       expect(getRuns).toHaveBeenCalledTimes(1)
-      expect(getRunsSets).toHaveBeenCalledTimes(2)
+      expect(getRunsSets).toHaveBeenCalledTimes(1)
       expect(getMethods).toHaveBeenCalledTimes(1)
     })
 
@@ -319,7 +320,7 @@ describe('Submission Details page', () => {
     render(h(SubmissionDetails, { submissionId }))
 
     await waitFor(() => {
-      expect(getRunsSets).toHaveBeenCalledTimes(2)
+      expect(getRunsSets).toHaveBeenCalledTimes(1)
       expect(getMethods).toHaveBeenCalledTimes(1)
     })
 
@@ -366,7 +367,7 @@ describe('Submission Details page', () => {
 
     await waitFor(() => {
       expect(getRuns).toHaveBeenCalledTimes(1)
-      expect(getRunsSets).toHaveBeenCalledTimes(2)
+      expect(getRunsSets).toHaveBeenCalledTimes(1)
       expect(getMethods).toHaveBeenCalledTimes(1)
     })
 
@@ -459,5 +460,64 @@ describe('Submission Details page', () => {
     within(cellsFromDataRow1[1]).getByText('Initializing') // Note: not UNKNOWN!
     // << Don't validate duration here since it depends on the test rendering time and is not particularly relevant >>
     within(cellsFromDataRow1[3]).getByText('b29e84b1-ad1b-4462-a9a0-7ec849bf30a8')
+  })
+
+  const simpleRunsData = {
+    runs: [
+      {
+        run_id: 'b29e84b1-ad1b-4462-a9a0-7ec849bf30a8',
+        engine_id: 'b29e84b1-ad1b-4462-a9a0-7ec849bf30a8',
+        run_set_id: '0cd15673-7342-4cfa-883d-819660184a16',
+        record_id: 'FOO2',
+        workflow_url: 'https://xyz.wdl',
+        state: 'RUNNING',
+        workflow_params: '[{\'input_name\':\'wf_hello.hello.addressee\',\'input_type\':{\'type\':\'primitive\',\'primitive_type\':\'String\'},\'source\':{\'type\':\'record_lookup\',\'record_attribute\':\'foo_name\'}}]',
+        workflow_outputs: '[]',
+        submission_date: new Date().toISOString(),
+        last_modified_timestamp: new Date().toISOString(),
+        error_messages: []
+      }
+    ],
+    fully_updated: true
+  }
+
+  it('should indicate fully updated polls', async () => {
+    const getRecentRunsMethod = jest.fn(() => Promise.resolve(simpleRunsData))
+    Ajax.mockImplementation(() => {
+      return {
+        Cbas: {
+          runs: {
+            get: getRecentRunsMethod
+          }
+        }
+      }
+    })
+
+    // Act
+    await act(async () => {
+      await render(h(SubmissionDetails))
+    })
+
+    expect(screen.getByText('Workflow statuses are all up to date.')).toBeInTheDocument()
+  })
+
+  it('should indicate incompletely updated polls', async () => {
+    const getRecentRunsMethod = jest.fn(() => Promise.resolve(_.merge(simpleRunsData, { fully_updated: false })))
+    Ajax.mockImplementation(() => {
+      return {
+        Cbas: {
+          runs: {
+            get: getRecentRunsMethod
+          }
+        }
+      }
+    })
+
+    // Act
+    await act(async () => {
+      await render(h(SubmissionDetails))
+    })
+
+    expect(screen.getByText('Some workflow statuses are not up to date. Refreshing the page may update more statuses.')).toBeInTheDocument()
   })
 })

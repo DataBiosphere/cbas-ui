@@ -1,6 +1,7 @@
 import '@testing-library/jest-dom'
 
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import _ from 'lodash/fp'
 import { h } from 'react-hyperscript-helpers'
 import { Ajax } from 'src/libs/ajax'
 import { SubmissionHistory } from 'src/pages/SubmissionHistory/SubmissionHistory'
@@ -270,5 +271,66 @@ describe('SubmissionHistory page', () => {
       await fireEvent.click(within(headers[headerPosition['Duration']]).getByRole('button'))
     })
     within(topRowCells(headerPosition['Duration'])).getByText('1 month 1 day 1 hour 1 minute 1 second')
+  })
+
+  const simpleRunSetData = {
+    run_sets: [
+      {
+        error_count: 0,
+        submission_timestamp: '2022-01-01T12:00:00.000+00:00',
+        last_modified_timestamp: '2022-01-02T13:01:01.000+00:00',
+        record_type: 'FOO',
+        run_count: 1,
+        run_set_id: 'ea001565-1cd6-4e43-b446-932ac1918081',
+        state: 'RUNNING'
+      }
+    ],
+    fully_updated: true
+  }
+
+  it('should indicate fully updated polls', async () => {
+    jest.clearAllMocks()
+    const runSetData = simpleRunSetData
+
+    const getRunSetsMethod = jest.fn(() => Promise.resolve(runSetData))
+    Ajax.mockImplementation(() => {
+      return {
+        Cbas: {
+          runSets: {
+            get: getRunSetsMethod
+          }
+        }
+      }
+    })
+
+    // Act
+    await act(async () => {
+      await render(h(SubmissionHistory))
+    })
+
+    expect(screen.getByText('Submission statuses are all up to date.')).toBeInTheDocument()
+  })
+
+  it('should indicate incompletely updated polls', async () => {
+    jest.clearAllMocks()
+    const runSetData = _.merge(simpleRunSetData, { fully_updated: false })
+
+    const getRunSetsMethod = jest.fn(() => Promise.resolve(runSetData))
+    Ajax.mockImplementation(() => {
+      return {
+        Cbas: {
+          runSets: {
+            get: getRunSetsMethod
+          }
+        }
+      }
+    })
+
+    // Act
+    await act(async () => {
+      await render(h(SubmissionHistory))
+    })
+
+    expect(screen.getByText('Some submission statuses are not up to date. Refreshing the page may update more statuses.')).toBeInTheDocument()
   })
 })

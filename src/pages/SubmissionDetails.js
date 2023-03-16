@@ -3,10 +3,10 @@ import { useMemo, useRef, useState } from 'react'
 import { div, h, h2, h3 } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import { ButtonPrimary, Link, Navbar, Select } from 'src/components/common'
-import { centeredSpinner } from 'src/components/icons'
+import { centeredSpinner, icon } from 'src/components/icons'
 import { HeaderSection, statusType, SubmitNewWorkflowButton } from 'src/components/job-common'
 import Modal from 'src/components/Modal'
-import { AutoRefreshInterval, getDuration, isRunInTerminalState, isRunSetInTerminalState, loadRunSetData, makeStatusLine } from 'src/components/submission-common'
+import { AutoRefreshInterval, getDuration, isRunInTerminalState, isRunSetInTerminalState, loadAllRunSets, makeStatusLine } from 'src/components/submission-common'
 import { FlexTable, paginator, Sortable, tableHeight, TextCell } from 'src/components/table'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
@@ -23,6 +23,7 @@ export const SubmissionDetails = ({ submissionId }) => {
   const [itemsPerPage, setItemsPerPage] = useState(50)
   const [viewErrorsId, setViewErrorsId] = useState()
   const [runsData, setRunsData] = useState()
+  const [runsFullyUpdated, setRunsFullyUpdated] = useState()
   const [loading, setLoading] = useState(false)
 
   const [runSetData, setRunSetData] = useState()
@@ -80,8 +81,10 @@ export const SubmissionDetails = ({ submissionId }) => {
       const runs = runsResponse?.runs
       const runsAnnotatedWithDurations = _.map(r => _.merge(r, { duration: getDuration(r.state, r.submission_date, r.last_modified_timestamp, isRunInTerminalState) }), runs)
       setRunsData(runsAnnotatedWithDurations)
+      setRunsFullyUpdated(runsResponse?.fully_updated)
 
-      const loadedRunSetData = await loadRunSetData(signal)
+      const loadedAllRunSets = await loadAllRunSets(signal)
+      const loadedRunSetData = loadedAllRunSets.run_sets
       setRunSetData(loadedRunSetData)
 
       // only refresh if there are run sets in non-terminal state
@@ -104,8 +107,7 @@ export const SubmissionDetails = ({ submissionId }) => {
       }
     }
 
-    await refresh()
-    loadRunSetData(signal).then(runSet => runSet && loadMethodsData(runSet.method_version_id))
+    await refresh().then(() => loadMethodsData(undefined))
 
     return () => {
       if (scheduledRefresh.current) {
@@ -174,6 +176,9 @@ export const SubmissionDetails = ({ submissionId }) => {
         }
       }, [
         div([h2(['Workflows'])]),
+        runsFullyUpdated ?
+          div([icon('check', { size: 15, style: { color: colors.success() } }), ' Workflow statuses are all up to date.']) :
+          div([icon('warning-standard', { size: 15, style: { color: colors.warning() } }), ' Some workflow statuses are not up to date. Refreshing the page may update more statuses.']),
         div([h3(['Filter by: '])]),
         h(Select, {
           isDisabled: false,
