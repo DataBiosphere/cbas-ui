@@ -29,6 +29,10 @@ const buildStructPath = ({ structBuilderPath, headTemplate, pathTemplate, lastTe
   return _.join('.', pathParts)
 }
 
+// each of these functions (that call buildStructPath) accept "head", "path", and "last" string template functions
+// that specify how the object path should be constructed based on the struct schema within the input configuration.
+// the head (first), path (middle) and last segments of the path are constructed with slight variations, 
+// depending on the type of data being retrieved.
 export const buildStructInputTypePath = structBuilderPath => buildStructPath({
   structBuilderPath,
   headTemplate: head => `${head}.input_type`,
