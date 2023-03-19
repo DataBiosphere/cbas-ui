@@ -87,6 +87,7 @@ const FindWorkflowModal = ({ onDismiss }) => {
       })
     } catch (error) {
       notify('error', 'Error creating new method', { detail: await (error instanceof Response ? error.text() : error) })
+      onDismiss()
     }
   })
 
