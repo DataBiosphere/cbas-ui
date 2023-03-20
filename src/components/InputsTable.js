@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import { icon } from 'src/components/icons'
+import { StructBuilderModal } from 'src/components/StructBuilder'
 import {
   InputSourceSelect,
   ParameterValueTextInput,
@@ -14,7 +15,6 @@ import { FlexTable, HeaderCell, Sortable, TextCell } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import colors from 'src/libs/colors'
 import * as Utils from 'src/libs/utils'
-import { StructBuilderModal } from 'src/pages/StructBuilderModal'
 
 
 const InputsTable = props => {

@@ -2,6 +2,7 @@ import _ from 'lodash/fp'
 import { div, h } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import { Link } from 'src/components/common'
+import Modal from 'src/components/Modal'
 import { InputSourceSelect, ParameterValueTextInput, RecordLookupSelect, StructBuilderLink } from 'src/components/submission-common'
 import { FlexTable, HeaderCell, TextCell } from 'src/components/table'
 import * as Utils from 'src/libs/utils'
@@ -61,7 +62,6 @@ export const StructBuilder = props => {
     configuredInputDefinition, setConfiguredInputDefinition,
     structBuilderPath, setStructBuilderPath
   } = props
-
 
   const structBuilderName = _.get(buildStructNamePath(structBuilderPath), inputTableData)
   const structBuilderBreadcrumbs = buildStructBuilderBreadcrumbs(structBuilderPath, inputTableData)
@@ -157,4 +157,19 @@ export const StructBuilder = props => {
       })
     }])
   ])
+}
+
+export const StructBuilderModal = ({ onDismiss, ...props }) => {
+  return h(Modal,
+    {
+      title: 'Struct Builder',
+      onDismiss,
+      showCancel: false,
+      showX: true,
+      okButton: 'Done',
+      width: '90%'
+    }, [
+      h(StructBuilder, { ...props }, [])
+    ]
+  )
 }
