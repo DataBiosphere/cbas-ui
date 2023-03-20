@@ -1,9 +1,9 @@
 import '@testing-library/jest-dom'
 
-import { buildStructBuilderBreadcrumbs, buildStructInputTypePath, buildStructNamePath, buildStructSourcePath } from 'src/components/InputsTable'
+import { buildStructBuilderBreadcrumbs, buildStructInputTypePath, buildStructNamePath, buildStructSourcePath } from 'src/components/StructBuilder'
 
 
-describe('InputTable unit tests', () => {
+describe('StructBuilder unit tests', () => {
   it('should build struct paths for input type', () => {
     expect(buildStructInputTypePath([2])).toBe('2.input_type')
     expect(buildStructInputTypePath([2, 1])).toBe('2.input_type.fields.1.field_type')

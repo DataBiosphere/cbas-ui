@@ -17,53 +17,6 @@ import * as Utils from 'src/libs/utils'
 import { StructBuilderModal } from 'src/pages/StructBuilderModal'
 
 
-const buildStructPath = ({ structBuilderPath, headTemplate, pathTemplate, lastTemplate }) => {
-  // structBuilderPath is an array of indices corresponding to a row, within each hierarchical layer of a nested struct.
-  // e.g. [2, 3] represents the 3rd field of the struct found in the input table's 2nd row.
-  // this function returns a string that can be used to retrieve the object represented by structBuilderPath from the input table data.
-  const pathParts = [
-    headTemplate(_.head(structBuilderPath)),
-    ..._.size(structBuilderPath) > 2 ? _.map(pathTemplate, _.initial(_.tail(structBuilderPath))) : [],
-    ..._.size(structBuilderPath) > 1 ? [lastTemplate(_.last(structBuilderPath))] : []
-  ]
-  return _.join('.', pathParts)
-}
-
-// each of these functions (that call buildStructPath) accept "head", "path", and "last" string template functions
-// that specify how the object path should be constructed based on the struct schema within the input configuration.
-// the head (first), path (middle) and last segments of the path are constructed with slight variations,
-// depending on the type of data being retrieved.
-export const buildStructInputTypePath = structBuilderPath => buildStructPath({
-  structBuilderPath,
-  headTemplate: head => `${head}.input_type`,
-  pathTemplate: path => `fields.${path}.field_type`,
-  lastTemplate: last => `fields.${last}.field_type`
-})
-
-export const buildStructSourcePath = structBuilderPath => buildStructPath({
-  structBuilderPath,
-  headTemplate: head => `${head}.source`,
-  pathTemplate: path => `fields.${path}.source`,
-  lastTemplate: last => `fields.${last}.source`
-})
-
-export const buildStructNamePath = structBuilderPath => buildStructPath({
-  structBuilderPath,
-  headTemplate: head => _.size(structBuilderPath) === 1 ? `${head}.variable` : `${head}.input_type`,
-  pathTemplate: path => `fields.${path}.field_type`,
-  lastTemplate: last => `fields.${last}.field_name`
-})
-
-export const buildStructBuilderBreadcrumbs = (structBuilderPath, inputTableData) => {
-  const breadcrumbs = []
-  for (let end = 1; end < structBuilderPath.length + 1; end++) {
-    const structNamePath = buildStructNamePath(_.slice(0, end, structBuilderPath))
-    const crumb = _.get(structNamePath, inputTableData)
-    breadcrumbs.push(crumb)
-  }
-  return breadcrumbs
-}
-
 const InputsTable = props => {
   const {
     selectedDataTable,
@@ -140,15 +93,9 @@ const InputsTable = props => {
   return h(AutoSizer, [({ width, height }) => {
     return h(div, {}, [
       structBuilderVisible && h(StructBuilderModal, {
-        structBuilderName: _.get(buildStructNamePath(structBuilderPath), inputTableData),
-        structBuilderBreadcrumbs: buildStructBuilderBreadcrumbs(structBuilderPath, inputTableData),
-        structBuilderInputType: _.get(buildStructInputTypePath(structBuilderPath), inputTableData),
+        inputTableData,
         dataTableAttributes,
-        structBuilderSource: _.get(buildStructSourcePath(structBuilderPath), inputTableData),
-        setStructBuilderSource: source => {
-          const sourcePath = buildStructSourcePath(structBuilderPath)
-          setConfiguredInputDefinition(_.set(sourcePath, source, configuredInputDefinition))
-        },
+        configuredInputDefinition, setConfiguredInputDefinition,
         structBuilderPath, setStructBuilderPath,
         onDismiss: () => {
           setStructBuilderVisible(false)
