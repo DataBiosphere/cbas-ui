@@ -26,7 +26,7 @@ const InputsTable = props => {
   } = props
 
   const [structBuilderVisible, setStructBuilderVisible] = useState(false)
-  const [structBuilderPath, setStructBuilderPath] = useState([])
+  const [structBuilderRow, setStructBuilderRow] = useState(null)
 
   const dataTableAttributes = _.keyBy('name', selectedDataTable.attributes)
 
@@ -85,7 +85,7 @@ const InputsTable = props => {
       structBuilderVisible,
       onClick: () => {
         setStructBuilderVisible(true)
-        setStructBuilderPath([rowIndex])
+        setStructBuilderRow(rowIndex)
       }
     })
   }
@@ -93,10 +93,13 @@ const InputsTable = props => {
   return h(AutoSizer, [({ width, height }) => {
     return h(div, {}, [
       structBuilderVisible && h(StructBuilderModal, {
-        inputTableData,
+        structName: _.get('variable', inputTableData[structBuilderRow]),
+        structType: _.get('input_type', inputTableData[structBuilderRow]),
+        structSource: _.get('source', inputTableData[structBuilderRow]),
+        setStructSource: source => setConfiguredInputDefinition(
+          _.set(`${inputTableData[structBuilderRow].configurationIndex}.source`, source, configuredInputDefinition)
+        ),
         dataTableAttributes,
-        configuredInputDefinition, setConfiguredInputDefinition,
-        structBuilderPath, setStructBuilderPath,
         onDismiss: () => {
           setStructBuilderVisible(false)
         }

@@ -213,7 +213,6 @@ export const InputSourceSelect = props => {
   const isOptional = inputType.type === 'optional'
   const innerInputType = isOptional ? inputType.optional_type.type : inputType.type
   const editorType = innerInputType === 'struct' ? 'object_builder' : 'literal'
-
   return h(Select, {
     isDisabled: false,
     'aria-label': 'Select an Option',
