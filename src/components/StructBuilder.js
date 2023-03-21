@@ -28,16 +28,16 @@ export const StructBuilder = props => {
   const structSourcePath = buildStructSourcePath(structBuilderPath)
   const structNamePath = buildStructNamePath(structBuilderPath)
 
-  const currentStructName = structBuilderPath.length === 0 ? structName : _.get(structNamePath, structType)
-  const currentStructType = structBuilderPath.length === 0 ? structType : _.get(structTypePath, structType)
-  const currentStructSource = structBuilderPath.length === 0 ? structSource : _.get(structSourcePath, structSource)
-  const setCurrentStructSource = structBuilderPath.length === 0 ? setStructSource : source => setStructSource(_.set(structSourcePath, source, structSource))
+  const currentStructName = structNamePath ? _.get(structNamePath, structType) : structName
+  const currentStructType = structTypePath ? _.get(structTypePath, structType) : structType
+  const currentStructSource = structSourcePath ? _.get(structSourcePath, structSource) : structSource
+  const setCurrentStructSource = structSourcePath ? source => setStructSource(_.set(structSourcePath, source, structSource)) : setStructSource
 
-  // map slices of the structBuilderPath (e.g. [0, 1, 2] -> [0], [0, 1], [0, 1, 2])
-  // onto their corresponding field_names within structType, via buildStructNamePath
   const currentStructBreadcrumbs = _.map(
+    // map slices of the structBuilderPath (e.g. [0, 1, 2] -> [0], [0, 1], [0, 1, 2])
+    // onto their corresponding field_names within structType, via buildStructNamePath
     end => _.get(buildStructNamePath(_.slice(0, end + 1, structBuilderPath)), structType),
-    _.range(structBuilderPath.length)
+    _.range(0, structBuilderPath.length)
   )
 
   const breadcrumbsHeight = 35
