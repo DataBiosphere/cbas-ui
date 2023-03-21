@@ -9,9 +9,16 @@ import { FlexTable, HeaderCell, TextCell } from 'src/components/table'
 import * as Utils from 'src/libs/utils'
 
 
-export const buildStructTypePath = path => _.join('.', _.map(row => `fields.${row}.field_type`, path))
-export const buildStructSourcePath = path => _.join('.', _.map(row => `fields.${row}.source`, path))
-export const buildStructNamePath = path => _.replace(/\.field_type$/, '.field_name', buildStructTypePath(path))
+const buildStructTypePath = path => _.join('.', _.map(row => `fields.${row}.field_type`, path))
+const buildStructSourcePath = path => _.join('.', _.map(row => `fields.${row}.source`, path))
+const buildStructNamePath = path => _.replace(/\.field_type$/, '.field_name', buildStructTypePath(path))
+
+export const buildStructBreadcrumbs = (path, structType) => _.map(
+  // map slices of the path (e.g. [0, 1, 2] -> [0], [0, 1], [0, 1, 2])
+  // onto their corresponding field_names within structType, via buildStructNamePath
+  end => _.get(buildStructNamePath(_.slice(0, end + 1, path)), structType),
+  _.range(0, path.length)
+)
 
 export const StructBuilder = props => {
   const {
@@ -33,12 +40,7 @@ export const StructBuilder = props => {
   const currentStructSource = structSourcePath ? _.get(structSourcePath, structSource) : structSource
   const setCurrentStructSource = structSourcePath ? source => setStructSource(_.set(structSourcePath, source, structSource)) : setStructSource
 
-  const currentStructBreadcrumbs = _.map(
-    // map slices of the structBuilderPath (e.g. [0, 1, 2] -> [0], [0, 1], [0, 1, 2])
-    // onto their corresponding field_names within structType, via buildStructNamePath
-    end => _.get(buildStructNamePath(_.slice(0, end + 1, structBuilderPath)), structType),
-    _.range(0, structBuilderPath.length)
-  )
+  const currentStructBreadcrumbs = buildStructBreadcrumbs(structBuilderPath, structType)
 
   const breadcrumbsHeight = 35
   return h(div, { 'aria-label': 'struct-breadcrumbs', style: { height: 500 } }, [
