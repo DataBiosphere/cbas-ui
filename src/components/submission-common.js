@@ -152,7 +152,7 @@ export const inputSourceLabels = {
   none: 'None'
 }
 
-export const inputSourceTypes = _.invert(inputSourceLabels)
+const inputSourceTypes = _.invert(inputSourceLabels)
 
 export const RecordLookupSelect = props => {
   const {
