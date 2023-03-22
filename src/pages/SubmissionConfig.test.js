@@ -2,6 +2,7 @@ import '@testing-library/jest-dom'
 
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import _ from 'lodash/fp'
 import { h } from 'react-hyperscript-helpers'
 import selectEvent from 'react-select-event'
 import { Ajax } from 'src/libs/ajax'
@@ -51,6 +52,118 @@ const runSetInputDef = [
   }
 ]
 
+const myStructInput = {
+  input_name: 'target_workflow_1.foo.myStruct',
+  input_type: {
+    type: 'struct',
+    name: 'myStruct',
+    fields: [
+      {
+        field_name: 'myPrimitive',
+        field_type: {
+          type: 'primitive',
+          primitive_type: 'String'
+        }
+      },
+      {
+        field_name: 'myOptional',
+        field_type: {
+          type: 'optional',
+          optional_type: {
+            type: 'primitive',
+            primitive_type: 'String'
+          }
+        }
+      },
+      {
+        field_name: 'myArray',
+        field_type: {
+          type: 'array',
+          array_type: {
+            type: 'primitive',
+            primitive_type: 'String'
+          }
+        }
+      },
+      {
+        field_name: 'myMap',
+        field_type: {
+          type: 'map',
+          key_type: 'String',
+          value_type: {
+            type: 'primitive',
+            primitive_type: 'String'
+          }
+        }
+      },
+      {
+        field_name: 'myInnerStruct',
+        field_type: {
+          type: 'struct',
+          name: 'myInnerStruct',
+          fields: [
+            {
+              field_name: 'myInnermostPrimitive',
+              field_type: {
+                type: 'primitive',
+                primitive_type: 'String'
+              }
+            }
+          ]
+        }
+      }
+    ]
+  },
+  source: {
+    type: 'object_builder',
+    fields: [
+      {
+        name: 'myPrimitive',
+        source: {
+          type: 'literal',
+          parameter_value: 'Fiesty'
+        }
+      },
+      {
+        name: 'myOptional',
+        source: {
+          type: 'literal',
+          parameter_value: 'Meh'
+        }
+      },
+      {
+        name: 'myArray',
+        source: {
+          type: 'literal',
+          parameter_value: []
+        }
+      },
+      {
+        name: 'myMap',
+        source: {
+          type: 'literal',
+          parameter_value: {}
+        }
+      },
+      {
+        name: 'myInnerStruct',
+        source: {
+          type: 'object_builder',
+          fields: [{
+            name: 'myInnermostPrimitive',
+            source: {
+              type: 'literal',
+              parameter_value: 'foo'
+            }
+          }]
+        }
+      }
+    ]
+  }
+}
+
+const runSetInputDefWithStruct = [...runSetInputDef, myStructInput]
+
 const runSetOutputDef = [
   {
     output_name: 'target_workflow_1.file_output',
@@ -87,6 +200,8 @@ const runSetResponse = {
     }
   ]
 }
+
+const runSetResponseWithStruct = _.set('run_sets[0].input_definition', JSON.stringify(runSetInputDefWithStruct), runSetResponse)
 
 const badRecordTypeRunSetResponse = {
   run_sets: [
@@ -1408,6 +1523,92 @@ describe('SubmissionConfig inputs/outputs definitions', () => {
     within(cells2[2]).getByText('File')
     within(cells2[3]).getByDisplayValue('target_workflow_1_file_output')
   })
+
+  it('should display struct builder modal when "view struct builder" link is clicked', async () => {
+    // ** ARRANGE **
+    const mockRunSetResponse = jest.fn(() => Promise.resolve(runSetResponseWithStruct))
+    const mockMethodsResponse = jest.fn(() => Promise.resolve(methodsResponse))
+    const mockSearchResponse = jest.fn((_, recordType) => Promise.resolve(searchResponses[recordType]))
+    const mockTypesResponse = jest.fn(() => Promise.resolve(typesResponse))
+
+    await Ajax.mockImplementation(() => {
+      return {
+        Cbas: {
+          runSets: {
+            getForMethod: mockRunSetResponse
+          },
+          methods: {
+            getById: mockMethodsResponse
+          }
+        },
+        Wds: {
+          search: {
+            post: mockSearchResponse
+          },
+          types: {
+            get: mockTypesResponse
+          }
+        }
+      }
+    })
+
+    // ** ACT **
+    render(h(SubmissionConfig))
+
+    // ** ASSERT **
+    await waitFor(() => {
+      expect(mockRunSetResponse).toHaveBeenCalledTimes(1)
+      expect(mockTypesResponse).toHaveBeenCalledTimes(1)
+      expect(mockMethodsResponse).toHaveBeenCalledTimes(1)
+      expect(mockSearchResponse).toHaveBeenCalledTimes(1)
+    })
+
+    const button = await screen.findByRole('button', { name: 'Inputs' })
+
+    // ** ACT **
+    await fireEvent.click(button)
+
+    // ** ASSERT **
+    await screen.findByRole('table') // there should be only one table at this point
+
+    const viewStructLink = await screen.getByText('View Struct')
+    await fireEvent.click(viewStructLink)
+    await screen.getByText('myOptional')
+    await screen.getByText('myInnerStruct')
+
+    const structTable = await screen.getByLabelText('struct-table')
+    const structRows = within(structTable).queryAllByRole('row')
+    expect(structRows.length).toBe(6)
+
+    const headers = within(structRows[0]).queryAllByRole('columnheader')
+    within(headers[0]).getByText('Struct')
+    within(headers[1]).getByText('Field')
+    within(headers[2]).getByText('Type')
+    within(headers[3]).getByText('Input sources')
+    within(headers[4]).getByText('Attribute')
+
+    const structCells = within(structRows[5]).queryAllByRole('cell')
+    within(structCells[1]).getByText('myInnerStruct')
+    const viewMyInnerStructLink = within(structCells[4]).getByText('View Struct')
+
+    await fireEvent.click(viewMyInnerStructLink)
+    const myInnerStructTable = await screen.getByLabelText('struct-table')
+    const myInnerStructRows = within(myInnerStructTable).queryAllByRole('row')
+    expect(myInnerStructRows.length).toBe(2)
+
+    const myInnerStructBreadcrumbs = await screen.getByLabelText('struct-breadcrumbs')
+    const myInnerStructBreadcrumbsButtons = within(myInnerStructBreadcrumbs).queryAllByRole('button')
+    expect(myInnerStructBreadcrumbsButtons.length).toBe(1)
+    await fireEvent.click(myInnerStructBreadcrumbsButtons[0])
+
+    const structTable2ndView = await screen.getByLabelText('struct-table')
+    const structRows2ndView = within(structTable2ndView).queryAllByRole('row')
+    expect(structRows2ndView.length).toBe(6)
+
+    const modalDoneButton = await screen.getByText('Done')
+    fireEvent.click(modalDoneButton)
+    await screen.findByRole('table') // there should be only one table again
+  })
 })
 
 describe('SubmissionConfig submitting a run set', () => {
@@ -1627,6 +1828,193 @@ describe('SubmissionConfig submitting a run set', () => {
             },
             source: {
               type: 'none'
+            }
+          }
+        ],
+        workflow_output_definitions: runSetOutputDef,
+        wds_records: {
+          record_type: 'FOO',
+          record_ids: [
+            'FOO1'
+          ]
+        }
+      })
+    )
+  })
+
+  it('should call POST /run_sets endpoint with expected parameters after struct has been updated', async () => {
+    // ** ARRANGE **
+    const mockRunSetResponse = jest.fn(() => Promise.resolve(runSetResponseWithStruct))
+    const mockMethodsResponse = jest.fn(() => Promise.resolve(methodsResponse))
+    const mockSearchResponse = jest.fn((_, recordType) => Promise.resolve(searchResponses[recordType]))
+    const mockTypesResponse = jest.fn(() => Promise.resolve(typesResponse))
+
+    const postRunSetFunction = jest.fn()
+
+    await Ajax.mockImplementation(() => {
+      return {
+        Cbas: {
+          runSets: {
+            post: postRunSetFunction,
+            getForMethod: mockRunSetResponse
+          },
+          methods: {
+            getById: mockMethodsResponse
+          }
+        },
+        Wds: {
+          search: {
+            post: mockSearchResponse
+          },
+          types: {
+            get: mockTypesResponse
+          }
+        }
+      }
+    })
+
+    // ** ACT **
+    render(h(SubmissionConfig))
+
+    // ** ASSERT **
+    await waitFor(() => {
+      expect(mockRunSetResponse).toHaveBeenCalledTimes(1)
+      expect(mockTypesResponse).toHaveBeenCalledTimes(1)
+      expect(mockMethodsResponse).toHaveBeenCalledTimes(1)
+      expect(mockSearchResponse).toHaveBeenCalledTimes(1)
+    })
+
+
+    // ** ACT **
+    // user selects 'FOO1' record from Data Table
+    const checkboxes = screen.getAllByRole('checkbox')
+    const checkbox = checkboxes[1]
+    fireEvent.click(checkbox)
+
+    // ** ASSERT **
+    // verify that the record was indeed selected
+    expect(checkbox).toHaveAttribute('aria-checked', 'true')
+
+    const inputsTabButton = await screen.findByRole('button', { name: 'Inputs' })
+
+    // ** ACT **
+    await fireEvent.click(inputsTabButton)
+
+    // ** ASSERT **
+    await screen.findByRole('table') // there should be only one table at this point
+
+    const viewStructLink = await screen.getByText('View Struct')
+    await fireEvent.click(viewStructLink)
+    await screen.getByText('myInnerStruct')
+
+    const structTable = await screen.getByLabelText('struct-table')
+    const structRows = within(structTable).queryAllByRole('row')
+    expect(structRows.length).toBe(6)
+
+    // ** ACT **
+    // Update the top-level struct field myPrimitive
+    const myPrimitiveRowCells = within(structRows[1]).queryAllByRole('cell')
+    within(myPrimitiveRowCells[1]).getByText('myPrimitive')
+    const myPrimitiveInput = within(myPrimitiveRowCells[4]).getByDisplayValue('Fiesty')
+    await fireEvent.change(myPrimitiveInput, { target: { value: 'Docile' } })
+    within(myPrimitiveRowCells[4]).getByDisplayValue('Docile')
+
+    // ** ACT **
+    // Navigate the struct builder to myInnerStruct
+    const myInnerStructRowCells = within(structRows[5]).queryAllByRole('cell')
+    within(myInnerStructRowCells[1]).getByText('myInnerStruct')
+    const viewMyInnerStructLink = within(myInnerStructRowCells[4]).getByText('View Struct')
+    await fireEvent.click(viewMyInnerStructLink)
+
+    const myInnerStructTable = await screen.getByLabelText('struct-table')
+    const myInnerStructRows = within(myInnerStructTable).queryAllByRole('row')
+    expect(myInnerStructRows.length).toBe(2)
+
+    // ** ACT **
+    // Update the struct within myInnerStruct
+    const myInnermostPrimitiveRowCells = within(myInnerStructRows[1]).queryAllByRole('cell')
+    within(myInnermostPrimitiveRowCells[1]).getByText('myInnermostPrimitive')
+    const myInnermostPrimitiveInput = within(myInnermostPrimitiveRowCells[4]).getByDisplayValue('foo')
+    await fireEvent.change(myInnermostPrimitiveInput, { target: { value: 'bar' } })
+    within(myInnermostPrimitiveRowCells[4]).getByDisplayValue('bar')
+
+
+    // ** ACT **
+    // Exit the modal and submit
+    const modalDoneButton = await screen.getByText('Done')
+    fireEvent.click(modalDoneButton)
+    await screen.findByRole('table') // there should be only one table again
+
+    // ** ACT **
+    // user clicks on Submit (inputs and outputs should be rendered based on previous submission)
+    const submitButton = screen.getByLabelText('Submit button')
+    fireEvent.click(submitButton)
+
+    // ** ASSERT **
+    // Launch modal should be displayed
+    await screen.getByText('Send submission')
+    const modalSubmitButton = await screen.getByLabelText('Launch Submission')
+
+    // ** ACT **
+    // user click on Submit button
+    fireEvent.click(modalSubmitButton)
+
+    // ** ASSERT **
+    // assert POST /run_sets endpoint was called with expected parameters, with struct input sources updated
+    expect(postRunSetFunction).toHaveBeenCalled()
+    expect(postRunSetFunction).toBeCalledWith(
+      expect.objectContaining({
+        method_version_id: runSetResponseWithStruct.run_sets[0].method_version_id,
+        workflow_input_definitions: [
+          ...runSetInputDef,
+          {
+            input_name: myStructInput.input_name,
+            input_type: myStructInput.input_type,
+            source: {
+              type: 'object_builder',
+              fields: [
+                {
+                  name: 'myPrimitive',
+                  source: {
+                    type: 'literal',
+                    parameter_value: 'Docile'
+                  }
+                },
+                {
+                  name: 'myOptional',
+                  source: {
+                    type: 'literal',
+                    parameter_value: 'Meh'
+                  }
+                },
+                {
+                  name: 'myArray',
+                  source: {
+                    type: 'literal',
+                    parameter_value: []
+                  }
+                },
+                {
+                  name: 'myMap',
+                  source: {
+                    type: 'literal',
+                    parameter_value: {}
+                  }
+                },
+                {
+                  name: 'myInnerStruct',
+                  source: {
+                    type: 'object_builder',
+                    fields: [{
+                      name: 'myInnermostPrimitive',
+                      source: {
+                        type: 'literal',
+                        parameter_value: 'bar'
+                      }
+                    }]
+                  }
+                }
+              ]
             }
           }
         ],
