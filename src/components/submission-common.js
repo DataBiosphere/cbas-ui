@@ -3,6 +3,7 @@ import { div, h } from 'react-hyperscript-helpers'
 import { Link, Select } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { TextInput } from 'src/components/input'
+import TooltipTrigger from 'src/components/TooltipTrigger'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
@@ -185,6 +186,36 @@ export const RecordLookupSelect = props => {
     menuPlacement: 'top'
   })
 }
+
+export const RecordLookupSelectWithWarnings = props => {
+  const {
+    currentInputName,
+    source,
+    updateSource,
+    dataTableAttributes,
+    missingRequiredInputs,
+    missingExpectedAttributes
+  } = props
+
+  return div({ style: { display: 'flex', alignItems: 'center', width: '100%', paddingTop: '0.5rem', paddingBottom: '0.5rem' } }, [
+    RecordLookupSelect({
+      source,
+      updateSource,
+      dataTableAttributes
+    }),
+    missingRequiredInputs.includes(currentInputName) && h(TooltipTrigger, { content: 'This attribute is required' }, [
+      icon('error-standard', {
+        size: 14, style: { marginLeft: '0.5rem', color: colors.warning(), cursor: 'help' }
+      })
+    ]),
+    missingExpectedAttributes.includes(currentInputName) && h(TooltipTrigger, { content: 'This attribute doesn\'t exist in data table' }, [
+      icon('error-standard', {
+        size: 14, style: { marginLeft: '0.5rem', color: colors.warning(), cursor: 'help' }
+      })
+    ])
+  ])
+}
+
 
 export const ParameterValueTextInput = props => {
   const {

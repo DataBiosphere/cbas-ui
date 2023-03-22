@@ -2,18 +2,15 @@ import _ from 'lodash/fp'
 import { useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
-import { icon } from 'src/components/icons'
 import { StructBuilderModal } from 'src/components/StructBuilder'
 import {
   InputSourceSelect,
   ParameterValueTextInput,
   parseMethodString,
-  RecordLookupSelect,
+  RecordLookupSelectWithWarnings,
   StructBuilderLink
 } from 'src/components/submission-common'
 import { FlexTable, HeaderCell, Sortable, TextCell } from 'src/components/table'
-import TooltipTrigger from 'src/components/TooltipTrigger'
-import colors from 'src/libs/colors'
 import * as Utils from 'src/libs/utils'
 
 
@@ -46,27 +43,20 @@ const InputsTable = props => {
 
   const recordLookupWithWarnings = rowIndex => {
     const currentInputName = _.get(`${rowIndex}.input_name`, inputTableData)
+    const source = _.get(`${inputTableData[rowIndex].configurationIndex}.source`, configuredInputDefinition)
+    const updateSource = source => {
+      setConfiguredInputDefinition(
+        _.set(`${inputTableData[rowIndex].configurationIndex}.source`, source, configuredInputDefinition))
+    }
 
-    return div({ style: { display: 'flex', alignItems: 'center', width: '100%', paddingTop: '0.5rem', paddingBottom: '0.5rem' } }, [
-      RecordLookupSelect({
-        source: _.get(`${inputTableData[rowIndex].configurationIndex}.source`, configuredInputDefinition),
-        dataTableAttributes,
-        updateSource: source => {
-          setConfiguredInputDefinition(
-            _.set(`${inputTableData[rowIndex].configurationIndex}.source`, source, configuredInputDefinition))
-        }
-      }),
-      missingRequiredInputs.includes(currentInputName) && h(TooltipTrigger, { content: 'This attribute is required' }, [
-        icon('error-standard', {
-          size: 14, style: { marginLeft: '0.5rem', color: colors.warning(), cursor: 'help' }
-        })
-      ]),
-      missingExpectedAttributes.includes(currentInputName) && h(TooltipTrigger, { content: 'This attribute doesn\'t exist in data table' }, [
-        icon('error-standard', {
-          size: 14, style: { marginLeft: '0.5rem', color: colors.warning(), cursor: 'help' }
-        })
-      ])
-    ])
+    return RecordLookupSelectWithWarnings({
+      currentInputName,
+      source,
+      updateSource,
+      dataTableAttributes,
+      missingRequiredInputs,
+      missingExpectedAttributes
+    })
   }
 
   const parameterValueSelect = rowIndex => {
