@@ -7,8 +7,9 @@ import {
   InputSourceSelect,
   ParameterValueTextInput,
   parseMethodString,
-  RecordLookupSelectWithWarnings,
-  StructBuilderLink
+  StructBuilderLink,
+  SelectWithWarnings,
+  RecordLookupSelect,
 } from 'src/components/submission-common'
 import { FlexTable, HeaderCell, Sortable, TextCell } from 'src/components/table'
 import * as Utils from 'src/libs/utils'
@@ -49,13 +50,13 @@ const InputsTable = props => {
         _.set(`${inputTableData[rowIndex].configurationIndex}.source`, source, configuredInputDefinition))
     }
 
-    return RecordLookupSelectWithWarnings({
-      currentInputName,
-      source,
-      updateSource,
-      dataTableAttributes,
-      missingRequiredInputs,
-      missingExpectedAttributes
+    return SelectWithWarnings({
+      select: RecordLookupSelect({
+        source,
+        updateSource,
+        dataTableAttributes
+      }),
+      currentInputName, missingRequiredInputs, missingExpectedAttributes
     })
   }
 
@@ -71,13 +72,22 @@ const InputsTable = props => {
   }
 
   const structBuilderLink = rowIndex => {
-    return h(StructBuilderLink, {
-      structBuilderVisible,
-      onClick: () => {
-        setStructBuilderVisible(true)
-        setStructBuilderRow(rowIndex)
-      }
+    const currentInputName = _.get(`${rowIndex}.input_name`, inputTableData)
+    return SelectWithWarnings({
+      select: h(StructBuilderLink, {
+        structBuilderVisible,
+        onClick: () => {
+          setStructBuilderVisible(true)
+          setStructBuilderRow(rowIndex)
+        }
+      }),
+      currentInputName,
+      missingRequiredInputs,
+      missingExpectedAttributes
     })
+
+
+
   }
 
   return h(AutoSizer, [({ width, height }) => {

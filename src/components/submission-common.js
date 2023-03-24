@@ -187,22 +187,16 @@ export const RecordLookupSelect = props => {
   })
 }
 
-export const RecordLookupSelectWithWarnings = props => {
+export const SelectWithWarnings = props => {
   const {
+    select,
     currentInputName,
-    source,
-    updateSource,
-    dataTableAttributes,
     missingRequiredInputs,
     missingExpectedAttributes
   } = props
 
   return div({ style: { display: 'flex', alignItems: 'center', width: '100%', paddingTop: '0.5rem', paddingBottom: '0.5rem' } }, [
-    RecordLookupSelect({
-      source,
-      updateSource,
-      dataTableAttributes
-    }),
+    select,
     missingRequiredInputs.includes(currentInputName) && h(TooltipTrigger, { content: 'This attribute is required' }, [
       icon('error-standard', {
         size: 14, style: { marginLeft: '0.5rem', color: colors.warning(), cursor: 'help' }
