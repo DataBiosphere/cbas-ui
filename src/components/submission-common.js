@@ -287,3 +287,25 @@ export const StructBuilderLink = props => {
   structBuilderVisible ? 'Hide Struct' : 'View Struct'
   )
 }
+
+export const validateRequirements = source => {
+  if (source.type === 'none') {
+    return false
+  }
+  if (source.type === 'object_builder') {
+    const fieldsValidated = _.map(field => validateRequirements(field.source), source.fields)
+    return _.every(Boolean, fieldsValidated)
+  }
+  return true
+}
+
+export const validateRecordLookups = (source, recordAttributes) => {
+  if (source.type === 'record_lookup' && !recordAttributes.includes(source.record_attribute)) {
+    return false
+  }
+  if (source.type === 'object_builder') {
+    const fieldsValidated = _.map(field => validateRecordLookups(field.source, recordAttributes), source.fields)
+    return _.every(Boolean, fieldsValidated)
+  }
+  return true
+}

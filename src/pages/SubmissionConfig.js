@@ -10,7 +10,7 @@ import Modal from 'src/components/Modal'
 import OutputsTable from 'src/components/OutputsTable'
 import RecordsTable from 'src/components/RecordsTable'
 import StepButtons from 'src/components/StepButtons'
-import { resolveWdsUrl, WdsPollInterval } from 'src/components/submission-common'
+import { resolveWdsUrl, WdsPollInterval, validateRequirements, validateRecordLookups } from 'src/components/submission-common'
 import { TextCell } from 'src/components/table'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
@@ -184,28 +184,6 @@ export const SubmissionConfig = ({ methodId }) => {
         const selectedDataTable = _.keyBy('name', recordTypes)[records[0].type]
         const dataTableAttributes = _.keyBy('name', selectedDataTable.attributes)
         const dataTableAttrKeys = _.keys(dataTableAttributes)
-
-        const validateRequirements = source => {
-          if (source.type === 'none') {
-            return false
-          }
-          if (source.type === 'object_builder') {
-            const fieldsValidated = _.map(field => validateRequirements(field.source), source.fields)
-            return _.every(Boolean, fieldsValidated)
-          }
-          return true
-        }
-
-        const validateRecordLookups = (source, recordAttributes) => {
-          if (source.type === 'record_lookup' && !recordAttributes.includes(source.record_attribute)) {
-            return false
-          }
-          if (source.type === 'object_builder') {
-            const fieldsValidated = _.map(field => validateRecordLookups(field.source, recordAttributes), source.fields)
-            return _.every(Boolean, fieldsValidated)
-          }
-          return true
-        }
 
         const requiredInputsWithoutSource = _.flow(
           _.filter(i => i.input_type.type !== 'optional'),
