@@ -185,13 +185,37 @@ export const SubmissionConfig = ({ methodId }) => {
         const dataTableAttributes = _.keyBy('name', selectedDataTable.attributes)
         const dataTableAttrKeys = _.keys(dataTableAttributes)
 
+        const validateRequirements = source => {
+          if (source.type === 'none') {
+            return false
+          }
+          if (source.type === 'object_builder') {
+            const fieldsValidated = _.map(field => validateRequirements(field.source), source.fields)
+            return _.every(Boolean, fieldsValidated)
+          }
+          return true
+        }
+
+        const validateRecordLookups = (source, recordAttributes) => {
+          if (source.type === 'record_lookup' && !recordAttributes.includes(source.record_attribute)) {
+            return false
+          }
+          if (source.type === 'object_builder') {
+            const fieldsValidated = _.map(field => validateRecordLookups(field.source, recordAttributes), source.fields)
+            return _.every(Boolean, fieldsValidated)
+          }
+          return true
+        }
+
         const requiredInputsWithoutSource = _.flow(
-          _.filter(i => i.input_type.type !== 'optional' && i.source.type === 'none'),
+          _.filter(i => i.input_type.type !== 'optional'),
+          _.filter(i => !validateRequirements(i.source)),
           _.map(i => i.input_name)
         )(configuredInputDefinition)
 
         const inputsMissingRequiredAttributes = _.flow(
-          _.filter(i => i.source.type === 'record_lookup' && !dataTableAttrKeys.includes(i.source.record_attribute)),
+          _.filter(i => _.includes(i.source.type, ['record_lookup', 'object_builder'])),
+          _.filter(i => !validateRecordLookups(i.source, dataTableAttrKeys)),
           _.map(i => i.input_name)
         )(configuredInputDefinition)
 
