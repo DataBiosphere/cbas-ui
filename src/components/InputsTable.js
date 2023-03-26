@@ -20,7 +20,7 @@ const InputsTable = props => {
     selectedDataTable,
     configuredInputDefinition, setConfiguredInputDefinition,
     inputTableSort, setInputTableSort,
-    missingExpectedAttributes, missingRequiredInputs
+    missingRequiredInputs, missingExpectedAttributes
   } = props
 
   const [structBuilderVisible, setStructBuilderVisible] = useState(false)

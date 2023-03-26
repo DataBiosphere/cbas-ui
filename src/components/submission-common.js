@@ -286,7 +286,6 @@ export const StructBuilderLink = props => {
 }
 
 const validateRequirements = (inputSource, inputType) => {
-  console.log('validateRequirements', inputSource, inputType)
   if (inputType.type === 'optional') {
     return true
   }
@@ -317,6 +316,5 @@ export const requiredInputsWithoutSource = inputDefinition => {
 }
 
 export const inputsMissingRequiredAttributes = (inputDefinition, dataTableAttributes) => {
-  console.log('inputDefinition, dataTableAttributes', inputDefinition, dataTableAttributes)
   return _.filter(i => !validateRecordLookups(i.source, _.keys(dataTableAttributes)), inputDefinition)
 }
