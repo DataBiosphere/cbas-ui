@@ -56,7 +56,11 @@ const InputsTable = props => {
         updateSource,
         dataTableAttributes
       }),
-      currentInputName, missingRequiredInputs, missingExpectedAttributes
+      currentInputName,
+      warnings: {
+        'This attribute is required': missingRequiredInputs,
+        'This attribute doesn\'t exist in data table': missingExpectedAttributes
+      }
     })
   }
 
@@ -82,8 +86,10 @@ const InputsTable = props => {
         }
       }),
       currentInputName,
-      missingRequiredInputs,
-      missingExpectedAttributes
+      warnings: {
+        'An attribute within this Struct is required': missingRequiredInputs,
+        'An attribute within this Struct doesn\'t exist in data table': missingExpectedAttributes
+      }
     })
   }
 

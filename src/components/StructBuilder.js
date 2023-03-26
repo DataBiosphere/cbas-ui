@@ -67,7 +67,7 @@ export const StructBuilder = props => {
       ]))
     }
     validate()
-  }, [])
+  }, [structIndexPath])
 
 
   const breadcrumbsHeight = 35
@@ -153,8 +153,10 @@ export const StructBuilder = props => {
                       dataTableAttributes
                     }),
                     currentInputName: structInputDefinition[rowIndex].name,
-                    missingRequiredInputs,
-                    missingExpectedAttributes
+                    warnings: {
+                      'This attribute is required': missingRequiredInputs,
+                      'This attribute doesn\'t exist in data table': missingExpectedAttributes
+                    }
                   })],
                 ['object_builder',
                   () => SelectWithWarnings({
@@ -162,8 +164,10 @@ export const StructBuilder = props => {
                       onClick: () => setStructIndexPath([...structIndexPath, rowIndex])
                     }),
                     currentInputName: structInputDefinition[rowIndex].name,
-                    missingRequiredInputs,
-                    missingExpectedAttributes
+                    warnings: {
+                      'An attribute within this Struct is required': missingRequiredInputs,
+                      'An attribute within this Struct doesn\'t exist in data table': missingExpectedAttributes
+                    }
                   })],
                 ['none', () => h(TextCell, { style: { fontStyle: 'italic' } }, ['Optional'])]
               )

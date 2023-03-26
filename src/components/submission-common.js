@@ -191,22 +191,19 @@ export const SelectWithWarnings = props => {
   const {
     select,
     currentInputName,
-    missingRequiredInputs,
-    missingExpectedAttributes
+    warnings
   } = props
 
   return div({ style: { display: 'flex', alignItems: 'center', width: '100%', paddingTop: '0.5rem', paddingBottom: '0.5rem' } }, [
     select,
-    missingRequiredInputs.includes(currentInputName) && h(TooltipTrigger, { content: 'This attribute is required' }, [
-      icon('error-standard', {
-        size: 14, style: { marginLeft: '0.5rem', color: colors.warning(), cursor: 'help' }
-      })
-    ]),
-    missingExpectedAttributes.includes(currentInputName) && h(TooltipTrigger, { content: 'This attribute doesn\'t exist in data table' }, [
-      icon('error-standard', {
-        size: 14, style: { marginLeft: '0.5rem', color: colors.warning(), cursor: 'help' }
-      })
-    ])
+    ..._.map(
+      ([message, targets]) => targets.includes(currentInputName) && h(TooltipTrigger, { content: message }, [
+        icon('error-standard', {
+          size: 14, style: { marginLeft: '0.5rem', color: colors.warning(), cursor: 'help' }
+        })
+      ]),
+      _.toPairs(warnings)
+    )
   ])
 }
 
