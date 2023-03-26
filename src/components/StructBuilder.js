@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import { Link } from 'src/components/common'
@@ -48,27 +48,10 @@ export const StructBuilder = props => {
   const setCurrentStructSource = structSourcePath ? source => setStructSource(_.set(structSourcePath, source, structSource)) : setStructSource
 
   const structInputDefinition = _.map(([source, type]) => _.merge(source, type), _.zip(currentStructSource.fields, currentStructType.fields))
-  console.log('structInputDefinition', structInputDefinition)
   const currentStructBreadcrumbs = buildStructBreadcrumbs(structIndexPath, structType)
 
-  const [missingExpectedAttributes, setMissingExpectedAttributes] = useState([])
-  const [missingRequiredInputs, setMissingRequiredInputs] = useState([])
-
-  useEffect(() => {
-    const validate = () => {
-      setMissingExpectedAttributes(_.uniq([
-        ...missingExpectedAttributes,
-        ..._.map(i => i.name, inputsMissingRequiredAttributes(structInputDefinition, dataTableAttributes))
-      ]))
-
-      setMissingRequiredInputs(_.uniq([
-        ...missingExpectedAttributes,
-        ..._.map(i => i.name, requiredInputsWithoutSource(structInputDefinition))
-      ]))
-    }
-    validate()
-  }, [structIndexPath])
-
+  const missingExpectedAttributes = _.map(i => i.name, inputsMissingRequiredAttributes(structInputDefinition, dataTableAttributes))
+  const missingRequiredInputs = _.map(i => i.name, requiredInputsWithoutSource(structInputDefinition))
 
   const breadcrumbsHeight = 35
   return h(div, { 'aria-label': 'struct-breadcrumbs', style: { height: 500 } }, [
