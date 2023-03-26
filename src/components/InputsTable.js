@@ -43,9 +43,9 @@ const InputsTable = props => {
   )(configuredInputDefinition)
 
   const recordLookupWithWarnings = rowIndex => {
-    const currentInputName = _.get(`${rowIndex}.input_name`, inputTableData)
+    const selectedName = _.get(`${rowIndex}.input_name`, inputTableData)
     const source = _.get(`${inputTableData[rowIndex].configurationIndex}.source`, configuredInputDefinition)
-    const updateSource = source => {
+    const setSource = source => {
       setConfiguredInputDefinition(
         _.set(`${inputTableData[rowIndex].configurationIndex}.source`, source, configuredInputDefinition))
     }
@@ -53,10 +53,10 @@ const InputsTable = props => {
     return SelectWithWarnings({
       select: RecordLookupSelect({
         source,
-        updateSource,
+        setSource,
         dataTableAttributes
       }),
-      currentInputName,
+      selectedName,
       warnings: {
         'This attribute is required': missingRequiredInputs,
         'This attribute doesn\'t exist in data table': missingExpectedAttributes
@@ -68,7 +68,7 @@ const InputsTable = props => {
     return ParameterValueTextInput({
       id: `input-table-value-select-${rowIndex}`,
       source: _.get(`${inputTableData[rowIndex].configurationIndex}.source`, configuredInputDefinition),
-      updateSource: source => {
+      setSource: source => {
         setConfiguredInputDefinition(
           _.set(`${inputTableData[rowIndex].configurationIndex}.source`, source, configuredInputDefinition))
       }
@@ -76,7 +76,7 @@ const InputsTable = props => {
   }
 
   const structBuilderLink = rowIndex => {
-    const currentInputName = _.get(`${rowIndex}.input_name`, inputTableData)
+    const selectedName = _.get(`${rowIndex}.input_name`, inputTableData)
     return SelectWithWarnings({
       select: h(StructBuilderLink, {
         structBuilderVisible,
@@ -85,10 +85,10 @@ const InputsTable = props => {
           setStructBuilderRow(rowIndex)
         }
       }),
-      currentInputName,
+      selectedName,
       warnings: {
-        'An attribute within this Struct is required': missingRequiredInputs,
-        'An attribute within this Struct doesn\'t exist in data table': missingExpectedAttributes
+        'One of this struct\'s required attributes is missing': missingRequiredInputs,
+        'One of this struct\'s attributes doesn\'t exist in the data table': missingExpectedAttributes
       }
     })
   }
@@ -146,7 +146,7 @@ const InputsTable = props => {
               return InputSourceSelect({
                 source: _.get('source', inputTableData[rowIndex]),
                 inputType: _.get('input_type', inputTableData[rowIndex]),
-                updateSource: source => setConfiguredInputDefinition(
+                setSource: source => setConfiguredInputDefinition(
                   _.set(`[${inputTableData[rowIndex].configurationIndex}].source`, source, configuredInputDefinition))
               })
             }

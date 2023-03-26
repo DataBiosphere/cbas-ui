@@ -161,8 +161,8 @@ const inputSourceTypes = _.invert(inputSourceLabels)
 export const RecordLookupSelect = props => {
   const {
     source,
-    dataTableAttributes,
-    updateSource
+    setSource,
+    dataTableAttributes
   } = props
 
   return h(Select, {
@@ -176,7 +176,7 @@ export const RecordLookupSelect = props => {
         type: source.type,
         record_attribute: newAttribute
       }
-      updateSource(newSource)
+      setSource(newSource)
     },
     placeholder: source.record_attribute || 'Select Attribute',
     options: _.keys(dataTableAttributes),
@@ -190,14 +190,14 @@ export const RecordLookupSelect = props => {
 export const SelectWithWarnings = props => {
   const {
     select,
-    currentInputName,
+    selectedName,
     warnings
   } = props
 
   return div({ style: { display: 'flex', alignItems: 'center', width: '100%', paddingTop: '0.5rem', paddingBottom: '0.5rem' } }, [
     select,
     ..._.map(
-      ([message, targets]) => targets.includes(currentInputName) && h(TooltipTrigger, { content: message }, [
+      ([message, targets]) => targets.includes(selectedName) && h(TooltipTrigger, { content: message }, [
         icon('error-standard', {
           size: 14, style: { marginLeft: '0.5rem', color: colors.warning(), cursor: 'help' }
         })
@@ -212,7 +212,7 @@ export const ParameterValueTextInput = props => {
   const {
     id,
     source,
-    updateSource
+    setSource
   } = props
 
   return h(TextInput, {
@@ -224,7 +224,7 @@ export const ParameterValueTextInput = props => {
         type: source.type,
         parameter_value: value
       }
-      updateSource(newSource)
+      setSource(newSource)
     }
   })
 }
@@ -232,8 +232,8 @@ export const ParameterValueTextInput = props => {
 export const InputSourceSelect = props => {
   const {
     source,
-    inputType,
-    updateSource
+    setSource,
+    inputType
   } = props
   const isOptional = inputType.type === 'optional'
   const innerInputType = isOptional ? inputType.optional_type.type : inputType.type
@@ -257,7 +257,7 @@ export const InputSourceSelect = props => {
           [param]: ''
         }
       }
-      updateSource(newSource)
+      setSource(newSource)
     },
     placeholder: 'Select Source',
     options: [
