@@ -288,18 +288,23 @@ export const StructBuilderLink = props => {
   )
 }
 
-export const validateRequirements = source => {
-  if (source.type === 'none') {
+const validateRequirements = (inputSource, inputType) => {
+  console.log('validateRequirements', inputSource, inputType)
+  if (inputType.type === 'optional') {
+    return true
+  }
+  if (inputSource.type === 'none') {
     return false
   }
-  if (source.type === 'object_builder') {
-    const fieldsValidated = _.map(field => validateRequirements(field.source), source.fields)
+  if (inputSource.type === 'object_builder') {
+    const fieldsValidated = _.map(
+      field => validateRequirements(field.source, field.field_type), _.merge(inputSource.fields, inputType.fields))
     return _.every(Boolean, fieldsValidated)
   }
   return true
 }
 
-export const validateRecordLookups = (source, recordAttributes) => {
+const validateRecordLookups = (source, recordAttributes) => {
   if (source.type === 'record_lookup' && !recordAttributes.includes(source.record_attribute)) {
     return false
   }
@@ -308,4 +313,13 @@ export const validateRecordLookups = (source, recordAttributes) => {
     return _.every(Boolean, fieldsValidated)
   }
   return true
+}
+
+export const requiredInputsWithoutSource = inputDefinition => {
+  return _.filter(i => !validateRequirements(i.source, i.input_type || i.field_type), inputDefinition)
+}
+
+export const inputsMissingRequiredAttributes = (inputDefinition, dataTableAttributes) => {
+  console.log('inputDefinition, dataTableAttributes', inputDefinition, dataTableAttributes)
+  return _.filter(i => !validateRecordLookups(i.source, _.keys(dataTableAttributes)), inputDefinition)
 }

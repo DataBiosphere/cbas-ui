@@ -7,9 +7,9 @@ import {
   InputSourceSelect,
   ParameterValueTextInput,
   parseMethodString,
-  StructBuilderLink,
-  SelectWithWarnings,
   RecordLookupSelect,
+  SelectWithWarnings,
+  StructBuilderLink
 } from 'src/components/submission-common'
 import { FlexTable, HeaderCell, Sortable, TextCell } from 'src/components/table'
 import * as Utils from 'src/libs/utils'
@@ -20,7 +20,7 @@ const InputsTable = props => {
     selectedDataTable,
     configuredInputDefinition, setConfiguredInputDefinition,
     inputTableSort, setInputTableSort,
-    missingRequiredInputs, missingExpectedAttributes
+    missingExpectedAttributes, missingRequiredInputs
   } = props
 
   const [structBuilderVisible, setStructBuilderVisible] = useState(false)
@@ -85,9 +85,6 @@ const InputsTable = props => {
       missingRequiredInputs,
       missingExpectedAttributes
     })
-
-
-
   }
 
   return h(AutoSizer, [({ width, height }) => {

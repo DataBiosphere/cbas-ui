@@ -1,10 +1,18 @@
 import _ from 'lodash/fp'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import { Link } from 'src/components/common'
 import Modal from 'src/components/Modal'
-import { InputSourceSelect, ParameterValueTextInput, RecordLookupSelect, StructBuilderLink } from 'src/components/submission-common'
+import {
+  inputsMissingRequiredAttributes,
+  InputSourceSelect,
+  ParameterValueTextInput,
+  RecordLookupSelect,
+  requiredInputsWithoutSource,
+  SelectWithWarnings,
+  StructBuilderLink
+} from 'src/components/submission-common'
 import { FlexTable, HeaderCell, TextCell } from 'src/components/table'
 import * as Utils from 'src/libs/utils'
 
@@ -30,7 +38,6 @@ export const StructBuilder = props => {
   } = props
 
   const [structIndexPath, setStructIndexPath] = useState([])
-
   const structTypePath = buildStructTypePath(structIndexPath)
   const structSourcePath = buildStructSourcePath(structIndexPath)
   const structNamePath = buildStructNamePath(structIndexPath)
@@ -40,7 +47,28 @@ export const StructBuilder = props => {
   const currentStructSource = structSourcePath ? _.get(structSourcePath, structSource) : structSource
   const setCurrentStructSource = structSourcePath ? source => setStructSource(_.set(structSourcePath, source, structSource)) : setStructSource
 
+  const structInputDefinition = _.map(([source, type]) => _.merge(source, type), _.zip(currentStructSource.fields, currentStructType.fields))
+  console.log('structInputDefinition', structInputDefinition)
   const currentStructBreadcrumbs = buildStructBreadcrumbs(structIndexPath, structType)
+
+  const [missingExpectedAttributes, setMissingExpectedAttributes] = useState([])
+  const [missingRequiredInputs, setMissingRequiredInputs] = useState([])
+
+  useEffect(() => {
+    const validate = () => {
+      setMissingExpectedAttributes(_.uniq([
+        ...missingExpectedAttributes,
+        ..._.map(i => i.name, inputsMissingRequiredAttributes(structInputDefinition, dataTableAttributes))
+      ]))
+
+      setMissingRequiredInputs(_.uniq([
+        ...missingExpectedAttributes,
+        ..._.map(i => i.name, requiredInputsWithoutSource(structInputDefinition))
+      ]))
+    }
+    validate()
+  }, [])
+
 
   const breadcrumbsHeight = 35
   return h(div, { 'aria-label': 'struct-breadcrumbs', style: { height: 500 } }, [
@@ -117,8 +145,26 @@ export const StructBuilder = props => {
                     source: innerStructSource,
                     updateSource: setInnerStructSource
                   })],
-                ['record_lookup', () => RecordLookupSelect({ source: innerStructSource, dataTableAttributes, updateSource: setInnerStructSource })],
-                ['object_builder', () => StructBuilderLink({ onClick: () => setStructIndexPath([...structIndexPath, rowIndex]) })],
+                ['record_lookup',
+                  () => SelectWithWarnings({
+                    select: RecordLookupSelect({
+                      source: innerStructSource,
+                      updateSource: setInnerStructSource,
+                      dataTableAttributes
+                    }),
+                    currentInputName: structInputDefinition[rowIndex].name,
+                    missingRequiredInputs,
+                    missingExpectedAttributes
+                  })],
+                ['object_builder',
+                  () => SelectWithWarnings({
+                    select: StructBuilderLink({
+                      onClick: () => setStructIndexPath([...structIndexPath, rowIndex])
+                    }),
+                    currentInputName: structInputDefinition[rowIndex].name,
+                    missingRequiredInputs,
+                    missingExpectedAttributes
+                  })],
                 ['none', () => h(TextCell, { style: { fontStyle: 'italic' } }, ['Optional'])]
               )
             }

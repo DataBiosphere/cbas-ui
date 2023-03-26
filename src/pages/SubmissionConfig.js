@@ -10,7 +10,7 @@ import Modal from 'src/components/Modal'
 import OutputsTable from 'src/components/OutputsTable'
 import RecordsTable from 'src/components/RecordsTable'
 import StepButtons from 'src/components/StepButtons'
-import { resolveWdsUrl, WdsPollInterval, validateRequirements, validateRecordLookups } from 'src/components/submission-common'
+import { inputsMissingRequiredAttributes, requiredInputsWithoutSource, resolveWdsUrl, WdsPollInterval } from 'src/components/submission-common'
 import { TextCell } from 'src/components/table'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
@@ -179,30 +179,21 @@ export const SubmissionConfig = ({ methodId }) => {
 
   useEffect(() => {
     // inspect input configuration and selected data table to find required inputs without attributes assigned to it
-    const validateInputs = () => {
-      if (recordTypes && records && records.length && configuredInputDefinition) {
-        const selectedDataTable = _.keyBy('name', recordTypes)[records[0].type]
-        const dataTableAttributes = _.keyBy('name', selectedDataTable.attributes)
-        const dataTableAttrKeys = _.keys(dataTableAttributes)
+    if (recordTypes && records && records.length && configuredInputDefinition) {
+      const selectedDataTable = _.keyBy('name', recordTypes)[records[0].type]
+      const dataTableAttributes = _.keyBy('name', selectedDataTable.attributes)
 
-        const requiredInputsWithoutSource = _.flow(
-          _.filter(i => i.input_type.type !== 'optional'),
-          _.filter(i => !validateRequirements(i.source)),
-          _.map(i => i.input_name)
-        )(configuredInputDefinition)
+      const newMissingExpectedAttributes = _.map(
+        i => i.input_name,
+        inputsMissingRequiredAttributes(configuredInputDefinition, dataTableAttributes))
 
-        const inputsMissingRequiredAttributes = _.flow(
-          _.filter(i => _.includes(i.source.type, ['record_lookup', 'object_builder'])),
-          _.filter(i => !validateRecordLookups(i.source, dataTableAttrKeys)),
-          _.map(i => i.input_name)
-        )(configuredInputDefinition)
+      const newMissingRequiredInputs = _.map(
+        i => i.input_name,
+        requiredInputsWithoutSource(configuredInputDefinition))
 
-        setMissingExpectedAttributes(inputsMissingRequiredAttributes)
-        setMissingRequiredInputs(requiredInputsWithoutSource)
-      }
+      setMissingExpectedAttributes(newMissingExpectedAttributes)
+      setMissingRequiredInputs(newMissingRequiredInputs)
     }
-
-    validateInputs()
   }, [records, recordTypes, configuredInputDefinition])
 
   useEffect(() => {
@@ -379,7 +370,8 @@ export const SubmissionConfig = ({ methodId }) => {
       selectedDataTable: _.keyBy('name', recordTypes)[selectedRecordType],
       configuredInputDefinition, setConfiguredInputDefinition,
       inputTableSort, setInputTableSort,
-      missingRequiredInputs, missingExpectedAttributes
+      missingExpectedAttributes,
+      missingRequiredInputs
     }) : 'No data table rows available or input definition is not configured...'
   }
 
