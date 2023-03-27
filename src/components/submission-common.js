@@ -78,6 +78,9 @@ export const isRunSetInTerminalState = runSetStatus => RunSetTerminalStates.incl
 const RunTerminalStates = ['COMPLETE', 'CANCELED', 'SYSTEM_ERROR', 'ABORTED', 'EXECUTOR_ERROR']
 export const isRunInTerminalState = runStatus => RunTerminalStates.includes(runStatus)
 
+const Covid19Methods = ['fetch_sra_to_bam', 'assemble_refbased', 'sarscov2_nextstrain']
+export const isCovid19Method = methodName => Covid19Methods.includes(methodName)
+
 export const getDuration = (state, submissionDate, lastModifiedTimestamp, stateCheckCallback) => {
   return stateCheckCallback(state) ?
     differenceFromDatesInSeconds(submissionDate, lastModifiedTimestamp) :

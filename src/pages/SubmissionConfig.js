@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { Fragment, useCallback, useEffect, useRef, useState } from 'react'
-import { a, div, h, h2, span } from 'react-hyperscript-helpers'
+import { a, div, h, h2, h4, p, span } from 'react-hyperscript-helpers'
 import { ButtonPrimary, Link, Navbar, Select } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { TextArea, TextInput } from 'src/components/input'
@@ -9,7 +9,7 @@ import Modal from 'src/components/Modal'
 import OutputsTable from 'src/components/OutputsTable'
 import RecordsTable from 'src/components/RecordsTable'
 import StepButtons from 'src/components/StepButtons'
-import { resolveWdsUrl, WdsPollInterval } from 'src/components/submission-common'
+import { isCovid19Method, resolveWdsUrl, WdsPollInterval } from 'src/components/submission-common'
 import { TextCell } from 'src/components/table'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
@@ -245,115 +245,146 @@ export const SubmissionConfig = ({ methodId }) => {
   }, [loadWdsData, wdsProxyUrl, runSetRecordType])
 
   const renderSummary = () => {
-    return div({ style: { margin: '4em' } }, [
-      div({ style: { display: 'flex', marginTop: '1rem', justifyContent: 'space-between' } }, [
-        h2([method ? `Submission Configuration for ${method.name}` : 'loading'])
-      ]),
-      div({ style: { lineHeight: 2.0 } }, [
-        div([span({ style: { fontWeight: 'bold' } }, ['Workflow Version: ']),
-          availableMethodVersions ?
-            h(Select, {
-              isDisabled: false,
-              'aria-label': 'Select a workflow version',
-              isClearable: false,
-              value: selectedMethodVersion ? selectedMethodVersion.name : null,
-              onChange: ({ value }) => {
-                setSelectedMethodVersion(_.find(m => m.name === value, availableMethodVersions))
-              },
-              placeholder: 'None',
-              styles: { container: old => ({ ...old, display: 'inline-block', width: 100, marginLeft: 20 }) },
-              options: _.map(m => m.name, availableMethodVersions)
-            }) :
-            'Fetching available workflow versions...']),
+    return div({ style: { marginLeft: '2em', marginTop: '1rem', display: 'flex', justifyContent: 'space-between' } }, [
+      div([
         div([
-          span({ style: { fontWeight: 'bold' } }, ['Workflow source URL: ']),
-          selectedMethodVersion ?
-            selectedMethodVersion.url : 'No workflow version selected'
+          h2([method ? `Submission Configuration for ${method.name}` : 'loading'])
         ]),
-        div([
-          h(Link, { disabled: workflowScript == null, onClick: () => setViewWorkflowScriptModal(true) }, 'View Workflow Script')
-        ])
-      ]),
-      div({ style: { marginTop: '2rem', height: '2rem', fontWeight: 'bold' } }, ['Select a data table']),
-      div({}, [
-        h(Select, {
-          isDisabled: false,
-          'aria-label': 'Select a data table',
-          isClearable: false,
-          value: selectedRecordType ? selectedRecordType : null,
-          onChange: ({ value }) => {
-            setNoRecordTypeData(null)
-            setSelectedRecordType(value)
-            setSelectedRecords(null)
-            loadWdsData({ recordType: value, includeLoadRecordTypes: false })
-          },
-          placeholder: 'None selected',
-          styles: { container: old => ({ ...old, display: 'inline-block', width: 200 }), paddingRight: '2rem' },
-          options: _.map(t => t.name, recordTypes)
-        }),
-        noRecordTypeData && h(Fragment, [
-          a({ 'aria-label': 'warning message', style: { marginLeft: '1rem', fontSize: 15, marginTop: '1rem', height: '2rem', fontWeight: 'bold' } }, [icon('error-standard', { size: 20, style: { color: colors.warning(), flex: 'none', marginRight: '0.5rem' } }), noRecordTypeData])
-        ])
-      ]),
-      h(StepButtons, {
-        tabs: [
-          { key: 'select-data', title: 'Select Data', isValid: true },
-          { key: 'inputs', title: 'Inputs', isValid: !missingRequiredInputs.length && !missingExpectedAttributes.length },
-          { key: 'outputs', title: 'Outputs', isValid: true }
-        ],
-        activeTab: activeTab.key || 'select-data',
-        onChangeTab: v => setActiveTab({ key: v }),
-        finalStep: h(ButtonPrimary, {
-          'aria-label': 'Submit button',
-          style: { marginLeft: '1rem' },
-          disabled: _.isEmpty(selectedRecords) || missingRequiredInputs.length || missingExpectedAttributes.length,
-          tooltip: _.isEmpty(selectedRecords) ? 'No records selected' : '',
-          onClick: () => {
-            updateRunSetName()
-            setDisplayLaunchModal(true)
-          }
-        }, ['Submit'])
-      }),
-      displayLaunchModal && h(Modal, {
-        title: 'Send submission',
-        width: 600,
-        onDismiss: () => { if (!isSubmitting) { setDisplayLaunchModal(false) } },
-        showCancel: !isSubmitting,
-        okButton:
-          h(ButtonPrimary, {
-            disabled: isSubmitting,
-            'aria-label': 'Launch Submission',
-            onClick: () => submitRun()
-          }, [isSubmitting ? 'Submitting...' : 'Submit'])
-      }, [
         div({ style: { lineHeight: 2.0 } }, [
-          h(TextCell, { style: { marginTop: '1.5rem', fontSize: 16, fontWeight: 'bold' } }, ['Submission name']),
-          h(TextInput, {
-            disabled: isSubmitting,
-            'aria-label': 'Submission name',
-            value: runSetName,
-            onChange: setRunSetName,
-            placeholder: 'Enter submission name'
-          })
-        ]
-        ),
-        div({ style: { lineHeight: 2.0, marginTop: '1.5rem' } }, [
-          span({ style: { fontSize: 16, fontWeight: 'bold' } }, ['Comment ']), '(optional)',
-          h(TextArea, {
-            style: { height: 200, borderTopLeftRadius: 0, borderTopRightRadius: 0 },
-            'aria-label': 'Enter a comment',
-            disabled: isSubmitting,
-            value: runSetDescription,
-            onChange: setRunSetDescription,
-            placeholder: 'Enter comments'
-          })
+          div([span({ style: { fontWeight: 'bold' } }, ['Workflow Version: ']),
+            availableMethodVersions ?
+              h(Select, {
+                isDisabled: false,
+                'aria-label': 'Select a workflow version',
+                isClearable: false,
+                value: selectedMethodVersion ? selectedMethodVersion.name : null,
+                onChange: ({ value }) => {
+                  setSelectedMethodVersion(_.find(m => m.name === value, availableMethodVersions))
+                },
+                placeholder: 'None',
+                styles: { container: old => ({ ...old, display: 'inline-block', width: 100, marginLeft: 20 }) },
+                options: _.map(m => m.name, availableMethodVersions)
+              }) :
+              'Fetching available workflow versions...']),
+          div([
+            span({ style: { fontWeight: 'bold' } }, ['Workflow source URL: ']),
+            selectedMethodVersion ?
+              selectedMethodVersion.url : 'No workflow version selected'
+          ]),
+          div([
+            h(Link, { disabled: workflowScript == null, onClick: () => setViewWorkflowScriptModal(true) }, 'View Workflow Script')
+          ])
         ]),
-        div({ style: { lineHeight: 2.0, marginTop: '1.5rem' } }, [
-          div([h(TextCell, ['This will launch ', span({ style: { fontWeight: 'bold' } }, [_.keys(selectedRecords).length]), ' workflow(s).'])]),
-          h(TextCell, { style: { marginTop: '1rem' } }, ['Running workflows will generate cloud compute charges.'])
-        ])
+        div({ style: { marginTop: '2rem', height: '2rem', fontWeight: 'bold' } }, ['Select a data table']),
+        div({}, [
+          h(Select, {
+            isDisabled: false,
+            'aria-label': 'Select a data table',
+            isClearable: false,
+            value: selectedRecordType ? selectedRecordType : null,
+            onChange: ({ value }) => {
+              setNoRecordTypeData(null)
+              setSelectedRecordType(value)
+              setSelectedRecords(null)
+              loadWdsData({ recordType: value, includeLoadRecordTypes: false })
+            },
+            placeholder: 'None selected',
+            styles: { container: old => ({ ...old, display: 'inline-block', width: 200 }), paddingRight: '2rem' },
+            options: _.map(t => t.name, recordTypes)
+          }),
+          noRecordTypeData && h(Fragment, [
+            a({ 'aria-label': 'warning message', style: { marginLeft: '1rem', fontSize: 15, marginTop: '1rem', height: '2rem', fontWeight: 'bold' } }, [icon('error-standard', { size: 20, style: { color: colors.warning(), flex: 'none', marginRight: '0.5rem' } }), noRecordTypeData])
+          ])
+        ]),
+        h(StepButtons, {
+          tabs: [
+            { key: 'select-data', title: 'Select Data', isValid: true },
+            { key: 'inputs', title: 'Inputs', isValid: !missingRequiredInputs.length && !missingExpectedAttributes.length },
+            { key: 'outputs', title: 'Outputs', isValid: true }
+          ],
+          activeTab: activeTab.key || 'select-data',
+          onChangeTab: v => setActiveTab({ key: v }),
+          finalStep: h(ButtonPrimary, {
+            'aria-label': 'Submit button',
+            style: { marginLeft: '1rem' },
+            disabled: _.isEmpty(selectedRecords) || missingRequiredInputs.length || missingExpectedAttributes.length,
+            tooltip: _.isEmpty(selectedRecords) ? 'No records selected' : '',
+            onClick: () => {
+              updateRunSetName()
+              setDisplayLaunchModal(true)
+            }
+          }, ['Submit'])
+        }),
+        displayLaunchModal && h(Modal, {
+          title: 'Send submission',
+          width: 600,
+          onDismiss: () => { if (!isSubmitting) { setDisplayLaunchModal(false) } },
+          showCancel: !isSubmitting,
+          okButton:
+            h(ButtonPrimary, {
+              disabled: isSubmitting,
+              'aria-label': 'Launch Submission',
+              onClick: () => submitRun()
+            }, [isSubmitting ? 'Submitting...' : 'Submit'])
+        }, [
+          div({ style: { lineHeight: 2.0 } }, [
+            h(TextCell, { style: { marginTop: '1.5rem', fontSize: 16, fontWeight: 'bold' } }, ['Submission name']),
+            h(TextInput, {
+              disabled: isSubmitting,
+              'aria-label': 'Submission name',
+              value: runSetName,
+              onChange: setRunSetName,
+              placeholder: 'Enter submission name'
+            })
+          ]
+          ),
+          div({ style: { lineHeight: 2.0, marginTop: '1.5rem' } }, [
+            span({ style: { fontSize: 16, fontWeight: 'bold' } }, ['Comment ']), '(optional)',
+            h(TextArea, {
+              style: { height: 200, borderTopLeftRadius: 0, borderTopRightRadius: 0 },
+              'aria-label': 'Enter a comment',
+              disabled: isSubmitting,
+              value: runSetDescription,
+              onChange: setRunSetDescription,
+              placeholder: 'Enter comments'
+            })
+          ]),
+          div({ style: { lineHeight: 2.0, marginTop: '1.5rem' } }, [
+            div([h(TextCell, ['This will launch ', span({ style: { fontWeight: 'bold' } }, [_.keys(selectedRecords).length]), ' workflow(s).'])]),
+            h(TextCell, { style: { marginTop: '1rem' } }, ['Running workflows will generate cloud compute charges.'])
+          ])
+        ]),
+        viewWorkflowScriptModal && h(ViewWorkflowScriptModal, { workflowScript, onDismiss: () => setViewWorkflowScriptModal(false) })
       ]),
-      viewWorkflowScriptModal && h(ViewWorkflowScriptModal, { workflowScript, onDismiss: () => setViewWorkflowScriptModal(false) })
+      div({ style: { marginRight: '1em' } }, [
+        div({ style: { backgroundColor: colors.accent(0.2), paddingTop: '0.25em', paddingBottom: '0.25em', paddingLeft: '1em', paddingRight: '1em' } }, [
+          h4('Have questions?'),
+          method && isCovid19Method(method.name) && p([
+            h(Link, { href: 'https://support.terra.bio/hc/en-us/articles/12028928980123-Covid-19-Surveillance-tutorial-guide', ...Utils.newTabLinkProps },
+              [
+                'Covid-19 Surveillance tutorial guide',
+                icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })
+              ]
+            )
+          ]),
+          method && isCovid19Method(method.name) && p([
+            h(Link, { href: 'https://app.terra.bio/#workspaces/azure-featured-workspaces/COVID-19-Surveillance', ...Utils.newTabLinkProps },
+              [
+                'Covid-19 Featured Workspace',
+                icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })
+              ]
+            )
+          ]),
+          p([
+            h(Link, { href: 'https://support.terra.bio/hc/en-us/articles/12029178977307-How-to-set-up-and-run-a-workflow', ...Utils.newTabLinkProps },
+              [
+                'How to set up and run a workflow',
+                icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })
+              ]
+            )
+          ])
+        ])
+      ])
     ])
   }
 
