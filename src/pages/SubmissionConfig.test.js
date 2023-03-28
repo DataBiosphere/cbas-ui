@@ -1242,9 +1242,11 @@ describe('SubmissionConfig inputs/outputs definitions', () => {
     within(cellsFoo[3]).getByText('Fetch from Data Table')
     // input configuration expects attribute 'foo_rating' to be present, but it isn't available in the data table.
     // Hence, the select box will be empty and defaulted to the attribute name as its placeholder,
-    // but there will be an orange warning icon will be present next to it
+    // but there will be a warning message next to it
+
     within(cellsFoo[4]).getByText('foo_rating')
-    within(cellsFoo[4]).queryByRole('img', { 'data-icon': 'error-standard' })
+    const warningMessageActive = within(cellsFoo[4]).queryByText("This attribute doesn't exist in data table")
+    expect(warningMessageActive).not.toBeNull()
 
     // ** ACT **
     // user selects the attribute 'rating_for_foo' for input 'foo_rating_workflow_var'
@@ -1254,8 +1256,8 @@ describe('SubmissionConfig inputs/outputs definitions', () => {
 
     // ** ASSERT **
     within(cellsFoo[4]).getByText('rating_for_foo')
-    const warningIcon = within(cellsFoo[4]).queryByRole('img', { 'data-icon': 'error-standard' })
-    expect(warningIcon).toBeNull() // once user has selected an attribute, warning icon should disappear
+    const warningMessageInactive = within(cellsFoo[4]).queryByText("This attribute doesn't exist in data table")
+    expect(warningMessageInactive).toBeNull() // once user has selected an attribute, warning message should disappear
   })
 
   it('should initially populate the outputs definition table with attributes determined by the previously executed run set', async () => {
