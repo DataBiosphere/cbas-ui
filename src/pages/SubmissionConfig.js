@@ -1,7 +1,8 @@
 import _ from 'lodash/fp'
 import { Fragment, useCallback, useEffect, useRef, useState } from 'react'
-import { a, div, h, h2, h4, p, span } from 'react-hyperscript-helpers'
+import { a, div, h, h2, span } from 'react-hyperscript-helpers'
 import { ButtonPrimary, Link, Navbar, Select } from 'src/components/common'
+import HelpfulLinksBox from 'src/components/HelpfulLinksBox'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { TextArea, TextInput } from 'src/components/input'
 import InputsTable from 'src/components/InputsTable'
@@ -9,7 +10,7 @@ import Modal from 'src/components/Modal'
 import OutputsTable from 'src/components/OutputsTable'
 import RecordsTable from 'src/components/RecordsTable'
 import StepButtons from 'src/components/StepButtons'
-import { isCovid19Method, resolveWdsUrl, WdsPollInterval } from 'src/components/submission-common'
+import { resolveWdsUrl, WdsPollInterval } from 'src/components/submission-common'
 import { TextCell } from 'src/components/table'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
@@ -356,35 +357,7 @@ export const SubmissionConfig = ({ methodId }) => {
         ]),
         viewWorkflowScriptModal && h(ViewWorkflowScriptModal, { workflowScript, onDismiss: () => setViewWorkflowScriptModal(false) })
       ]),
-      div({ style: { marginRight: '1em' } }, [
-        div({ style: { backgroundColor: colors.accent(0.2), paddingTop: '0.25em', paddingBottom: '0.25em', paddingLeft: '1em', paddingRight: '1em' } }, [
-          h4('Have questions?'),
-          method && isCovid19Method(method.name) && p([
-            h(Link, { href: 'https://support.terra.bio/hc/en-us/articles/12028928980123-Covid-19-Surveillance-tutorial-guide', ...Utils.newTabLinkProps },
-              [
-                'Covid-19 Surveillance tutorial guide',
-                icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })
-              ]
-            )
-          ]),
-          method && isCovid19Method(method.name) && p([
-            h(Link, { href: 'https://app.terra.bio/#workspaces/azure-featured-workspaces/COVID-19-Surveillance', ...Utils.newTabLinkProps },
-              [
-                'Covid-19 Featured Workspace',
-                icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })
-              ]
-            )
-          ]),
-          p([
-            h(Link, { href: 'https://support.terra.bio/hc/en-us/articles/12029178977307-How-to-set-up-and-run-a-workflow', ...Utils.newTabLinkProps },
-              [
-                'How to set up and run a workflow',
-                icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })
-              ]
-            )
-          ])
-        ])
-      ])
+      method && div({ style: { marginRight: '1em' } }, [h(HelpfulLinksBox, { method })])
     ])
   }
 
