@@ -19,6 +19,13 @@ jest.mock('src/libs/config', () => ({
   getConfig: jest.fn().mockReturnValue({})
 }))
 
+// SubmissionConfig component uses AutoSizer to determine the right size for table to be displayed. As a result we need to
+// mock out the height and width so that when AutoSizer asks for the width and height of "browser" it can use the mocked
+// values and render the component properly. Without this the tests will be break.
+// (see https://github.com/bvaughn/react-virtualized/issues/493 and https://stackoverflow.com/a/62214834)
+const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'offsetHeight')
+const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'offsetWidth')
+
 const runSetInputDef = [
   {
     input_name: 'target_workflow_1.foo.foo_rating_workflow_var',
@@ -408,13 +415,6 @@ const mockApps = [
 ]
 
 describe('SubmissionConfig workflow details', () => {
-  // SubmissionConfig component uses AutoSizer to determine the right size for table to be displayed. As a result we need to
-  // mock out the height and width so that when AutoSizer asks for the width and height of "browser" it can use the mocked
-  // values and render the component properly. Without this the tests will be break.
-  // (see https://github.com/bvaughn/react-virtualized/issues/493 and https://stackoverflow.com/a/62214834)
-  const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'offsetHeight')
-  const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'offsetWidth')
-
   beforeAll(() => {
     Object.defineProperty(HTMLElement.prototype, 'offsetHeight', { configurable: true, value: 1000 })
     Object.defineProperty(HTMLElement.prototype, 'offsetWidth', { configurable: true, value: 800 })
@@ -506,13 +506,6 @@ describe('SubmissionConfig workflow details', () => {
 })
 
 describe('SubmissionConfig records selector', () => {
-  // SubmissionConfig component uses AutoSizer to determine the right size for table to be displayed. As a result we need to
-  // mock out the height and width so that when AutoSizer asks for the width and height of "browser" it can use the mocked
-  // values and render the component properly. Without this the tests will be break.
-  // (see https://github.com/bvaughn/react-virtualized/issues/493 and https://stackoverflow.com/a/62214834)
-  const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'offsetHeight')
-  const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'offsetWidth')
-
   beforeAll(() => {
     Object.defineProperty(HTMLElement.prototype, 'offsetHeight', { configurable: true, value: 1000 })
     Object.defineProperty(HTMLElement.prototype, 'offsetWidth', { configurable: true, value: 800 })
@@ -1095,9 +1088,6 @@ describe('SubmissionConfig records selector', () => {
 })
 
 describe('Input source and requirements validation', () => {
-  const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'offsetHeight')
-  const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'offsetWidth')
-
   beforeAll(() => {
     Object.defineProperty(HTMLElement.prototype, 'offsetHeight', { configurable: true, value: 1000 })
     Object.defineProperty(HTMLElement.prototype, 'offsetWidth', { configurable: true, value: 800 })
@@ -1267,13 +1257,6 @@ describe('Input source and requirements validation', () => {
 })
 
 describe('SubmissionConfig inputs/outputs definitions', () => {
-  // SubmissionConfig component uses AutoSizer to determine the right size for table to be displayed. As a result we need to
-  // mock out the height and width so that when AutoSizer asks for the width and height of "browser" it can use the mocked
-  // values and render the component properly. Without this the tests will be break.
-  // (see https://github.com/bvaughn/react-virtualized/issues/493 and https://stackoverflow.com/a/62214834)
-  const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'offsetHeight')
-  const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'offsetWidth')
-
   beforeAll(() => {
     Object.defineProperty(HTMLElement.prototype, 'offsetHeight', { configurable: true, value: 1000 })
     Object.defineProperty(HTMLElement.prototype, 'offsetWidth', { configurable: true, value: 800 })
@@ -1724,13 +1707,6 @@ describe('SubmissionConfig inputs/outputs definitions', () => {
 })
 
 describe('SubmissionConfig submitting a run set', () => {
-  // SubmissionConfig component uses AutoSizer to determine the right size for table to be displayed. As a result we need to
-  // mock out the height and width so that when AutoSizer asks for the width and height of "browser" it can use the mocked
-  // values and render the component properly. Without this the tests will be break.
-  // (see https://github.com/bvaughn/react-virtualized/issues/493 and https://stackoverflow.com/a/62214834)
-  const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'offsetHeight')
-  const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'offsetWidth')
-
   beforeAll(() => {
     Object.defineProperty(HTMLElement.prototype, 'offsetHeight', { configurable: true, value: 1000 })
     Object.defineProperty(HTMLElement.prototype, 'offsetWidth', { configurable: true, value: 800 })
@@ -2152,13 +2128,6 @@ describe('SubmissionConfig submitting a run set', () => {
 })
 
 describe('SubmissionConfig gets WDS url from Leo and render config page', () => {
-  // SubmissionConfig component uses AutoSizer to determine the right size for table to be displayed. As a result we need to
-  // mock out the height and width so that when AutoSizer asks for the width and height of "browser" it can use the mocked
-  // values and render the component properly. Without this the tests will be break.
-  // (see https://github.com/bvaughn/react-virtualized/issues/493 and https://stackoverflow.com/a/62214834)
-  const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'offsetHeight')
-  const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'offsetWidth')
-
   beforeAll(() => {
     Object.defineProperty(HTMLElement.prototype, 'offsetHeight', { configurable: true, value: 1000 })
     Object.defineProperty(HTMLElement.prototype, 'offsetWidth', { configurable: true, value: 800 })
