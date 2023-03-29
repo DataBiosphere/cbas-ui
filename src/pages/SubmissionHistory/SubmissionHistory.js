@@ -127,7 +127,7 @@ export const SubmissionHistory = () => {
                 {
                   size: { basis: 100, grow: 0 },
                   field: 'actions',
-                  headerRenderer: () => h(Sortable, { sort, field: 'actions', onSort: setSort }, ['Actions']),
+                  headerRenderer: () => h(TextCell, ['Actions']),
                   cellRenderer: () => {
                     return div(
                       { style: { textAlign: 'center' } },
