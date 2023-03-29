@@ -155,8 +155,13 @@ export const inputSourceLabels = {
   object_builder: 'Use Struct Builder',
   none: 'None'
 }
-
 const inputSourceTypes = _.invert(inputSourceLabels)
+
+const inputTypeParamDefaults = {
+  literal: { parameter_value: '' },
+  record_lookup: { record_attribute: '' },
+  object_builder: { fields: [] },
+}
 
 export const RecordLookupSelect = props => {
   const {
@@ -237,24 +242,27 @@ export const InputSourceSelect = props => {
   } = props
   const isOptional = inputType.type === 'optional'
   const innerInputType = isOptional ? inputType.optional_type.type : inputType.type
+  const isDisabled = innerInputType === 'struct'
   const editorType = innerInputType === 'struct' ? 'object_builder' : 'literal'
+
   return h(Select, {
-    isDisabled: false,
+    isDisabled,
     'aria-label': 'Select an Option',
     isClearable: false,
     value: _.get(source.type, inputSourceLabels) || null,
     onChange: ({ value }) => {
       const newType = _.get(value, inputSourceTypes)
       let newSource
+
       if (newType === 'none') {
         newSource = {
           type: newType
         }
       } else {
-        const param = newType === 'record_lookup' ? 'record_attribute' : 'parameter_value'
+        const paramDefault = _.get(newType, inputTypeParamDefaults)
         newSource = {
           type: newType,
-          [param]: ''
+          ...paramDefault
         }
       }
       setSource(newSource)
