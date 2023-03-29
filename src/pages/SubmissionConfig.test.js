@@ -108,6 +108,13 @@ const myStructInput = {
                 type: 'primitive',
                 primitive_type: 'String'
               }
+            },
+            {
+              field_name: 'myInnermostRecordLookup',
+              field_type: {
+                type: 'primitive',
+                primitive_type: 'Int'
+              }
             }
           ]
         }
@@ -149,13 +156,22 @@ const myStructInput = {
         name: 'myInnerStruct',
         source: {
           type: 'object_builder',
-          fields: [{
-            name: 'myInnermostPrimitive',
-            source: {
-              type: 'literal',
-              parameter_value: 'foo'
+          fields: [
+            {
+              name: 'myInnermostPrimitive',
+              source: {
+                type: 'literal',
+                parameter_value: 'foo'
+              }
+            },
+            {
+              name: 'myInnermostRecordLookup',
+              source: {
+                type: 'record_lookup',
+                record_attribute: 'foo_rating'
+              }
             }
-          }]
+          ]
         }
       }
     ]
@@ -1078,6 +1094,178 @@ describe('SubmissionConfig records selector', () => {
   })
 })
 
+describe('Input source and requirements validation', () => {
+  const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'offsetHeight')
+  const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'offsetWidth')
+
+  beforeAll(() => {
+    Object.defineProperty(HTMLElement.prototype, 'offsetHeight', { configurable: true, value: 1000 })
+    Object.defineProperty(HTMLElement.prototype, 'offsetWidth', { configurable: true, value: 800 })
+  })
+
+  beforeEach(() => {
+    getConfig.mockReturnValue(({ wdsUrlRoot: 'http://localhost:3000/wds' }))
+  })
+
+  afterEach(() => {
+    jest.clearAllMocks()
+  })
+
+  afterAll(() => {
+    Object.defineProperty(HTMLElement.prototype, 'offsetHeight', originalOffsetHeight)
+    Object.defineProperty(HTMLElement.prototype, 'offsetWidth', originalOffsetWidth)
+  })
+
+  const buildAjax = () => {
+    const mockRunSetResponse = jest.fn(() => Promise.resolve(runSetResponseWithStruct))
+    const mockMethodsResponse = jest.fn(() => Promise.resolve(methodsResponse))
+    const mockSearchResponse = jest.fn((_, recordType) => Promise.resolve(searchResponses[recordType]))
+    const mockTypesResponse = jest.fn(() => Promise.resolve(typesResponseWithoutFooRating))
+
+    Ajax.mockImplementation(() => {
+      return {
+        Cbas: {
+          runSets: {
+            getForMethod: mockRunSetResponse
+          },
+          methods: {
+            getById: mockMethodsResponse
+          }
+        },
+        Wds: {
+          search: {
+            post: mockSearchResponse
+          },
+          types: {
+            get: mockTypesResponse
+          }
+        }
+      }
+    })
+
+    return { mockRunSetResponse, mockMethodsResponse, mockSearchResponse, mockTypesResponse }
+  }
+
+  it('should display warning icon for required inputs with missing attributes and disappear when attribute is supplied', async () => {
+    // ** ARRANGE **
+    const { mockRunSetResponse, mockMethodsResponse, mockSearchResponse, mockTypesResponse } = buildAjax()
+
+    // ** ACT **
+    render(h(SubmissionConfig))
+
+    // ** ASSERT **
+    await waitFor(() => {
+      expect(mockRunSetResponse).toHaveBeenCalledTimes(1)
+      expect(mockTypesResponse).toHaveBeenCalledTimes(1)
+      expect(mockMethodsResponse).toHaveBeenCalledTimes(1)
+      expect(mockSearchResponse).toHaveBeenCalledTimes(1)
+    })
+
+    const button = await screen.findByRole('button', { name: 'Inputs' })
+
+    // ** ACT **
+    await fireEvent.click(button)
+
+    // ** ASSERT **
+    const table = await screen.findByRole('table')
+    const rows = within(table).queryAllByRole('row')
+
+    expect(rows.length).toBe(runSetInputDefWithStruct.length + 1) // one row for each input definition variable, plus headers
+
+    const cellsFoo = within(rows[1]).queryAllByRole('cell')
+    expect(cellsFoo.length).toBe(5)
+    within(cellsFoo[0]).getByText('foo')
+    within(cellsFoo[1]).getByText('foo_rating_workflow_var')
+    within(cellsFoo[2]).getByText('Int')
+    within(cellsFoo[3]).getByText('Fetch from Data Table')
+    // input configuration expects attribute 'foo_rating' to be present, but it isn't available in the data table.
+    // Hence, the select box will be empty and defaulted to the attribute name as its placeholder,
+    // but there will be a warning message next to it
+
+    within(cellsFoo[4]).getByText('foo_rating')
+    const warningMessageActive = within(cellsFoo[4]).queryByText("This attribute doesn't exist in data table")
+    expect(warningMessageActive).not.toBeNull()
+
+    // ** ACT **
+    // user selects the attribute 'rating_for_foo' for input 'foo_rating_workflow_var'
+    await userEvent.click(within(cellsFoo[4]).getByText('foo_rating'))
+    const selectOption = await screen.findByText(`rating_for_foo`)
+    await userEvent.click(selectOption)
+
+    // ** ASSERT **
+    within(cellsFoo[4]).getByText('rating_for_foo')
+    const warningMessageInactive = within(cellsFoo[4]).queryByText("This attribute doesn't exist in data table")
+    expect(warningMessageInactive).toBeNull() // once user has selected an attribute, warning message should disappear
+  })
+
+  it('should display warning icon/message at each level of the struct builder when a field has a missing attribute', async () => {
+    // ** ARRANGE **
+    const { mockRunSetResponse, mockMethodsResponse, mockSearchResponse, mockTypesResponse } = buildAjax()
+
+    // ** ACT **
+    render(h(SubmissionConfig))
+
+    // ** ASSERT **
+    await waitFor(() => {
+      expect(mockRunSetResponse).toHaveBeenCalledTimes(1)
+      expect(mockTypesResponse).toHaveBeenCalledTimes(1)
+      expect(mockMethodsResponse).toHaveBeenCalledTimes(1)
+      expect(mockSearchResponse).toHaveBeenCalledTimes(1)
+    })
+
+    // ** ACT **
+    const button = await screen.findByRole('button', { name: 'Inputs' })
+    await fireEvent.click(button)
+
+    // ** ASSERT **
+    const table = await screen.findByRole('table')
+    const rows = within(table).queryAllByRole('row')
+    const viewStructLink = within(rows[4]).getByText('View Struct')
+    const inputWarningMessageActive = within(rows[4]).queryByText("One of this struct's attributes doesn't exist in the data table")
+    expect(inputWarningMessageActive).not.toBeNull()
+
+    // ** ACT **
+    await fireEvent.click(viewStructLink)
+
+    // ** ASSERT **
+    const structTable = await screen.getByLabelText('struct-table')
+    const structRows = within(structTable).queryAllByRole('row')
+    expect(structRows.length).toBe(6)
+
+    const structCells = within(structRows[5]).queryAllByRole('cell')
+    within(structCells[1]).getByText('myInnerStruct')
+    const viewMyInnerStructLink = within(structCells[4]).getByText('View Struct')
+    const structWarningMessageActive = within(structCells[4]).queryByText("One of this struct's attributes doesn't exist in the data table")
+    expect(structWarningMessageActive).not.toBeNull()
+
+    // ** ACT **
+    await fireEvent.click(viewMyInnerStructLink)
+
+
+    // ** ASSERT **
+    const innerStructTable = await screen.getByLabelText('struct-table')
+    const innerStructRows = within(innerStructTable).queryAllByRole('row')
+    expect(innerStructRows.length).toBe(3)
+
+    const innerStructCells = within(innerStructRows[2]).queryAllByRole('cell')
+    within(innerStructCells[1]).getByText('myInnermostRecordLookup')
+    within(innerStructCells[4]).getByText('foo_rating')
+    const innerStructWarningMessageActive = within(innerStructCells[4]).queryByText("This attribute doesn't exist in the data table")
+    expect(innerStructWarningMessageActive).not.toBeNull()
+
+    // ** ACT **
+    // user selects the attribute 'rating_for_foo' for input 'foo_rating_workflow_var'
+    await userEvent.click(within(innerStructCells[4]).getByText('foo_rating'))
+    const selectOption = await screen.findByText(`rating_for_foo`)
+    await userEvent.click(selectOption)
+
+    // ** ASSERT **
+    within(innerStructCells[4]).getByText('rating_for_foo')
+    const innerStructWarningMessageInactive = within(innerStructCells[4]).queryByText("This attribute doesn't exist in data table")
+    expect(innerStructWarningMessageInactive).toBeNull() // once user has selected an attribute, warning message should disappear
+  })
+})
+
 describe('SubmissionConfig inputs/outputs definitions', () => {
   // SubmissionConfig component uses AutoSizer to determine the right size for table to be displayed. As a result we need to
   // mock out the height and width so that when AutoSizer asks for the width and height of "browser" it can use the mocked
@@ -1152,7 +1340,6 @@ describe('SubmissionConfig inputs/outputs definitions', () => {
     const table = await screen.findByRole('table')
     const rows = within(table).queryAllByRole('row')
 
-    expect(runSetInputDef.length).toBe(3)
     expect(rows.length).toBe(runSetInputDef.length + 1) // one row for each input definition variable, plus headers
 
     const headers = within(rows[0]).queryAllByRole('columnheader')
@@ -1181,83 +1368,6 @@ describe('SubmissionConfig inputs/outputs definitions', () => {
     within(thirdInputRow[2]).getByText('String')
     within(thirdInputRow[3]).getByText('Type a Value')
     within(thirdInputRow[4]).getByDisplayValue('Hello World')
-  })
-
-  it('should display warning icon for required inputs with missing attributes and disappear when attribute is supplied', async () => {
-    // ** ARRANGE **
-    const mockRunSetResponse = jest.fn(() => Promise.resolve(runSetResponse))
-    const mockMethodsResponse = jest.fn(() => Promise.resolve(methodsResponse))
-    const mockSearchResponse = jest.fn((_, recordType) => Promise.resolve(searchResponses[recordType]))
-    const mockTypesResponse = jest.fn(() => Promise.resolve(typesResponseWithoutFooRating))
-
-    await Ajax.mockImplementation(() => {
-      return {
-        Cbas: {
-          runSets: {
-            getForMethod: mockRunSetResponse
-          },
-          methods: {
-            getById: mockMethodsResponse
-          }
-        },
-        Wds: {
-          search: {
-            post: mockSearchResponse
-          },
-          types: {
-            get: mockTypesResponse
-          }
-        }
-      }
-    })
-
-    // ** ACT **
-    render(h(SubmissionConfig))
-
-    // ** ASSERT **
-    await waitFor(() => {
-      expect(mockRunSetResponse).toHaveBeenCalledTimes(1)
-      expect(mockTypesResponse).toHaveBeenCalledTimes(1)
-      expect(mockMethodsResponse).toHaveBeenCalledTimes(1)
-      expect(mockSearchResponse).toHaveBeenCalledTimes(1)
-    })
-
-    const button = await screen.findByRole('button', { name: 'Inputs' })
-
-    // ** ACT **
-    await fireEvent.click(button)
-
-    // ** ASSERT **
-    const table = await screen.findByRole('table')
-    const rows = within(table).queryAllByRole('row')
-
-    expect(runSetInputDef.length).toBe(3)
-    expect(rows.length).toBe(runSetInputDef.length + 1) // one row for each input definition variable, plus headers
-
-    const cellsFoo = within(rows[1]).queryAllByRole('cell')
-    expect(cellsFoo.length).toBe(5)
-    within(cellsFoo[0]).getByText('foo')
-    within(cellsFoo[1]).getByText('foo_rating_workflow_var')
-    within(cellsFoo[2]).getByText('Int')
-    within(cellsFoo[3]).getByText('Fetch from Data Table')
-    // input configuration expects attribute 'foo_rating' to be present, but it isn't available in the data table.
-    // Hence, the select box will be empty and defaulted to the attribute name as its placeholder,
-    // but there will be a warning message next to it
-
-    within(cellsFoo[4]).getByText('foo_rating')
-    const warningMessageActive = within(cellsFoo[4]).queryByText("This attribute doesn't exist in data table")
-    expect(warningMessageActive).not.toBeNull()
-
-    // ** ACT **
-    // user selects the attribute 'rating_for_foo' for input 'foo_rating_workflow_var'
-    await userEvent.click(within(cellsFoo[4]).getByText('foo_rating'))
-    const selectOption = await screen.findByText(`rating_for_foo`)
-    await userEvent.click(selectOption)
-
-    // ** ASSERT **
-    within(cellsFoo[4]).getByText('rating_for_foo')
-    const warningMessageInactive = within(cellsFoo[4]).queryByText("This attribute doesn't exist in data table")
-    expect(warningMessageInactive).toBeNull() // once user has selected an attribute, warning message should disappear
   })
 
   it('should initially populate the outputs definition table with attributes determined by the previously executed run set', async () => {
@@ -1596,7 +1706,7 @@ describe('SubmissionConfig inputs/outputs definitions', () => {
     await fireEvent.click(viewMyInnerStructLink)
     const myInnerStructTable = await screen.getByLabelText('struct-table')
     const myInnerStructRows = within(myInnerStructTable).queryAllByRole('row')
-    expect(myInnerStructRows.length).toBe(2)
+    expect(myInnerStructRows.length).toBe(3)
 
     const myInnerStructBreadcrumbs = await screen.getByLabelText('struct-breadcrumbs')
     const myInnerStructBreadcrumbsButtons = within(myInnerStructBreadcrumbs).queryAllByRole('button')
@@ -1930,7 +2040,7 @@ describe('SubmissionConfig submitting a run set', () => {
 
     const myInnerStructTable = await screen.getByLabelText('struct-table')
     const myInnerStructRows = within(myInnerStructTable).queryAllByRole('row')
-    expect(myInnerStructRows.length).toBe(2)
+    expect(myInnerStructRows.length).toBe(3)
 
     // ** ACT **
     // Update the struct within myInnerStruct
@@ -2007,13 +2117,22 @@ describe('SubmissionConfig submitting a run set', () => {
                   name: 'myInnerStruct',
                   source: {
                     type: 'object_builder',
-                    fields: [{
-                      name: 'myInnermostPrimitive',
-                      source: {
-                        type: 'literal',
-                        parameter_value: 'bar'
+                    fields: [
+                      {
+                        name: 'myInnermostPrimitive',
+                        source: {
+                          type: 'literal',
+                          parameter_value: 'bar'
+                        }
+                      },
+                      {
+                        name: 'myInnermostRecordLookup',
+                        source: {
+                          type: 'record_lookup',
+                          record_attribute: 'foo_rating'
+                        }
                       }
-                    }]
+                    ]
                   }
                 }
               ]
