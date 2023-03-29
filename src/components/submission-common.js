@@ -160,7 +160,7 @@ const inputSourceTypes = _.invert(inputSourceLabels)
 const inputTypeParamDefaults = {
   literal: { parameter_value: '' },
   record_lookup: { record_attribute: '' },
-  object_builder: { fields: [] },
+  object_builder: { fields: [] }
 }
 
 export const RecordLookupSelect = props => {
