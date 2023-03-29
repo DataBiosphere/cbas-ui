@@ -83,7 +83,7 @@ export const SubmissionHistory = () => {
   const lastPageIndex = firstPageIndex + itemsPerPage
   const paginatedPreviousRunSets = sortedPreviousRunSets.slice(firstPageIndex, lastPageIndex)
 
-  const rowHeight = 250
+  const rowHeight = 175
 
   return loading ? centeredSpinner() : h(Fragment, [
     Navbar('RUN WORKFLOWS WITH CROMWELL'),
@@ -122,6 +122,17 @@ export const SubmissionHistory = () => {
                 paddingTop: '1em'
               }),
               columns: [
+                {
+                  size: { basis: 100, grow: 0 },
+                  field: 'actions',
+                  headerRenderer: () => h(Sortable, { sort, field: 'actions', onSort: setSort }, ['Actions']),
+                  cellRenderer: () => {
+                    return div(
+                      { style: { textAlign: 'center' } },
+                      [icon('cardMenuIcon', { size: 24, onClick: () => { window.alert('TODO: go to actions menu') } })]
+                    )
+                  }
+                },
                 {
                   size: { basis: 350 },
                   field: 'runset_name',
