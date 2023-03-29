@@ -72,7 +72,7 @@ export const makeStatusLine = (iconFn, label, style) => div(
   [iconFn({ marginRight: '0.5rem' }), label]
 )
 
-const RunSetTerminalStates = ['ERROR', 'COMPLETE']
+const RunSetTerminalStates = ['ERROR', 'COMPLETE', 'CANCELED']
 export const isRunSetInTerminalState = runSetStatus => RunSetTerminalStates.includes(runSetStatus)
 
 const RunTerminalStates = ['COMPLETE', 'CANCELED', 'SYSTEM_ERROR', 'ABORTED', 'EXECUTOR_ERROR']
