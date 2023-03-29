@@ -2,14 +2,17 @@ import _ from 'lodash/fp'
 import { Fragment, useRef, useState } from 'react'
 import { div, h, h2 } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
-import { ButtonOutline, Link, Navbar } from 'src/components/common'
+import { ButtonOutline, Clickable, Link, Navbar } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
+import { MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
 import { AutoRefreshInterval, getDuration, isRunSetInTerminalState, loadAllRunSets, makeStatusLine, statusType } from 'src/components/submission-common'
 import { FlexTable, paginator, Sortable, tableHeight, TextCell } from 'src/components/table'
+import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
 import { useCancellation, useOnMount } from 'src/libs/react-utils'
+import { maybeParseJSON } from 'src/libs/utils'
 import * as Utils from 'src/libs/utils'
 
 
@@ -40,6 +43,14 @@ export const SubmissionHistory = () => {
       notify('error', 'Error loading previous run sets', { detail: await (error instanceof Response ? error.text() : error) })
     }
   })
+
+  const cancelRunSet = async (submissionId) => {
+    try {
+      await Ajax(signal).Cbas.runSets.cancel(submissionId)
+    } catch (error) {
+      notify('error', 'Error canceling run set', { detail: await (error instanceof Response ? error.text() : error) })
+    }
+  }
 
   useOnMount(async () => {
     await refresh()
@@ -126,11 +137,19 @@ export const SubmissionHistory = () => {
                   size: { basis: 100, grow: 0 },
                   field: 'actions',
                   headerRenderer: () => h(Sortable, { sort, field: 'actions', onSort: setSort }, ['Actions']),
-                  cellRenderer: () => {
-                    return div(
-                      { style: { textAlign: 'center' } },
-                      [icon('cardMenuIcon', { size: 24, onClick: () => { window.alert('TODO: go to actions menu') } })]
-                    )
+                  cellRenderer: ({ rowIndex }) => {
+                    return h(MenuTrigger, {
+                      closeOnClick: true,
+                      'aria-label': 'Action selection menu',
+                      content: h(Fragment, [
+                        h(MenuButton, { /*onClick: () => { cancelRunSet(paginatedPreviousRunSets[rowIndex].run_set_id).then(r => pass)}*/}, ['Abort'])
+                      ]),
+                      style: { textAlign: 'center' }
+                      }, [
+                        h(Clickable, {
+                          'aria-label': 'Action selection menu',
+                        }, [icon('cardMenuIcon')])
+                      ])
                   }
                 },
                 {
