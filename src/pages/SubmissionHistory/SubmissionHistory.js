@@ -123,18 +123,18 @@ export const SubmissionHistory = () => {
                 paddingTop: '1em'
               }),
               columns: [
-                ... isActionMenuEnabled() ?
-                [{
-                  size: { basis: 100, grow: 0 },
-                  field: 'actions',
-                  headerRenderer: () => h(TextCell, ['Actions']),
-                  cellRenderer: () => {
-                    return div(
-                      { style: { textAlign: 'center' } },
-                      [icon('cardMenuIcon', { size: 24, onClick: () => { window.alert('TODO: go to actions menu') } })]
-                    )
-                  }
-                }] : [],
+                ...isActionMenuEnabled() ?
+                  [{
+                    size: { basis: 100, grow: 0 },
+                    field: 'actions',
+                    headerRenderer: () => h(TextCell, ['Actions']),
+                    cellRenderer: () => {
+                      return div(
+                        { style: { textAlign: 'center' } },
+                        [icon('cardMenuIcon', { size: 24, onClick: () => { window.alert('TODO: go to actions menu') } })]
+                      )
+                    }
+                  }] : [],
                 {
                   size: { basis: 350 },
                   field: 'runset_name',
