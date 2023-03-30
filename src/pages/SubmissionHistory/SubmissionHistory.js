@@ -123,8 +123,8 @@ export const SubmissionHistory = () => {
                 paddingTop: '1em'
               }),
               columns: [
-                isActionMenuEnabled() ?
-                {
+                ... isActionMenuEnabled() ?
+                [{
                   size: { basis: 100, grow: 0 },
                   field: 'actions',
                   headerRenderer: () => h(TextCell, ['Actions']),
@@ -134,7 +134,7 @@ export const SubmissionHistory = () => {
                       [icon('cardMenuIcon', { size: 24, onClick: () => { window.alert('TODO: go to actions menu') } })]
                     )
                   }
-                } :
+                }] : [],
                 {
                   size: { basis: 350 },
                   field: 'runset_name',
