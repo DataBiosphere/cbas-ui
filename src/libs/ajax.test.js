@@ -60,18 +60,18 @@ describe('Ajax tests', () => {
 
     await cbasPact.executeTest(async mockService => {
     // ARRANGE
-    fetchCbas.mockImplementation(async path => await fetch(`${mockService.url}/api/batch/v1/${path}`))
+      fetchCbas.mockImplementation(async path => await fetch(`${mockService.url}/api/batch/v1/${path}`))
 
-    // ACT
-    const response = await Ajax('fakeSignal').Cbas.runs.get('00000000-00000000-00000000-00000000')
+      // ACT
+      const response = await Ajax('fakeSignal').Cbas.runs.get('00000000-00000000-00000000-00000000')
 
-    // ASSERT
-    expect(response).toBeDefined()
-    expect(fetchCbas).toBeCalledTimes(1)
-    expect(fetchCbas).toBeCalledWith('runs?run_set_id=00000000-00000000-00000000-00000000', { method: 'GET', signal: 'fakeSignal' })
-    expect(response).toHaveProperty('runs')
-    expect(response.runs.length).toEqual(1)
-    expect(response.runs[0]).toMatchObject({ run_set_id: '00000000-00000000-00000000-00000000' })
+      // ASSERT
+      expect(response).toBeDefined()
+      expect(fetchCbas).toBeCalledTimes(1)
+      expect(fetchCbas).toBeCalledWith('runs?run_set_id=00000000-00000000-00000000-00000000', { method: 'GET', signal: 'fakeSignal' })
+      expect(response).toHaveProperty('runs')
+      expect(response.runs.length).toEqual(1)
+      expect(response.runs[0]).toMatchObject({ run_set_id: '00000000-00000000-00000000-00000000' })
     })
   })
 })
