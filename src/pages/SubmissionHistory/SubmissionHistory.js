@@ -7,6 +7,7 @@ import { centeredSpinner, icon } from 'src/components/icons'
 import { AutoRefreshInterval, getDuration, isRunSetInTerminalState, loadAllRunSets, makeStatusLine, statusType } from 'src/components/submission-common'
 import { FlexTable, paginator, Sortable, tableHeight, TextCell } from 'src/components/table'
 import colors from 'src/libs/colors'
+import { isActionMenuEnabled } from 'src/libs/config'
 import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
 import { useCancellation, useOnMount } from 'src/libs/react-utils'
@@ -83,7 +84,7 @@ export const SubmissionHistory = () => {
   const lastPageIndex = firstPageIndex + itemsPerPage
   const paginatedPreviousRunSets = sortedPreviousRunSets.slice(firstPageIndex, lastPageIndex)
 
-  const rowHeight = 250
+  const rowHeight = 175
 
   return loading ? centeredSpinner() : h(Fragment, [
     Navbar('RUN WORKFLOWS WITH CROMWELL'),
@@ -122,6 +123,18 @@ export const SubmissionHistory = () => {
                 paddingTop: '1em'
               }),
               columns: [
+                ...isActionMenuEnabled() ?
+                  [{
+                    size: { basis: 100, grow: 0 },
+                    field: 'actions',
+                    headerRenderer: () => h(TextCell, ['Actions']),
+                    cellRenderer: () => {
+                      return div(
+                        { style: { textAlign: 'center' } },
+                        [icon('cardMenuIcon', { size: 24, onClick: () => { window.alert('TODO: go to actions menu') } })]
+                      )
+                    }
+                  }] : [],
                 {
                   size: { basis: 350 },
                   field: 'runset_name',
