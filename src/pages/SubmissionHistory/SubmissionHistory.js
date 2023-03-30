@@ -91,94 +91,6 @@ export const SubmissionHistory = () => {
       makeStatusLine(statusType[stateIconKey[state]].icon, stateContent[state])
     ])
   }
-  const columns = () => {
-    return [
-        {
-          size: { basis: 100, grow: 0 },
-          field: 'actions',
-          headerRenderer: () => h(TextCell, {}, ['Actions']),
-          cellRenderer: ({rowIndex}) => {
-            return h(MenuTrigger, {
-              closeOnClick: true,
-              'aria-label': 'Actions menu',
-              disabled: !isActionMenuEnabled(),
-              content: h(Fragment, [
-                h(MenuButton, { onClick: () => cancelRunSet(paginatedPreviousRunSets[rowIndex].run_set_id)}, 'Abort')
-              ])
-            }, [
-              h(Clickable, {
-                'aria-label': 'Actions selection menu',
-                //style: {size: 50},
-              },
-                [div({style: { textAlign: 'center' }},
-                  [
-                    icon('cardMenuIcon', { size: 200, onClick: () => { window.alert('TODO: go to actions menu') } })
-                  ])
-                ])
-              ])
-          }
-        },
-        {
-          size: { basis: 350 },
-          field: 'runset_name',
-          headerRenderer: () => h(Sortable, { sort, field: 'runset_name', onSort: setSort }, ['Submission name']),
-          cellRenderer: ({ rowIndex }) => {
-            return div([
-              h(
-                Link,
-                { onClick: () => { Nav.goToPath('submission-details', { submissionId: paginatedPreviousRunSets[rowIndex].run_set_id }) }, style: { fontWeight: 'bold' } },
-                [paginatedPreviousRunSets[rowIndex].run_set_name || 'No name']
-              ),
-              h(
-                TextCell,
-                { style: { display: 'block', marginTop: '1em', whiteSpace: 'normal' } },
-                [`Data used: ${paginatedPreviousRunSets[rowIndex].record_type}`]
-              ),
-              h(
-                TextCell,
-                { style: { display: 'block', marginTop: '1em', whiteSpace: 'normal' } },
-                [`${paginatedPreviousRunSets[rowIndex].run_count} workflows`]
-              )
-            ])
-          }
-        },
-      {
-        size: { basis: 200, grow: 0 },
-        field: 'state',
-        headerRenderer: () => h(Sortable, { sort, field: 'state', onSort: setSort }, ['Status']),
-        cellRenderer: ({ rowIndex }) => {
-          return stateCell(paginatedPreviousRunSets[rowIndex])
-        }
-      },
-      {
-        size: { basis: 200, grow: 0 },
-        field: 'submission_timestamp',
-        headerRenderer: () => h(Sortable, { sort, field: 'submission_timestamp', onSort: setSort }, ['Date Submitted']),
-        cellRenderer: ({ rowIndex }) => {
-          return h(TextCell, { style: { whiteSpace: 'normal' } }, [Utils.makeCompleteDate(paginatedPreviousRunSets[rowIndex].submission_timestamp)])
-        }
-      },
-      {
-        size: { basis: 175, grow: 0 },
-        field: 'duration',
-        headerRenderer: () => h(Sortable, { sort, field: 'duration', onSort: setSort }, ['Duration']),
-        cellRenderer: ({ rowIndex }) => {
-          const row = paginatedPreviousRunSets[rowIndex]
-          return h(TextCell, [Utils.customFormatDuration(getDuration(row.state, row.submission_timestamp, row.last_modified_timestamp, isRunSetInTerminalState))])
-        }
-      },
-      {
-        size: { basis: 600, grow: 0 },
-        field: 'comment',
-        headerRenderer: () => h(Sortable, { sort, field: 'comment', onSort: setSort }, ['Comment']),
-        cellRenderer: ({ rowIndex }) => {
-          return div({ style: { width: '100%', textAlign: 'left' } }, [
-            h(TextCell, { style: { whiteSpace: 'normal', fontStyle: 'italic' } }, [paginatedPreviousRunSets[rowIndex].run_set_description || 'No Description'])
-          ])
-        }
-      }
-    ]
-  }
 
   const sortedPreviousRunSets = _.orderBy(sort.field, sort.direction, runSetsData)
   const firstPageIndex = (pageNumber - 1) * itemsPerPage
@@ -189,7 +101,7 @@ export const SubmissionHistory = () => {
 
   return loading ? centeredSpinner() : h(Fragment, [
     Navbar('RUN WORKFLOWS WITH CROMWELL'),
-    div({ disabled: !isActionMenuEnabled(), style: { margin: '4em' } }, [
+    div({ style: { margin: '4em' } }, [
       div({ style: { display: 'flex', marginTop: '1rem', justifyContent: 'space-between' } }, [
         h2(['Submission History']),
         h(ButtonOutline, {
@@ -223,31 +135,31 @@ export const SubmissionHistory = () => {
                 paddingRight: '1rem',
                 paddingTop: '1em'
               }),
-              columns:
-                [
-                  {
-                  size: { basis: 100, grow: 0 },
-                  field: 'actions',
-                  headerRenderer: () => h(Sortable, { sort, field: 'actions', onSort: setSort }, ['Actions']),
-                  cellRenderer: ({ rowIndex }) => {
-                    return h(MenuTrigger, {
-                      //closeOnClick: true,
-                      'aria-label': 'Action selection menu',
-                      content: h(Fragment, [
-                        h(MenuButton, {
-                          disabled: !isActionMenuEnabled(),
-                          tooltip: !isActionMenuEnabled() && 'This feature is currently unavailable',
-                          style: { fontSize: 15 },
-                          onClick: () => { cancelRunSet(paginatedPreviousRunSets[rowIndex].run_set_id)}}, ['Abort'])
-                      ])
+              columns: [
+                ...isActionMenuEnabled() ?
+                  [{
+                    size: { basis: 100, grow: 0 },
+                    field: 'actions',
+                    headerRenderer: () => h(Sortable, { sort, field: 'actions', onSort: setSort }, ['Actions']),
+                    cellRenderer: ({ rowIndex }) => {
+                      return h(MenuTrigger, {
+                        //closeOnClick: true,
+                        'aria-label': 'Action selection menu',
+                        content: h(Fragment, [
+                          h(MenuButton, {
+                            disabled: !isActionMenuEnabled(),
+                            tooltip: !isActionMenuEnabled() && 'This feature is currently unavailable',
+                            style: { fontSize: 15 },
+                            onClick: () => { cancelRunSet(paginatedPreviousRunSets[rowIndex].run_set_id)}}, ['Abort'])
+                        ])
                       }, [
                         h(Clickable, {
                           style: { textAlign: 'center' },
                           'aria-label': 'Action selection menu',
                         }, [icon('cardMenuIcon', {size: 35})])
                       ])
-                  }
-                },
+                    }
+                  }] : [],
                 {
                   size: { basis: 350 },
                   field: 'runset_name',
