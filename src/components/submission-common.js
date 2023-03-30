@@ -192,17 +192,17 @@ export const RecordLookupSelect = props => {
   })
 }
 
-export const SelectWithWarnings = props => {
+export const WithWarnings = props => {
   const {
-    select,
-    selectedName,
+    baseComponent,
+    selectedInputName,
     warnings
   } = props
 
   return div({ style: { display: 'flex', alignItems: 'center', width: '100%', paddingTop: '0.5rem', paddingBottom: '0.5rem' } }, [
-    select,
+    baseComponent,
     ..._.map(
-      ([message, targets]) => targets.includes(selectedName) && h(TooltipTrigger, { content: message }, [
+      ([message, targets]) => targets.includes(selectedInputName) && h(TooltipTrigger, { content: message }, [
         icon('error-standard', {
           size: 14, style: { marginLeft: '0.5rem', color: colors.warning(), cursor: 'help' }
         })
@@ -294,6 +294,9 @@ export const StructBuilderLink = props => {
 }
 
 const validateRequirements = (inputSource, inputType) => {
+  console.log(`INSIDE validateRequirements - inputSource: ${JSON.stringify(inputSource)}`)
+  console.log(`INSIDE validateRequirements - inputType: ${JSON.stringify(inputType)}`)
+
   if (inputType.type === 'optional') {
     return true
   }
@@ -304,6 +307,9 @@ const validateRequirements = (inputSource, inputType) => {
     const fieldsValidated = _.map(
       field => validateRequirements(field.source, field.field_type), _.merge(inputSource.fields, inputType.fields))
     return _.every(Boolean, fieldsValidated)
+  }
+  if (inputSource.type === 'literal') {
+    return !!inputSource.parameter_value
   }
   return true
 }

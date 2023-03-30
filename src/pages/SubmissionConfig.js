@@ -191,6 +191,9 @@ export const SubmissionConfig = ({ methodId }) => {
         i => i.input_name,
         requiredInputsWithoutSource(configuredInputDefinition))
 
+      console.log(`newMissingExpectedAttributes: ${newMissingExpectedAttributes}`)
+      console.log(`newMissingRequiredInputs: ${newMissingRequiredInputs}`)
+
       setMissingExpectedAttributes(newMissingExpectedAttributes)
       setMissingRequiredInputs(newMissingRequiredInputs)
     }

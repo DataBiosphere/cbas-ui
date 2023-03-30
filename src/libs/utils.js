@@ -161,7 +161,9 @@ export const convertValue = _.curry((type, value) => {
   }
 })
 
-export const typeStyle = iotype => {
+export const isInputOptional = ioType => _.get('type', ioType) === 'optional'
+
+export const inputTypeStyle = iotype => {
   if (_.get('type', iotype) === 'optional') {
     return { fontStyle: 'italic' }
   } else {

@@ -10,11 +10,12 @@ import {
   ParameterValueTextInput,
   RecordLookupSelect,
   requiredInputsWithoutSource,
-  SelectWithWarnings,
-  StructBuilderLink
+  StructBuilderLink,
+  WithWarnings
 } from 'src/components/submission-common'
 import { FlexTable, HeaderCell, TextCell } from 'src/components/table'
 import * as Utils from 'src/libs/utils'
+import { isInputOptional } from 'src/libs/utils'
 
 
 const buildStructTypePath = indexPath => _.join('.', _.map(row => `fields.${row}.field_type`, indexPath))
@@ -123,36 +124,55 @@ export const StructBuilder = props => {
               const setInnerStructSource = source => setCurrentStructSource(_.set(sourcePath, source, currentStructSource))
               return Utils.switchCase(innerStructSource.type || 'none',
                 ['literal',
-                  () => ParameterValueTextInput({
-                    id: `structbuilder-table-attribute-select-${rowIndex}`,
-                    source: innerStructSource,
-                    setSource: setInnerStructSource
+                  () => WithWarnings({
+                    baseComponent: ParameterValueTextInput({
+                      id: `structbuilder-table-attribute-select-${rowIndex}`,
+                      source: innerStructSource,
+                      setSource: setInnerStructSource
+                    }),
+                    selectedInputName: structInputDefinition[rowIndex].name,
+                    warnings: {
+                      'This attribute is required': missingRequiredInputs
+                    }
                   })],
                 ['record_lookup',
-                  () => SelectWithWarnings({
-                    select: RecordLookupSelect({
+                  () => WithWarnings({
+                    baseComponent: RecordLookupSelect({
                       source: innerStructSource,
                       setSource: setInnerStructSource,
                       dataTableAttributes
                     }),
-                    selectedName: structInputDefinition[rowIndex].name,
+                    selectedInputName: structInputDefinition[rowIndex].name,
                     warnings: {
                       'This attribute is required': missingRequiredInputs,
                       'This attribute doesn\'t exist in the data table': missingExpectedAttributes
                     }
                   })],
                 ['object_builder',
-                  () => SelectWithWarnings({
-                    select: StructBuilderLink({
+                  () => WithWarnings({
+                    baseComponent: StructBuilderLink({
                       onClick: () => setStructIndexPath([...structIndexPath, rowIndex])
                     }),
-                    selectedName: structInputDefinition[rowIndex].name,
+                    selectedInputName: structInputDefinition[rowIndex].name,
                     warnings: {
                       'One of this struct\'s required attributes is missing': missingRequiredInputs,
                       'One of this struct\'s attributes doesn\'t exist in the data table': missingExpectedAttributes
                     }
                   })],
-                ['none', () => h(TextCell, { style: { fontStyle: 'italic' } }, ['Optional'])]
+                ['none', () => WithWarnings({
+                  baseComponent: currentStructType.fields[rowIndex].field_type === 'struct' ?
+                    StructBuilderLink({
+                      onClick: () => setStructIndexPath([...structIndexPath, rowIndex])
+                    }) : h(TextCell,
+                      { style: Utils.inputTypeStyle(currentStructType.fields[rowIndex].field_type) },
+                      [isInputOptional(currentStructType.fields[rowIndex].field_type) ? 'Optional' : 'This input is required']
+                    ),
+                  selectedInputName: structInputDefinition[rowIndex].name,
+                  warnings: {
+                    'One of this struct\'s required attributes is missing': missingRequiredInputs,
+                    'One of this struct\'s attributes doesn\'t exist in the data table': missingExpectedAttributes
+                  }
+                })]
               )
             }
           }
