@@ -48,6 +48,7 @@ jobs:
       - name: echo outputs
         run: |
           echo "${{ needs.checkout-pacts.outputs.nb-b64 }}"
+          echo "${{ needs.checkout-pacts.outputs.consumer-version }}"
 
   publish-pact-workflow:
     runs-on: ubuntu-latest
