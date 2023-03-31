@@ -16,7 +16,7 @@ jobs:
       id-token: 'write'
     outputs:
       nb-b64: ${{ steps.encode.outputs.nb-b64 }}
-      consumer-version: ${{ steps.git-sha.outputs.consumer-version }}
+      repo-branch: ${{ steps.git-sha.outputs.repo-branch }}
 
     steps:
       - name: Checkout cbas-ui repository with pacts directory
@@ -24,11 +24,11 @@ jobs:
         with:
           token: ${{ secrets.BROADBOT_TOKEN }}
       
-      - name: Get the git SHA and use it as the consumer-version
+      - name: Get the git SHA and use it as the repo-branch
         id: git-sha
         run: |
-          CONSUMER_VERSION=$(git rev-parse HEAD)
-          echo "consumer-version=${CONSUMER_VERSION}" >> $GITHUB_OUTPUT
+          CONSUMER_VERSION=$(git rev-parse --abbrev-ref HEAD)
+          echo "repo-branch=${CONSUMER_VERSION}" >> $GITHUB_OUTPUT
           echo $CONSUMER_VERSION
 
       - name: Encode the pact as non-breaking base 64 string
@@ -50,7 +50,7 @@ jobs:
       - name: echo outputs
         run: |
           echo "nb-b64: ${{ needs.checkout-pacts.outputs.nb-b64 }}"
-          echo "consumer-version: ${{ needs.checkout-pacts.outputs.consumer-version }}"
+          echo "repo-branch: ${{ needs.checkout-pacts.outputs.repo-branch }}"
 
   publish-pact-workflow:
     runs-on: ubuntu-latest
@@ -62,8 +62,8 @@ jobs:
       - name: dispatch to terra-github-workflows
         uses: aurelien-baudet/workflow-dispatch@93e95b157d791ae7f42aef8f8a0d3d723eba1c31 #commit sha for v2.1.1
         with:
-          workflow: publish-pacts.yaml
+          workflow: publish-contracts.yaml
           repo: broadinstitute/terra-github-workflows
           ref: refs/heads/main
           token: ${{ secrets.BROADBOT_TOKEN}} # github token for access to kick off a job in the private repo
-          inputs: '{ "consumer-name": "cbas-ui", "consumer-version": "${{ needs.checkout-pacts.outputs.consumer-version }}", "provider-name": "cbas", "pact-b64": "${{ needs.checkout-pacts.outputs.nb-b64 }}" }'
+          inputs: '{ "pact-b64": "${{ needs.checkout-pacts.outputs.nb-b64 }}", "repo-owner": "dsp workflow management", "repo-name": "cbas-ui", "repo-branch": "${{ needs.checkout-pacts.outputs.repo-branch }}" }'
