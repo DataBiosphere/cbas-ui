@@ -1,0 +1,211 @@
+{
+  "consumer": {
+    "name": "cbas-ui"
+  },
+  "interactions": [
+    {
+      "description": "get workflow metadata by workflowId",
+      "providerStates": [
+        {
+          "name": "workflow 637ce42e-5390-49bb-a6a8-1775b8d62980 exists"
+        }
+      ],
+      "request": {
+        "headers": {
+          "Accept": "*/*"
+        },
+        "method": "GET",
+        "path": "/api/workflows/v1/637ce42e-5390-49bb-a6a8-1775b8d62980/metadata",
+        "query": {
+          "includeKey[includeKey]": [
+            "end",
+            "executionStatus",
+            "failures",
+            "start",
+            "status",
+            "submittedFiles:workflow",
+            "workflowLog",
+            "workflowRoot",
+            "callCaching:result",
+            "callCaching:effectiveCallCachingMode",
+            "backendStatus"
+          ]
+        }
+      },
+      "response": {
+        "body": {
+          "actualWorkflowLanguage": "WDL",
+          "actualWorkflowLanguageVersion": "1.0",
+          "calls": {
+            "fetch_sra_to_bam.Fetch_SRA_to_BAM": [
+              {
+                "attempt": 1,
+                "backend": "Local",
+                "backendStatus": "Done",
+                "callCaching": {
+                  "allowResultReuse": false,
+                  "effectiveCallCachingMode": "CallCachingOff"
+                },
+                "callRoot": "/Users/mspector/projects/cromwell/cromwell-executions/fetch_sra_to_bam/637ce42e-5390-49bb-a6a8-1775b8d62980/call-Fetch_SRA_to_BAM",
+                "commandLine": "set -e\n# fetch SRA metadata on this record\nesearch -db sra -q \"ERR4868270\" | efetch -mode json -json > SRA.json\ncp SRA.json \"ERR4868270.json\"\n\n# pull reads from SRA and make a fully annotated BAM -- must succeed\nCENTER=$(jq -r .EXPERIMENT_PACKAGE_SET.EXPERIMENT_PACKAGE.SUBMISSION.center_name SRA.json)\nPLATFORM=$(jq -r '.EXPERIMENT_PACKAGE_SET.EXPERIMENT_PACKAGE.EXPERIMENT.PLATFORM | keys[] as $k | \"\\($k)\"' SRA.json)\nMODEL=$(jq -r \".EXPERIMENT_PACKAGE_SET.EXPERIMENT_PACKAGE.EXPERIMENT.PLATFORM.$PLATFORM.INSTRUMENT_MODEL\" SRA.json)\nSAMPLE=$(jq -r '.EXPERIMENT_PACKAGE_SET.EXPERIMENT_PACKAGE.SAMPLE.IDENTIFIERS.EXTERNAL_ID|select(.namespace == \"BioSample\")|.content' SRA.json)\nLIBRARY=$(jq -r .EXPERIMENT_PACKAGE_SET.EXPERIMENT_PACKAGE.EXPERIMENT.alias SRA.json)\nRUNDATE=$(jq -r '.EXPERIMENT_PACKAGE_SET.EXPERIMENT_PACKAGE.RUN_SET.RUN.SRAFiles|if (.SRAFile|type) == \"object\" then .SRAFile.date else [.SRAFile[]|select(.supertype == \"Original\")][0].date end' SRA.json | cut -f 1 -d ' ')\n\nif [ \"$PLATFORM\" = \"OXFORD_NANOPORE\" ]; then\n    # per the SAM/BAM specification\n    SAM_PLATFORM=\"ONT\"\nelse\n    SAM_PLATFORM=\"$PLATFORM\"\nfi\n\nsam-dump --unaligned --header \"ERR4868270\" \\\n    | samtools view -bhS - \\\n    > temp.bam\npicard AddOrReplaceReadGroups \\\n    I=temp.bam \\\n    O=\"ERR4868270.bam\" \\\n    RGID=1 \\\n    RGLB=\"$LIBRARY\" \\\n    RGSM=\"$SAMPLE\" \\\n    RGPL=\"$SAM_PLATFORM\" \\\n    RGPU=\"$LIBRARY\" \\\n    RGPM=\"$MODEL\" \\\n    RGDT=\"$RUNDATE\" \\\n    RGCN=\"$CENTER\" \\\n    VALIDATION_STRINGENCY=SILENT\nrm temp.bam\nsamtools view -H \"ERR4868270.bam\"\n\n# emit numeric WDL outputs\necho $CENTER > OUT_CENTER\necho $PLATFORM > OUT_PLATFORM\necho $SAMPLE > OUT_BIOSAMPLE\necho $LIBRARY > OUT_LIBRARY\necho $RUNDATE > OUT_RUNDATE\nsamtools view -c \"ERR4868270.bam\" | tee OUT_NUM_READS\n\n# pull other metadata from SRA -- allow for silent failures here!\ntouch OUT_MODEL OUT_COLLECTION_DATE OUT_STRAIN OUT_COLLECTED_BY OUT_GEO_LOC\nset +e\njq -r \\\n    .EXPERIMENT_PACKAGE_SET.EXPERIMENT_PACKAGE.EXPERIMENT.PLATFORM.\"$PLATFORM\".INSTRUMENT_MODEL \\\n    SRA.json | tee OUT_MODEL\njq -r \\\n    '.EXPERIMENT_PACKAGE_SET.EXPERIMENT_PACKAGE.SAMPLE.SAMPLE_ATTRIBUTES.SAMPLE_ATTRIBUTE[]|select(.TAG == \"collection_date\" or .TAG==\"collection date\")|.VALUE' \\\n    SRA.json | tee OUT_COLLECTION_DATE\njq -r \\\n    '.EXPERIMENT_PACKAGE_SET.EXPERIMENT_PACKAGE.SAMPLE.SAMPLE_ATTRIBUTES.SAMPLE_ATTRIBUTE[]|select(.TAG == \"strain\")|.VALUE' \\\n    SRA.json | tee OUT_STRAIN\njq -r \\\n    '.EXPERIMENT_PACKAGE_SET.EXPERIMENT_PACKAGE.SAMPLE.SAMPLE_ATTRIBUTES.SAMPLE_ATTRIBUTE[]|select(.TAG == \"collected_by\" or .TAG == \"collecting institution\")|.VALUE' \\\n    SRA.json | tee OUT_COLLECTED_BY\njq -r \\\n    '.EXPERIMENT_PACKAGE_SET.EXPERIMENT_PACKAGE.SAMPLE.SAMPLE_ATTRIBUTES.SAMPLE_ATTRIBUTE[]|select(.TAG == \"geo_loc_name\" or .TAG == \"geographic location (country and/or sea)\")|.VALUE' \\\n    SRA.json | tee OUT_GEO_LOC\njq -r \\\n    '.EXPERIMENT_PACKAGE_SET.EXPERIMENT_PACKAGE.EXPERIMENT.DESIGN.LIBRARY_DESCRIPTOR.LIBRARY_STRATEGY' \\\n    SRA.json | tee OUT_LIBRARY_STRATEGY\n\nset -e\npython3 << CODE\nimport json\nwith open('SRA.json', 'rt') as inf:\n    meta = json.load(inf)\n# reorganize to look more like a biosample attributes tsv\nbiosample = dict((x['TAG'],x['VALUE']) for x in meta['EXPERIMENT_PACKAGE_SET']['EXPERIMENT_PACKAGE']['SAMPLE']['SAMPLE_ATTRIBUTES']['SAMPLE_ATTRIBUTE'])\nbiosample['accession'] = meta['EXPERIMENT_PACKAGE_SET']['EXPERIMENT_PACKAGE']['SAMPLE']['IDENTIFIERS']['EXTERNAL_ID']['content']\nbiosample['message'] = 'Successfully loaded'\nbiosample['bioproject_accession'] = meta['EXPERIMENT_PACKAGE_SET']['EXPERIMENT_PACKAGE']['STUDY']['IDENTIFIERS']['EXTERNAL_ID']['content']\nbiosample['sample_name'] = biosample['isolate']\nfor k,v in biosample.items():\n    if v == 'not provided':\n        biosample[k] = ''\n\n# British to American conversions (NCBI vs ENA)\nus_to_uk = {\n    'sample_name': 'Sample Name',\n    'isolate': 'Sample Name',\n    'collected_by': 'collecting institution',\n    'collection_date': 'collection date',\n    'geo_loc_name': 'geographic location (country and/or sea)',\n    'host': 'host scientific name',\n}\nfor key_us, key_uk in us_to_uk.items():\n    if not biosample.get(key_us,''):\n        biosample[key_us] = biosample.get(key_uk,'')\n\n# write outputs\nwith open('ERR4868270-biosample_attributes.json', 'wt') as outf:\n    json.dump(biosample, outf)\nCODE",
+                "compressedDockerSize": 1339143280,
+                "dockerImageUsed": "quay.io/broadinstitute/ncbi-tools@sha256:c6228528a9fa7d3abd78d40821231ec49c122f8c10bb27ae603540c46fc05797",
+                "end": "2023-02-24T21:34:19.776Z",
+                "executionEvents": [
+                  {
+                    "description": "PreparingJob",
+                    "endTime": "2023-02-24T21:32:13.583Z",
+                    "startTime": "2023-02-24T21:32:12.779Z"
+                  },
+                  {
+                    "description": "UpdatingJobStore",
+                    "endTime": "2023-02-24T21:34:19.777Z",
+                    "startTime": "2023-02-24T21:34:18.639Z"
+                  },
+                  {
+                    "description": "Pending",
+                    "endTime": "2023-02-24T21:32:08.546Z",
+                    "startTime": "2023-02-24T21:32:08.538Z"
+                  },
+                  {
+                    "description": "RunningJob",
+                    "endTime": "2023-02-24T21:34:18.639Z",
+                    "startTime": "2023-02-24T21:32:13.583Z"
+                  },
+                  {
+                    "description": "WaitingForValueStore",
+                    "endTime": "2023-02-24T21:32:12.779Z",
+                    "startTime": "2023-02-24T21:32:12.772Z"
+                  },
+                  {
+                    "description": "RequestingExecutionToken",
+                    "endTime": "2023-02-24T21:32:12.772Z",
+                    "startTime": "2023-02-24T21:32:08.546Z"
+                  }
+                ],
+                "executionStatus": "Done",
+                "inputs": {
+                  "SRA_ID": "ERR4868270",
+                  "disk_size": 750,
+                  "docker": "quay.io/broadinstitute/ncbi-tools:2.10.7.10",
+                  "machine_mem_gb": null
+                },
+                "jobId": "45367",
+                "outputs": {
+                  "biosample_accession": "SAMEA7612766",
+                  "biosample_attributes_json": "/Users/mspector/projects/cromwell/cromwell-executions/fetch_sra_to_bam/637ce42e-5390-49bb-a6a8-1775b8d62980/call-Fetch_SRA_to_BAM/execution/ERR4868270-biosample_attributes.json",
+                  "library_id": "COG-UK/CAMB-1B8D87/CAMB:20201106_2020_X5_FAO13851_8f36dbb7",
+                  "library_strategy": "AMPLICON",
+                  "num_reads": 96323,
+                  "reads_ubam": "/Users/mspector/projects/cromwell/cromwell-executions/fetch_sra_to_bam/637ce42e-5390-49bb-a6a8-1775b8d62980/call-Fetch_SRA_to_BAM/execution/ERR4868270.bam",
+                  "run_date": "2022-06-17",
+                  "sample_collected_by": "Department of Pathology, University of Cambridge",
+                  "sample_collection_date": "2020-10-31",
+                  "sample_geo_loc": "United Kingdom",
+                  "sample_strain": "",
+                  "sequencing_center": "Department of Pathology, University of Cambridge",
+                  "sequencing_platform": "OXFORD_NANOPORE",
+                  "sequencing_platform_model": "GridION",
+                  "sra_metadata": "/Users/mspector/projects/cromwell/cromwell-executions/fetch_sra_to_bam/637ce42e-5390-49bb-a6a8-1775b8d62980/call-Fetch_SRA_to_BAM/execution/ERR4868270.json"
+                },
+                "returnCode": 0,
+                "runtimeAttributes": {
+                  "continueOnReturnCode": "0",
+                  "docker": "quay.io/broadinstitute/ncbi-tools:2.10.7.10",
+                  "failOnStderr": "false",
+                  "maxRetries": "2"
+                },
+                "shardIndex": -1,
+                "start": "2023-02-24T21:32:08.529Z",
+                "stderr": "/Users/mspector/projects/cromwell/cromwell-executions/fetch_sra_to_bam/637ce42e-5390-49bb-a6a8-1775b8d62980/call-Fetch_SRA_to_BAM/execution/stderr",
+                "stdout": "/Users/mspector/projects/cromwell/cromwell-executions/fetch_sra_to_bam/637ce42e-5390-49bb-a6a8-1775b8d62980/call-Fetch_SRA_to_BAM/execution/stdout"
+              }
+            ]
+          },
+          "end": "2023-02-24T21:34:21.344Z",
+          "id": "637ce42e-5390-49bb-a6a8-1775b8d62980",
+          "inputs": {
+            "fetch_sra_to_bam.Fetch_SRA_to_BAM.SRA_ID": "ERR4868270",
+            "fetch_sra_to_bam.Fetch_SRA_to_BAM.docker": "quay.io/broadinstitute/ncbi-tools:2.10.7.10",
+            "fetch_sra_to_bam.Fetch_SRA_to_BAM.machine_mem_gb": null
+          },
+          "labels": {
+            "cromwell-workflow-id": "cromwell-637ce42e-5390-49bb-a6a8-1775b8d62980"
+          },
+          "outputs": {
+            "fetch_sra_to_bam.biosample_accession": "SAMEA7612766",
+            "fetch_sra_to_bam.library_id": "COG-UK/CAMB-1B8D87/CAMB:20201106_2020_X5_FAO13851_8f36dbb7",
+            "fetch_sra_to_bam.reads_ubam": "/Users/mspector/projects/cromwell/cromwell-executions/fetch_sra_to_bam/637ce42e-5390-49bb-a6a8-1775b8d62980/call-Fetch_SRA_to_BAM/execution/ERR4868270.bam",
+            "fetch_sra_to_bam.run_date": "2022-06-17",
+            "fetch_sra_to_bam.sample_collected_by": "Department of Pathology, University of Cambridge",
+            "fetch_sra_to_bam.sample_collection_date": "2020-10-31",
+            "fetch_sra_to_bam.sample_geo_loc": "United Kingdom",
+            "fetch_sra_to_bam.sample_strain": "",
+            "fetch_sra_to_bam.sequencing_center": "Department of Pathology, University of Cambridge",
+            "fetch_sra_to_bam.sequencing_platform": "OXFORD_NANOPORE",
+            "fetch_sra_to_bam.sequencing_platform_model": "GridION",
+            "fetch_sra_to_bam.sra_metadata": "/Users/mspector/projects/cromwell/cromwell-executions/fetch_sra_to_bam/637ce42e-5390-49bb-a6a8-1775b8d62980/call-Fetch_SRA_to_BAM/execution/ERR4868270.json"
+          },
+          "start": "2023-02-24T21:32:05.145Z",
+          "status": "Succeeded",
+          "submission": "2023-02-24T21:32:03.576Z",
+          "submittedFiles": {
+            "inputs": "{\"fetch_sra_to_bam.Fetch_SRA_to_BAM.SRA_ID\":\"ERR4868270\"}",
+            "labels": "{}",
+            "options": "{\n\n}",
+            "root": "",
+            "workflow": "version 1.0\n\nimport \"../tasks/tasks_ncbi_tools.wdl\" as ncbi_tools\n\nworkflow fetch_sra_to_bam {\n    meta {\n        description: \"Retrieve reads from the NCBI Short Read Archive in unaligned BAM format with relevant metadata encoded.\"\n        author: \"Broad Viral Genomics\"\n        email:  \"viral-ngs@broadinstitute.org\"\n        allowNestedInputs: true\n    }\n\n    call ncbi_tools.Fetch_SRA_to_BAM\n\n    output {\n        File   reads_ubam                = Fetch_SRA_to_BAM.reads_ubam\n        String sequencing_center         = Fetch_SRA_to_BAM.sequencing_center\n        String sequencing_platform       = Fetch_SRA_to_BAM.sequencing_platform\n        String sequencing_platform_model = Fetch_SRA_to_BAM.sequencing_platform_model\n        String biosample_accession       = Fetch_SRA_to_BAM.biosample_accession\n        String library_id                = Fetch_SRA_to_BAM.library_id\n        String run_date                  = Fetch_SRA_to_BAM.run_date\n        String sample_collection_date    = Fetch_SRA_to_BAM.sample_collection_date\n        String sample_collected_by       = Fetch_SRA_to_BAM.sample_collected_by\n        String sample_strain             = Fetch_SRA_to_BAM.sample_strain\n        String sample_geo_loc            = Fetch_SRA_to_BAM.sample_geo_loc\n        File   sra_metadata              = Fetch_SRA_to_BAM.sra_metadata\n    }\n}\n",
+            "workflowUrl": "https://raw.githubusercontent.com/broadinstitute/viral-pipelines/master/pipes/WDL/workflows/fetch_sra_to_bam.wdl"
+          },
+          "workflowName": "fetch_sra_to_bam",
+          "workflowProcessingEvents": [
+            {
+              "cromwellId": "cromid-b2ab080",
+              "cromwellVersion": "85-60c2c86-SNAP",
+              "description": "Finished",
+              "timestamp": "2023-02-24T21:34:21.344Z"
+            },
+            {
+              "cromwellId": "cromid-b2ab080",
+              "cromwellVersion": "85-60c2c86-SNAP",
+              "description": "PickedUp",
+              "timestamp": "2023-02-24T21:32:05.088Z"
+            }
+          ],
+          "workflowRoot": "/Users/mspector/projects/cromwell/cromwell-executions/fetch_sra_to_bam/637ce42e-5390-49bb-a6a8-1775b8d62980"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "matchingRules": {
+          "body": {
+            "$": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          }
+        },
+        "status": 200
+      }
+    }
+  ],
+  "metadata": {
+    "pact-js": {
+      "version": "10.2.2"
+    },
+    "pactRust": {
+      "ffi": "0.3.15",
+      "models": "1.0.1"
+    },
+    "pactSpecification": {
+      "version": "3.0.0"
+    }
+  },
+  "provider": {
+    "name": "cromwell"
+  }
+}

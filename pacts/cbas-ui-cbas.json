@@ -4,6 +4,136 @@
   },
   "interactions": [
     {
+      "description": "get run set with ID 00000000-0000-0000-0000-000000000000",
+      "providerStates": [
+        {
+          "name": "at_least_one_run_exists"
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/batch/v1/runs",
+        "query": {
+          "run_set_id": [
+            "00000000-0000-0000-0000-000000000000"
+          ]
+        }
+      },
+      "response": {
+        "body": {
+          "runs": [
+            {
+              "engine_id": "637ce42e-5390-49bb-a6a8-1775b8d62980",
+              "last_modified_timestamp": "2023-02-24T21:32:03.656+00:00",
+              "record_id": "ERR4868270",
+              "run_id": "6ad0568c-61be-4339-b458-89bca258316f",
+              "run_set_id": "00000000-0000-0000-0000-000000000000",
+              "state": "RUNNING",
+              "submission_date": "2023-02-24T21:32:03.656+00:00",
+              "workflow_outputs": "[{...}]",
+              "workflow_params": "[{...}]",
+              "workflow_url": "https://raw.githubusercontent.com/broadinstitute/viral-pipelines/master/pipes/WDL/workflows/fetch_sra_to_bam.wdl"
+            }
+          ]
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "matchingRules": {
+          "body": {
+            "$.runs[0].engine_id": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"
+                }
+              ]
+            },
+            "$.runs[0].last_modified_timestamp": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "timestamp",
+                  "timestamp": "yyyy-MM-dd'T'HH:mm:ss.SSSXXX"
+                }
+              ]
+            },
+            "$.runs[0].record_id": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.runs[0].run_id": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"
+                }
+              ]
+            },
+            "$.runs[0].run_set_id": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"
+                }
+              ]
+            },
+            "$.runs[0].state": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "RUNNING|COMPLETE"
+                }
+              ]
+            },
+            "$.runs[0].submission_date": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "timestamp",
+                  "timestamp": "yyyy-MM-dd'T'HH:mm:ss.SSSXXX"
+                }
+              ]
+            },
+            "$.runs[0].workflow_outputs": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.runs[0].workflow_params": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.runs[0].workflow_url": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "https://.*"
+                }
+              ]
+            }
+          }
+        },
+        "status": 200
+      }
+    },
+    {
       "description": "get run set with ID 00000000-00000000-00000000-00000000",
       "providerStates": [
         {
