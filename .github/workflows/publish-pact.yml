@@ -3,10 +3,6 @@ name: Publish pacts to the Pact Broker
 on:
   workflow_dispatch:
     inputs:
-      consumer-version:
-        description: 'The consumer version that generated the pact file. Should either be or contain the commit (ie the git SHA)'
-        required: true
-        type: string
       pact-file:
         description: 'Name of a Pact file in the /pacts directory'
         required: true
@@ -26,6 +22,12 @@ jobs:
         uses: actions/checkout@v2
         with:
           token: ${{ secrets.BROADBOT_TOKEN }}
+      - name: Get the git SHA and use it as the consumer-version
+        id: git-sha
+        run: |
+          CONSUMER_VERSION=$(git rev-parse HEAD)
+          echo "consumer-version=${CONSUMER_VERSION}" >> $GITHUB_OUTPUT
+          echo $CONSUMER_VERSION
 
       - name: Encode the pact as non-breaking base 64 string
         id: encode
@@ -35,6 +37,7 @@ jobs:
           NON_BREAKING_B64=$(cat $PACT_FULL_PATH | base64 -w 0)
           echo "nb-b64=${NON_BREAKING_B64}" >> $GITHUB_OUTPUT
           echo $NON_BREAKING_B64
+
   debug:
     runs-on: ubuntu-latest
     needs: [checkout-pacts]
@@ -60,4 +63,4 @@ jobs:
           repo: broadinstitute/terra-github-workflows
           ref: refs/heads/main
           token: ${{ secrets.BROADBOT_TOKEN}} # github token for access to kick off a job in the private repo
-          inputs: '{ "consumer-name": "cbas-ui", "consumer-version": "${{ inputs.consumer-version }}", "provider-name": "cbas", "pact-b64": "${{ needs.checkout-pacts.outputs.nb-b64 }}" }'
+          inputs: '{ "consumer-name": "cbas-ui", "consumer-version": "${{ needs.checkout-pacts.outputs.consumer-version }}", "provider-name": "cbas", "pact-b64": "${{ needs.checkout-pacts.outputs.nb-b64 }}" }'
