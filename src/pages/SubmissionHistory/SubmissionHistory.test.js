@@ -377,7 +377,6 @@ describe('Actions column', () => {
     await act(async () => {
       const actionsMenu = within(cellsFromDataRow1[0]).getByRole('button')
       await selectEvent.openMenu(actionsMenu)
-      screen.debug(undefined, 30000)
       expect(actionsMenu).toHaveTextContent('Abort')
     })
   })
