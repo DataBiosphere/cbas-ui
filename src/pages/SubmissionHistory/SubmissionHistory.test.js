@@ -16,7 +16,7 @@ jest.mock('src/libs/notifications.js')
 
 jest.mock('src/libs/config', () => ({
   ...jest.requireActual('src/libs/config'),
-  getConfig: jest.fn().mockReturnValue({}),
+  getConfig: jest.fn().mockReturnValue({})
 }))
 
 jest.mock('src/components/PopupTrigger', () => {
@@ -88,7 +88,6 @@ afterAll(() => {
 // Note: Since the timestamps in the data is being converted to Local timezone, it returns different time when the tests
 //       are run locally and in GitHub action. Hence everywhere in this file we are verifying only the date format for now.
 describe('SubmissionHistory page', () => {
-
   const headerPosition = {
     Submission: 0,
     Status: 1,
@@ -356,7 +355,6 @@ describe('Actions column', () => {
   it('Shows Actions column on table', async () => {
     await act(async () => {
       await render(h(SubmissionHistory))
-
     })
 
     const table = screen.getByRole('table')
@@ -365,10 +363,8 @@ describe('Actions column', () => {
   })
 
   it('Gives abort option for actions button', async () => {
-
     await act(async () => {
       await render(h(SubmissionHistory))
-
     })
 
     const table = screen.getByRole('table')
