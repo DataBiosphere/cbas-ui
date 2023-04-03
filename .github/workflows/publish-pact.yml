@@ -2,7 +2,7 @@ name: Publish pacts to the Pact Broker
 
 on:
   workflow_dispatch:
-    
+
 jobs:
   checkout-pacts:
     runs-on: ubuntu-latest
@@ -42,7 +42,7 @@ jobs:
       - name: Encode the pact as non-breaking base 64 string
         id: encode
         env:
-          PACT_FULL_PATH: 'pacts/cbas-ui-cbas.json'
+          PACT_FULL_PATH: 'pacts/cbas-ui-cbas.json'  # this is a temporary hack until WM-XXX is done.
         run: |
           NON_BREAKING_B64=$(cat $PACT_FULL_PATH | base64 -w 0)
           echo "nb-b64=${NON_BREAKING_B64}" >> $GITHUB_OUTPUT

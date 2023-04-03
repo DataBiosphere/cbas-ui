@@ -31,7 +31,7 @@ const cbasPact = new PactV3({
 })
 
 describe('Ajax tests', () => {
-  it('should get back a run set with id 00000000-0000-0000-0000-000000000000', async () => {
+  it('should get back a run with id 00000000-0000-0000-0000-000000000000', async () => {
     // ARRANGE
     const mockedResponses = {
       'GET runs?run_set_id=00000000-0000-0000-0000-000000000000': {
