@@ -2,18 +2,16 @@ import _ from 'lodash/fp'
 import { useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
-import { icon } from 'src/components/icons'
 import { StructBuilderModal } from 'src/components/StructBuilder'
 import {
   InputSourceSelect,
   ParameterValueTextInput,
   parseMethodString,
   RecordLookupSelect,
+  SelectWithWarnings,
   StructBuilderLink
 } from 'src/components/submission-common'
 import { FlexTable, HeaderCell, Sortable, TextCell } from 'src/components/table'
-import TooltipTrigger from 'src/components/TooltipTrigger'
-import colors from 'src/libs/colors'
 import * as Utils from 'src/libs/utils'
 
 
@@ -45,35 +43,32 @@ const InputsTable = props => {
   )(configuredInputDefinition)
 
   const recordLookupWithWarnings = rowIndex => {
-    const currentInputName = _.get(`${rowIndex}.input_name`, inputTableData)
+    const selectedName = _.get(`${rowIndex}.input_name`, inputTableData)
+    const source = _.get(`${inputTableData[rowIndex].configurationIndex}.source`, configuredInputDefinition)
+    const setSource = source => {
+      setConfiguredInputDefinition(
+        _.set(`${inputTableData[rowIndex].configurationIndex}.source`, source, configuredInputDefinition))
+    }
 
-    return div({ style: { display: 'flex', alignItems: 'center', width: '100%', paddingTop: '0.5rem', paddingBottom: '0.5rem' } }, [
-      RecordLookupSelect({
-        source: _.get(`${inputTableData[rowIndex].configurationIndex}.source`, configuredInputDefinition),
-        dataTableAttributes,
-        updateSource: source => {
-          setConfiguredInputDefinition(
-            _.set(`${inputTableData[rowIndex].configurationIndex}.source`, source, configuredInputDefinition))
-        }
+    return SelectWithWarnings({
+      select: RecordLookupSelect({
+        source,
+        setSource,
+        dataTableAttributes
       }),
-      missingRequiredInputs.includes(currentInputName) && h(TooltipTrigger, { content: 'This attribute is required' }, [
-        icon('error-standard', {
-          size: 14, style: { marginLeft: '0.5rem', color: colors.warning(), cursor: 'help' }
-        })
-      ]),
-      missingExpectedAttributes.includes(currentInputName) && h(TooltipTrigger, { content: 'This attribute doesn\'t exist in data table' }, [
-        icon('error-standard', {
-          size: 14, style: { marginLeft: '0.5rem', color: colors.warning(), cursor: 'help' }
-        })
-      ])
-    ])
+      selectedName,
+      warnings: {
+        'This attribute is required': missingRequiredInputs,
+        'This attribute doesn\'t exist in data table': missingExpectedAttributes
+      }
+    })
   }
 
   const parameterValueSelect = rowIndex => {
     return ParameterValueTextInput({
       id: `input-table-value-select-${rowIndex}`,
       source: _.get(`${inputTableData[rowIndex].configurationIndex}.source`, configuredInputDefinition),
-      updateSource: source => {
+      setSource: source => {
         setConfiguredInputDefinition(
           _.set(`${inputTableData[rowIndex].configurationIndex}.source`, source, configuredInputDefinition))
       }
@@ -81,11 +76,19 @@ const InputsTable = props => {
   }
 
   const structBuilderLink = rowIndex => {
-    return h(StructBuilderLink, {
-      structBuilderVisible,
-      onClick: () => {
-        setStructBuilderVisible(true)
-        setStructBuilderRow(rowIndex)
+    const selectedName = _.get(`${rowIndex}.input_name`, inputTableData)
+    return SelectWithWarnings({
+      select: h(StructBuilderLink, {
+        structBuilderVisible,
+        onClick: () => {
+          setStructBuilderVisible(true)
+          setStructBuilderRow(rowIndex)
+        }
+      }),
+      selectedName,
+      warnings: {
+        'One of this struct\'s required attributes is missing': missingRequiredInputs,
+        'One of this struct\'s attributes doesn\'t exist in the data table': missingExpectedAttributes
       }
     })
   }
@@ -143,7 +146,7 @@ const InputsTable = props => {
               return InputSourceSelect({
                 source: _.get('source', inputTableData[rowIndex]),
                 inputType: _.get('input_type', inputTableData[rowIndex]),
-                updateSource: source => setConfiguredInputDefinition(
+                setSource: source => setConfiguredInputDefinition(
                   _.set(`[${inputTableData[rowIndex].configurationIndex}].source`, source, configuredInputDefinition))
               })
             }
