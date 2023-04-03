@@ -44,4 +44,4 @@ export const fetchOk = _.flow(withInstrumentation, withCancellation, withErrorRe
 export const fetchCbas = withUrlPrefix(`${getConfig().cbasUrlRoot}/api/batch/v1/`, fetchOk)
 export const fetchCromwell = withUrlPrefix(`${getConfig().cromwellUrlRoot}/api/workflows/v1/`, fetchOk)
 export const fetchLeo = withUrlPrefix(`${getConfig().leoUrlRoot}/`, fetchOk) // TODO: How to add this config to Cromwhelm?
-export const fetchWds = withUrlPrefix(`${getConfig().wdsUrlRoot}/`, fetchOk)
+export const fetchWds = wdsUrlRoot => withUrlPrefix(`${wdsUrlRoot}/`, fetchOk)
