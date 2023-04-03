@@ -88,6 +88,10 @@ afterAll(() => {
 // Note: Since the timestamps in the data is being converted to Local timezone, it returns different time when the tests
 //       are run locally and in GitHub action. Hence everywhere in this file we are verifying only the date format for now.
 describe('SubmissionHistory page', () => {
+  beforeEach(() => {
+    getConfig.mockReturnValue({ isActionMenuEnabled: false })
+  })
+
   const headerPosition = {
     Submission: 0,
     Status: 1,
