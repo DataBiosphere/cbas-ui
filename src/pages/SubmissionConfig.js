@@ -183,8 +183,6 @@ export const SubmissionConfig = ({ methodId }) => {
       const selectedDataTable = _.keyBy('name', recordTypes)[records[0].type]
       const dataTableAttributes = _.keyBy('name', selectedDataTable.attributes)
 
-      console.log(`INSIDE useEffect input validation - configuredInputDefinition: ${JSON.stringify(configuredInputDefinition)}`)
-
       const newMissingExpectedAttributes = _.map(
         i => i.input_name,
         inputsMissingRequiredAttributes(configuredInputDefinition, dataTableAttributes))
@@ -192,9 +190,6 @@ export const SubmissionConfig = ({ methodId }) => {
       const newMissingRequiredInputs = _.map(
         i => i.input_name,
         requiredInputsWithoutSource(configuredInputDefinition))
-
-      console.log(`newMissingExpectedAttributes: ${newMissingExpectedAttributes}`)
-      console.log(`newMissingRequiredInputs: ${newMissingRequiredInputs}`)
 
       setMissingExpectedAttributes(newMissingExpectedAttributes)
       setMissingRequiredInputs(newMissingRequiredInputs)

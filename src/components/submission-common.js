@@ -289,9 +289,6 @@ export const StructBuilderLink = props => {
 }
 
 const validateRequirements = (inputSource, inputType) => {
-  console.log(`INSIDE validateRequirements - inputSource: ${JSON.stringify(inputSource)}`)
-  console.log(`INSIDE validateRequirements - inputType: ${JSON.stringify(inputType)}`)
-
   if (inputType.type === 'optional') {
     return true
   }
@@ -323,9 +320,6 @@ const validateRecordLookups = (source, recordAttributes) => {
       return false
     }
     if (source.type === 'object_builder') {
-      console.log(`INSIDE validateRecordLookups INSIDE object_builder type - source: ${JSON.stringify(source)}`)
-      console.log(`INSIDE validateRecordLookups INSIDE object_builder type - source.fields: ${JSON.stringify(source.fields)}`)
-
       if (source.fields) {
         const fieldsValidated = _.map(field => field && validateRecordLookups(field.source, recordAttributes), source.fields)
         return _.every(Boolean, fieldsValidated)

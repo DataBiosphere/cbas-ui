@@ -54,16 +54,6 @@ export const StructBuilder = props => {
   const missingExpectedAttributes = _.map(i => i.field_name, inputsMissingRequiredAttributes(structInputDefinition, dataTableAttributes))
   const missingRequiredInputs = _.map(i => i.field_name, requiredInputsWithoutSource(structInputDefinition))
 
-  console.log(`StructBuilder currentStructName: ${currentStructName}`)
-  console.log(`StructBuilder currentStructType: ${JSON.stringify(currentStructType)}`)
-  console.log(`StructBuilder structSource: ${JSON.stringify(structSource)}`)
-  console.log(`StructBuilder structSourcePath: ${JSON.stringify(structSourcePath)}`)
-  console.log(`StructBuilder currentStructSource: ${JSON.stringify(currentStructSource)}`)
-  console.log(`StructBuilder structInputDefinition: ${JSON.stringify(structInputDefinition)}`)
-
-  console.log(`StructBuilder missingExpectedAttributes: ${missingExpectedAttributes}`)
-  console.log(`StructBuilder missingRequiredInputs: ${missingRequiredInputs}`)
-
   const breadcrumbsHeight = 35
   return h(div, { 'aria-label': 'struct-breadcrumbs', style: { height: 500 } }, [
     h(div, {
@@ -143,19 +133,14 @@ export const StructBuilder = props => {
                     warningMessage: missingRequiredInputs.includes(structInputDefinition[rowIndex].field_name) ? 'This attribute is required' : ''
                   })],
                 ['record_lookup',
-                  () => {
-                    console.log(`structInputDefinition in RecordLookupSelect: ${JSON.stringify(structInputDefinition[rowIndex])}`)
-                    console.log(`selectedInputName in RecordLookupSelect: ${structInputDefinition[rowIndex].name}`)
-                    console.log(`NEW selectedInputName in RecordLookupSelect: ${structInputDefinition[rowIndex].field_name}`)
-                    return WithWarnings({
-                      baseComponent: RecordLookupSelect({
-                        source: innerStructSource,
-                        setSource: setInnerStructSource,
-                        dataTableAttributes
-                      }),
-                      warningMessage: missingExpectedAttributes.includes(structInputDefinition[rowIndex].field_name) ? 'This attribute doesn\'t exist in the data table' : ''
-                    })
-                  }],
+                  () => WithWarnings({
+                    baseComponent: RecordLookupSelect({
+                      source: innerStructSource,
+                      setSource: setInnerStructSource,
+                      dataTableAttributes
+                    }),
+                    warningMessage: missingExpectedAttributes.includes(structInputDefinition[rowIndex].field_name) ? 'This attribute doesn\'t exist in the data table' : ''
+                  })],
                 ['object_builder',
                   () => {
                     const selectedInputName = structInputDefinition[rowIndex].field_name
