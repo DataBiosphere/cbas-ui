@@ -90,9 +90,9 @@ export const StructBuilder = props => {
           {
             size: { basis: 160, grow: 0 },
             field: 'field',
-            headerRenderer: () => h(HeaderCell, ['Field']),
+            headerRenderer: () => h(HeaderCell, ['Variable']),
             cellRenderer: ({ rowIndex }) => {
-              return h(TextCell, { }, [currentStructType.fields[rowIndex].field_name])
+              return h(TextCell, { style: Utils.inputTypeStyle(currentStructType.fields[rowIndex].field_type) }, [currentStructType.fields[rowIndex].field_name])
             }
           },
           {
@@ -100,7 +100,7 @@ export const StructBuilder = props => {
             field: 'type',
             headerRenderer: () => h(HeaderCell, ['Type']),
             cellRenderer: ({ rowIndex }) => {
-              return h(TextCell, {}, [Utils.renderTypeText(currentStructType.fields[rowIndex].field_type)])
+              return h(TextCell, { style: Utils.inputTypeStyle(currentStructType.fields[rowIndex].field_type) }, [Utils.renderTypeText(currentStructType.fields[rowIndex].field_type)])
             }
           },
           {
