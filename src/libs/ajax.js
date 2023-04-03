@@ -87,8 +87,8 @@ const Cbas = signal => ({
       return res.json()
     },
     cancel: async runSetId => {
-      // const keyParams = qs.stringify({ run_set_id: runSetId })
-      const res = await fetchCbas(`run_sets/abort`, _.mergeAll([{ signal, method: 'POST' }, jsonBody(runSetId)]))
+      const keyParams = qs.stringify({ run_set_id: runSetId })
+      const res = await fetchCbas(`run_sets/abort?${keyParams}`, { signal, method: 'POST' })
       return res.json()
     }
   },

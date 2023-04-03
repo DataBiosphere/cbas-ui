@@ -7,14 +7,12 @@ import { centeredSpinner, icon } from 'src/components/icons'
 import { MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
 import { AutoRefreshInterval, getDuration, isRunSetInTerminalState, loadAllRunSets, makeStatusLine, statusType } from 'src/components/submission-common'
 import { FlexTable, paginator, Sortable, tableHeight, TextCell } from 'src/components/table'
-import TooltipTrigger from 'src/components/TooltipTrigger'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
-import { isActionMenuEnabled } from 'src/libs/config'
+import { getConfig } from 'src/libs/config'
 import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
 import { useCancellation, useOnMount } from 'src/libs/react-utils'
-import { maybeParseJSON } from 'src/libs/utils'
 import * as Utils from 'src/libs/utils'
 
 
@@ -46,10 +44,10 @@ export const SubmissionHistory = () => {
     }
   })
 
-  const cancelRunSet = async (submissionId) => {
+  const cancelRunSet = async submissionId => {
     try {
       await Ajax(signal).Cbas.runSets.cancel(submissionId)
-      notify('success', 'Abort submission request submitted successfully', { timeout: 5000 })
+      notify('success', 'Abort submission request submitted successfully', { message: 'You may refresh the page to get most recent status changes.', timeout: 5000 })
     } catch (error) {
       notify('error', 'Error aborting run set', { detail: await (error instanceof Response ? error.text() : error) })
     }
@@ -136,27 +134,25 @@ export const SubmissionHistory = () => {
                 paddingTop: '1em'
               }),
               columns: [
-                ...isActionMenuEnabled() ?
+                ...getConfig().isActionMenuEnabled ?
                   [{
                     size: { basis: 100, grow: 0 },
                     field: 'actions',
-                    headerRenderer: () => h(Sortable, { sort, field: 'actions', onSort: setSort }, ['Actions']),
+                    headerRenderer: () => h(TextCell, {}, ['Actions']),
                     cellRenderer: ({ rowIndex }) => {
                       return h(MenuTrigger, {
-                        //closeOnClick: true,
                         'aria-label': 'Action selection menu',
                         content: h(Fragment, [
                           h(MenuButton, {
-                            disabled: !isActionMenuEnabled(),
-                            tooltip: !isActionMenuEnabled() && 'This feature is currently unavailable',
                             style: { fontSize: 15 },
-                            onClick: () => { cancelRunSet(paginatedPreviousRunSets[rowIndex].run_set_id)}}, ['Abort'])
+                            onClick: () => { cancelRunSet(paginatedPreviousRunSets[rowIndex].run_set_id) }
+                          }, ['Abort'])
                         ])
                       }, [
                         h(Clickable, {
                           style: { textAlign: 'center' },
-                          'aria-label': 'Action selection menu',
-                        }, [icon('cardMenuIcon', {size: 35})])
+                          'aria-label': 'Action selection menu'
+                        }, [icon('cardMenuIcon', { size: 35 })])
                       ])
                     }
                   }] : [],
