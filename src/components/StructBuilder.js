@@ -4,7 +4,15 @@ import { div, h } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import { Link } from 'src/components/common'
 import Modal from 'src/components/Modal'
-import { InputSourceSelect, ParameterValueTextInput, RecordLookupSelect, StructBuilderLink } from 'src/components/submission-common'
+import {
+  inputsMissingRequiredAttributes,
+  InputSourceSelect,
+  ParameterValueTextInput,
+  RecordLookupSelect,
+  requiredInputsWithoutSource,
+  SelectWithWarnings,
+  StructBuilderLink
+} from 'src/components/submission-common'
 import { FlexTable, HeaderCell, TextCell } from 'src/components/table'
 import * as Utils from 'src/libs/utils'
 
@@ -30,7 +38,6 @@ export const StructBuilder = props => {
   } = props
 
   const [structIndexPath, setStructIndexPath] = useState([])
-
   const structTypePath = buildStructTypePath(structIndexPath)
   const structSourcePath = buildStructSourcePath(structIndexPath)
   const structNamePath = buildStructNamePath(structIndexPath)
@@ -40,7 +47,11 @@ export const StructBuilder = props => {
   const currentStructSource = structSourcePath ? _.get(structSourcePath, structSource) : structSource
   const setCurrentStructSource = structSourcePath ? source => setStructSource(_.set(structSourcePath, source, structSource)) : setStructSource
 
+  const structInputDefinition = _.map(([source, type]) => _.merge(source, type), _.zip(currentStructSource.fields, currentStructType.fields))
   const currentStructBreadcrumbs = buildStructBreadcrumbs(structIndexPath, structType)
+
+  const missingExpectedAttributes = _.map(i => i.name, inputsMissingRequiredAttributes(structInputDefinition, dataTableAttributes))
+  const missingRequiredInputs = _.map(i => i.name, requiredInputsWithoutSource(structInputDefinition))
 
   const breadcrumbsHeight = 35
   return h(div, { 'aria-label': 'struct-breadcrumbs', style: { height: 500 } }, [
@@ -99,8 +110,8 @@ export const StructBuilder = props => {
               const sourcePath = buildStructSourcePath([rowIndex])
               return InputSourceSelect({
                 source: _.get(sourcePath, currentStructSource),
-                inputType: _.get(typePath, currentStructType),
-                updateSource: source => setCurrentStructSource(_.set(sourcePath, source, currentStructSource))
+                setSource: source => setCurrentStructSource(_.set(sourcePath, source, currentStructSource)),
+                inputType: _.get(typePath, currentStructType)
               })
             }
           },
@@ -115,10 +126,32 @@ export const StructBuilder = props => {
                   () => ParameterValueTextInput({
                     id: `structbuilder-table-attribute-select-${rowIndex}`,
                     source: innerStructSource,
-                    updateSource: setInnerStructSource
+                    setSource: setInnerStructSource
                   })],
-                ['record_lookup', () => RecordLookupSelect({ source: innerStructSource, dataTableAttributes, updateSource: setInnerStructSource })],
-                ['object_builder', () => StructBuilderLink({ onClick: () => setStructIndexPath([...structIndexPath, rowIndex]) })],
+                ['record_lookup',
+                  () => SelectWithWarnings({
+                    select: RecordLookupSelect({
+                      source: innerStructSource,
+                      setSource: setInnerStructSource,
+                      dataTableAttributes
+                    }),
+                    selectedName: structInputDefinition[rowIndex].name,
+                    warnings: {
+                      'This attribute is required': missingRequiredInputs,
+                      'This attribute doesn\'t exist in the data table': missingExpectedAttributes
+                    }
+                  })],
+                ['object_builder',
+                  () => SelectWithWarnings({
+                    select: StructBuilderLink({
+                      onClick: () => setStructIndexPath([...structIndexPath, rowIndex])
+                    }),
+                    selectedName: structInputDefinition[rowIndex].name,
+                    warnings: {
+                      'One of this struct\'s required attributes is missing': missingRequiredInputs,
+                      'One of this struct\'s attributes doesn\'t exist in the data table': missingExpectedAttributes
+                    }
+                  })],
                 ['none', () => h(TextCell, { style: { fontStyle: 'italic' } }, ['Optional'])]
               )
             }

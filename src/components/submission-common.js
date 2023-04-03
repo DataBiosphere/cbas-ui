@@ -3,6 +3,7 @@ import { div, h } from 'react-hyperscript-helpers'
 import { Link, Select } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { TextInput } from 'src/components/input'
+import TooltipTrigger from 'src/components/TooltipTrigger'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
@@ -72,7 +73,7 @@ export const makeStatusLine = (iconFn, label, style) => div(
   [iconFn({ marginRight: '0.5rem' }), label]
 )
 
-const RunSetTerminalStates = ['ERROR', 'COMPLETE']
+const RunSetTerminalStates = ['ERROR', 'COMPLETE', 'CANCELED']
 export const isRunSetInTerminalState = runSetStatus => RunSetTerminalStates.includes(runSetStatus)
 
 const RunTerminalStates = ['COMPLETE', 'CANCELED', 'SYSTEM_ERROR', 'ABORTED', 'EXECUTOR_ERROR']
@@ -154,14 +155,19 @@ export const inputSourceLabels = {
   object_builder: 'Use Struct Builder',
   none: 'None'
 }
-
 const inputSourceTypes = _.invert(inputSourceLabels)
+
+const inputTypeParamDefaults = {
+  literal: { parameter_value: '' },
+  record_lookup: { record_attribute: '' },
+  object_builder: { fields: [] }
+}
 
 export const RecordLookupSelect = props => {
   const {
     source,
-    dataTableAttributes,
-    updateSource
+    setSource,
+    dataTableAttributes
   } = props
 
   return h(Select, {
@@ -175,7 +181,7 @@ export const RecordLookupSelect = props => {
         type: source.type,
         record_attribute: newAttribute
       }
-      updateSource(newSource)
+      setSource(newSource)
     },
     placeholder: source.record_attribute || 'Select Attribute',
     options: _.keys(dataTableAttributes),
@@ -186,11 +192,32 @@ export const RecordLookupSelect = props => {
   })
 }
 
+export const SelectWithWarnings = props => {
+  const {
+    select,
+    selectedName,
+    warnings
+  } = props
+
+  return div({ style: { display: 'flex', alignItems: 'center', width: '100%', paddingTop: '0.5rem', paddingBottom: '0.5rem' } }, [
+    select,
+    ..._.map(
+      ([message, targets]) => targets.includes(selectedName) && h(TooltipTrigger, { content: message }, [
+        icon('error-standard', {
+          size: 14, style: { marginLeft: '0.5rem', color: colors.warning(), cursor: 'help' }
+        })
+      ]),
+      _.toPairs(warnings)
+    )
+  ])
+}
+
+
 export const ParameterValueTextInput = props => {
   const {
     id,
     source,
-    updateSource
+    setSource
   } = props
 
   return h(TextInput, {
@@ -202,7 +229,7 @@ export const ParameterValueTextInput = props => {
         type: source.type,
         parameter_value: value
       }
-      updateSource(newSource)
+      setSource(newSource)
     }
   })
 }
@@ -210,32 +237,35 @@ export const ParameterValueTextInput = props => {
 export const InputSourceSelect = props => {
   const {
     source,
-    inputType,
-    updateSource
+    setSource,
+    inputType
   } = props
   const isOptional = inputType.type === 'optional'
   const innerInputType = isOptional ? inputType.optional_type.type : inputType.type
+  const isDisabled = innerInputType === 'struct'
   const editorType = innerInputType === 'struct' ? 'object_builder' : 'literal'
+
   return h(Select, {
-    isDisabled: false,
+    isDisabled,
     'aria-label': 'Select an Option',
     isClearable: false,
     value: _.get(source.type, inputSourceLabels) || null,
     onChange: ({ value }) => {
       const newType = _.get(value, inputSourceTypes)
       let newSource
+
       if (newType === 'none') {
         newSource = {
           type: newType
         }
       } else {
-        const param = newType === 'record_lookup' ? 'record_attribute' : 'parameter_value'
+        const paramDefault = _.get(newType, inputTypeParamDefaults)
         newSource = {
           type: newType,
-          [param]: ''
+          ...paramDefault
         }
       }
-      updateSource(newSource)
+      setSource(newSource)
     },
     placeholder: 'Select Source',
     options: [
@@ -261,4 +291,38 @@ export const StructBuilderLink = props => {
   },
   structBuilderVisible ? 'Hide Struct' : 'View Struct'
   )
+}
+
+const validateRequirements = (inputSource, inputType) => {
+  if (inputType.type === 'optional') {
+    return true
+  }
+  if (inputSource.type === 'none') {
+    return false
+  }
+  if (inputSource.type === 'object_builder') {
+    const fieldsValidated = _.map(
+      field => validateRequirements(field.source, field.field_type), _.merge(inputSource.fields, inputType.fields))
+    return _.every(Boolean, fieldsValidated)
+  }
+  return true
+}
+
+const validateRecordLookups = (source, recordAttributes) => {
+  if (source.type === 'record_lookup' && !recordAttributes.includes(source.record_attribute)) {
+    return false
+  }
+  if (source.type === 'object_builder') {
+    const fieldsValidated = _.map(field => validateRecordLookups(field.source, recordAttributes), source.fields)
+    return _.every(Boolean, fieldsValidated)
+  }
+  return true
+}
+
+export const requiredInputsWithoutSource = inputDefinition => {
+  return _.filter(i => !validateRequirements(i.source, i.input_type || i.field_type), inputDefinition)
+}
+
+export const inputsMissingRequiredAttributes = (inputDefinition, dataTableAttributes) => {
+  return _.filter(i => !validateRecordLookups(i.source, _.keys(dataTableAttributes)), inputDefinition)
 }
