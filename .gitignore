@@ -17,6 +17,7 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
+pacts/
 #
 # Additions beyond the default react-create-app .gitignore file.
 #
