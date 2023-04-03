@@ -57,15 +57,13 @@ const InputsTable = props => {
         setSource,
         dataTableAttributes
       }),
-      selectedInputName,
-      warnings: {
-        'This attribute is required': missingRequiredInputs,
-        'This attribute doesn\'t exist in data table': missingExpectedAttributes
-      }
+      warningMessage: missingExpectedAttributes.includes(selectedInputName) ? 'This attribute doesn\'t exist in data table' : ''
     })
   }
 
   const parameterValueSelectWithWarnings = rowIndex => {
+    const selectedInputName = _.get(`${rowIndex}.input_name`, inputTableData)
+
     return WithWarnings({
       baseComponent: ParameterValueTextInput({
         id: `input-table-value-select-${rowIndex}`,
@@ -74,15 +72,19 @@ const InputsTable = props => {
           setConfiguredInputDefinition(_.set(`${inputTableData[rowIndex].configurationIndex}.source`, source, configuredInputDefinition))
         }
       }),
-      selectedInputName: _.get(`${rowIndex}.input_name`, inputTableData),
-      warnings: {
-        'This attribute is required': missingRequiredInputs
-      }
+      warningMessage: missingRequiredInputs.includes(selectedInputName) ? 'This attribute is required' : ''
     })
   }
 
   const structBuilderLink = rowIndex => {
     const selectedInputName = _.get(`${rowIndex}.input_name`, inputTableData)
+    const warningMessage = Utils.cond(
+      [missingRequiredInputs.includes(selectedInputName) && missingExpectedAttributes.includes(selectedInputName), () => 'One of this struct\'s required attributes is either missing or the attribute doesn\'t exist in the data table'],
+      [missingRequiredInputs.includes(selectedInputName), () => 'One of this struct\'s required attributes is missing'],
+      [missingExpectedAttributes.includes(selectedInputName), () => 'One of this struct\'s attributes doesn\'t exist in the data table'],
+      () => ''
+    )
+
     return WithWarnings({
       baseComponent: h(StructBuilderLink, {
         structBuilderVisible,
@@ -91,33 +93,19 @@ const InputsTable = props => {
           setStructBuilderRow(rowIndex)
         }
       }),
-      selectedInputName,
-      warnings: {
-        'One of this struct\'s required attributes is missing': missingRequiredInputs,
-        'One of this struct\'s attributes doesn\'t exist in the data table': missingExpectedAttributes
-      }
+      warningMessage
     })
   }
 
   const sourceNoneWithWarnings = rowIndex => {
+    const selectedInputName = _.get(`${rowIndex}.input_name`, inputTableData)
+
     return WithWarnings({
-      baseComponent:
-        // inputTableData[rowIndex].input_type.type === 'struct' ?
-        // h(StructBuilderLink, {
-        //   structBuilderVisible,
-        //   onClick: () => {
-        //     setStructBuilderVisible(true)
-        //     setStructBuilderRow(rowIndex)
-        //   }
-        // }) :
-        h(TextCell,
-          { style: Utils.inputTypeStyle(inputTableData[rowIndex].input_type) },
-          [isInputOptional(inputTableData[rowIndex].input_type) ? 'Optional' : 'This input is required']
-        ),
-      selectedInputName: _.get(`${rowIndex}.input_name`, inputTableData),
-      warnings: {
-        'This attribute is required': missingRequiredInputs
-      }
+      baseComponent: h(TextCell,
+        { style: Utils.inputTypeStyle(inputTableData[rowIndex].input_type) },
+        [isInputOptional(inputTableData[rowIndex].input_type) ? 'Optional' : 'This input is required']
+      ),
+      warningMessage: missingRequiredInputs.includes(selectedInputName) ? 'This attribute is required' : ''
     })
   }
 

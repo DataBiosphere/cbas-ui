@@ -51,8 +51,18 @@ export const StructBuilder = props => {
   const structInputDefinition = _.map(([source, type]) => _.merge(source, type), _.zip(currentStructSource.fields, currentStructType.fields))
   const currentStructBreadcrumbs = buildStructBreadcrumbs(structIndexPath, structType)
 
-  const missingExpectedAttributes = _.map(i => i.name, inputsMissingRequiredAttributes(structInputDefinition, dataTableAttributes))
-  const missingRequiredInputs = _.map(i => i.name, requiredInputsWithoutSource(structInputDefinition))
+  const missingExpectedAttributes = _.map(i => i.field_name, inputsMissingRequiredAttributes(structInputDefinition, dataTableAttributes))
+  const missingRequiredInputs = _.map(i => i.field_name, requiredInputsWithoutSource(structInputDefinition))
+
+  console.log(`StructBuilder currentStructName: ${currentStructName}`)
+  console.log(`StructBuilder currentStructType: ${JSON.stringify(currentStructType)}`)
+  console.log(`StructBuilder structSource: ${JSON.stringify(structSource)}`)
+  console.log(`StructBuilder structSourcePath: ${JSON.stringify(structSourcePath)}`)
+  console.log(`StructBuilder currentStructSource: ${JSON.stringify(currentStructSource)}`)
+  console.log(`StructBuilder structInputDefinition: ${JSON.stringify(structInputDefinition)}`)
+
+  console.log(`StructBuilder missingExpectedAttributes: ${missingExpectedAttributes}`)
+  console.log(`StructBuilder missingRequiredInputs: ${missingRequiredInputs}`)
 
   const breadcrumbsHeight = 35
   return h(div, { 'aria-label': 'struct-breadcrumbs', style: { height: 500 } }, [
@@ -122,7 +132,7 @@ export const StructBuilder = props => {
               const sourcePath = buildStructSourcePath([rowIndex])
               const innerStructSource = _.get(sourcePath, currentStructSource)
               const setInnerStructSource = source => setCurrentStructSource(_.set(sourcePath, source, currentStructSource))
-              return Utils.switchCase(innerStructSource.type || 'none',
+              return Utils.switchCase(innerStructSource ? innerStructSource.type : 'none',
                 ['literal',
                   () => WithWarnings({
                     baseComponent: ParameterValueTextInput({
@@ -130,48 +140,44 @@ export const StructBuilder = props => {
                       source: innerStructSource,
                       setSource: setInnerStructSource
                     }),
-                    selectedInputName: structInputDefinition[rowIndex].name,
-                    warnings: {
-                      'This attribute is required': missingRequiredInputs
-                    }
+                    warningMessage: missingRequiredInputs.includes(structInputDefinition[rowIndex].field_name) ? 'This attribute is required' : ''
                   })],
                 ['record_lookup',
-                  () => WithWarnings({
-                    baseComponent: RecordLookupSelect({
-                      source: innerStructSource,
-                      setSource: setInnerStructSource,
-                      dataTableAttributes
-                    }),
-                    selectedInputName: structInputDefinition[rowIndex].name,
-                    warnings: {
-                      'This attribute is required': missingRequiredInputs,
-                      'This attribute doesn\'t exist in the data table': missingExpectedAttributes
-                    }
-                  })],
+                  () => {
+                    console.log(`structInputDefinition in RecordLookupSelect: ${JSON.stringify(structInputDefinition[rowIndex])}`)
+                    console.log(`selectedInputName in RecordLookupSelect: ${structInputDefinition[rowIndex].name}`)
+                    console.log(`NEW selectedInputName in RecordLookupSelect: ${structInputDefinition[rowIndex].field_name}`)
+                    return WithWarnings({
+                      baseComponent: RecordLookupSelect({
+                        source: innerStructSource,
+                        setSource: setInnerStructSource,
+                        dataTableAttributes
+                      }),
+                      warningMessage: missingExpectedAttributes.includes(structInputDefinition[rowIndex].field_name) ? 'This attribute doesn\'t exist in the data table' : ''
+                    })
+                  }],
                 ['object_builder',
-                  () => WithWarnings({
-                    baseComponent: StructBuilderLink({
-                      onClick: () => setStructIndexPath([...structIndexPath, rowIndex])
-                    }),
-                    selectedInputName: structInputDefinition[rowIndex].name,
-                    warnings: {
-                      'One of this struct\'s required attributes is missing': missingRequiredInputs,
-                      'One of this struct\'s attributes doesn\'t exist in the data table': missingExpectedAttributes
-                    }
-                  })],
+                  () => {
+                    const selectedInputName = structInputDefinition[rowIndex].field_name
+                    const warningMessage = Utils.cond(
+                      [missingRequiredInputs.includes(selectedInputName) && missingExpectedAttributes.includes(selectedInputName), () => 'One of this struct\'s required attributes is either missing or the attribute doesn\'t exist in the data table'],
+                      [missingRequiredInputs.includes(selectedInputName), () => 'One of this struct\'s required attributes is missing'],
+                      [missingExpectedAttributes.includes(selectedInputName), () => 'One of this struct\'s attributes doesn\'t exist in the data table'],
+                      () => ''
+                    )
+                    return WithWarnings({
+                      baseComponent: StructBuilderLink({
+                        onClick: () => setStructIndexPath([...structIndexPath, rowIndex])
+                      }),
+                      warningMessage
+                    })
+                  }],
                 ['none', () => WithWarnings({
-                  baseComponent: currentStructType.fields[rowIndex].field_type === 'struct' ?
-                    StructBuilderLink({
-                      onClick: () => setStructIndexPath([...structIndexPath, rowIndex])
-                    }) : h(TextCell,
-                      { style: Utils.inputTypeStyle(currentStructType.fields[rowIndex].field_type) },
-                      [isInputOptional(currentStructType.fields[rowIndex].field_type) ? 'Optional' : 'This input is required']
-                    ),
-                  selectedInputName: structInputDefinition[rowIndex].name,
-                  warnings: {
-                    'One of this struct\'s required attributes is missing': missingRequiredInputs,
-                    'One of this struct\'s attributes doesn\'t exist in the data table': missingExpectedAttributes
-                  }
+                  baseComponent: h(TextCell,
+                    { style: Utils.inputTypeStyle(currentStructType.fields[rowIndex].field_type) },
+                    [isInputOptional(currentStructType.fields[rowIndex].field_type) ? 'Optional' : 'This input is required']
+                  ),
+                  warningMessage: missingRequiredInputs.includes(structInputDefinition[rowIndex].field_name) ? 'This attribute is required' : ''
                 })]
               )
             }
