@@ -8,11 +8,12 @@ import {
   ParameterValueTextInput,
   parseMethodString,
   RecordLookupSelect,
-  SelectWithWarnings,
-  StructBuilderLink
+  StructBuilderLink,
+  WithWarnings
 } from 'src/components/submission-common'
 import { FlexTable, HeaderCell, Sortable, TextCell } from 'src/components/table'
 import * as Utils from 'src/libs/utils'
+import { isInputOptional } from 'src/libs/utils'
 
 
 const InputsTable = props => {
@@ -42,54 +43,63 @@ const InputsTable = props => {
     _.orderBy([({ [inputTableSort.field]: field }) => _.lowerCase(field)], [inputTableSort.direction])
   )(configuredInputDefinition)
 
-  const recordLookupWithWarnings = rowIndex => {
-    const selectedName = _.get(`${rowIndex}.input_name`, inputTableData)
+  const recordLookupWithWarnings = (rowIndex, selectedInputName) => {
     const source = _.get(`${inputTableData[rowIndex].configurationIndex}.source`, configuredInputDefinition)
     const setSource = source => {
       setConfiguredInputDefinition(
         _.set(`${inputTableData[rowIndex].configurationIndex}.source`, source, configuredInputDefinition))
     }
 
-    return SelectWithWarnings({
-      select: RecordLookupSelect({
+    return WithWarnings({
+      baseComponent: RecordLookupSelect({
         source,
         setSource,
         dataTableAttributes
       }),
-      selectedName,
-      warnings: {
-        'This attribute is required': missingRequiredInputs,
-        'This attribute doesn\'t exist in data table': missingExpectedAttributes
-      }
+      warningMessage: missingExpectedAttributes.includes(selectedInputName) ? 'This attribute doesn\'t exist in data table' : ''
     })
   }
 
-  const parameterValueSelect = rowIndex => {
-    return ParameterValueTextInput({
-      id: `input-table-value-select-${rowIndex}`,
-      source: _.get(`${inputTableData[rowIndex].configurationIndex}.source`, configuredInputDefinition),
-      setSource: source => {
-        setConfiguredInputDefinition(
-          _.set(`${inputTableData[rowIndex].configurationIndex}.source`, source, configuredInputDefinition))
-      }
+  const parameterValueSelectWithWarnings = (rowIndex, selectedInputName) => {
+    return WithWarnings({
+      baseComponent: ParameterValueTextInput({
+        id: `input-table-value-select-${rowIndex}`,
+        source: _.get(`${inputTableData[rowIndex].configurationIndex}.source`, configuredInputDefinition),
+        setSource: source => {
+          setConfiguredInputDefinition(_.set(`${inputTableData[rowIndex].configurationIndex}.source`, source, configuredInputDefinition))
+        }
+      }),
+      warningMessage: missingRequiredInputs.includes(selectedInputName) ? 'This attribute is required' : ''
     })
   }
 
-  const structBuilderLink = rowIndex => {
-    const selectedName = _.get(`${rowIndex}.input_name`, inputTableData)
-    return SelectWithWarnings({
-      select: h(StructBuilderLink, {
+  const structBuilderLinkWithWarnings = (rowIndex, selectedInputName) => {
+    const warningMessage = Utils.cond(
+      [missingRequiredInputs.includes(selectedInputName) && missingExpectedAttributes.includes(selectedInputName), () => 'One of this struct\'s required attributes is either missing or the attribute doesn\'t exist in the data table'],
+      [missingRequiredInputs.includes(selectedInputName), () => 'One of this struct\'s required attributes is missing'],
+      [missingExpectedAttributes.includes(selectedInputName), () => 'One of this struct\'s attributes doesn\'t exist in the data table'],
+      () => ''
+    )
+
+    return WithWarnings({
+      baseComponent: h(StructBuilderLink, {
         structBuilderVisible,
         onClick: () => {
           setStructBuilderVisible(true)
           setStructBuilderRow(rowIndex)
         }
       }),
-      selectedName,
-      warnings: {
-        'One of this struct\'s required attributes is missing': missingRequiredInputs,
-        'One of this struct\'s attributes doesn\'t exist in the data table': missingExpectedAttributes
-      }
+      warningMessage
+    })
+  }
+
+  const sourceNoneWithWarnings = (rowIndex, selectedInputName) => {
+    return WithWarnings({
+      baseComponent: h(TextCell,
+        { style: Utils.inputTypeStyle(inputTableData[rowIndex].input_type) },
+        [isInputOptional(inputTableData[rowIndex].input_type) ? 'Optional' : 'This input is required']
+      ),
+      warningMessage: missingRequiredInputs.includes(selectedInputName) ? 'This attribute is required' : ''
     })
   }
 
@@ -128,7 +138,7 @@ const InputsTable = props => {
             field: 'variable',
             headerRenderer: () => h(Sortable, { sort: inputTableSort, field: 'variable', onSort: setInputTableSort }, [h(HeaderCell, ['Variable'])]),
             cellRenderer: ({ rowIndex }) => {
-              return h(TextCell, { style: Utils.typeStyle(inputTableData[rowIndex].input_type) }, [inputTableData[rowIndex].variable])
+              return h(TextCell, { style: Utils.inputTypeStyle(inputTableData[rowIndex].input_type) }, [inputTableData[rowIndex].variable])
             }
           },
           {
@@ -136,7 +146,7 @@ const InputsTable = props => {
             field: 'inputTypeStr',
             headerRenderer: () => h(HeaderCell, ['Type']),
             cellRenderer: ({ rowIndex }) => {
-              return h(TextCell, { style: Utils.typeStyle(inputTableData[rowIndex].input_type) }, [inputTableData[rowIndex].inputTypeStr])
+              return h(TextCell, { style: Utils.inputTypeStyle(inputTableData[rowIndex].input_type) }, [inputTableData[rowIndex].inputTypeStr])
             }
           },
           {
@@ -155,11 +165,12 @@ const InputsTable = props => {
             headerRenderer: () => h(HeaderCell, ['Attribute']),
             cellRenderer: ({ rowIndex }) => {
               const source = _.get(`${rowIndex}.source`, inputTableData)
+              const inputName = _.get(`${rowIndex}.input_name`, inputTableData)
               return Utils.switchCase(source.type || 'none',
-                ['record_lookup', () => recordLookupWithWarnings(rowIndex)],
-                ['literal', () => parameterValueSelect(rowIndex)],
-                ['object_builder', () => structBuilderLink(rowIndex)],
-                ['none', () => h(TextCell, { style: { fontStyle: 'italic' } }, ['Optional'])]
+                ['record_lookup', () => recordLookupWithWarnings(rowIndex, inputName)],
+                ['literal', () => parameterValueSelectWithWarnings(rowIndex, inputName)],
+                ['object_builder', () => structBuilderLinkWithWarnings(rowIndex, inputName)],
+                ['none', () => sourceNoneWithWarnings(rowIndex, inputName)]
               )
             }
           }

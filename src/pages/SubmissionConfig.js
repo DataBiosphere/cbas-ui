@@ -302,7 +302,11 @@ export const SubmissionConfig = ({ methodId }) => {
             'aria-label': 'Submit button',
             style: { marginLeft: '1rem' },
             disabled: _.isEmpty(selectedRecords) || missingRequiredInputs.length || missingExpectedAttributes.length,
-            tooltip: _.isEmpty(selectedRecords) ? 'No records selected' : '',
+            tooltip: Utils.cond(
+              [_.isEmpty(selectedRecords), () => 'No records selected'],
+              [missingRequiredInputs.length || missingExpectedAttributes.length, () => 'One or more inputs have missing values'],
+              () => ''
+            ),
             onClick: () => {
               updateRunSetName()
               setDisplayLaunchModal(true)

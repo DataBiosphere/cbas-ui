@@ -192,23 +192,19 @@ export const RecordLookupSelect = props => {
   })
 }
 
-export const SelectWithWarnings = props => {
+export const WithWarnings = props => {
   const {
-    select,
-    selectedName,
-    warnings
+    baseComponent,
+    warningMessage
   } = props
 
   return div({ style: { display: 'flex', alignItems: 'center', width: '100%', paddingTop: '0.5rem', paddingBottom: '0.5rem' } }, [
-    select,
-    ..._.map(
-      ([message, targets]) => targets.includes(selectedName) && h(TooltipTrigger, { content: message }, [
-        icon('error-standard', {
-          size: 14, style: { marginLeft: '0.5rem', color: colors.warning(), cursor: 'help' }
-        })
-      ]),
-      _.toPairs(warnings)
-    )
+    baseComponent,
+    warningMessage && h(TooltipTrigger, { content: warningMessage }, [
+      icon('error-standard', {
+        size: 14, style: { marginLeft: '0.5rem', color: colors.warning(), cursor: 'help' }
+      })
+    ])
   ])
 }
 
@@ -242,14 +238,13 @@ export const InputSourceSelect = props => {
   } = props
   const isOptional = inputType.type === 'optional'
   const innerInputType = isOptional ? inputType.optional_type.type : inputType.type
-  const isDisabled = innerInputType === 'struct'
   const editorType = innerInputType === 'struct' ? 'object_builder' : 'literal'
 
   return h(Select, {
-    isDisabled,
+    isDisabled: false,
     'aria-label': 'Select an Option',
     isClearable: false,
-    value: _.get(source.type, inputSourceLabels) || null,
+    value: (source && _.get(source.type, inputSourceLabels)) || null,
     onChange: ({ value }) => {
       const newType = _.get(value, inputSourceTypes)
       let newSource
@@ -297,26 +292,42 @@ const validateRequirements = (inputSource, inputType) => {
   if (inputType.type === 'optional') {
     return true
   }
-  if (inputSource.type === 'none') {
-    return false
-  }
-  if (inputSource.type === 'object_builder') {
-    const fieldsValidated = _.map(
-      field => validateRequirements(field.source, field.field_type), _.merge(inputSource.fields, inputType.fields))
-    return _.every(Boolean, fieldsValidated)
-  }
+
+  if (inputSource) {
+    if (inputSource.type === 'none') {
+      return false
+    }
+    if (inputSource.type === 'object_builder') {
+      if (_.isEmpty(inputSource.fields)) {
+        return false
+      }
+
+      const fieldsValidated = _.map(
+        field => validateRequirements(field.source, field.field_type), _.merge(inputSource.fields, inputType.fields))
+      return _.every(Boolean, fieldsValidated)
+    }
+    if (inputSource.type === 'literal') {
+      return !!inputSource.parameter_value
+    }
+  } else return false
+
   return true
 }
 
 const validateRecordLookups = (source, recordAttributes) => {
-  if (source.type === 'record_lookup' && !recordAttributes.includes(source.record_attribute)) {
-    return false
-  }
-  if (source.type === 'object_builder') {
-    const fieldsValidated = _.map(field => validateRecordLookups(field.source, recordAttributes), source.fields)
-    return _.every(Boolean, fieldsValidated)
-  }
-  return true
+  if (source) {
+    if (source.type === 'record_lookup' && !recordAttributes.includes(source.record_attribute)) {
+      return false
+    }
+    if (source.type === 'object_builder') {
+      if (source.fields) {
+        const fieldsValidated = _.map(field => field && validateRecordLookups(field.source, recordAttributes), source.fields)
+        return _.every(Boolean, fieldsValidated)
+      } else return false
+    }
+
+    return true
+  } else return false
 }
 
 export const requiredInputsWithoutSource = inputDefinition => {
