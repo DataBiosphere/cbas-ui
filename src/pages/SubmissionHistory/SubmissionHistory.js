@@ -145,7 +145,13 @@ export const SubmissionHistory = () => {
                         content: h(Fragment, [
                           h(MenuButton, {
                             style: { fontSize: 15 },
-                            onClick: () => { cancelRunSet(paginatedPreviousRunSets[rowIndex].run_set_id) }
+                            onClick: () => {
+                              if (isRunSetInTerminalState(paginatedPreviousRunSets[rowIndex].state) === true) {
+                                notify('error', 'Error aborting run set', {detail: 'Cannot abort a submission that is in a terminal state.'})
+                              } else {
+                                cancelRunSet(paginatedPreviousRunSets[rowIndex].run_set_id)
+                              }
+                            }
                           }, ['Abort'])
                         ])
                       }, [
