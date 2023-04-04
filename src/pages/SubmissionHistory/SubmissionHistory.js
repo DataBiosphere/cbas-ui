@@ -142,12 +142,15 @@ export const SubmissionHistory = () => {
                     cellRenderer: ({ rowIndex }) => {
                       return h(MenuTrigger, {
                         'aria-label': 'Action selection menu',
+                        popupProps: {
+                          style: { left: '-20px' }
+                        },
                         content: h(Fragment, [
                           h(MenuButton, {
                             style: { fontSize: 15 },
                             onClick: () => {
                               if (isRunSetInTerminalState(paginatedPreviousRunSets[rowIndex].state) === true) {
-                                notify('error', 'Error aborting run set', {detail: 'Cannot abort a submission that is in a terminal state.'})
+                                notify('error', 'Error aborting run set', { detail: 'Cannot abort a submission that is in a terminal state.' })
                               } else {
                                 cancelRunSet(paginatedPreviousRunSets[rowIndex].run_set_id)
                               }
