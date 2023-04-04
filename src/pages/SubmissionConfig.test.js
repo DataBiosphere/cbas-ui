@@ -1178,7 +1178,7 @@ describe('Input source and requirements validation', () => {
     Object.defineProperty(HTMLElement.prototype, 'offsetWidth', originalOffsetWidth)
   })
 
-  const buildAjax = (runSetResponse) => {
+  const buildAjax = runSetResponse => {
     const mockRunSetResponse = jest.fn(() => Promise.resolve(runSetResponse))
     const mockMethodsResponse = jest.fn(() => Promise.resolve(methodsResponse))
     const mockSearchResponse = jest.fn((_, recordType) => Promise.resolve(searchResponses[recordType]))
@@ -1327,7 +1327,7 @@ describe('Input source and requirements validation', () => {
     expect(innerStructWarningMessageInactive).toBeNull() // once user has selected an attribute, warning message should disappear
   })
 
-  it('should display warning for required inputs for a newly imported method', async() => {
+  it('should display warning for required inputs for a newly imported method', async () => {
     // ** ARRANGE **
     const { mockRunSetResponse, mockMethodsResponse, mockSearchResponse, mockTypesResponse } = buildAjax(runSetResponseForNewMethod)
 
