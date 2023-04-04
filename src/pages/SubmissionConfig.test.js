@@ -59,6 +59,59 @@ const runSetInputDef = [
   }
 ]
 
+// example input configuration for a newly imported method
+const runSetInputDefWithSourceNone = [
+  {
+    input_name: 'target_workflow_1.foo.foo_rating_workflow_var',
+    input_type: { type: 'primitive', primitive_type: 'Int' },
+    source: {
+      type: 'none'
+    }
+  },
+  {
+    input_name: 'target_workflow_1.optional_var',
+    input_type: {
+      type: 'optional',
+      optional_type: {
+        type: 'primitive',
+        primitive_type: 'String'
+      }
+    },
+    source: {
+      type: 'none'
+    }
+  },
+  {
+    input_name: 'target_workflow_1.foo.myStruct',
+    input_type: {
+      type: 'struct',
+      name: 'myStruct',
+      fields: [
+        {
+          field_name: 'myPrimitive',
+          field_type: {
+            type: 'primitive',
+            primitive_type: 'String'
+          }
+        },
+        {
+          field_name: 'myOptional',
+          field_type: {
+            type: 'optional',
+            optional_type: {
+              type: 'primitive',
+              primitive_type: 'String'
+            }
+          }
+        }
+      ]
+    },
+    source: {
+      type: 'none'
+    }
+  }
+]
+
 const myStructInput = {
   input_name: 'target_workflow_1.foo.myStruct',
   input_type: {
@@ -219,6 +272,25 @@ const runSetResponse = {
       run_count: 1,
       error_count: 0,
       input_definition: JSON.stringify(runSetInputDef),
+      output_definition: JSON.stringify(runSetOutputDef)
+    }
+  ]
+}
+
+const runSetResponseForNewMethod = {
+  run_sets: [
+    {
+      run_set_id: '10000000-0000-0000-0000-000000000001',
+      method_id: '00000000-0000-0000-0000-000000000001',
+      method_version_id: '50000000-0000-0000-0000-000000000006',
+      is_template: true,
+      state: 'COMPLETE',
+      record_type: 'FOO',
+      submission_timestamp: '2022-12-07T17:26:53.153+00:00',
+      last_modified_timestamp: '2022-12-07T17:26:53.153+00:00',
+      run_count: 1,
+      error_count: 0,
+      input_definition: JSON.stringify(runSetInputDefWithSourceNone),
       output_definition: JSON.stringify(runSetOutputDef)
     }
   ]
@@ -1106,8 +1178,8 @@ describe('Input source and requirements validation', () => {
     Object.defineProperty(HTMLElement.prototype, 'offsetWidth', originalOffsetWidth)
   })
 
-  const buildAjax = () => {
-    const mockRunSetResponse = jest.fn(() => Promise.resolve(runSetResponseWithStruct))
+  const buildAjax = (runSetResponse) => {
+    const mockRunSetResponse = jest.fn(() => Promise.resolve(runSetResponse))
     const mockMethodsResponse = jest.fn(() => Promise.resolve(methodsResponse))
     const mockSearchResponse = jest.fn((_, recordType) => Promise.resolve(searchResponses[recordType]))
     const mockTypesResponse = jest.fn(() => Promise.resolve(typesResponseWithoutFooRating))
@@ -1138,7 +1210,7 @@ describe('Input source and requirements validation', () => {
 
   it('should display warning icon for required inputs with missing attributes and disappear when attribute is supplied', async () => {
     // ** ARRANGE **
-    const { mockRunSetResponse, mockMethodsResponse, mockSearchResponse, mockTypesResponse } = buildAjax()
+    const { mockRunSetResponse, mockMethodsResponse, mockSearchResponse, mockTypesResponse } = buildAjax(runSetResponseWithStruct)
 
     // ** ACT **
     render(h(SubmissionConfig))
@@ -1190,7 +1262,7 @@ describe('Input source and requirements validation', () => {
 
   it('should display warning icon/message at each level of the struct builder when a field has a missing attribute', async () => {
     // ** ARRANGE **
-    const { mockRunSetResponse, mockMethodsResponse, mockSearchResponse, mockTypesResponse } = buildAjax()
+    const { mockRunSetResponse, mockMethodsResponse, mockSearchResponse, mockTypesResponse } = buildAjax(runSetResponseWithStruct)
 
     // ** ACT **
     render(h(SubmissionConfig))
@@ -1253,6 +1325,101 @@ describe('Input source and requirements validation', () => {
     within(innerStructCells[4]).getByText('rating_for_foo')
     const innerStructWarningMessageInactive = within(innerStructCells[4]).queryByText("This attribute doesn't exist in data table")
     expect(innerStructWarningMessageInactive).toBeNull() // once user has selected an attribute, warning message should disappear
+  })
+
+  it('should display warning for required inputs for a newly imported method', async() => {
+    // ** ARRANGE **
+    const { mockRunSetResponse, mockMethodsResponse, mockSearchResponse, mockTypesResponse } = buildAjax(runSetResponseForNewMethod)
+
+    // ** ACT **
+    render(h(SubmissionConfig))
+
+    // ** ASSERT **
+    await waitFor(() => {
+      expect(mockRunSetResponse).toHaveBeenCalledTimes(1)
+      expect(mockTypesResponse).toHaveBeenCalledTimes(1)
+      expect(mockMethodsResponse).toHaveBeenCalledTimes(1)
+      expect(mockSearchResponse).toHaveBeenCalledTimes(1)
+    })
+
+    // ** ACT **
+    // user selects a record from Data Table
+    const checkboxes = screen.getAllByRole('checkbox')
+    const checkbox = checkboxes[1]
+    fireEvent.click(checkbox)
+
+    // ** ASSERT **
+    // check that tooltip indicating missing required fields is present for Submit button
+    screen.getByText('One or more inputs have missing values')
+
+    // ** ACT **
+    const button = await screen.findByRole('button', { name: 'Inputs' })
+    await fireEvent.click(button)
+
+    // ** ASSERT **
+    // check that warnings appear next to empty required inputs
+    const table = await screen.findByRole('table')
+    const rows = within(table).queryAllByRole('row')
+
+    const firstInputRowCells = within(rows[1]).queryAllByRole('cell')
+    within(firstInputRowCells[4]).getByText('This input is required')
+
+    const secondInputRowCells = within(rows[2]).queryAllByRole('cell')
+    within(secondInputRowCells[4]).getByText('Optional')
+
+    // struct input
+    const thirdInputRowCells = within(rows[3]).queryAllByRole('cell')
+    within(thirdInputRowCells[4]).getByText('This input is required')
+
+    // ** ACT **
+    // user sets the source to 'Fetch from data table' for struct input
+    await userEvent.click(within(thirdInputRowCells[3]).getByText('Select Source'))
+    const selectOption1 = await screen.findByText('Fetch from Data Table')
+    await userEvent.click(selectOption1)
+
+    // ** ASSERT **
+    // check that the warning message for struct input has changed since no attribute has been selected yet
+    within(thirdInputRowCells[4]).getByText('This attribute doesn\'t exist in data table')
+
+    // ** ACT **
+    // user sets the source to 'Use Struct Builder' for struct input
+    await userEvent.click(within(thirdInputRowCells[3]).getByText('Fetch from Data Table'))
+    const selectOption2 = await screen.findByText('Use Struct Builder')
+    await userEvent.click(selectOption2)
+
+    // ** ASSERT **
+    // check that the warning message for struct input has changed
+    within(thirdInputRowCells[4]).getByText('One of this struct\'s required attributes is missing')
+
+    // ** ACT **
+    // click on View struct to open modal
+    const viewStructLink = within(thirdInputRowCells[4]).getByText('View Struct')
+    await fireEvent.click(viewStructLink)
+
+    // ** ASSERT **
+    const innerStructTable = await screen.getByLabelText('struct-table')
+    const innerStructRows = within(innerStructTable).queryAllByRole('row')
+    expect(innerStructRows.length).toBe(3)
+
+    // check that warnings appear next to empty required inputs inside struct modal
+    const innerStructRow1Cells = within(innerStructRows[1]).queryAllByRole('cell')
+    within(innerStructRow1Cells[4]).getByText('This input is required')
+
+    const innerStructRow2Cells = within(innerStructRows[2]).queryAllByRole('cell')
+    within(innerStructRow2Cells[4]).getByText('Optional')
+
+    // ** ACT **
+    // user sets the source to 'Fetch from data table' for required struct input
+    await userEvent.click(within(innerStructRow1Cells[3]).getByText('Select Source'))
+    const selectOptionForStructInput = await screen.findByText('Fetch from Data Table')
+    await userEvent.click(selectOptionForStructInput)
+
+    // user exits the struct modal
+    await userEvent.click(screen.getByText('Done'))
+
+    // ** ASSERT **
+    // check that the warning message for struct input has changed
+    within(thirdInputRowCells[4]).getByText('One of this struct\'s attributes doesn\'t exist in the data table')
   })
 })
 
@@ -1677,7 +1844,7 @@ describe('SubmissionConfig inputs/outputs definitions', () => {
 
     const headers = within(structRows[0]).queryAllByRole('columnheader')
     within(headers[0]).getByText('Struct')
-    within(headers[1]).getByText('Field')
+    within(headers[1]).getByText('Variable')
     within(headers[2]).getByText('Type')
     within(headers[3]).getByText('Input sources')
     within(headers[4]).getByText('Attribute')

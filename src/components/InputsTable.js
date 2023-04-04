@@ -43,8 +43,7 @@ const InputsTable = props => {
     _.orderBy([({ [inputTableSort.field]: field }) => _.lowerCase(field)], [inputTableSort.direction])
   )(configuredInputDefinition)
 
-  const recordLookupWithWarnings = rowIndex => {
-    const selectedInputName = _.get(`${rowIndex}.input_name`, inputTableData)
+  const recordLookupWithWarnings = (rowIndex, selectedInputName) => {
     const source = _.get(`${inputTableData[rowIndex].configurationIndex}.source`, configuredInputDefinition)
     const setSource = source => {
       setConfiguredInputDefinition(
@@ -61,9 +60,7 @@ const InputsTable = props => {
     })
   }
 
-  const parameterValueSelectWithWarnings = rowIndex => {
-    const selectedInputName = _.get(`${rowIndex}.input_name`, inputTableData)
-
+  const parameterValueSelectWithWarnings = (rowIndex, selectedInputName) => {
     return WithWarnings({
       baseComponent: ParameterValueTextInput({
         id: `input-table-value-select-${rowIndex}`,
@@ -76,8 +73,7 @@ const InputsTable = props => {
     })
   }
 
-  const structBuilderLink = rowIndex => {
-    const selectedInputName = _.get(`${rowIndex}.input_name`, inputTableData)
+  const structBuilderLinkWithWarnings = (rowIndex, selectedInputName) => {
     const warningMessage = Utils.cond(
       [missingRequiredInputs.includes(selectedInputName) && missingExpectedAttributes.includes(selectedInputName), () => 'One of this struct\'s required attributes is either missing or the attribute doesn\'t exist in the data table'],
       [missingRequiredInputs.includes(selectedInputName), () => 'One of this struct\'s required attributes is missing'],
@@ -97,9 +93,7 @@ const InputsTable = props => {
     })
   }
 
-  const sourceNoneWithWarnings = rowIndex => {
-    const selectedInputName = _.get(`${rowIndex}.input_name`, inputTableData)
-
+  const sourceNoneWithWarnings = (rowIndex, selectedInputName) => {
     return WithWarnings({
       baseComponent: h(TextCell,
         { style: Utils.inputTypeStyle(inputTableData[rowIndex].input_type) },
@@ -171,11 +165,12 @@ const InputsTable = props => {
             headerRenderer: () => h(HeaderCell, ['Attribute']),
             cellRenderer: ({ rowIndex }) => {
               const source = _.get(`${rowIndex}.source`, inputTableData)
+              const inputName = _.get(`${rowIndex}.input_name`, inputTableData)
               return Utils.switchCase(source.type || 'none',
-                ['record_lookup', () => recordLookupWithWarnings(rowIndex)],
-                ['literal', () => parameterValueSelectWithWarnings(rowIndex)],
-                ['object_builder', () => structBuilderLink(rowIndex)],
-                ['none', () => sourceNoneWithWarnings(rowIndex)]
+                ['record_lookup', () => recordLookupWithWarnings(rowIndex, inputName)],
+                ['literal', () => parameterValueSelectWithWarnings(rowIndex, inputName)],
+                ['object_builder', () => structBuilderLinkWithWarnings(rowIndex, inputName)],
+                ['none', () => sourceNoneWithWarnings(rowIndex, inputName)]
               )
             }
           }
