@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { Clickable, Link } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
+import Modal from 'src/components/Modal'
 import ModalDrawer from 'src/components/ModalDrawer'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
@@ -12,6 +13,7 @@ import { useCancellation } from 'src/libs/react-utils'
 import * as Style from 'src/libs/style'
 import { withBusyState } from 'src/libs/utils'
 import { MethodCard } from 'src/pages/FindWorkflow/MethodCard'
+import WorkflowDescriptionModal from 'src/pages/WorkflowDescriptionModal'
 
 
 const styles = {
@@ -81,6 +83,7 @@ const suggestedWorkflowsList = [
 const FindWorkflowModal = ({ onDismiss }) => {
   const [selectedSubHeader, setSelectedSubHeader] = useState('browse-suggested-workflows')
   const [loading, setLoading] = useState()
+  const [workflowDescriptionModal, setWorkflowDescriptionModal] = useState(false)
 
   const signal = useCancellation()
 
@@ -142,9 +145,26 @@ const FindWorkflowModal = ({ onDismiss }) => {
       ]),
       isSubHeaderActive('browse-suggested-workflows') && div({ style: { overflowY: 'auto', flexGrow: 1, display: 'flex', flexDirection: 'column', paddingLeft: '20px' } }, [
         div({ style: { display: 'flex', flexWrap: 'wrap', overflowY: 'auto', paddingBottom: 5, paddingLeft: 5 } }, [
-          _.map(method => h(MethodCard, { method, onClick: () => submitMethod({ method }), key: method.method_name }), suggestedWorkflowsList)
-        ])
-      ])
+          _.map(method => h(MethodCard, { method,
+            onClick: () =>  {
+              setWorkflowDescriptionModal(true)
+              // onDismiss()
+              console.log(workflowDescriptionModal)
+              }
+              //workflowDescriptionModal && WorkflowDescriptionModal()
+              // h(Modal, {
+              //   title: ' Call Cache Miss Debugging Wizard',
+              //   onDismiss,
+              //   width: '850px',
+              //   showButtons: false,
+              //   showX: true
+              // }, ['Modal'])
+            //}
+
+              /*submitMethod({ method }), key: method.method_name */}), suggestedWorkflowsList)
+        ]),
+      ]),
+      workflowDescriptionModal && h(WorkflowDescriptionModal, { onDismiss: () => setWorkflowDescriptionModal(false) })
     ])
   ])
 }
