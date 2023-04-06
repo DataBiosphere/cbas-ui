@@ -2,12 +2,14 @@ import _ from 'lodash/fp'
 import { Fragment, useRef, useState } from 'react'
 import { div, h, h2 } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
-import { ButtonOutline, Link, Navbar } from 'src/components/common'
+import { ButtonOutline, Clickable, Link, Navbar } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
+import { MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
 import { AutoRefreshInterval, getDuration, isRunSetInTerminalState, loadAllRunSets, makeStatusLine, statusType } from 'src/components/submission-common'
 import { FlexTable, paginator, Sortable, tableHeight, TextCell } from 'src/components/table'
+import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
-import { isActionMenuEnabled } from 'src/libs/config'
+import { getConfig } from 'src/libs/config'
 import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
 import { useCancellation, useOnMount } from 'src/libs/react-utils'
@@ -41,6 +43,15 @@ export const SubmissionHistory = () => {
       notify('error', 'Error loading previous run sets', { detail: await (error instanceof Response ? error.text() : error) })
     }
   })
+
+  const cancelRunSet = async submissionId => {
+    try {
+      await Ajax(signal).Cbas.runSets.cancel(submissionId)
+      notify('success', 'Abort submission request submitted successfully', { message: 'You may refresh the page to get most recent status changes.', timeout: 5000 })
+    } catch (error) {
+      notify('error', 'Error aborting run set', { detail: await (error instanceof Response ? error.text() : error) })
+    }
+  }
 
   useOnMount(async () => {
     await refresh()
@@ -123,16 +134,33 @@ export const SubmissionHistory = () => {
                 paddingTop: '1em'
               }),
               columns: [
-                ...isActionMenuEnabled() ?
+                ...getConfig().isActionMenuEnabled ?
                   [{
                     size: { basis: 100, grow: 0 },
                     field: 'actions',
-                    headerRenderer: () => h(TextCell, ['Actions']),
-                    cellRenderer: () => {
-                      return div(
-                        { style: { textAlign: 'center' } },
-                        [icon('cardMenuIcon', { size: 24, onClick: () => { window.alert('TODO: go to actions menu') } })]
-                      )
+                    headerRenderer: () => h(TextCell, {}, ['Actions']),
+                    cellRenderer: ({ rowIndex }) => {
+                      return h(MenuTrigger, {
+                        'aria-label': 'Action selection menu',
+                        popupProps: {
+                          style: { left: '-20px' }
+                        },
+                        content: h(Fragment, [
+                          h(MenuButton, {
+                            style: { fontSize: 15 },
+                            disabled: isRunSetInTerminalState(paginatedPreviousRunSets[rowIndex].state) || paginatedPreviousRunSets[rowIndex].state === 'CANCELING',
+                            tooltip: isRunSetInTerminalState(paginatedPreviousRunSets[rowIndex].state) && 'Cannot abort a terminal submission',
+                            onClick: () => {
+                              cancelRunSet(paginatedPreviousRunSets[rowIndex].run_set_id)
+                            }
+                          }, ['Abort'])
+                        ])
+                      }, [
+                        h(Clickable, {
+                          style: { textAlign: 'center' },
+                          'aria-label': 'Action selection menu'
+                        }, [icon('cardMenuIcon', { size: 35 })])
+                      ])
                     }
                   }] : [],
                 {

@@ -85,6 +85,11 @@ const Cbas = signal => ({
       const keyParams = qs.stringify({ method_id: methodId, page_size: pageSize }, { arrayFormat: 'repeat' })
       const res = await fetchCbas(`run_sets?${keyParams}`, { signal, method: 'GET' })
       return res.json()
+    },
+    cancel: async runSetId => {
+      const keyParams = qs.stringify({ run_set_id: runSetId })
+      const res = await fetchCbas(`run_sets/abort?${keyParams}`, { signal, method: 'POST' })
+      return res.json()
     }
   },
   methods: {

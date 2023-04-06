@@ -2,8 +2,11 @@ import '@testing-library/jest-dom'
 
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import _ from 'lodash/fp'
-import { h } from 'react-hyperscript-helpers'
+import { div, h } from 'react-hyperscript-helpers'
+import selectEvent from 'react-select-event'
+import { MenuTrigger } from 'src/components/PopupTrigger'
 import { Ajax } from 'src/libs/ajax'
+import { getConfig } from 'src/libs/config'
 import { SubmissionHistory } from 'src/pages/SubmissionHistory/SubmissionHistory'
 
 // Necessary to mock the AJAX module.
@@ -16,15 +19,78 @@ jest.mock('src/libs/config', () => ({
   getConfig: jest.fn().mockReturnValue({})
 }))
 
+jest.mock('src/components/PopupTrigger', () => {
+  const originalModule = jest.requireActual('src/components/PopupTrigger')
+  return {
+    ...originalModule,
+    MenuTrigger: jest.fn()
+  }
+})
+
+// SubmissionHistory component uses AutoSizer to determine the right size for table to be displayed. As a result we need to
+// mock out the height and width so that when AutoSizer asks for the width and height of "browser" it can use the mocked
+// values and render the component properly. Without this the tests will be break.
+// (see https://github.com/bvaughn/react-virtualized/issues/493 and https://stackoverflow.com/a/62214834)
+const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'offsetHeight')
+const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'offsetWidth')
+
+const runSetData = {
+  run_sets: [
+    {
+      error_count: 0,
+      submission_timestamp: '2022-01-01T12:00:00.000+00:00',
+      last_modified_timestamp: '2022-01-02T13:01:01.000+00:00',
+      record_type: 'FOO',
+      run_count: 1,
+      run_set_id: 'ea001565-1cd6-4e43-b446-932ac1918081',
+      state: 'COMPLETE'
+    },
+    {
+      error_count: 1,
+      submission_timestamp: '2021-07-10T12:00:00.000+00:00',
+      last_modified_timestamp: '2021-08-11T13:01:01.000+00:00',
+      record_type: 'FOO',
+      run_count: 2,
+      run_set_id: 'b7234aae-6f43-405e-bb3a-71f924e09825',
+      state: 'ERROR'
+    }
+  ]
+}
+
+beforeAll(() => {
+  Object.defineProperty(HTMLElement.prototype, 'offsetHeight', { configurable: true, value: 1000 })
+  Object.defineProperty(HTMLElement.prototype, 'offsetWidth', { configurable: true, value: 800 })
+})
+
+beforeEach(() => {
+  MenuTrigger.mockImplementation(({ content }) => { return div({ role: 'menu' }, [content]) })
+  const getRunSetsMethod = jest.fn(() => Promise.resolve(runSetData))
+  Ajax.mockImplementation(() => {
+    return {
+      Cbas: {
+        runSets: {
+          get: getRunSetsMethod
+        }
+      }
+    }
+  })
+})
+
+afterEach(() => {
+  jest.clearAllMocks()
+})
+
+afterAll(() => {
+  Object.defineProperty(HTMLElement.prototype, 'offsetHeight', originalOffsetHeight)
+  Object.defineProperty(HTMLElement.prototype, 'offsetWidth', originalOffsetWidth)
+})
+
 // Note: Since the timestamps in the data is being converted to Local timezone, it returns different time when the tests
 //       are run locally and in GitHub action. Hence everywhere in this file we are verifying only the date format for now.
 describe('SubmissionHistory page', () => {
-  // SubmissionHistory component uses AutoSizer to determine the right size for table to be displayed. As a result we need to
-  // mock out the height and width so that when AutoSizer asks for the width and height of "browser" it can use the mocked
-  // values and render the component properly. Without this the tests will be break.
-  // (see https://github.com/bvaughn/react-virtualized/issues/493 and https://stackoverflow.com/a/62214834)
-  const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'offsetHeight')
-  const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'offsetWidth')
+  beforeEach(() => {
+    getConfig.mockReturnValue({ isActionMenuEnabled: false })
+  })
 
   const headerPosition = {
     Submission: 0,
@@ -33,56 +99,6 @@ describe('SubmissionHistory page', () => {
     Duration: 3,
     Comment: 4
   }
-
-  const runSetData = {
-    run_sets: [
-      {
-        error_count: 0,
-        submission_timestamp: '2022-01-01T12:00:00.000+00:00',
-        last_modified_timestamp: '2022-01-02T13:01:01.000+00:00',
-        record_type: 'FOO',
-        run_count: 1,
-        run_set_id: 'ea001565-1cd6-4e43-b446-932ac1918081',
-        state: 'COMPLETE'
-      },
-      {
-        error_count: 1,
-        submission_timestamp: '2021-07-10T12:00:00.000+00:00',
-        last_modified_timestamp: '2021-08-11T13:01:01.000+00:00',
-        record_type: 'FOO',
-        run_count: 2,
-        run_set_id: 'b7234aae-6f43-405e-bb3a-71f924e09825',
-        state: 'ERROR'
-      }
-    ]
-  }
-
-  beforeAll(() => {
-    Object.defineProperty(HTMLElement.prototype, 'offsetHeight', { configurable: true, value: 1000 })
-    Object.defineProperty(HTMLElement.prototype, 'offsetWidth', { configurable: true, value: 800 })
-  })
-
-  beforeEach(() => {
-    const getRunSetsMethod = jest.fn(() => Promise.resolve(runSetData))
-    Ajax.mockImplementation(() => {
-      return {
-        Cbas: {
-          runSets: {
-            get: getRunSetsMethod
-          }
-        }
-      }
-    })
-  })
-
-  afterEach(() => {
-    jest.clearAllMocks()
-  })
-
-  afterAll(() => {
-    Object.defineProperty(HTMLElement.prototype, 'offsetHeight', originalOffsetHeight)
-    Object.defineProperty(HTMLElement.prototype, 'offsetWidth', originalOffsetWidth)
-  })
 
   it('should display no content message when there are no previous run sets', async () => {
     // Arrange
@@ -332,5 +348,40 @@ describe('SubmissionHistory page', () => {
     })
 
     expect(screen.getByText('Some submission statuses are not up to date. Refreshing the page may update more statuses.')).toBeInTheDocument()
+  })
+})
+
+describe('Actions column', () => {
+  beforeEach(() => {
+    getConfig.mockReturnValue({ isActionMenuEnabled: true })
+  })
+
+  it('Shows Actions column on table', async () => {
+    await act(async () => {
+      await render(h(SubmissionHistory))
+    })
+
+    const table = screen.getByRole('table')
+    expect(table).toHaveAttribute('aria-colcount', '6')
+    expect(table).toHaveAttribute('aria-rowcount', '3')
+  })
+
+  it('Gives abort option for actions button', async () => {
+    await act(async () => {
+      await render(h(SubmissionHistory))
+    })
+
+    const table = screen.getByRole('table')
+    const rows = within(table).queryAllByRole('row')
+    const headers = within(rows[0]).queryAllByRole('columnheader')
+    expect(headers.length).toBe(6)
+
+    const cellsFromDataRow1 = within(rows[1]).queryAllByRole('cell')
+
+    await act(async () => {
+      const actionsMenu = within(cellsFromDataRow1[0]).getByRole('button')
+      await selectEvent.openMenu(actionsMenu)
+      expect(actionsMenu).toHaveTextContent('Abort')
+    })
   })
 })
