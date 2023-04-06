@@ -30,21 +30,21 @@ const WorkflowDescriptionModal = ({ onDismiss }) => {
           // div([_.join(',', managers)])
         ]),
         div({ style: { margin: '0 1rem', display: 'flex', flexDirection: 'column' } }, [
-          h(ButtonPrimary, { style: { marginBottom: '0.5rem' }, onClick: () => alert("on click!")/*exportMethod*/ }, ['Add to Workspace']),
+          h(ButtonPrimary, { style: { marginBottom: '0.5rem' }, onClick: () => alert('on click!')/*exportMethod*/ }, ['Add to Workspace']),
           h(ButtonOutline, {
             onClick: () => {
-              alert("on click!")
+              alert('on click!')
               //setSelectedWorkflow(undefined)
               //setSelectedWorkflowDetails(undefined)
             }
           }, ['Return to List'])
         ])
       ]),
-      div({ style: { fontSize: 18, fontWeight: 600, margin: '1rem 0 0.5rem' } }, ['Documentation']),
+      div({ style: { fontSize: 18, fontWeight: 600, margin: '1rem 0 0.5rem' } }, ['Documentation'])
       //documentation && h(MarkdownViewer, { style: { maxHeight: 600, overflowY: 'auto' } }, [documentation]),
       //(!selectedWorkflowDetails || exporting) && spinnerOverlay
     ])
-    ])
+  ])
 }
 
 export default WorkflowDescriptionModal

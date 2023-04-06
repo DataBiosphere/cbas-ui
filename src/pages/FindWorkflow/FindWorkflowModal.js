@@ -84,6 +84,7 @@ const FindWorkflowModal = ({ onDismiss }) => {
   const [selectedSubHeader, setSelectedSubHeader] = useState('browse-suggested-workflows')
   const [loading, setLoading] = useState()
   const [workflowDescriptionModal, setWorkflowDescriptionModal] = useState(false)
+  const [selectedMethod, setSelectedMethod] = useState(undefined)
 
   const signal = useCancellation()
 
@@ -114,7 +115,7 @@ const FindWorkflowModal = ({ onDismiss }) => {
 
   const isSubHeaderActive = subHeader => selectedSubHeader === subHeader
 
-  const renderDetails = () => {
+  const renderDetails = method => {
     //const { synopsis, managers, documentation } = selectedWorkflowDetails || {}
     const managers = ['Chris, Katrina, Michael, Saloni']
 
@@ -126,15 +127,23 @@ const FindWorkflowModal = ({ onDismiss }) => {
           div({ style: { fontSize: 18, fontWeight: 600, margin: '1rem 0 0.5rem' } }, ['Method Owner']),
           div([_.join(',', managers)])
         ]),
-        div({ style: { margin: '0 1rem', display: 'flex', flexDirection: 'column' } }, [
-          h(ButtonPrimary, { style: { marginBottom: '0.5rem' }, onClick: () => { alert('Primary button alert')}/*exportMethod*/ }, ['Add to Workspace']),
+        div({ style: { margin: '0 1rem', display: 'flex', flexDirection: 'column'} }, [
+          h(ButtonPrimary, { style: { marginBottom: '0.5rem' }, onClick: () => submitMethod(method)/*exportMethod*/ }, ['Add to Workspace']),
           h(ButtonOutline, {
             onClick: () => {
               // setSelectedWorkflow(undefined)
               // setSelectedWorkflowDetails(undefined)
-              alert('return to list alert')
+              setSelectedMethod(undefined)
+              //alert('return to list alert')
             }
-          }, ['Return to List'])
+          }, ['Return to List']),
+          h(ButtonOutline, { style: { whiteSpace: 'pre-wrap', height: '3rem', textAlign: 'center', marginTop: '0.5rem' },
+            onClick: () => {
+              // setSelectedWorkflow(undefined)
+              // setSelectedWorkflowDetails(undefined)
+              alert('download sample data alert')
+            }
+          }, ['Download sample data \nto run with the workflow'])
         ])
       ]),
       div({ style: { fontSize: 18, fontWeight: 600, margin: '1rem 0 0.5rem' } }, ['Documentation']),
@@ -178,9 +187,10 @@ const FindWorkflowModal = ({ onDismiss }) => {
           _.map(method => h(MethodCard, { method,
             onClick: () =>  {
               setWorkflowDescriptionModal(true)
-              renderDetails()
+              setSelectedMethod(method)
+              renderDetails(method)
               // onDismiss()
-              console.log(workflowDescriptionModal)
+              console.log(method)
               }
               //workflowDescriptionModal && WorkflowDescriptionModal()
               // h(Modal, {
@@ -195,7 +205,7 @@ const FindWorkflowModal = ({ onDismiss }) => {
               /*submitMethod({ method }), key: method.method_name */}), suggestedWorkflowsList)
         ]),
       ]),
-      workflowDescriptionModal && h(Modal, {title: 'Workflow: [INSERT WORKFLOW NAME HERE]', width: 900, onDismiss, showButtons: false, showX: true}, [renderDetails()])
+      selectedMethod && h(Modal, {title: `Workflow: ${selectedMethod.method_name}`, width: 900, onDismiss, showButtons: false, showX: true}, [renderDetails({selectedMethod})])
     ])
   ])
 }
