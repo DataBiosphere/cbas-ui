@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
-import { useState } from 'react'
+import { useState, Fragment } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
-import { Clickable, Link } from 'src/components/common'
+import { ButtonOutline, ButtonPrimary, Clickable, Link } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import ModalDrawer from 'src/components/ModalDrawer'
@@ -114,6 +114,36 @@ const FindWorkflowModal = ({ onDismiss }) => {
 
   const isSubHeaderActive = subHeader => selectedSubHeader === subHeader
 
+  const renderDetails = () => {
+    //const { synopsis, managers, documentation } = selectedWorkflowDetails || {}
+    const managers = ['Chris, Katrina, Michael, Saloni']
+
+    return h(Fragment, [
+      div({ style: { display: 'flex' } }, [
+        div({ style: { flexGrow: 1 } }, [
+          div({ style: { fontSize: 18, fontWeight: 600, margin: '1rem 0 0.5rem' } }, ['Synopsis']),
+          div(['synopsis' || (/*selectedWorkflowDetails &&*/ 'None')]),
+          div({ style: { fontSize: 18, fontWeight: 600, margin: '1rem 0 0.5rem' } }, ['Method Owner']),
+          div([_.join(',', managers)])
+        ]),
+        div({ style: { margin: '0 1rem', display: 'flex', flexDirection: 'column' } }, [
+          h(ButtonPrimary, { style: { marginBottom: '0.5rem' }, onClick: () => { alert('Primary button alert')}/*exportMethod*/ }, ['Add to Workspace']),
+          h(ButtonOutline, {
+            onClick: () => {
+              // setSelectedWorkflow(undefined)
+              // setSelectedWorkflowDetails(undefined)
+              alert('return to list alert')
+            }
+          }, ['Return to List'])
+        ])
+      ]),
+      div({ style: { fontSize: 18, fontWeight: 600, margin: '1rem 0 0.5rem' } }, ['Documentation']),
+      // documentation && h(MarkdownViewer, { style: { maxHeight: 600, overflowY: 'auto' } }, [documentation]),
+      // (!selectedWorkflowDetails || exporting) && spinnerOverlay
+      div(['None'])
+    ])
+  }
+
   return h(ModalDrawer, {
     'aria-label': 'find-workflow-modal', isOpen: true, width: '70%',
     onDismiss
@@ -148,6 +178,7 @@ const FindWorkflowModal = ({ onDismiss }) => {
           _.map(method => h(MethodCard, { method,
             onClick: () =>  {
               setWorkflowDescriptionModal(true)
+              renderDetails()
               // onDismiss()
               console.log(workflowDescriptionModal)
               }
@@ -164,7 +195,7 @@ const FindWorkflowModal = ({ onDismiss }) => {
               /*submitMethod({ method }), key: method.method_name */}), suggestedWorkflowsList)
         ]),
       ]),
-      workflowDescriptionModal && h(WorkflowDescriptionModal, { onDismiss: () => setWorkflowDescriptionModal(false) })
+      workflowDescriptionModal && h(Modal, {title: 'Workflow: [INSERT WORKFLOW NAME HERE]', width: 900, onDismiss, showButtons: false, showX: true}, [renderDetails()])
     ])
   ])
 }

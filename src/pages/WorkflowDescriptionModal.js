@@ -21,22 +21,29 @@ const WorkflowDescriptionModal = ({ onDismiss }) => {
       height: '75%',
       showX: true,
     }, [
-      div({}, [
-          h2({ style: { paddingTop: '1.5em', marginBottom: '0.3rem' }}, ['Synopsis']),
-          h(TextCell, ['Lorem ipsum']),
-          h2({ style: { paddingTop: '1.5rem', marginBottom: '0.3rem' }}, ['Method Owner']),
-          h(TextCell, ['Lorem ipsum']),
-          h2({ style: { paddingTop: '1.5rem', marginBottom: '0.3rem' }}, ['Documentation']),
-          h3(TextCell, [`Please visit this ${a({ href: 'https://support.terra.bio/hc/en-us/articles/12028928980123-Covid-19-Surveillance-tutorial-guide'}, ['Dockstore'])} link for the latest version of the workflow and import it to your Terra workspace`]),
-
-        h(Fragment, [
-          div({}, [
-            h(Fragment, [
-              h(ButtonPrimary, {}, ['Add to workspace']),
-              h(ButtonOutline, {}, ['Return to List']),
-              h(ButtonOutline, {}, ['Download sample data to run workflow'])])
-          ])])
+    h(Fragment, [
+      div({ style: { display: 'flex' } }, [
+        div({ style: { flexGrow: 1 } }, [
+          div({ style: { fontSize: 18, fontWeight: 600, margin: '1rem 0 0.5rem' } }, ['Synopsis']),
+          div(['synopsis' || (/*selectedWorkflowDetails &&*/ 'None')]),
+          div({ style: { fontSize: 18, fontWeight: 600, margin: '1rem 0 0.5rem' } }, ['Method Owner']),
+          // div([_.join(',', managers)])
+        ]),
+        div({ style: { margin: '0 1rem', display: 'flex', flexDirection: 'column' } }, [
+          h(ButtonPrimary, { style: { marginBottom: '0.5rem' }, onClick: () => alert("on click!")/*exportMethod*/ }, ['Add to Workspace']),
+          h(ButtonOutline, {
+            onClick: () => {
+              alert("on click!")
+              //setSelectedWorkflow(undefined)
+              //setSelectedWorkflowDetails(undefined)
+            }
+          }, ['Return to List'])
         ])
+      ]),
+      div({ style: { fontSize: 18, fontWeight: 600, margin: '1rem 0 0.5rem' } }, ['Documentation']),
+      //documentation && h(MarkdownViewer, { style: { maxHeight: 600, overflowY: 'auto' } }, [documentation]),
+      //(!selectedWorkflowDetails || exporting) && spinnerOverlay
+    ])
     ])
 }
 
