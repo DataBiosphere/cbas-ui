@@ -46,9 +46,8 @@ export const SubmissionHistory = () => {
 
   const cancelRunSet = async submissionId => {
     try {
-      if (isRunSetInTerminalState(submissionId.state) === false) {
-        await Ajax(signal).Cbas.runSets.cancel(submissionId)
-      }
+      await Ajax(signal).Cbas.runSets.cancel(submissionId)
+      notify('success', 'Abort submission request submitted successfully', { message: 'You may refresh the page to get most recent status changes.', timeout: 5000 })
     } catch (error) {
       notify('error', 'Error aborting run set', { detail: await (error instanceof Response ? error.text() : error) })
     }
@@ -149,12 +148,10 @@ export const SubmissionHistory = () => {
                         content: h(Fragment, [
                           h(MenuButton, {
                             style: { fontSize: 15 },
-                            disabled: isRunSetInTerminalState(paginatedPreviousRunSets[rowIndex].state),
+                            disabled: isRunSetInTerminalState(paginatedPreviousRunSets[rowIndex].state) || paginatedPreviousRunSets[rowIndex].state === 'CANCELING',
                             tooltip: isRunSetInTerminalState(paginatedPreviousRunSets[rowIndex].state) && 'Cannot abort a terminal submission',
                             onClick: () => {
                               cancelRunSet(paginatedPreviousRunSets[rowIndex].run_set_id)
-                              notify('success', 'Abort submission request submitted successfully',
-                                { message: 'You may refresh the page to get most recent status changes.', timeout: 5000 })
                             }
                           }, ['Abort'])
                         ])
