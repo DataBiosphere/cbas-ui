@@ -10,7 +10,13 @@ import Modal from 'src/components/Modal'
 import OutputsTable from 'src/components/OutputsTable'
 import RecordsTable from 'src/components/RecordsTable'
 import StepButtons from 'src/components/StepButtons'
-import { inputsMissingRequiredAttributes, requiredInputsWithoutSource, resolveWdsUrl, WdsPollInterval } from 'src/components/submission-common'
+import {
+  inputsMissingRequiredAttributes,
+  inputsWithIncorrectValues,
+  requiredInputsWithoutSource,
+  resolveWdsUrl,
+  WdsPollInterval
+} from 'src/components/submission-common'
 import { TextCell } from 'src/components/table'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
@@ -44,6 +50,7 @@ export const SubmissionConfig = ({ methodId }) => {
   const [configuredOutputDefinition, setConfiguredOutputDefinition] = useState()
   const [missingRequiredInputs, setMissingRequiredInputs] = useState([])
   const [missingExpectedAttributes, setMissingExpectedAttributes] = useState([])
+  const [inputsWithInvalidValues, setInputsWithInvalidValues] = useState([])
   const [viewWorkflowScriptModal, setViewWorkflowScriptModal] = useState(false)
 
   // TODO: These should probably be moved to the modal:
@@ -191,8 +198,11 @@ export const SubmissionConfig = ({ methodId }) => {
         i => i.input_name,
         requiredInputsWithoutSource(configuredInputDefinition))
 
+      const newInputsWithIncorrectValues = _.map(i => i.input_name, inputsWithIncorrectValues(configuredInputDefinition))
+
       setMissingExpectedAttributes(newMissingExpectedAttributes)
       setMissingRequiredInputs(newMissingRequiredInputs)
+      setInputsWithInvalidValues(newInputsWithIncorrectValues)
     }
   }, [records, recordTypes, configuredInputDefinition])
 
@@ -293,7 +303,7 @@ export const SubmissionConfig = ({ methodId }) => {
         h(StepButtons, {
           tabs: [
             { key: 'select-data', title: 'Select Data', isValid: true },
-            { key: 'inputs', title: 'Inputs', isValid: !missingRequiredInputs.length && !missingExpectedAttributes.length },
+            { key: 'inputs', title: 'Inputs', isValid: !missingRequiredInputs.length && !missingExpectedAttributes.length && !inputsWithInvalidValues.length },
             { key: 'outputs', title: 'Outputs', isValid: true }
           ],
           activeTab: activeTab.key || 'select-data',
@@ -301,10 +311,11 @@ export const SubmissionConfig = ({ methodId }) => {
           finalStep: h(ButtonPrimary, {
             'aria-label': 'Submit button',
             style: { marginLeft: '1rem' },
-            disabled: _.isEmpty(selectedRecords) || missingRequiredInputs.length || missingExpectedAttributes.length,
+            disabled: _.isEmpty(selectedRecords) || missingRequiredInputs.length || missingExpectedAttributes.length || inputsWithInvalidValues.length,
             tooltip: Utils.cond(
               [_.isEmpty(selectedRecords), () => 'No records selected'],
               [missingRequiredInputs.length || missingExpectedAttributes.length, () => 'One or more inputs have missing values'],
+              [inputsWithInvalidValues.length, () => 'One or more inputs have invalid values'],
               () => ''
             ),
             onClick: () => {
@@ -375,7 +386,8 @@ export const SubmissionConfig = ({ methodId }) => {
       configuredInputDefinition, setConfiguredInputDefinition,
       inputTableSort, setInputTableSort,
       missingExpectedAttributes,
-      missingRequiredInputs
+      missingRequiredInputs,
+      inputsWithInvalidValues
     }) : 'No data table rows available or input definition is not configured...'
   }
 
@@ -407,6 +419,19 @@ export const SubmissionConfig = ({ methodId }) => {
           record_ids: _.keys(selectedRecords)
         }
       }
+
+      // const abc = {
+      //   key1: "123",
+      //   key2: Number(123),
+      //   key3: 123
+      // }
+      //
+      // console.log(`abc: ${abc}`)
+      // console.log(`abc JSON.stringify: ${JSON.stringify(abc)}`)
+
+      // console.log(`runSetsPayload: ${runSetsPayload}`)
+      // console.log(`runSetsPayload using JSON.stringify: ${JSON.stringify(runSetsPayload)}`)
+      // console.log(`runSetsPayload using JSON.parse(JSON.stringify): ${JSON.parse(JSON.stringify(runSetsPayload))}`)
 
       setIsSubmitting(true)
       const runSetObject = await Ajax(signal).Cbas.runSets.post(runSetsPayload)

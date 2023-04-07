@@ -330,10 +330,52 @@ const validateRecordLookups = (source, recordAttributes) => {
   } else return false
 }
 
+const validatePrimitiveTypeInputs = (primitiveType, value) => {
+  if (primitiveType === 'Int') {
+    return !isNaN(value) && !isNaN(parseFloat(value))
+  }
+
+  if (primitiveType === 'Boolean') {
+    return value.toLowerCase() === 'true' || value.toLowerCase() === 'false'
+  }
+
+  return true
+}
+
+const validateParameterValueSelect = (inputSource, inputType) => {
+  if (inputSource) {
+    // for user entered values and inputs that have primitive type, we validate that value matches expected type
+    if (inputSource.type === 'literal') {
+      if (inputType.type === 'primitive') {
+        return validatePrimitiveTypeInputs(inputType.primitive_type, inputSource.parameter_value)
+      }
+
+      if (inputType.type === 'optional' && inputType.optional_type.type === 'primitive') {
+        return validatePrimitiveTypeInputs(inputType.optional_type.primitive_type, inputSource.parameter_value)
+      }
+    }
+
+    // for object_builder source type, we check that each field with user entered values and inputs that have
+    // primitive type have values that match the expected input type
+    if (inputSource.type === 'object_builder') {
+      if (inputSource.fields) {
+        const fieldsValidated = _.map(field => field && validateParameterValueSelect(field.source, field.field_type), _.merge(inputSource.fields, inputType.fields))
+        return _.every(Boolean, fieldsValidated)
+      }
+    }
+  }
+
+  return true
+}
+
 export const requiredInputsWithoutSource = inputDefinition => {
   return _.filter(i => !validateRequirements(i.source, i.input_type || i.field_type), inputDefinition)
 }
 
 export const inputsMissingRequiredAttributes = (inputDefinition, dataTableAttributes) => {
   return _.filter(i => !validateRecordLookups(i.source, _.keys(dataTableAttributes)), inputDefinition)
+}
+
+export const inputsWithIncorrectValues = inputDefinition => {
+  return _.filter(i => !validateParameterValueSelect(i.source, i.input_type || i.field_type), inputDefinition)
 }

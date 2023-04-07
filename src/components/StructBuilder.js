@@ -6,7 +6,7 @@ import { Link } from 'src/components/common'
 import Modal from 'src/components/Modal'
 import {
   inputsMissingRequiredAttributes,
-  InputSourceSelect,
+  InputSourceSelect, inputsWithIncorrectValues,
   ParameterValueTextInput,
   RecordLookupSelect,
   requiredInputsWithoutSource,
@@ -53,6 +53,7 @@ export const StructBuilder = props => {
 
   const missingExpectedAttributes = _.map(i => i.field_name, inputsMissingRequiredAttributes(structInputDefinition, dataTableAttributes))
   const missingRequiredInputs = _.map(i => i.field_name, requiredInputsWithoutSource(structInputDefinition))
+  const inputsWithInvalidValues = _.map(i => i.field_name, inputsWithIncorrectValues(structInputDefinition))
 
   const breadcrumbsHeight = 35
   return h(div, { 'aria-label': 'struct-breadcrumbs', style: { height: 500 } }, [
@@ -124,14 +125,22 @@ export const StructBuilder = props => {
               const setInnerStructSource = source => setCurrentStructSource(_.set(sourcePath, source, currentStructSource))
               return Utils.switchCase(innerStructSource ? innerStructSource.type : 'none',
                 ['literal',
-                  () => WithWarnings({
-                    baseComponent: ParameterValueTextInput({
-                      id: `structbuilder-table-attribute-select-${rowIndex}`,
-                      source: innerStructSource,
-                      setSource: setInnerStructSource
-                    }),
-                    warningMessage: missingRequiredInputs.includes(structInputDefinition[rowIndex].field_name) ? 'This attribute is required' : ''
-                  })],
+                  () => {
+                    const selectedInputName = structInputDefinition[rowIndex].field_name
+                    const warningMessage = Utils.cond(
+                      [missingRequiredInputs.includes(selectedInputName), () => 'This attribute is required'],
+                      [inputsWithInvalidValues.includes(selectedInputName), () => 'Value is either empty or doesn\'t match expected input type'],
+                      () => ''
+                    )
+                    return WithWarnings({
+                      baseComponent: ParameterValueTextInput({
+                        id: `structbuilder-table-attribute-select-${rowIndex}`,
+                        source: innerStructSource,
+                        setSource: setInnerStructSource
+                      }),
+                      warningMessage
+                    })
+                  }],
                 ['record_lookup',
                   () => WithWarnings({
                     baseComponent: RecordLookupSelect({
@@ -144,12 +153,16 @@ export const StructBuilder = props => {
                 ['object_builder',
                   () => {
                     const selectedInputName = structInputDefinition[rowIndex].field_name
-                    const warningMessage = Utils.cond(
-                      [missingRequiredInputs.includes(selectedInputName) && missingExpectedAttributes.includes(selectedInputName), () => 'One of this struct\'s required attributes is either missing or the attribute doesn\'t exist in the data table'],
-                      [missingRequiredInputs.includes(selectedInputName), () => 'One of this struct\'s required attributes is missing'],
-                      [missingExpectedAttributes.includes(selectedInputName), () => 'One of this struct\'s attributes doesn\'t exist in the data table'],
-                      () => ''
-                    )
+                    // const warningMessage = Utils.cond(
+                    //   [(missingRequiredInputs.includes(selectedInputName) || missingExpectedAttributes.includes(selectedInputName)) && inputsWithInvalidValues.includes(selectedInputName), () => 'One of this struct\'s inputs has invalid configuration'],
+                    //   [missingRequiredInputs.includes(selectedInputName), () => 'One of this struct\'s required attributes is missing'],
+                    //   [missingExpectedAttributes.includes(selectedInputName), () => 'One of this struct\'s attributes doesn\'t exist in the data table'],
+                    //   [inputsWithInvalidValues.includes(selectedInputName), () => 'Value is either empty or doesn\'t match expected input type'],
+                    //   () => ''
+                    // )
+
+                    const warningMessage = missingRequiredInputs.includes(selectedInputName) || missingExpectedAttributes.includes(selectedInputName) || inputsWithInvalidValues.includes(selectedInputName) ? 'One of this struct\'s inputs has an invalid configuration' : ''
+
                     return WithWarnings({
                       baseComponent: StructBuilderLink({
                         onClick: () => setStructIndexPath([...structIndexPath, rowIndex])
