@@ -227,8 +227,6 @@ export const ParameterValueTextInput = props => {
         parameter_value: updatedValue
       }
       setSource(newSource)
-
-      console.log(`New value: ${updatedValue} typeof: ${typeof updatedValue} \t newSource.parameter_value typeof: ${typeof newSource.parameter_value}`)
     }
   }
 
@@ -249,30 +247,10 @@ export const ParameterValueTextInput = props => {
         // for primitive and optional primitive inputs we convert value of these inputs to expected types
         if (inputType.type === 'primitive') {
           updateSourceValueToExpectedType(inputType.primitive_type, source.parameter_value)
-
-          // if (isPrimitiveTypeInputValid(inputType.primitive_type, source.parameter_value)) {
-          //   const updatedValue = convertToPrimitiveType(inputType.primitive_type, source.parameter_value)
-          //
-          //   const newSource = {
-          //     type: source.type,
-          //     parameter_value: updatedValue
-          //   }
-          //   setSource(newSource)
-          // }
         }
 
         if (inputType.type === 'optional' && inputType.optional_type.type === 'primitive') {
           updateSourceValueToExpectedType(inputType.optional_type.primitive_type, source.parameter_value)
-
-          // if (isPrimitiveTypeInputValid(inputType.optional_type.primitive_type, source.parameter_value)) {
-          //   const updatedValue = convertToPrimitiveType(inputType.optional_type.primitive_type, source.parameter_value)
-          //
-          //   const newSource = {
-          //     type: source.type,
-          //     parameter_value: updatedValue
-          //   }
-          //   setSource(newSource)
-          // }
         }
       }
     }
@@ -379,7 +357,8 @@ const validateRecordLookups = (source, recordAttributes) => {
   } else return false
 }
 
-// Note: this conversion function is called only after checking that values being converted are valid
+// Note: this conversion function is called only after checking that values being converted are valid.
+//       Hence we don't check the validity of inputs here
 export const convertToPrimitiveType = (primitiveType, value) => {
   return Utils.cond(
     [primitiveType === 'Int', () => parseInt(value)],

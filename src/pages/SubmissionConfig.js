@@ -406,75 +406,8 @@ export const SubmissionConfig = ({ methodId }) => {
     }
   }
 
-  // const convertToExpectedPrimitiveInput = (primitiveType, currentValue) => {
-  //   if (primitiveType === 'Int') {
-  //     return parseInt(currentValue)
-  //   }
-  //
-  //   if (primitiveType === 'Float') {
-  //     return parseFloat(currentValue)
-  //   }
-  //
-  //   if (primitiveType === 'Boolean') {
-  //     return currentValue === 'true'
-  //   }
-  //
-  //   return currentValue
-  // }
-
-  // const convertInputValuesToExpectedType = inputDefinition => {
-  //   inputDefinition.map((input, index) => {
-  //     if (input.source.type === 'literal') {
-  //       if (input.input_type.type === 'primitive') {
-  //         inputDefinition[index].source.parameter_value = convertToExpectedPrimitiveInput(input.input_type.primitive_type, input.source.parameter_value)
-  //       }
-  //
-  //       if (input.input_type.type === 'optional' && input.input_type.optional_type.type === 'primitive') {
-  //         inputDefinition[index].source.parameter_value = convertToExpectedPrimitiveInput(input.input_type.optional_type.primitive_type, input.source.parameter_value)
-  //       }
-  //     }
-  //
-  //     if (input.source.type === 'object_builder') {
-  //       // if (inputSource.fields) {
-  //       //   const fieldsValidated = _.map(field => field && validateParameterValueSelect(field.source, field.field_type), _.merge(inputSource.fields, inputType.fields))
-  //       //   return _.every(Boolean, fieldsValidated)
-  //       // }
-  //
-  //       if (input.source.fields) {
-  //         // const mergedInputAndSourceFields = _.merge(input.source.fields, input.input_type.fields)
-  //         input.source.fields.map((structSource, fieldIndex) => {
-  //           if (structSource.source.type === 'literal') {
-  //             if (input.input_type.fields[fieldIndex].field_type.type === 'primitive') {
-  //               inputDefinition[index].source.fields[fieldIndex].source.parameter_value = convertToExpectedPrimitiveInput(input.input_type.fields[fieldIndex].field_type.primitive_type, structSource.source.parameter_value)
-  //             }
-  //
-  //             if (input.input_type.fields[fieldIndex].field_type.type === 'optional' && input.input_type.fields[fieldIndex].field_type.optional_type.type === 'primitive') {
-  //               inputDefinition[index].source.fields[fieldIndex].source.parameter_value = convertToExpectedPrimitiveInput(input.input_type.fields[fieldIndex].field_type.optional_type.primitive_type, structSource.source.parameter_value)
-  //             }
-  //           }
-  //
-  //           // what if the source is object_builder ?
-  //         })
-  //       }
-  //
-  //       const abc = _.merge(input.source.fields, input.input_type.fields)
-  //
-  //       console.log(`MERGED fields for input ${input.input_name}: ${JSON.stringify(abc)}`)
-  //     }
-  //   })
-  //
-  //   return inputDefinition
-  // }
-
   const submitRun = async () => {
     try {
-      // console.log(`workflow_input_definitions: ${JSON.stringify(configuredInputDefinition)}`)
-      // const updatedInputDefinition = convertInputValuesToExpectedType(configuredInputDefinition)
-      //
-
-      // console.log(`updatedInputDefinition: ${JSON.stringify(updatedInputDefinition)}`)
-
-
       const runSetsPayload = {
         run_set_name: runSetName,
         run_set_description: runSetDescription,

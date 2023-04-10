@@ -67,8 +67,6 @@ const InputsTable = props => {
       () => ''
     )
 
-    // console.log(`inputType: ${JSON.stringify(_.get('input_type', inputTableData[rowIndex]))}`)
-
     return WithWarnings({
       baseComponent: ParameterValueTextInput({
         id: `input-table-value-select-${rowIndex}`,
@@ -83,14 +81,6 @@ const InputsTable = props => {
   }
 
   const structBuilderLinkWithWarnings = (rowIndex, selectedInputName) => {
-    // const warningMessage = Utils.cond(
-    //   [(missingRequiredInputs.includes(selectedInputName) || missingExpectedAttributes.includes(selectedInputName)) && inputsWithInvalidValues.includes(selectedInputName), () => 'One of this struct\'s inputs has invalid configuration'],
-    //   [missingRequiredInputs.includes(selectedInputName), () => 'One of this struct\'s required attributes is missing'],
-    //   [missingExpectedAttributes.includes(selectedInputName), () => 'One of this struct\'s attributes doesn\'t exist in the data table'],
-    //   [inputsWithInvalidValues.includes(selectedInputName), () => 'One of this struct\'s inputs has an invalid value'],
-    //   () => ''
-    // )
-
     const warningMessage = missingRequiredInputs.includes(selectedInputName) || missingExpectedAttributes.includes(selectedInputName) || inputsWithInvalidValues.includes(selectedInputName) ? 'One of this struct\'s inputs has an invalid configuration' : ''
 
     return WithWarnings({
