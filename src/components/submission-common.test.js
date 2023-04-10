@@ -85,4 +85,20 @@ describe('resolveWdsUrl', () => {
     ]
     expect(resolveWdsUrl(mockAppList)).toBe(firstWdsProxyUrl)
   })
+
+  it.each(
+    [
+      { appStatus: 'RUNNING', expectedUrl: mockWdsProxyUrl },
+      { appStatus: 'PROVISIONING', expectedUrl: '' },
+      { appStatus: 'STOPPED', expectedUrl: '' },
+      { appStatus: 'STOPPING', expectedUrl: '' }
+    ]
+  )('gives precedence to the WDS appType over the CROMWELL appType', ({ appStatus, expectedUrl }) => {
+    const uuid = '123e4567-e89b-12d3-a456-426614174000'
+    const testHealthyAppProxyUrlResponse: Array<Object> = [
+      { appType: 'CROMWELL', appName: `wds-${uuid}`, status: 'RUNNING', proxyUrls: { wds: 'should_not_return' }, workspaceId: uuid },
+      { appType: 'WDS', appName: `wds-${uuid}`, status: appStatus, proxyUrls: { wds: mockWdsProxyUrl }, workspaceId: uuid }
+    ]
+    expect(resolveWdsUrl(testHealthyAppProxyUrlResponse)).toBe(expectedUrl)
+  })
 })
