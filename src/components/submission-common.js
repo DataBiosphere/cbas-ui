@@ -9,6 +9,7 @@ import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
 import { notify } from 'src/libs/notifications'
 import { differenceFromDatesInSeconds, differenceFromNowInSeconds } from 'src/libs/utils'
+import * as Utils from 'src/libs/utils'
 
 
 export const AutoRefreshInterval = 1000 * 60 // 1 minute
@@ -233,6 +234,7 @@ export const ParameterValueTextInput = props => {
 
   return h(TextInput, {
     id,
+    'aria-label': 'Enter a value',
     style: { display: 'block', width: '100%' },
     value: source.parameter_value,
     onChange: value => {
@@ -377,36 +379,23 @@ const validateRecordLookups = (source, recordAttributes) => {
   } else return false
 }
 
-const convertToPrimitiveType = (primitiveType, value) => {
-  if (primitiveType === 'Int') {
-    return parseInt(value)
-  }
-
-  if (primitiveType === 'Float') {
-    return parseFloat(value)
-  }
-
-  if (primitiveType === 'Boolean' && typeof value != 'boolean') {
-    return value === 'true'
-  }
-
-  return value
+// Note: this conversion function is called only after checking that values being converted are valid
+export const convertToPrimitiveType = (primitiveType, value) => {
+  return Utils.cond(
+    [primitiveType === 'Int', () => parseInt(value)],
+    [primitiveType === 'Float', () => parseFloat(value)],
+    [primitiveType === 'Boolean' && typeof value != 'boolean', () => value === 'true'],
+    () => value
+  )
 }
 
-const isPrimitiveTypeInputValid = (primitiveType, value) => {
-  if (primitiveType === 'Int') {
-    return !isNaN(value) && Number.isInteger(Number(value))
-  }
-
-  if (primitiveType === 'Float') {
-    return !isNaN(value) && !isNaN(parseFloat(value))
-  }
-
-  if (primitiveType === 'Boolean') {
-    return value.toString().toLowerCase() === 'true' || value.toString().toLowerCase() === 'false'
-  }
-
-  return true
+export const isPrimitiveTypeInputValid = (primitiveType, value) => {
+  return Utils.cond(
+    [primitiveType === 'Int', () => !isNaN(value) && Number.isInteger(Number(value))],
+    [primitiveType === 'Float', () => !isNaN(value) && !isNaN(parseFloat(value))],
+    [primitiveType === 'Boolean', () => value.toString().toLowerCase() === 'true' || value.toString().toLowerCase() === 'false'],
+    () => true
+  )
 }
 
 const validateParameterValueSelect = (inputSource, inputType) => {
