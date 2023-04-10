@@ -212,9 +212,24 @@ export const WithWarnings = props => {
 export const ParameterValueTextInput = props => {
   const {
     id,
+    inputType,
     source,
     setSource
   } = props
+
+  const updateSourceValueToExpectedType = (primitiveType, value) => {
+    if (isPrimitiveTypeInputValid(primitiveType, value)) {
+      const updatedValue = convertToPrimitiveType(primitiveType, value)
+
+      const newSource = {
+        type: source.type,
+        parameter_value: updatedValue
+      }
+      setSource(newSource)
+
+      console.log(`New value: ${updatedValue} typeof: ${typeof updatedValue} \t newSource.parameter_value typeof: ${typeof newSource.parameter_value}`)
+    }
+  }
 
   return h(TextInput, {
     id,
@@ -226,6 +241,38 @@ export const ParameterValueTextInput = props => {
         parameter_value: value
       }
       setSource(newSource)
+    },
+    onBlur: () => {
+      if (source.parameter_value) {
+        // for primitive and optional primitive inputs we convert value of these inputs to expected types
+        if (inputType.type === 'primitive') {
+          updateSourceValueToExpectedType(inputType.primitive_type, source.parameter_value)
+
+          // if (isPrimitiveTypeInputValid(inputType.primitive_type, source.parameter_value)) {
+          //   const updatedValue = convertToPrimitiveType(inputType.primitive_type, source.parameter_value)
+          //
+          //   const newSource = {
+          //     type: source.type,
+          //     parameter_value: updatedValue
+          //   }
+          //   setSource(newSource)
+          // }
+        }
+
+        if (inputType.type === 'optional' && inputType.optional_type.type === 'primitive') {
+          updateSourceValueToExpectedType(inputType.optional_type.primitive_type, source.parameter_value)
+
+          // if (isPrimitiveTypeInputValid(inputType.optional_type.primitive_type, source.parameter_value)) {
+          //   const updatedValue = convertToPrimitiveType(inputType.optional_type.primitive_type, source.parameter_value)
+          //
+          //   const newSource = {
+          //     type: source.type,
+          //     parameter_value: updatedValue
+          //   }
+          //   setSource(newSource)
+          // }
+        }
+      }
     }
   })
 }
@@ -330,13 +377,33 @@ const validateRecordLookups = (source, recordAttributes) => {
   } else return false
 }
 
-const validatePrimitiveTypeInputs = (primitiveType, value) => {
+const convertToPrimitiveType = (primitiveType, value) => {
   if (primitiveType === 'Int') {
+    return parseInt(value)
+  }
+
+  if (primitiveType === 'Float') {
+    return parseFloat(value)
+  }
+
+  if (primitiveType === 'Boolean' && typeof value != 'boolean') {
+    return value === 'true'
+  }
+
+  return value
+}
+
+const isPrimitiveTypeInputValid = (primitiveType, value) => {
+  if (primitiveType === 'Int') {
+    return !isNaN(value) && Number.isInteger(Number(value))
+  }
+
+  if (primitiveType === 'Float') {
     return !isNaN(value) && !isNaN(parseFloat(value))
   }
 
   if (primitiveType === 'Boolean') {
-    return value.toLowerCase() === 'true' || value.toLowerCase() === 'false'
+    return value.toString().toLowerCase() === 'true' || value.toString().toLowerCase() === 'false'
   }
 
   return true
@@ -347,11 +414,11 @@ const validateParameterValueSelect = (inputSource, inputType) => {
     // for user entered values and inputs that have primitive type, we validate that value matches expected type
     if (inputSource.type === 'literal') {
       if (inputType.type === 'primitive') {
-        return validatePrimitiveTypeInputs(inputType.primitive_type, inputSource.parameter_value)
+        return isPrimitiveTypeInputValid(inputType.primitive_type, inputSource.parameter_value)
       }
 
       if (inputType.type === 'optional' && inputType.optional_type.type === 'primitive') {
-        return validatePrimitiveTypeInputs(inputType.optional_type.primitive_type, inputSource.parameter_value)
+        return isPrimitiveTypeInputValid(inputType.optional_type.primitive_type, inputSource.parameter_value)
       }
     }
 

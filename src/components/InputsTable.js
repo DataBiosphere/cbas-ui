@@ -72,6 +72,7 @@ const InputsTable = props => {
     return WithWarnings({
       baseComponent: ParameterValueTextInput({
         id: `input-table-value-select-${rowIndex}`,
+        inputType: _.get('input_type', inputTableData[rowIndex]),
         source: _.get(`${inputTableData[rowIndex].configurationIndex}.source`, configuredInputDefinition),
         setSource: source => {
           setConfiguredInputDefinition(_.set(`${inputTableData[rowIndex].configurationIndex}.source`, source, configuredInputDefinition))

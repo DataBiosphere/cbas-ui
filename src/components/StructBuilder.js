@@ -135,6 +135,7 @@ export const StructBuilder = props => {
                     return WithWarnings({
                       baseComponent: ParameterValueTextInput({
                         id: `structbuilder-table-attribute-select-${rowIndex}`,
+                        inputType: currentStructType.fields[rowIndex].field_type,
                         source: innerStructSource,
                         setSource: setInnerStructSource
                       }),
@@ -153,14 +154,6 @@ export const StructBuilder = props => {
                 ['object_builder',
                   () => {
                     const selectedInputName = structInputDefinition[rowIndex].field_name
-                    // const warningMessage = Utils.cond(
-                    //   [(missingRequiredInputs.includes(selectedInputName) || missingExpectedAttributes.includes(selectedInputName)) && inputsWithInvalidValues.includes(selectedInputName), () => 'One of this struct\'s inputs has invalid configuration'],
-                    //   [missingRequiredInputs.includes(selectedInputName), () => 'One of this struct\'s required attributes is missing'],
-                    //   [missingExpectedAttributes.includes(selectedInputName), () => 'One of this struct\'s attributes doesn\'t exist in the data table'],
-                    //   [inputsWithInvalidValues.includes(selectedInputName), () => 'Value is either empty or doesn\'t match expected input type'],
-                    //   () => ''
-                    // )
-
                     const warningMessage = missingRequiredInputs.includes(selectedInputName) || missingExpectedAttributes.includes(selectedInputName) || inputsWithInvalidValues.includes(selectedInputName) ? 'One of this struct\'s inputs has an invalid configuration' : ''
 
                     return WithWarnings({
