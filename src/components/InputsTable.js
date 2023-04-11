@@ -21,7 +21,7 @@ const InputsTable = props => {
     selectedDataTable,
     configuredInputDefinition, setConfiguredInputDefinition,
     inputTableSort, setInputTableSort,
-    missingRequiredInputs, missingExpectedAttributes
+    missingRequiredInputs, missingExpectedAttributes, inputsWithInvalidValues
   } = props
 
   const [structBuilderVisible, setStructBuilderVisible] = useState(false)
@@ -61,25 +61,27 @@ const InputsTable = props => {
   }
 
   const parameterValueSelectWithWarnings = (rowIndex, selectedInputName) => {
+    const warningMessage = Utils.cond(
+      [missingRequiredInputs.includes(selectedInputName), () => 'This attribute is required'],
+      [inputsWithInvalidValues.includes(selectedInputName), () => 'Value is either empty or doesn\'t match expected input type'],
+      () => ''
+    )
+
     return WithWarnings({
       baseComponent: ParameterValueTextInput({
         id: `input-table-value-select-${rowIndex}`,
+        inputType: _.get('input_type', inputTableData[rowIndex]),
         source: _.get(`${inputTableData[rowIndex].configurationIndex}.source`, configuredInputDefinition),
         setSource: source => {
           setConfiguredInputDefinition(_.set(`${inputTableData[rowIndex].configurationIndex}.source`, source, configuredInputDefinition))
         }
       }),
-      warningMessage: missingRequiredInputs.includes(selectedInputName) ? 'This attribute is required' : ''
+      warningMessage
     })
   }
 
   const structBuilderLinkWithWarnings = (rowIndex, selectedInputName) => {
-    const warningMessage = Utils.cond(
-      [missingRequiredInputs.includes(selectedInputName) && missingExpectedAttributes.includes(selectedInputName), () => 'One of this struct\'s required attributes is either missing or the attribute doesn\'t exist in the data table'],
-      [missingRequiredInputs.includes(selectedInputName), () => 'One of this struct\'s required attributes is missing'],
-      [missingExpectedAttributes.includes(selectedInputName), () => 'One of this struct\'s attributes doesn\'t exist in the data table'],
-      () => ''
-    )
+    const warningMessage = missingRequiredInputs.includes(selectedInputName) || missingExpectedAttributes.includes(selectedInputName) || inputsWithInvalidValues.includes(selectedInputName) ? 'One of this struct\'s inputs has an invalid configuration' : ''
 
     return WithWarnings({
       baseComponent: h(StructBuilderLink, {

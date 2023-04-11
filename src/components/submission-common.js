@@ -9,6 +9,7 @@ import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
 import { notify } from 'src/libs/notifications'
 import { differenceFromDatesInSeconds, differenceFromNowInSeconds } from 'src/libs/utils'
+import * as Utils from 'src/libs/utils'
 
 
 export const AutoRefreshInterval = 1000 * 60 // 1 minute
@@ -212,12 +213,26 @@ export const WithWarnings = props => {
 export const ParameterValueTextInput = props => {
   const {
     id,
+    inputType,
     source,
     setSource
   } = props
 
+  const updateSourceValueToExpectedType = (primitiveType, value) => {
+    if (isPrimitiveTypeInputValid(primitiveType, value)) {
+      const updatedValue = convertToPrimitiveType(primitiveType, value)
+
+      const newSource = {
+        type: source.type,
+        parameter_value: updatedValue
+      }
+      setSource(newSource)
+    }
+  }
+
   return h(TextInput, {
     id,
+    'aria-label': 'Enter a value',
     style: { display: 'block', width: '100%' },
     value: source.parameter_value,
     onChange: value => {
@@ -226,6 +241,18 @@ export const ParameterValueTextInput = props => {
         parameter_value: value
       }
       setSource(newSource)
+    },
+    onBlur: () => {
+      if (source.parameter_value) {
+        // for primitive and optional primitive inputs we convert value of these inputs to expected types
+        if (inputType.type === 'primitive') {
+          updateSourceValueToExpectedType(inputType.primitive_type, source.parameter_value)
+        }
+
+        if (inputType.type === 'optional' && inputType.optional_type.type === 'primitive') {
+          updateSourceValueToExpectedType(inputType.optional_type.primitive_type, source.parameter_value)
+        }
+      }
     }
   })
 }
@@ -330,10 +357,60 @@ const validateRecordLookups = (source, recordAttributes) => {
   } else return false
 }
 
+// Note: this conversion function is called only after checking that values being converted are valid.
+//       Hence we don't check the validity of inputs here
+export const convertToPrimitiveType = (primitiveType, value) => {
+  return Utils.cond(
+    [primitiveType === 'Int', () => parseInt(value)],
+    [primitiveType === 'Float', () => parseFloat(value)],
+    [primitiveType === 'Boolean' && typeof value != 'boolean', () => value === 'true'],
+    () => value
+  )
+}
+
+export const isPrimitiveTypeInputValid = (primitiveType, value) => {
+  return Utils.cond(
+    [primitiveType === 'Int', () => !isNaN(value) && Number.isInteger(Number(value))],
+    [primitiveType === 'Float', () => !isNaN(value) && !isNaN(parseFloat(value))],
+    [primitiveType === 'Boolean', () => value.toString().toLowerCase() === 'true' || value.toString().toLowerCase() === 'false'],
+    () => true
+  )
+}
+
+const validateParameterValueSelect = (inputSource, inputType) => {
+  if (inputSource) {
+    // for user entered values and inputs that have primitive type, we validate that value matches expected type
+    if (inputSource.type === 'literal') {
+      if (inputType.type === 'primitive') {
+        return isPrimitiveTypeInputValid(inputType.primitive_type, inputSource.parameter_value)
+      }
+
+      if (inputType.type === 'optional' && inputType.optional_type.type === 'primitive') {
+        return isPrimitiveTypeInputValid(inputType.optional_type.primitive_type, inputSource.parameter_value)
+      }
+    }
+
+    // for object_builder source type, we check that each field with user entered values and inputs that have
+    // primitive type have values that match the expected input type
+    if (inputSource.type === 'object_builder') {
+      if (inputSource.fields) {
+        const fieldsValidated = _.map(field => field && validateParameterValueSelect(field.source, field.field_type), _.merge(inputSource.fields, inputType.fields))
+        return _.every(Boolean, fieldsValidated)
+      }
+    }
+  }
+
+  return true
+}
+
 export const requiredInputsWithoutSource = inputDefinition => {
   return _.filter(i => !validateRequirements(i.source, i.input_type || i.field_type), inputDefinition)
 }
 
 export const inputsMissingRequiredAttributes = (inputDefinition, dataTableAttributes) => {
   return _.filter(i => !validateRecordLookups(i.source, _.keys(dataTableAttributes)), inputDefinition)
+}
+
+export const inputsWithIncorrectValues = inputDefinition => {
+  return _.filter(i => !validateParameterValueSelect(i.source, i.input_type || i.field_type), inputDefinition)
 }

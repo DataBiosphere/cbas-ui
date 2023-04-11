@@ -1283,7 +1283,7 @@ describe('Input source and requirements validation', () => {
     const table = await screen.findByRole('table')
     const rows = within(table).queryAllByRole('row')
     const viewStructLink = within(rows[4]).getByText('View Struct')
-    const inputWarningMessageActive = within(rows[4]).queryByText("One of this struct's attributes doesn't exist in the data table")
+    const inputWarningMessageActive = within(rows[4]).queryByText("One of this struct's inputs has an invalid configuration")
     expect(inputWarningMessageActive).not.toBeNull()
 
     // ** ACT **
@@ -1297,7 +1297,7 @@ describe('Input source and requirements validation', () => {
     const structCells = within(structRows[5]).queryAllByRole('cell')
     within(structCells[1]).getByText('myInnerStruct')
     const viewMyInnerStructLink = within(structCells[4]).getByText('View Struct')
-    const structWarningMessageActive = within(structCells[4]).queryByText("One of this struct's attributes doesn't exist in the data table")
+    const structWarningMessageActive = within(structCells[4]).queryByText("One of this struct's inputs has an invalid configuration")
     expect(structWarningMessageActive).not.toBeNull()
 
     // ** ACT **
@@ -1389,7 +1389,7 @@ describe('Input source and requirements validation', () => {
 
     // ** ASSERT **
     // check that the warning message for struct input has changed
-    within(thirdInputRowCells[4]).getByText('One of this struct\'s required attributes is missing')
+    within(thirdInputRowCells[4]).getByText('One of this struct\'s inputs has an invalid configuration')
 
     // ** ACT **
     // click on View struct to open modal
@@ -1418,8 +1418,59 @@ describe('Input source and requirements validation', () => {
     await userEvent.click(screen.getByText('Done'))
 
     // ** ASSERT **
-    // check that the warning message for struct input has changed
-    within(thirdInputRowCells[4]).getByText('One of this struct\'s attributes doesn\'t exist in the data table')
+    // check that the warning message for struct input still exists as it still has invalid input configurations
+    within(thirdInputRowCells[4]).getByText('One of this struct\'s inputs has an invalid configuration')
+  })
+
+  it('should display warning icon for input with value not matching expected type', async () => {
+    // ** ARRANGE **
+    const { mockRunSetResponse, mockMethodsResponse, mockSearchResponse, mockTypesResponse } = buildAjax(runSetResponseForNewMethod)
+
+    // ** ACT **
+    render(h(SubmissionConfig))
+
+    // ** ASSERT **
+    await waitFor(() => {
+      expect(mockRunSetResponse).toHaveBeenCalledTimes(1)
+      expect(mockTypesResponse).toHaveBeenCalledTimes(1)
+      expect(mockMethodsResponse).toHaveBeenCalledTimes(1)
+      expect(mockSearchResponse).toHaveBeenCalledTimes(1)
+    })
+
+    const button = await screen.findByRole('button', { name: 'Inputs' })
+
+    // ** ACT **
+    await fireEvent.click(button)
+
+    const table = await screen.findByRole('table')
+    const rows = within(table).queryAllByRole('row')
+
+    const firstInputRowCells = within(rows[1]).queryAllByRole('cell')
+
+    // user sets the source to 'Type a Value' for Int input
+    await userEvent.click(within(firstInputRowCells[3]).getByText('Select Source'))
+    const selectOption = await screen.findByText('Type a Value')
+    await userEvent.click(selectOption)
+
+    // ** ASSERT **
+    // check that the warning message for input exists
+    within(firstInputRowCells[4]).getByText('This attribute is required')
+
+    // ** ACT **
+    // user types value for the Int input
+    await userEvent.type(screen.getByLabelText('Enter a value'), '123X')
+
+    // ** ASSERT **
+    // check that the warning message for incorrect value is displayed
+    within(firstInputRowCells[4]).getByText('Value is either empty or doesn\'t match expected input type')
+
+    // ** ACT **
+    // user deletes the extra character
+    await userEvent.type(screen.getByLabelText('Enter a value'), '{backspace}')
+
+    // ** ASSERT **
+    // check that the warning message for incorrect value is gone
+    expect(within(firstInputRowCells[4]).queryByText('Value is either empty or doesn\'t match expected input type')).toBeNull()
   })
 })
 

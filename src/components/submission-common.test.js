@@ -1,4 +1,10 @@
-import { getDuration, isRunInTerminalState, isRunSetInTerminalState, resolveWdsUrl } from 'src/components/submission-common'
+import {
+  convertToPrimitiveType,
+  getDuration, inputsWithIncorrectValues, isPrimitiveTypeInputValid,
+  isRunInTerminalState,
+  isRunSetInTerminalState,
+  resolveWdsUrl
+} from 'src/components/submission-common'
 import { getConfig } from 'src/libs/config'
 
 
@@ -84,5 +90,117 @@ describe('resolveWdsUrl', () => {
       generateMockApp('CROMWELL', 'RUNNING', mockWdsProxyUrl, '2023-01-24T15:27:28.740880Z')
     ]
     expect(resolveWdsUrl(mockAppList)).toBe(firstWdsProxyUrl)
+  })
+})
+
+describe('convertToPrimitiveType', () => {
+  const testCases = [
+    { primitiveType: 'Int', value: '123', expectedTypeof: 'number', convertedValue: 123 },
+    { primitiveType: 'Float', value: '23.32', expectedTypeof: 'number', convertedValue: 23.32 },
+    { primitiveType: 'Boolean', value: 'false', expectedTypeof: 'boolean', convertedValue: false },
+    { primitiveType: 'String', value: 'hello world!', expectedTypeof: 'string', convertedValue: 'hello world!' },
+    { primitiveType: 'File', value: 'https://abc.wdl', expectedTypeof: 'string', convertedValue: 'https://abc.wdl' }
+  ]
+
+  test.each(testCases)('converts value to $primitiveType type as expected', ({ primitiveType, value, expectedTypeof, convertedValue }) => {
+    const result = convertToPrimitiveType(primitiveType, value)
+    expect(typeof result).toBe(expectedTypeof)
+    expect(result).toBe(convertedValue)
+  })
+})
+
+describe('isPrimitiveTypeInputValid', () => {
+  const testCases = [
+    { primitiveType: 'Int', value: '123', expectedResult: true },
+    { primitiveType: 'Int', value: '123xHello', expectedResult: false },
+    { primitiveType: 'Int', value: 'Hello', expectedResult: false },
+    { primitiveType: 'Int', value: '1234.45', expectedResult: false },
+    { primitiveType: 'Float', value: '23.32', expectedResult: true },
+    { primitiveType: 'Float', value: '23.0', expectedResult: true },
+    { primitiveType: 'Float', value: '23', expectedResult: true },
+    { primitiveType: 'Float', value: '23.0x', expectedResult: false },
+    { primitiveType: 'Float', value: 'Hello', expectedResult: false },
+    { primitiveType: 'Boolean', value: 'true', expectedResult: true },
+    { primitiveType: 'Boolean', value: 'false', expectedResult: true },
+    { primitiveType: 'Boolean', value: 'hello', expectedResult: false },
+    { primitiveType: 'Boolean', value: '123', expectedResult: false },
+    { primitiveType: 'String', value: 'hello world!', expectedResult: true },
+    { primitiveType: 'String', value: '123.32', expectedResult: true },
+    { primitiveType: 'File', value: 'https://abc.wdl', expectedResult: true }
+  ]
+
+  test.each(testCases)('returns if value for type $primitiveType is valid or not type as expected', ({ primitiveType, value, expectedResult }) => {
+    expect(isPrimitiveTypeInputValid(primitiveType, value)).toBe(expectedResult)
+  })
+})
+
+describe('inputsWithIncorrectValues', () => {
+  const intInput = value => {
+    return {
+      input_name: 'test_workflow.foo_int',
+      input_type: {
+        type: 'primitive',
+        primitive_type: 'Int'
+      },
+      source: {
+        type: 'literal',
+        parameter_value: value
+      }
+    }
+  }
+
+  const floatInput = value => {
+    return {
+      input_name: 'test_workflow.bar_float',
+      input_type: {
+        type: 'optional',
+        optional_type: {
+          type: 'primitive',
+          primitive_type: 'Float'
+        }
+      },
+      source: {
+        type: 'literal',
+        parameter_value: value
+      }
+    }
+  }
+
+  it('should return list of inputs with incorrect values', () => {
+    const invalidIntInput = intInput('123x')
+    const invalidFloatInput = floatInput('wrong_value')
+    const inputsWithIncorrectValuesDefinition = [
+      invalidIntInput,
+      invalidFloatInput,
+      {
+        input_name: 'test_workflow.foo_boolean',
+        input_type: {
+          type: 'optional',
+          optional_type: {
+            type: 'primitive',
+            primitive_type: 'Boolean'
+          }
+        },
+        source: {
+          type: 'literal',
+          parameter_value: false
+        }
+      }
+    ]
+
+    const invalidInputs = inputsWithIncorrectValues(inputsWithIncorrectValuesDefinition)
+    expect(invalidInputs.length).toBe(2)
+    expect(invalidInputs).toContain(invalidIntInput)
+    expect(invalidInputs).toContain(invalidFloatInput)
+  })
+
+  it('should return empty list for input definition with correct input values', () => {
+    const inputsWithCorrectValuesDefinition = [
+      intInput(1234),
+      floatInput(23.32)
+    ]
+
+    const invalidInputs = inputsWithIncorrectValues(inputsWithCorrectValuesDefinition)
+    expect(invalidInputs.length).toBe(0)
   })
 })
