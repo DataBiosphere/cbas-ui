@@ -6,6 +6,7 @@ import { TextInput } from 'src/components/input'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
+import { getConfig } from 'src/libs/config'
 import { notify } from 'src/libs/notifications'
 import { differenceFromDatesInSeconds, differenceFromNowInSeconds } from 'src/libs/utils'
 
@@ -108,15 +109,14 @@ export const resolveWdsApp = apps => {
   const healthyStates = ['RUNNING', 'PROVISIONING', 'STOPPED', 'STOPPING']
 
   // WDS appType is checked first and takes precedence over CROMWELL apps in the workspace
-  const wdsAppTypes = ['WDS', 'CROMWELL']
-  for (const wdsAppType of wdsAppTypes) {
-    const namedApp = apps.filter(app => app.appType === wdsAppType && app.appName === `wds-${app.workspaceId}` && healthyStates.includes(app.status))
+  for (const appTypeName of getConfig().wdsAppTypeName) {
+    const namedApp = apps.filter(app => app.appType === appTypeName && app.appName === `wds-${app.workspaceId}` && healthyStates.includes(app.status))
     if (namedApp.length === 1) {
       return namedApp[0]
     }
 
     //Failed to find an app with the proper name, look for a RUNNING WDS app
-    const runningWdsApps = apps.filter(app => app.appType === wdsAppType && app.status === 'RUNNING')
+    const runningWdsApps = apps.filter(app => app.appType === appTypeName && app.status === 'RUNNING')
     if (runningWdsApps.length > 0) {
       // Evaluate the earliest-created WDS app
       runningWdsApps.sort((a, b) => new Date(a.auditInfo.createdDate).valueOf() - new Date(b.auditInfo.createdDate).valueOf())
@@ -124,7 +124,7 @@ export const resolveWdsApp = apps => {
     }
 
     // If we reach this logic, we have more than one Leo app with the associated workspace Id...
-    const allWdsApps = apps.filter(app => app.appType === wdsAppType && ['PROVISIONING', 'STOPPED', 'STOPPING'].includes(app.status))
+    const allWdsApps = apps.filter(app => app.appType === appTypeName && ['PROVISIONING', 'STOPPED', 'STOPPING'].includes(app.status))
     if (allWdsApps.length > 0) {
       // Evaluate the earliest-created WDS app
       allWdsApps.sort((a, b) => new Date(a.auditInfo.createdDate).valueOf() - new Date(b.auditInfo.createdDate).valueOf())
