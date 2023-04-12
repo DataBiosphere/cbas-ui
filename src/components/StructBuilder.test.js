@@ -6,17 +6,6 @@ import { h } from 'react-hyperscript-helpers'
 import { buildStructBreadcrumbs, StructBuilder } from 'src/components/StructBuilder'
 
 
-const structType = {
-  type: 'struct',
-  name: 'Pet',
-  fields: [
-    {
-      field_name: 'pet_age',
-      field_type: { type: 'primitive', primitive_type: 'Int' }
-    }
-  ]
-}
-
 describe('unit tests', () => {
   it('should build breadcrumbs given a struct path', () => {
     const inputType = {
@@ -96,6 +85,17 @@ describe('unit tests', () => {
 })
 
 describe('Configuration tests', () => {
+  const structType = {
+    type: 'struct',
+    name: 'Pet',
+    fields: [
+      {
+        field_name: 'pet_age',
+        field_type: { type: 'primitive', primitive_type: 'Int' }
+      }
+    ]
+  }
+
   beforeAll(() => {
     Object.defineProperty(HTMLElement.prototype, 'offsetHeight', { configurable: true, value: 1000 })
     Object.defineProperty(HTMLElement.prototype, 'offsetWidth', { configurable: true, value: 800 })
