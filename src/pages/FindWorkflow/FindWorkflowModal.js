@@ -84,18 +84,19 @@ const FindWorkflowModal = ({ onDismiss }) => {
   const [selectedSubHeader, setSelectedSubHeader] = useState('browse-suggested-workflows')
   const [loading, setLoading] = useState()
   const [workflowDescriptionModal, setWorkflowDescriptionModal] = useState(false)
-  const [selectedMethod, setSelectedMethod] = useState(undefined)
+  const [selectedMethod, setSelectedMethod] = useState()
 
   const signal = useCancellation()
 
   const submitMethod = withBusyState(setLoading, async ({ method }) => {
     try {
+      // console.log(method.selectedMethod)
       const methodPayload = {
-        method_name: method.method_name,
-        method_description: method.method_description,
-        method_source: method.method_source,
-        method_version: method.method_version,
-        method_url: method.method_url
+        method_name: method.selectedMethod.method_name,
+        method_description: method.selectedMethod.method_description,
+        method_source: method.selectedMethod.method_source,
+        method_version: method.selectedMethod.method_version,
+        method_url: method.selectedMethod.method_url
       }
 
       const methodObject = await Ajax(signal).Cbas.methods.post(methodPayload)
@@ -118,6 +119,7 @@ const FindWorkflowModal = ({ onDismiss }) => {
   const renderDetails = method => {
     //const { synopsis, managers, documentation } = selectedWorkflowDetails || {}
     const managers = ['Chris, Katrina, Michael, Saloni']
+    // console.log(method.selectedMethod.method_name)
 
     return h(Fragment, [
       div({ style: { display: 'flex' } }, [
@@ -127,27 +129,25 @@ const FindWorkflowModal = ({ onDismiss }) => {
           div({ style: { fontSize: 18, fontWeight: 600, margin: '1rem 0 0.5rem' } }, ['Method Owner']),
           div([_.join(',', managers)])
         ]),
-        div({ style: { margin: '0 1rem', display: 'flex', flexDirection: 'column'} }, [
-          h(ButtonPrimary, { style: { marginBottom: '0.5rem' }, onClick: () => submitMethod(method)/*exportMethod*/ }, ['Add to Workspace']),
+        div({ style: { margin: '0 1rem', display: 'flex', flexDirection: 'column' } }, [
+          h(ButtonPrimary, { style: { marginBottom: '0.5rem' }, onClick: () => {
+            setSelectedMethod(undefined)
+            submitMethod({ method }) }}, ['Add to Workspace']),
           h(ButtonOutline, {
             onClick: () => {
-              // setSelectedWorkflow(undefined)
-              // setSelectedWorkflowDetails(undefined)
               setSelectedMethod(undefined)
-              //alert('return to list alert')
             }
           }, ['Return to List']),
-          h(ButtonOutline, { style: { whiteSpace: 'pre-wrap', height: '3rem', textAlign: 'center', marginTop: '0.5rem' },
+          h(ButtonOutline, {
+            style: { whiteSpace: 'pre-wrap', height: '3rem', textAlign: 'center', marginTop: '0.5rem' },
             onClick: () => {
-              // setSelectedWorkflow(undefined)
-              // setSelectedWorkflowDetails(undefined)
               alert('download sample data alert')
             }
           }, ['Download sample data \nto run with the workflow'])
         ])
       ]),
       div({ style: { fontSize: 18, fontWeight: 600, margin: '1rem 0 0.5rem' } }, ['Documentation']),
-      // documentation && h(MarkdownViewer, { style: { maxHeight: 600, overflowY: 'auto' } }, [documentation]),
+      // documentation && h(MarkdownViewer, { style: { maxHeight: 600, overflowY: 'auto' } }, [documentation]), // TODO: needed for future iterations to view documentation
       // (!selectedWorkflowDetails || exporting) && spinnerOverlay
       div(['None'])
     ])
@@ -184,28 +184,16 @@ const FindWorkflowModal = ({ onDismiss }) => {
       ]),
       isSubHeaderActive('browse-suggested-workflows') && div({ style: { overflowY: 'auto', flexGrow: 1, display: 'flex', flexDirection: 'column', paddingLeft: '20px' } }, [
         div({ style: { display: 'flex', flexWrap: 'wrap', overflowY: 'auto', paddingBottom: 5, paddingLeft: 5 } }, [
-          _.map(method => h(MethodCard, { method,
-            onClick: () =>  {
+          _.map(method => h(MethodCard, {
+            method,
+            onClick: () => {
               setWorkflowDescriptionModal(true)
               setSelectedMethod(method)
-              renderDetails(method)
-              // onDismiss()
-              console.log(method)
-              }
-              //workflowDescriptionModal && WorkflowDescriptionModal()
-              // h(Modal, {
-              //   title: ' Call Cache Miss Debugging Wizard',
-              //   onDismiss,
-              //   width: '850px',
-              //   showButtons: false,
-              //   showX: true
-              // }, ['Modal'])
-            //}
-
-              /*submitMethod({ method }), key: method.method_name */}), suggestedWorkflowsList)
-        ]),
+            }
+          }), suggestedWorkflowsList)
+        ])
       ]),
-      selectedMethod && h(Modal, {title: `Workflow: ${selectedMethod.method_name}`, width: 900, onDismiss, showButtons: false, showX: true}, [renderDetails({selectedMethod})])
+      selectedMethod && h(Modal, { title: `Workflow: ${selectedMethod.method_name}`, width: 900, onDismiss, showButtons: false, showX: true }, [renderDetails({ selectedMethod })])
     ])
   ])
 }
