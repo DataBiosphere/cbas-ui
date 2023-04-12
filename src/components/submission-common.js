@@ -109,7 +109,7 @@ export const resolveWdsApp = apps => {
   const healthyStates = ['RUNNING', 'PROVISIONING', 'STOPPED', 'STOPPING']
 
   // WDS appType is checked first and takes precedence over CROMWELL apps in the workspace
-  for (const appTypeName of getConfig().wdsAppTypeName) {
+  for (const appTypeName of getConfig().wdsAppTypeNames) {
     const namedApp = apps.filter(app => app.appType === appTypeName && app.appName === `wds-${app.workspaceId}` && healthyStates.includes(app.status))
     if (namedApp.length === 1) {
       return namedApp[0]

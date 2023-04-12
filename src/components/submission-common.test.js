@@ -65,7 +65,7 @@ describe('resolveWdsUrl', () => {
   ]
 
   beforeEach(() => {
-    getConfig.mockReturnValue(({ wdsAppTypeName: ['WDS', 'CROMWELL'] }))
+    getConfig.mockReturnValue(({ wdsAppTypeNames: ['WDS', 'CROMWELL'] }))
   })
 
   test.each(testCases)('properly extracts the correct value for a WDS app in \'$appStatus\' state from the Leo response ', ({ appStatus, expectedUrl }) => {
