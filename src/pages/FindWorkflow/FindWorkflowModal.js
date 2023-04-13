@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import { useState, Fragment } from 'react'
+import { Fragment, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { ButtonOutline, ButtonPrimary, Clickable, Link } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
