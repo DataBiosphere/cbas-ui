@@ -120,6 +120,5 @@ describe('renderDetails Modal', () => {
     // ** ASSERT **
     expect(workflowName).not.toBeInTheDocument()
     expect(synopsis).not.toBeInTheDocument()
-
   })
 })
