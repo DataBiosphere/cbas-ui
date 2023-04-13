@@ -32,6 +32,33 @@ describe('FindWorkflowModal', () => {
     expect(screen.getByText('MultiSampleSmartSeq2SingleNucleus')).toBeInTheDocument()
     expect(screen.getByText('scATAC')).toBeInTheDocument()
   })
+})
+
+describe('renderDetails Modal', () => {
+  it('should show workflow description modal when method is selected', async () => {
+    // ** ACT **
+    render(h(FindWorkflowModal, { onDismiss: jest.fn() }))
+
+    // ** ASSERT **
+    expect(screen.getByText('Find a Workflow')).toBeInTheDocument()
+
+    // select and click on method in modal
+    const firstWorkflow = screen.getByText('Optimus')
+    await act(async () => { await fireEvent.click(firstWorkflow) })
+
+    expect(screen.getByText('Workflow: Optimus')).toBeInTheDocument()
+    expect(screen.getByText('Synopsis')).toBeInTheDocument()
+    expect(screen.getByText('Method Owner')).toBeInTheDocument()
+    expect(screen.getByText('Documentation')).toBeInTheDocument()
+
+    // Buttons
+    const buttons = await screen.findAllByLabelText('workflow description button')
+    expect(buttons.length).toBe(3)
+
+    expect(buttons[0]).toHaveTextContent('Add to Workspace')
+    expect(buttons[1]).toHaveTextContent('Return to List')
+    expect(buttons[2]).toHaveTextContent('Download sample data to run with the workflow')
+  })
 
   it('should call POST /methods endpoint with expected parameters', async () => {
     const postMethodFunction = jest.fn(() => Promise.resolve({ method_id: 'abc123' }))
@@ -55,6 +82,10 @@ describe('FindWorkflowModal', () => {
     // select and click on method in modal
     const firstWorkflow = screen.getByText('Optimus')
     await act(async () => { await fireEvent.click(firstWorkflow) })
+
+    // Get the 'Add to Workspace' button and click to submit
+    const addToWorkspaceButton = screen.getByText('Add to Workspace')
+    await act(async () => { await fireEvent.click(addToWorkspaceButton) })
 
     // ** ASSERT **
     // assert POST /methods endpoint was called with expected parameters

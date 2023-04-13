@@ -130,6 +130,7 @@ const FindWorkflowModal = ({ onDismiss }) => {
         div({ style: { margin: '0 1rem', display: 'flex', flexDirection: 'column' } }, [
           h(ButtonPrimary,
             {
+              'aria-label': 'workflow description button',
               style: { marginBottom: '0.5rem' },
               onClick: () => {
                 setSelectedMethod(undefined)
@@ -137,11 +138,13 @@ const FindWorkflowModal = ({ onDismiss }) => {
               }
             }, ['Add to Workspace']),
           h(ButtonOutline, {
+            'aria-label': 'workflow description button',
             onClick: () => {
               setSelectedMethod(undefined)
             }
           }, ['Return to List']),
           h(ButtonOutline, {
+            'aria-label': 'workflow description button',
             style: { whiteSpace: 'pre-wrap', height: '3rem', textAlign: 'center', marginTop: '0.5rem' },
             onClick: () => {
               alert('download sample data alert')
@@ -192,7 +195,8 @@ const FindWorkflowModal = ({ onDismiss }) => {
             onClick: () => {
               setWorkflowDescriptionModal(true)
               setSelectedMethod(method)
-            }
+            },
+            key: method.method_name
           }), suggestedWorkflowsList)
         ])
       ]),
