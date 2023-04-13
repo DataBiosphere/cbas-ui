@@ -100,7 +100,7 @@ describe('renderDetails Modal', () => {
     expect(buttons[2]).toHaveTextContent('Download sample data to run with the workflow')
   })
 
-  it('should dismiss the description modal when button is clicked', async () => {
+  it('should dismiss the description modal when button is clicked', () => {
     // ** ACT **
     render(h(FindWorkflowModal, { onDismiss: jest.fn() }))
 
