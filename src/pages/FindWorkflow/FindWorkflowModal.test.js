@@ -99,4 +99,27 @@ describe('renderDetails Modal', () => {
     expect(buttons[1]).toHaveTextContent('Return to List')
     expect(buttons[2]).toHaveTextContent('Download sample data to run with the workflow')
   })
+
+  it('should dismiss the description modal when button is clicked', async () => {
+    // ** ACT **
+    render(h(FindWorkflowModal, { onDismiss: jest.fn() }))
+
+    // ** ASSERT **
+    expect(screen.getByText('Find a Workflow')).toBeInTheDocument()
+
+    // select and click on method in modal
+    const firstWorkflow = screen.getByText('Optimus')
+    fireEvent.click(firstWorkflow)
+
+    const workflowName = screen.getByText('Workflow: Optimus')
+    const synopsis = screen.getByText('Synopsis')
+
+    const backToListButton = screen.getByText('Return to List')
+    fireEvent.click(backToListButton)
+
+    // ** ASSERT **
+    expect(workflowName).not.toBeInTheDocument()
+    expect(synopsis).not.toBeInTheDocument()
+
+  })
 })
