@@ -3,6 +3,7 @@ import '@testing-library/jest-dom'
 import { act, fireEvent, render, screen } from '@testing-library/react'
 import { h } from 'react-hyperscript-helpers'
 import { Ajax } from 'src/libs/ajax'
+import { delay } from 'src/libs/utils'
 import FindWorkflowModal from 'src/pages/FindWorkflow/FindWorkflowModal'
 
 
@@ -35,46 +36,6 @@ describe('FindWorkflowModal', () => {
 })
 
 describe('renderDetails Modal', () => {
-  it('should call POST /methods endpoint with expected parameters', async () => {
-    const postMethodFunction = jest.fn(() => Promise.resolve({ method_id: 'abc123' }))
-
-    await Ajax.mockImplementation(() => {
-      return {
-        Cbas: {
-          methods: {
-            post: postMethodFunction
-          }
-        }
-      }
-    })
-
-    // ** ACT **
-    render(h(FindWorkflowModal, { onDismiss: jest.fn() }))
-
-    // ** ASSERT **
-    expect(screen.getByText('Find a Workflow')).toBeInTheDocument()
-
-    // select and click on method in modal
-    const firstWorkflow = screen.getByText('Optimus')
-    await act(async () => { await fireEvent.click(firstWorkflow) })
-
-    // Get the 'Add to Workspace' button and click to submit
-    const addToWorkspaceButton = screen.getByText('Add to Workspace')
-    await act(async () => { await fireEvent.click(addToWorkspaceButton) })
-
-    // ** ASSERT **
-    // assert POST /methods endpoint was called with expected parameters
-    expect(postMethodFunction).toHaveBeenCalled()
-    expect(postMethodFunction).toBeCalledWith(
-      {
-        method_name: 'Optimus',
-        method_description: 'The optimus 3 pipeline processes 10x genomics sequencing data based on the v2 chemistry. It corrects cell barcodes and UMIs, aligns reads, marks duplicates, and returns data as alignments in BAM format and as counts in sparse matrix exchange format.',
-        method_source: 'GitHub',
-        method_version: 'Optimus_v5.5.0',
-        method_url: 'https://raw.githubusercontent.com/broadinstitute/warp/develop/pipelines/skylab/optimus/Optimus.wdl'
-      })
-  })
-
   it('should show workflow description modal when method is selected', async () => {
     // ** ACT **
     render(h(FindWorkflowModal, { onDismiss: jest.fn() }))
@@ -120,5 +81,48 @@ describe('renderDetails Modal', () => {
     // ** ASSERT **
     expect(workflowName).not.toBeInTheDocument()
     expect(synopsis).not.toBeInTheDocument()
+  })
+
+  it('should call POST /methods endpoint with expected parameters', async () => {
+    const postMethodFunction = jest.fn(() => Promise.resolve({ method_id: 'abc123' }))
+
+    await Ajax.mockImplementation(() => {
+      return {
+        Cbas: {
+          methods: {
+            post: postMethodFunction
+          }
+        }
+      }
+    })
+
+    // ** ACT **
+    render(h(FindWorkflowModal, { onDismiss: jest.fn() }))
+
+    // ** ASSERT **
+    expect(screen.getByText('Find a Workflow')).toBeInTheDocument()
+
+    // select and click on method in modal
+    const firstWorkflow = screen.getByText('Optimus')
+
+    // Adding delay() to mimic Utils.delay() in Modal.js
+    await delay(0)
+    await act(async () => { await fireEvent.click(firstWorkflow) })
+
+    // Get the 'Add to Workspace' button and click to submit
+    const addToWorkspaceButton = screen.getByText('Add to Workspace')
+    await act(async () => { await fireEvent.click(addToWorkspaceButton) })
+
+    // ** ASSERT **
+    // assert POST /methods endpoint was called with expected parameters
+    expect(postMethodFunction).toHaveBeenCalled()
+    expect(postMethodFunction).toBeCalledWith(
+      {
+        method_name: 'Optimus',
+        method_description: 'The optimus 3 pipeline processes 10x genomics sequencing data based on the v2 chemistry. It corrects cell barcodes and UMIs, aligns reads, marks duplicates, and returns data as alignments in BAM format and as counts in sparse matrix exchange format.',
+        method_source: 'GitHub',
+        method_version: 'Optimus_v5.5.0',
+        method_url: 'https://raw.githubusercontent.com/broadinstitute/warp/develop/pipelines/skylab/optimus/Optimus.wdl'
+      })
   })
 })
