@@ -71,7 +71,7 @@ describe('resolveWdsUrl', () => {
   ]
 
   beforeEach(() => {
-    getConfig.mockReturnValue(({ wdsAppTypeName: 'CROMWELL' }))
+    getConfig.mockReturnValue(({ wdsAppTypeNames: ['WDS', 'CROMWELL'] }))
   })
 
   test.each(testCases)('properly extracts the correct value for a WDS app in \'$appStatus\' state from the Leo response ', ({ appStatus, expectedUrl }) => {
@@ -90,6 +90,22 @@ describe('resolveWdsUrl', () => {
       generateMockApp('CROMWELL', 'RUNNING', mockWdsProxyUrl, '2023-01-24T15:27:28.740880Z')
     ]
     expect(resolveWdsUrl(mockAppList)).toBe(firstWdsProxyUrl)
+  })
+
+  it.each(
+    [
+      { appStatus: 'RUNNING', expectedUrl: mockWdsProxyUrl },
+      { appStatus: 'PROVISIONING', expectedUrl: '' },
+      { appStatus: 'STOPPED', expectedUrl: '' },
+      { appStatus: 'STOPPING', expectedUrl: '' }
+    ]
+  )('gives precedence to the WDS appType over the CROMWELL appType', ({ appStatus, expectedUrl }) => {
+    const uuid = '123e4567-e89b-12d3-a456-426614174000'
+    const testHealthyAppProxyUrlResponse = [
+      { appType: 'CROMWELL', appName: `wds-${uuid}`, status: 'RUNNING', proxyUrls: { wds: 'should_not_return' }, workspaceId: uuid },
+      { appType: 'WDS', appName: `wds-${uuid}`, status: appStatus, proxyUrls: { wds: mockWdsProxyUrl }, workspaceId: uuid }
+    ]
+    expect(resolveWdsUrl(testHealthyAppProxyUrlResponse)).toBe(expectedUrl)
   })
 })
 
