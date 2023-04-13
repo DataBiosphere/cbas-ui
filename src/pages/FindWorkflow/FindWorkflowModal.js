@@ -13,7 +13,6 @@ import { useCancellation } from 'src/libs/react-utils'
 import * as Style from 'src/libs/style'
 import { withBusyState } from 'src/libs/utils'
 import { MethodCard } from 'src/pages/FindWorkflow/MethodCard'
-import WorkflowDescriptionModal from 'src/pages/WorkflowDescriptionModal'
 
 
 const styles = {
@@ -88,15 +87,14 @@ const FindWorkflowModal = ({ onDismiss }) => {
 
   const signal = useCancellation()
 
-  const submitMethod = withBusyState(setLoading, async ({ method }) => {
+  const submitMethod = withBusyState(setLoading, async method => {
     try {
-      // console.log(method.selectedMethod)
       const methodPayload = {
-        method_name: method.selectedMethod.method_name,
-        method_description: method.selectedMethod.method_description,
-        method_source: method.selectedMethod.method_source,
-        method_version: method.selectedMethod.method_version,
-        method_url: method.selectedMethod.method_url
+        method_name: method.method_name,
+        method_description: method.method_description,
+        method_source: method.method_source,
+        method_version: method.method_version,
+        method_url: method.method_url
       }
 
       const methodObject = await Ajax(signal).Cbas.methods.post(methodPayload)
@@ -117,22 +115,27 @@ const FindWorkflowModal = ({ onDismiss }) => {
   const isSubHeaderActive = subHeader => selectedSubHeader === subHeader
 
   const renderDetails = method => {
+    // TODO: Get these values from somewhere
     //const { synopsis, managers, documentation } = selectedWorkflowDetails || {}
     const managers = ['Chris, Katrina, Michael, Saloni']
-    // console.log(method.selectedMethod.method_name)
 
     return h(Fragment, [
       div({ style: { display: 'flex' } }, [
         div({ style: { flexGrow: 1 } }, [
           div({ style: { fontSize: 18, fontWeight: 600, margin: '1rem 0 0.5rem' } }, ['Synopsis']),
-          div(['synopsis' || (/*selectedWorkflowDetails &&*/ 'None')]),
+          div(['synopsis' || ('None')]),
           div({ style: { fontSize: 18, fontWeight: 600, margin: '1rem 0 0.5rem' } }, ['Method Owner']),
           div([_.join(',', managers)])
         ]),
         div({ style: { margin: '0 1rem', display: 'flex', flexDirection: 'column' } }, [
-          h(ButtonPrimary, { style: { marginBottom: '0.5rem' }, onClick: () => {
-            setSelectedMethod(undefined)
-            submitMethod({ method }) }}, ['Add to Workspace']),
+          h(ButtonPrimary,
+            {
+              style: { marginBottom: '0.5rem' },
+              onClick: () => {
+                setSelectedMethod(undefined)
+                submitMethod(method)
+              }
+            }, ['Add to Workspace']),
           h(ButtonOutline, {
             onClick: () => {
               setSelectedMethod(undefined)
@@ -193,7 +196,7 @@ const FindWorkflowModal = ({ onDismiss }) => {
           }), suggestedWorkflowsList)
         ])
       ]),
-      selectedMethod && h(Modal, { title: `Workflow: ${selectedMethod.method_name}`, width: 900, onDismiss, showButtons: false, showX: true }, [renderDetails({ selectedMethod })])
+      selectedMethod && workflowDescriptionModal && h(Modal, { title: `Workflow: ${selectedMethod.method_name}`, width: 900, onDismiss, showButtons: false, showX: true }, [renderDetails(selectedMethod)])
     ])
   ])
 }
