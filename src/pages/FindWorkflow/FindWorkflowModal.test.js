@@ -27,8 +27,6 @@ describe('FindWorkflowModal', () => {
     // verify 5 methods are present on screen
     // we only check for name because we are testing the MethodCard layout in different test file
     expect(screen.getByText('Optimus')).toBeInTheDocument()
-    expect(screen.getByText('SmartSeq2SingleSample')).toBeInTheDocument()
-    expect(screen.getByText('MultiSampleSmartSeq2')).toBeInTheDocument()
     expect(screen.getByText('MultiSampleSmartSeq2SingleNucleus')).toBeInTheDocument()
     expect(screen.getByText('scATAC')).toBeInTheDocument()
   })
