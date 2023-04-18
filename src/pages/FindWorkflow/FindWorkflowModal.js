@@ -34,20 +34,6 @@ const suggestedWorkflowsList = [
     method_url: 'https://raw.githubusercontent.com/broadinstitute/warp/develop/pipelines/skylab/optimus/Optimus.wdl'
   },
   {
-    method_name: 'SmartSeq2SingleSample',
-    method_description: 'Process SmartSeq2 scRNA-Seq data, include reads alignment, QC metrics collection, and gene expression quantitication.',
-    method_source: 'GitHub',
-    method_version: 'smartseq2_v5.1.1',
-    method_url: 'https://raw.githubusercontent.com/broadinstitute/warp/develop/pipelines/skylab/smartseq2_single_sample/SmartSeq2SingleSample.wdl'
-  },
-  {
-    method_name: 'MultiSampleSmartSeq2',
-    method_description: 'The MultiSampleSmartSeq2 pipeline runs multiple SS2 samples in a single pipeline invocation',
-    method_source: 'GitHub',
-    method_version: 'MultiSampleSmartSeq2_v2.2.1',
-    method_url: 'https://raw.githubusercontent.com/broadinstitute/warp/4fc16dc61ddc2e72cede479607643047fecf1dde/pipelines/skylab/smartseq2_multisample/MultiSampleSmartSeq2.wdl'
-  },
-  {
     method_name: 'MultiSampleSmartSeq2SingleNucleus',
     method_description: 'The MultiSampleSmartSeq2SingleNucleus pipeline runs multiple snSS2 samples in a single pipeline invocation',
     method_source: 'GitHub',
