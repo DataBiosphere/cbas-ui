@@ -210,14 +210,11 @@ export const RunDetails = ({ submissionId, workflowId }) => {
                   {
                     style: { marginBottom: '1rem' },
                     initialOpenState: true,
-                    title: div({ style: elements.sectionHeader }, [
-                      'Workflow-Level Failures',
-                      h(ClipboardButton, {
-                        text: JSON.stringify(failures, null, 2),
-                        style: { marginLeft: '0.5rem' },
-                        onClick: e => e.stopPropagation() // this stops the collapse when copying
-                      })
-                    ])
+                    title: div({ style: elements.sectionHeader }, 'Workflow-Level Failures'),
+                    afterTitle: h(ClipboardButton, {
+                      text: JSON.stringify(failures, null, 2),
+                      style: { marginLeft: '0.5rem' }
+                    })
                   },
                   [
                     h(ReactJson, {

@@ -108,25 +108,29 @@ export const resolveWdsApp = apps => {
   // look explicitly for a RUNNING app named 'wds-${app.workspaceId}' -- if WDS is healthy and running, there should only be one app RUNNING
   // an app may be in the 'PROVISIONING', 'STOPPED', 'STOPPING', which can still be deemed as an OK state for WDS
   const healthyStates = ['RUNNING', 'PROVISIONING', 'STOPPED', 'STOPPING']
-  const namedApp = apps.filter(app => app.appType === getConfig().wdsAppTypeName && app.appName === `wds-${app.workspaceId}` && healthyStates.includes(app.status))
-  if (namedApp.length === 1) {
-    return namedApp[0]
-  }
 
-  //Failed to find an app with the proper name, look for a RUNNING WDS app
-  const runningWdsApps = apps.filter(app => app.appType === getConfig().wdsAppTypeName && app.status === 'RUNNING')
-  if (runningWdsApps.length > 0) {
-    // Evaluate the earliest-created WDS app
-    runningWdsApps.sort((a, b) => new Date(a.auditInfo.createdDate).valueOf() - new Date(b.auditInfo.createdDate).valueOf())
-    return runningWdsApps[0]
-  }
+  // WDS appType is checked first and takes precedence over CROMWELL apps in the workspace
+  for (const appTypeName of getConfig().wdsAppTypeNames) {
+    const namedApp = apps.filter(app => app.appType === appTypeName && app.appName === `wds-${app.workspaceId}` && healthyStates.includes(app.status))
+    if (namedApp.length === 1) {
+      return namedApp[0]
+    }
 
-  // If we reach this logic, we have more than one Leo app with the associated workspace Id...
-  const allWdsApps = apps.filter(app => app.appType === getConfig().wdsAppTypeName && ['PROVISIONING', 'STOPPED', 'STOPPING'].includes(app.status))
-  if (allWdsApps.length > 0) {
-    // Evaluate the earliest-created WDS app
-    allWdsApps.sort((a, b) => new Date(a.auditInfo.createdDate).valueOf() - new Date(b.auditInfo.createdDate).valueOf())
-    return allWdsApps[0]
+    //Failed to find an app with the proper name, look for a RUNNING WDS app
+    const runningWdsApps = apps.filter(app => app.appType === appTypeName && app.status === 'RUNNING')
+    if (runningWdsApps.length > 0) {
+      // Evaluate the earliest-created WDS app
+      runningWdsApps.sort((a, b) => new Date(a.auditInfo.createdDate).valueOf() - new Date(b.auditInfo.createdDate).valueOf())
+      return runningWdsApps[0]
+    }
+
+    // If we reach this logic, we have more than one Leo app with the associated workspace Id...
+    const allWdsApps = apps.filter(app => app.appType === appTypeName && ['PROVISIONING', 'STOPPED', 'STOPPING'].includes(app.status))
+    if (allWdsApps.length > 0) {
+      // Evaluate the earliest-created WDS app
+      allWdsApps.sort((a, b) => new Date(a.auditInfo.createdDate).valueOf() - new Date(b.auditInfo.createdDate).valueOf())
+      return allWdsApps[0]
+    }
   }
 
   return ''

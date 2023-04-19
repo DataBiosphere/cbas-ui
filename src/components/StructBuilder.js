@@ -20,12 +20,13 @@ import { isInputOptional } from 'src/libs/utils'
 
 const buildStructTypePath = indexPath => _.join('.', _.map(row => `fields.${row}.field_type`, indexPath))
 const buildStructSourcePath = indexPath => _.join('.', _.map(row => `fields.${row}.source`, indexPath))
-const buildStructNamePath = indexPath => _.replace(/\.field_type$/, '.field_name', buildStructTypePath(indexPath))
+const buildStructTypeNamePath = indexPath => _.replace(/\.field_type$/, '.field_name', buildStructTypePath(indexPath))
+const buildStructSourceNamePath = indexPath => _.replace(/\.source$/, '.name', buildStructSourcePath(indexPath))
 
 export const buildStructBreadcrumbs = (indexPath, structType) => _.map(
   // map slices of the indexPath (e.g. [0, 1, 2] -> [0], [0, 1], [0, 1, 2])
-  // onto their corresponding field_names within structType, via buildStructNamePath
-  end => _.get(buildStructNamePath(_.slice(0, end + 1, indexPath)), structType),
+  // onto their corresponding field_names within structType, via buildStructTypeNamePath
+  end => _.get(buildStructTypeNamePath(_.slice(0, end + 1, indexPath)), structType),
   _.range(0, indexPath.length)
 )
 
@@ -41,11 +42,12 @@ export const StructBuilder = props => {
   const [structIndexPath, setStructIndexPath] = useState([])
   const structTypePath = buildStructTypePath(structIndexPath)
   const structSourcePath = buildStructSourcePath(structIndexPath)
-  const structNamePath = buildStructNamePath(structIndexPath)
+  const structTypeNamePath = buildStructTypeNamePath(structIndexPath)
 
-  const currentStructName = structNamePath ? _.get(structNamePath, structType) : structName
   const currentStructType = structTypePath ? _.get(structTypePath, structType) : structType
   const currentStructSource = structSourcePath ? _.get(structSourcePath, structSource) : structSource
+  const currentStructName = structTypeNamePath ? _.get(structTypeNamePath, structType) : structName
+
   const setCurrentStructSource = structSourcePath ? source => setStructSource(_.set(structSourcePath, source, structSource)) : setStructSource
 
   const structInputDefinition = _.map(([source, type]) => _.merge(source, type), _.zip(currentStructSource.fields, currentStructType.fields))
@@ -109,10 +111,18 @@ export const StructBuilder = props => {
             headerRenderer: () => h(HeaderCell, ['Input sources']),
             cellRenderer: ({ rowIndex }) => {
               const typePath = buildStructTypePath([rowIndex])
+              const typeNamePath = buildStructTypeNamePath([rowIndex])
               const sourcePath = buildStructSourcePath([rowIndex])
+              const sourceNamePath = buildStructSourceNamePath([rowIndex])
               return InputSourceSelect({
                 source: _.get(sourcePath, currentStructSource),
-                setSource: source => setCurrentStructSource(_.set(sourcePath, source, currentStructSource)),
+                setSource: source => {
+                  const newSource = _.flow([
+                    _.set(sourceNamePath, _.get(sourceNamePath, currentStructSource) || _.get(typeNamePath, currentStructType)),
+                    _.set(sourcePath, source)
+                  ])(currentStructSource)
+                  setCurrentStructSource(newSource)
+                },
                 inputType: _.get(typePath, currentStructType)
               })
             }
@@ -120,9 +130,17 @@ export const StructBuilder = props => {
           {
             headerRenderer: () => h(HeaderCell, ['Attribute']),
             cellRenderer: ({ rowIndex }) => {
+              const typeNamePath = buildStructTypeNamePath([rowIndex])
               const sourcePath = buildStructSourcePath([rowIndex])
+              const sourceNamePath = buildStructSourceNamePath([rowIndex])
               const innerStructSource = _.get(sourcePath, currentStructSource)
-              const setInnerStructSource = source => setCurrentStructSource(_.set(sourcePath, source, currentStructSource))
+              const setInnerStructSource = source => {
+                const newSource = _.flow([
+                  _.set(sourceNamePath, _.get(sourceNamePath, currentStructSource) || _.get(typeNamePath, currentStructType)),
+                  _.set(sourcePath, source)
+                ])(currentStructSource)
+                setCurrentStructSource(newSource)
+              }
               return Utils.switchCase(innerStructSource ? innerStructSource.type : 'none',
                 ['literal',
                   () => {
