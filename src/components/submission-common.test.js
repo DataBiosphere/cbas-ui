@@ -332,7 +332,7 @@ describe('requiredInputsWithoutSource', () => {
     }
     const inputsWithIncorrectValuesDefinition = [
       invalidIntInput,
-      invalidFloatInput,
+      invalidFloatInput
     ]
 
     const invalidInputs = requiredInputsWithoutSource(inputsWithIncorrectValuesDefinition)
