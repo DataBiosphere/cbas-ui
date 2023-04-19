@@ -1,9 +1,10 @@
 import _ from 'lodash/fp'
-import { useState } from 'react'
-import { div, h } from 'react-hyperscript-helpers'
-import { Clickable, Link } from 'src/components/common'
+import { Fragment, useState } from 'react'
+import { div, h, h2 } from 'react-hyperscript-helpers'
+import { ButtonPrimary, Clickable, Link } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
 import ModalDrawer from 'src/components/ModalDrawer'
+import { TextInput } from 'src/components/input'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import * as Nav from 'src/libs/nav'
@@ -70,14 +71,17 @@ const FindWorkflowModal = ({ onDismiss }) => {
 
   const signal = useCancellation()
 
-  const submitMethod = withBusyState(setLoading, async ({ method }) => {
+  const submitMethod = withBusyState(setLoading, async ({ method }, methodUrl) => {
     try {
       const methodPayload = {
-        method_name: method.method_name,
-        method_description: method.method_description,
-        method_source: method.method_source,
-        method_version: method.method_version,
-        method_url: method.method_url
+        method_name: method?.method_name,
+        method_description: method?.method_description,
+        method_source: method?.method_source,
+        method_version: method?.method_version,
+        method_url: method?.method_url
+      }
+      if (methodUrl) {
+
       }
 
       const methodObject = await Ajax(signal).Cbas.methods.post(methodPayload)
@@ -131,7 +135,37 @@ const FindWorkflowModal = ({ onDismiss }) => {
         div({ style: { display: 'flex', flexWrap: 'wrap', overflowY: 'auto', paddingBottom: 5, paddingLeft: 5 } }, [
           _.map(method => h(MethodCard, { method, onClick: () => submitMethod({ method }), key: method.method_name }), suggestedWorkflowsList)
         ])
-      ])
+      ]),
+      isSubHeaderActive('add-a-workflow-link') && div({ style: { marginLeft: '4rem' } }, [
+        div({ style: { width: 500 } }, [ h2(['Workflow Link'])
+        ]),
+        div({}, [
+          h(TextInput, {
+          style: { width: 500 },
+          placeholder: 'Paste Github Link',
+          'aria-label': 'Search workflows',
+          })
+        ]),
+        div({ style: { marginTop: '3rem', width: 500 } }, [
+          h2(['New Workflow Name / Version']),
+        ]),
+        div({}, [ h(Fragment, [
+          h(TextInput, {
+            style: { width: 200 },
+            placeholder: 'Workflow name',
+            'aria-label': 'Search workflows',
+          }), ' / ',
+          h(TextInput, {
+            style: { width: 200 },
+            placeholder: 'Version',
+            'aria-label': 'Search workflows',
+          })
+        ])
+        ]),
+        div({}, [h(ButtonPrimary, {
+          style: { marginTop: '2rem' },
+          onClick: () => {}}, ['Add to Workspace'])]),
+      ]),
     ])
   ])
 }
