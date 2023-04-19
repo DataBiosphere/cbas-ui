@@ -334,7 +334,8 @@ const validateRequirements = (inputSource, inputType) => {
       return _.every(Boolean, fieldsValidated)
     }
     if (inputSource.type === 'literal') {
-      return !!inputSource.parameter_value
+      // null check also covers if value is undefined
+      return inputSource.parameter_value != null && inputSource.parameter_value.toString().trim().length !== 0
     }
   } else return false
 
@@ -370,7 +371,8 @@ export const convertToPrimitiveType = (primitiveType, value) => {
 
 export const isPrimitiveTypeInputValid = (primitiveType, value) => {
   return Utils.cond(
-    [primitiveType === 'Int', () => !isNaN(value) && Number.isInteger(Number(value))],
+    // last condition ensures empty strings are not accepted as valid Int because Number(value) in second condition converts empty strings to 0
+    [primitiveType === 'Int', () => !isNaN(value) && Number.isInteger(Number(value)) && !isNaN(parseInt(value))],
     [primitiveType === 'Float', () => !isNaN(value) && !isNaN(parseFloat(value))],
     [primitiveType === 'Boolean', () => value.toString().toLowerCase() === 'true' || value.toString().toLowerCase() === 'false'],
     () => true

@@ -2,7 +2,7 @@ import {
   convertToPrimitiveType,
   getDuration, inputsWithIncorrectValues, isPrimitiveTypeInputValid,
   isRunInTerminalState,
-  isRunSetInTerminalState,
+  isRunSetInTerminalState, requiredInputsWithoutSource,
   resolveWdsUrl
 } from 'src/components/submission-common'
 import { getConfig } from 'src/libs/config'
@@ -95,7 +95,9 @@ describe('resolveWdsUrl', () => {
 
 describe('convertToPrimitiveType', () => {
   const testCases = [
+    { primitiveType: 'Int', value: '0', expectedTypeof: 'number', convertedValue: 0 },
     { primitiveType: 'Int', value: '123', expectedTypeof: 'number', convertedValue: 123 },
+    { primitiveType: 'Float', value: '0', expectedTypeof: 'number', convertedValue: 0 },
     { primitiveType: 'Float', value: '23.32', expectedTypeof: 'number', convertedValue: 23.32 },
     { primitiveType: 'Boolean', value: 'false', expectedTypeof: 'boolean', convertedValue: false },
     { primitiveType: 'String', value: 'hello world!', expectedTypeof: 'string', convertedValue: 'hello world!' },
@@ -111,15 +113,20 @@ describe('convertToPrimitiveType', () => {
 
 describe('isPrimitiveTypeInputValid', () => {
   const testCases = [
+    { primitiveType: 'Int', value: '0', expectedResult: true },
     { primitiveType: 'Int', value: '123', expectedResult: true },
     { primitiveType: 'Int', value: '123xHello', expectedResult: false },
     { primitiveType: 'Int', value: 'Hello', expectedResult: false },
     { primitiveType: 'Int', value: '1234.45', expectedResult: false },
+    { primitiveType: 'Int', value: '    ', expectedResult: false },
+    { primitiveType: 'Float', value: '0', expectedResult: true },
     { primitiveType: 'Float', value: '23.32', expectedResult: true },
     { primitiveType: 'Float', value: '23.0', expectedResult: true },
     { primitiveType: 'Float', value: '23', expectedResult: true },
     { primitiveType: 'Float', value: '23.0x', expectedResult: false },
     { primitiveType: 'Float', value: 'Hello', expectedResult: false },
+    { primitiveType: 'Float', value: '     ', expectedResult: false },
+    { primitiveType: 'Boolean', value: '   ', expectedResult: false },
     { primitiveType: 'Boolean', value: 'true', expectedResult: true },
     { primitiveType: 'Boolean', value: 'false', expectedResult: true },
     { primitiveType: 'Boolean', value: 'hello', expectedResult: false },
@@ -129,7 +136,7 @@ describe('isPrimitiveTypeInputValid', () => {
     { primitiveType: 'File', value: 'https://abc.wdl', expectedResult: true }
   ]
 
-  test.each(testCases)('returns if value for type $primitiveType is valid or not type as expected', ({ primitiveType, value, expectedResult }) => {
+  test.each(testCases)('returns if value \'$value\' for type $primitiveType is valid or not type as expected', ({ primitiveType, value, expectedResult }) => {
     expect(isPrimitiveTypeInputValid(primitiveType, value)).toBe(expectedResult)
   })
 })
@@ -201,6 +208,118 @@ describe('inputsWithIncorrectValues', () => {
     ]
 
     const invalidInputs = inputsWithIncorrectValues(inputsWithCorrectValuesDefinition)
+    expect(invalidInputs.length).toBe(0)
+  })
+})
+
+describe('requiredInputsWithoutSource', () => {
+  const intInput = value => {
+    return {
+      input_name: 'test_workflow.foo_int',
+      input_type: {
+        type: 'primitive',
+        primitive_type: 'Int'
+      },
+      source: {
+        type: 'literal',
+        parameter_value: value
+      }
+    }
+  }
+
+  const floatInput = value => {
+    return {
+      input_name: 'test_workflow.bar_float',
+      input_type: {
+        type: 'optional',
+        optional_type: {
+          type: 'primitive',
+          primitive_type: 'Float'
+        }
+      },
+      source: {
+        type: 'literal',
+        parameter_value: value
+      }
+    }
+  }
+
+  const stringInput = value => {
+    return {
+      input_name: 'test_workflow.foo_string',
+      input_type: {
+        type: 'primitive',
+        primitive_type: 'String'
+      },
+      source: {
+        type: 'literal',
+        parameter_value: value
+      }
+    }
+  }
+
+  it('should return list of inputs that don\'t match requirements for required inputs and exclude optional inputs in check', () => {
+    const invalidIntInput = intInput('  ')
+    const invalidFloatInput = floatInput('wrong_value')
+    const invalidStringInput = stringInput('   ')
+    const inputsWithIncorrectValuesDefinition = [
+      invalidIntInput,
+      invalidFloatInput,
+      invalidStringInput
+    ]
+
+    const invalidInputs = requiredInputsWithoutSource(inputsWithIncorrectValuesDefinition)
+    expect(invalidInputs.length).toBe(2) // optional inputs are always considered valid in this function
+    expect(invalidInputs).toContain(invalidIntInput)
+    expect(invalidInputs).toContain(invalidStringInput)
+  })
+
+  it('should return list of inputs that don\'t match requirements for required inputs', () => {
+    const invalidIntInput = intInput('  ')
+    const invalidFloatInput = {
+      input_name: 'test_workflow.bar_float',
+      input_type: {
+        type: 'primitive',
+        primitive_type: 'Float'
+      },
+      source: {
+        type: 'literal',
+        parameter_value: '    '
+      }
+    }
+    const invalidStringInput = stringInput('   ')
+    const inputsWithIncorrectValuesDefinition = [
+      invalidIntInput,
+      invalidFloatInput,
+      invalidStringInput
+    ]
+
+    const invalidInputs = requiredInputsWithoutSource(inputsWithIncorrectValuesDefinition)
+    expect(invalidInputs.length).toBe(3)
+    expect(invalidInputs).toContain(invalidIntInput)
+    expect(invalidInputs).toContain(invalidFloatInput)
+    expect(invalidInputs).toContain(invalidStringInput)
+  })
+
+  it('should consider 0 as valid value', () => {
+    const invalidIntInput = intInput('0')
+    const invalidFloatInput = {
+      input_name: 'test_workflow.bar_float',
+      input_type: {
+        type: 'primitive',
+        primitive_type: 'Float'
+      },
+      source: {
+        type: 'literal',
+        parameter_value: '0'
+      }
+    }
+    const inputsWithIncorrectValuesDefinition = [
+      invalidIntInput,
+      invalidFloatInput,
+    ]
+
+    const invalidInputs = requiredInputsWithoutSource(inputsWithIncorrectValuesDefinition)
     expect(invalidInputs.length).toBe(0)
   })
 })
