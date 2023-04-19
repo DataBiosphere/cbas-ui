@@ -92,7 +92,8 @@ const FindWorkflowModal = ({ onDismiss }) => {
   })
 
   const subHeadersMap = {
-    'browse-suggested-workflows': 'Browse Suggested Workflows'
+    'browse-suggested-workflows': 'Browse Suggested Workflows',
+    'add-a-workflow-link': 'Add a Workflow Link'
   }
 
   const isSubHeaderActive = subHeader => selectedSubHeader === subHeader
