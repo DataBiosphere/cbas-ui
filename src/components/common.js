@@ -222,6 +222,7 @@ export const ClipboardButton = ({ text, onClick, children, ...props }) => {
       withErrorReporting('Error copying to clipboard'),
       Utils.withBusyState(setCopied)
     )(async e => {
+      e.stopPropagation()
       onClick?.(e)
       await clipboard.writeText(text)
       await Utils.delay(1500)

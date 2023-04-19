@@ -213,8 +213,7 @@ export const RunDetails = ({ submissionId, workflowId }) => {
                     title: div({ style: elements.sectionHeader }, 'Workflow-Level Failures'),
                     afterTitle: h(ClipboardButton, {
                       text: JSON.stringify(failures, null, 2),
-                      style: { marginLeft: '0.5rem' },
-                      onClick: e => e.stopPropagation() // this stops the collapse when copying
+                      style: { marginLeft: '0.5rem' }
                     })
                   },
                   [
