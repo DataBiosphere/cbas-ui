@@ -8,7 +8,26 @@ import selectEvent from 'react-select-event'
 import { Ajax } from 'src/libs/ajax'
 import { getConfig } from 'src/libs/config'
 import { SubmissionConfig } from 'src/pages/SubmissionConfig'
-
+import {
+  runSetInputDef,
+  runSetInputDefWithSourceNone,
+  myStructInput,
+  runSetInputDefWithStruct,
+  runSetOutputDef,
+  runSetResponse,
+  runSetResponseForNewMethod,
+  runSetResponseWithStruct,
+  badRecordTypeRunSetResponse,
+  undefinedRecordTypeRunSetResponse,
+  methodsResponse,
+  typesResponse,
+  typesResponseWithoutFooRating,
+  searchResponseFOO,
+  searchResponseBAR,
+  searchResponses,
+  mockWdsProxyUrl,
+  mockApps
+} from 'src/libs/mock-responses.js'
 
 jest.mock('src/libs/ajax')
 
@@ -26,465 +45,6 @@ jest.mock('src/libs/config', () => ({
 const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'offsetHeight')
 const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'offsetWidth')
 
-const runSetInputDef = [
-  {
-    input_name: 'target_workflow_1.foo.foo_rating_workflow_var',
-    input_type: { type: 'primitive', primitive_type: 'Int' },
-    source: {
-      type: 'record_lookup',
-      record_attribute: 'foo_rating'
-    }
-  },
-  {
-    input_name: 'target_workflow_1.bar_string_workflow_var',
-    input_type: { type: 'primitive', primitive_type: 'String' },
-    source: {
-      type: 'record_lookup',
-      record_attribute: 'bar_string'
-    }
-  },
-  {
-    input_name: 'target_workflow_1.optional_var',
-    input_type: {
-      type: 'optional',
-      optional_type: {
-        type: 'primitive',
-        primitive_type: 'String'
-      }
-    },
-    source: {
-      type: 'literal',
-      parameter_value: 'Hello World'
-    }
-  }
-]
-
-// example input configuration for a newly imported method
-const runSetInputDefWithSourceNone = [
-  {
-    input_name: 'target_workflow_1.foo.foo_rating_workflow_var',
-    input_type: { type: 'primitive', primitive_type: 'Int' },
-    source: {
-      type: 'none'
-    }
-  },
-  {
-    input_name: 'target_workflow_1.optional_var',
-    input_type: {
-      type: 'optional',
-      optional_type: {
-        type: 'primitive',
-        primitive_type: 'String'
-      }
-    },
-    source: {
-      type: 'none'
-    }
-  },
-  {
-    input_name: 'target_workflow_1.foo.myStruct',
-    input_type: {
-      type: 'struct',
-      name: 'myStruct',
-      fields: [
-        {
-          field_name: 'myPrimitive',
-          field_type: {
-            type: 'primitive',
-            primitive_type: 'String'
-          }
-        },
-        {
-          field_name: 'myOptional',
-          field_type: {
-            type: 'optional',
-            optional_type: {
-              type: 'primitive',
-              primitive_type: 'String'
-            }
-          }
-        }
-      ]
-    },
-    source: {
-      type: 'none'
-    }
-  }
-]
-
-const myStructInput = {
-  input_name: 'target_workflow_1.foo.myStruct',
-  input_type: {
-    type: 'struct',
-    name: 'myStruct',
-    fields: [
-      {
-        field_name: 'myPrimitive',
-        field_type: {
-          type: 'primitive',
-          primitive_type: 'String'
-        }
-      },
-      {
-        field_name: 'myOptional',
-        field_type: {
-          type: 'optional',
-          optional_type: {
-            type: 'primitive',
-            primitive_type: 'String'
-          }
-        }
-      },
-      {
-        field_name: 'myArray',
-        field_type: {
-          type: 'array',
-          array_type: {
-            type: 'primitive',
-            primitive_type: 'String'
-          }
-        }
-      },
-      {
-        field_name: 'myMap',
-        field_type: {
-          type: 'map',
-          key_type: 'String',
-          value_type: {
-            type: 'primitive',
-            primitive_type: 'String'
-          }
-        }
-      },
-      {
-        field_name: 'myInnerStruct',
-        field_type: {
-          type: 'struct',
-          name: 'myInnerStruct',
-          fields: [
-            {
-              field_name: 'myInnermostPrimitive',
-              field_type: {
-                type: 'primitive',
-                primitive_type: 'String'
-              }
-            },
-            {
-              field_name: 'myInnermostRecordLookup',
-              field_type: {
-                type: 'primitive',
-                primitive_type: 'Int'
-              }
-            }
-          ]
-        }
-      }
-    ]
-  },
-  source: {
-    type: 'object_builder',
-    fields: [
-      {
-        name: 'myPrimitive',
-        source: {
-          type: 'literal',
-          parameter_value: 'Fiesty'
-        }
-      },
-      {
-        name: 'myOptional',
-        source: {
-          type: 'literal',
-          parameter_value: 'Meh'
-        }
-      },
-      {
-        name: 'myArray',
-        source: {
-          type: 'literal',
-          parameter_value: []
-        }
-      },
-      {
-        name: 'myMap',
-        source: {
-          type: 'literal',
-          parameter_value: {}
-        }
-      },
-      {
-        name: 'myInnerStruct',
-        source: {
-          type: 'object_builder',
-          fields: [
-            {
-              name: 'myInnermostPrimitive',
-              source: {
-                type: 'literal',
-                parameter_value: 'foo'
-              }
-            },
-            {
-              name: 'myInnermostRecordLookup',
-              source: {
-                type: 'record_lookup',
-                record_attribute: 'foo_rating'
-              }
-            }
-          ]
-        }
-      }
-    ]
-  }
-}
-
-const runSetInputDefWithStruct = [...runSetInputDef, myStructInput]
-
-const runSetOutputDef = [
-  {
-    output_name: 'target_workflow_1.file_output',
-    output_type: { type: 'primitive', primitive_type: 'File' },
-    destination: {
-      type: 'record_update',
-      record_attribute: 'target_workflow_1_file_output'
-    }
-  },
-  {
-    output_name: 'target_workflow_1.unused_output',
-    output_type: { type: 'primitive', primitive_type: 'String' },
-    destination: {
-      type: 'none'
-    }
-  }
-]
-
-const runSetResponse = {
-  run_sets: [
-    {
-      run_set_id: '10000000-0000-0000-0000-000000000001',
-      method_id: '00000000-0000-0000-0000-000000000001',
-      method_version_id: '50000000-0000-0000-0000-000000000006',
-      is_template: true,
-      state: 'COMPLETE',
-      record_type: 'FOO',
-      submission_timestamp: '2022-12-07T17:26:53.153+00:00',
-      last_modified_timestamp: '2022-12-07T17:26:53.153+00:00',
-      run_count: 1,
-      error_count: 0,
-      input_definition: JSON.stringify(runSetInputDef),
-      output_definition: JSON.stringify(runSetOutputDef)
-    }
-  ]
-}
-
-const runSetResponseForNewMethod = {
-  run_sets: [
-    {
-      run_set_id: '10000000-0000-0000-0000-000000000001',
-      method_id: '00000000-0000-0000-0000-000000000001',
-      method_version_id: '50000000-0000-0000-0000-000000000006',
-      is_template: true,
-      state: 'COMPLETE',
-      record_type: 'FOO',
-      submission_timestamp: '2022-12-07T17:26:53.153+00:00',
-      last_modified_timestamp: '2022-12-07T17:26:53.153+00:00',
-      run_count: 1,
-      error_count: 0,
-      input_definition: JSON.stringify(runSetInputDefWithSourceNone),
-      output_definition: JSON.stringify(runSetOutputDef)
-    }
-  ]
-}
-
-const runSetResponseWithStruct = _.set('run_sets[0].input_definition', JSON.stringify(runSetInputDefWithStruct), runSetResponse)
-
-const badRecordTypeRunSetResponse = {
-  run_sets: [
-    {
-      run_set_id: '20000000-0000-0000-0000-000000000002',
-      method_id: '00000000-0000-0000-0000-000000000002',
-      method_version_id: '50000000-0000-0000-0000-000000000005',
-      is_template: true,
-      run_set_name: 'Target workflow 2, run 1',
-      run_set_description: 'Example run for target workflow 2',
-      state: 'COMPLETE',
-      record_type: 'BADFOO',
-      submission_timestamp: '2022-12-07T17:26:53.153+00:00',
-      last_modified_timestamp: '2022-12-07T17:26:53.153+00:00',
-      run_count: 1,
-      error_count: 0,
-      input_definition: JSON.stringify(runSetInputDef),
-      output_definition: JSON.stringify(runSetOutputDef)
-    }
-  ]
-}
-
-const undefinedRecordTypeRunSetResponse = {
-  run_sets: [
-    {
-      run_set_id: '20000000-0000-0000-0000-000000000002',
-      method_id: '00000000-0000-0000-0000-000000000002',
-      method_version_id: '50000000-0000-0000-0000-000000000005',
-      is_template: true,
-      run_set_name: 'Target workflow 2, run 1',
-      run_set_description: 'Example run for target workflow 2',
-      state: 'COMPLETE',
-      record_type: undefined,
-      submission_timestamp: '2022-12-07T17:26:53.153+00:00',
-      last_modified_timestamp: '2022-12-07T17:26:53.153+00:00',
-      run_count: 1,
-      error_count: 0,
-      input_definition: JSON.stringify(runSetInputDef),
-      output_definition: JSON.stringify(runSetOutputDef)
-    }
-  ]
-}
-
-const methodsResponse = {
-  methods: [
-    {
-      method_id: '00000000-0000-0000-0000-000000000001',
-      name: 'Target Workflow 1',
-      description: 'Target Workflow 1',
-      source: 'Github',
-      source_url: 'https://raw.githubusercontent.com/DataBiosphere/cbas/main/useful_workflows/target_workflow_1/target_workflow_1.wdl',
-      method_versions: [
-        {
-          method_version_id: '50000000-0000-0000-0000-000000000006',
-          method_id: '00000000-0000-0000-0000-000000000001',
-          name: '1.0',
-          description: 'method description',
-          created: '2023-01-26T19:45:50.419Z',
-          url: 'https://raw.githubusercontent.com/DataBiosphere/cbas/main/useful_workflows/target_workflow_1/target_workflow_1.wdl',
-          last_run: {
-            previously_run: true,
-            timestamp: '2023-01-26T19:45:50.419Z',
-            run_set_id: '10000000-0000-0000-0000-000000000001',
-            method_version_id: '50000000-0000-0000-0000-000000000006',
-            method_version_name: 'string'
-          }
-        }
-      ],
-      created: '2022-12-07T17:26:53.131+00:00',
-      last_run: {
-        run_previously: false
-      }
-    }
-  ]
-}
-
-const typesResponse = [
-  {
-    name: 'FOO',
-    attributes: [
-      {
-        name: 'foo_rating',
-        datatype: 'NUMBER'
-      },
-      {
-        name: 'bar_string',
-        datatype: 'STRING'
-      },
-      {
-        name: 'sys_name',
-        datatype: 'STRING'
-      }
-    ],
-    count: 4,
-    primaryKey: 'sys_name'
-  },
-  {
-    name: 'BAR',
-    attributes: [
-      {
-        name: 'bar_rating',
-        datatype: 'NUMBER'
-      },
-      {
-        name: 'sys_name',
-        datatype: 'STRING'
-      }
-    ],
-    count: 4,
-    primaryKey: 'sys_name'
-  }
-]
-
-const typesResponseWithoutFooRating = [
-  {
-    name: 'FOO',
-    attributes: [
-      {
-        name: 'rating_for_foo',
-        datatype: 'NUMBER'
-      },
-      {
-        name: 'bar_string',
-        datatype: 'STRING'
-      },
-      {
-        name: 'sys_name',
-        datatype: 'STRING'
-      }
-    ],
-    count: 4,
-    primaryKey: 'sys_name'
-  }
-]
-
-const searchResponseFOO = {
-  searchRequest: {
-    limit: 10,
-    offset: 0,
-    sort: 'ASC',
-    sortAttribute: null
-  },
-  records: [
-    {
-      id: 'FOO1', type: 'FOO', attributes: { sys_name: 'FOO1', foo_rating: 1000 }
-    },
-    {
-      id: 'FOO2', type: 'FOO', attributes: { sys_name: 'FOO2', foo_rating: 999 }
-    },
-    {
-      id: 'FOO3', type: 'FOO', attributes: { sys_name: 'FOO3', foo_rating: 85 }
-    },
-    {
-      id: 'FOO4', type: 'FOO', attributes: { sys_name: 'FOO4', foo_rating: 30 }
-    }
-  ],
-  totalRecords: 4
-}
-
-const searchResponseBAR = {
-  searchRequest: {
-    limit: 10,
-    offset: 0,
-    sort: 'ASC',
-    sortAttribute: null
-  },
-  records: [
-    {
-      id: 'BAR1', type: 'BAR', attributes: { sys_name: 'BAR1', bar_rating: 1000 }
-    },
-    {
-      id: 'BAR2', type: 'BAR', attributes: { sys_name: 'BAR2', bar_rating: 999 }
-    }
-  ],
-  totalRecords: 2
-}
-
-const searchResponses = {
-  FOO: searchResponseFOO,
-  BAR: searchResponseBAR
-}
-
-const mockWdsProxyUrl = 'https://lzabc123.servicebus.windows.net/abc-proxy-url/wds'
-const mockApps = [
-  {
-    appType: 'CROMWELL', workspaceId: 'abc-123', appName: `wds-abc-123`, status: 'RUNNING', proxyUrls: { wds: mockWdsProxyUrl }
-  }
-]
 
 describe('SubmissionConfig workflow details', () => {
   beforeAll(() => {
@@ -1178,7 +738,7 @@ describe('Input source and requirements validation', () => {
     Object.defineProperty(HTMLElement.prototype, 'offsetWidth', originalOffsetWidth)
   })
 
-  const buildAjax = runSetResponse => {
+  const buildAjaxMocks = runSetResponse => {
     const mockRunSetResponse = jest.fn(() => Promise.resolve(runSetResponse))
     const mockMethodsResponse = jest.fn(() => Promise.resolve(methodsResponse))
     const mockSearchResponse = jest.fn((_, recordType) => Promise.resolve(searchResponses[recordType]))
@@ -1210,7 +770,7 @@ describe('Input source and requirements validation', () => {
 
   it('should display warning icon for required inputs with missing attributes and disappear when attribute is supplied', async () => {
     // ** ARRANGE **
-    const { mockRunSetResponse, mockMethodsResponse, mockSearchResponse, mockTypesResponse } = buildAjax(runSetResponseWithStruct)
+    const { mockRunSetResponse, mockMethodsResponse, mockSearchResponse, mockTypesResponse } = buildAjaxMocks(runSetResponseWithStruct)
 
     // ** ACT **
     render(h(SubmissionConfig))
@@ -1262,7 +822,7 @@ describe('Input source and requirements validation', () => {
 
   it('should display warning icon/message at each level of the struct builder when a field has a missing attribute', async () => {
     // ** ARRANGE **
-    const { mockRunSetResponse, mockMethodsResponse, mockSearchResponse, mockTypesResponse } = buildAjax(runSetResponseWithStruct)
+    const { mockRunSetResponse, mockMethodsResponse, mockSearchResponse, mockTypesResponse } = buildAjaxMocks(runSetResponseWithStruct)
 
     // ** ACT **
     render(h(SubmissionConfig))
@@ -1329,7 +889,7 @@ describe('Input source and requirements validation', () => {
 
   it('should display warning for required inputs for a newly imported method', async () => {
     // ** ARRANGE **
-    const { mockRunSetResponse, mockMethodsResponse, mockSearchResponse, mockTypesResponse } = buildAjax(runSetResponseForNewMethod)
+    const { mockRunSetResponse, mockMethodsResponse, mockSearchResponse, mockTypesResponse } = buildAjaxMocks(runSetResponseForNewMethod)
 
     // ** ACT **
     render(h(SubmissionConfig))
@@ -1424,7 +984,7 @@ describe('Input source and requirements validation', () => {
 
   it('should display warning icon for input with value not matching expected type', async () => {
     // ** ARRANGE **
-    const { mockRunSetResponse, mockMethodsResponse, mockSearchResponse, mockTypesResponse } = buildAjax(runSetResponseForNewMethod)
+    const { mockRunSetResponse, mockMethodsResponse, mockSearchResponse, mockTypesResponse } = buildAjaxMocks(runSetResponseForNewMethod)
 
     // ** ACT **
     render(h(SubmissionConfig))
