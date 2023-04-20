@@ -77,7 +77,7 @@ const FindWorkflowModal = ({ onDismiss }) => {
 
   const submitMethod = withBusyState(setLoading, async (method) => {
     try {
-      const rawGithubUrl = reconstructToGithubUrl(method.method_url)
+      const rawGithubUrl = reconstructToRawUrl(method.method_url)
 
       const methodPayload = {
         method_name: method.method_name,
@@ -99,7 +99,7 @@ const FindWorkflowModal = ({ onDismiss }) => {
     }
   })
 
-  const reconstructToGithubUrl = async url => {
+  const reconstructToRawUrl = async url => {
     const mapObj = {
       github: 'githubusercontent',
       blob: ''
