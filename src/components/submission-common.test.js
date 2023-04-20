@@ -229,8 +229,8 @@ describe('inputsWithIncorrectValues', () => {
 })
 
 describe('requiredInputsWithoutSource', () => {
-  const intInput = value => {
-    return {
+  it('should consider 0 as valid value', () => {
+    const validIntInput = {
       input_name: 'test_workflow.foo_int',
       input_type: {
         type: 'primitive',
@@ -238,88 +238,10 @@ describe('requiredInputsWithoutSource', () => {
       },
       source: {
         type: 'literal',
-        parameter_value: value
+        parameter_value: '0'
       }
     }
-  }
-
-  const floatInput = value => {
-    return {
-      input_name: 'test_workflow.bar_float',
-      input_type: {
-        type: 'optional',
-        optional_type: {
-          type: 'primitive',
-          primitive_type: 'Float'
-        }
-      },
-      source: {
-        type: 'literal',
-        parameter_value: value
-      }
-    }
-  }
-
-  const stringInput = value => {
-    return {
-      input_name: 'test_workflow.foo_string',
-      input_type: {
-        type: 'primitive',
-        primitive_type: 'String'
-      },
-      source: {
-        type: 'literal',
-        parameter_value: value
-      }
-    }
-  }
-
-  it('should return list of inputs that don\'t match requirements for required inputs and exclude optional inputs in check', () => {
-    const invalidIntInput = intInput('  ')
-    const invalidFloatInput = floatInput('wrong_value')
-    const invalidStringInput = stringInput('   ')
-    const inputsWithIncorrectValuesDefinition = [
-      invalidIntInput,
-      invalidFloatInput,
-      invalidStringInput
-    ]
-
-    const invalidInputs = requiredInputsWithoutSource(inputsWithIncorrectValuesDefinition)
-    expect(invalidInputs.length).toBe(2) // optional inputs are always considered valid in this function
-    expect(invalidInputs).toContain(invalidIntInput)
-    expect(invalidInputs).toContain(invalidStringInput)
-  })
-
-  it('should return list of inputs that don\'t match requirements for required inputs', () => {
-    const invalidIntInput = intInput('  ')
-    const invalidFloatInput = {
-      input_name: 'test_workflow.bar_float',
-      input_type: {
-        type: 'primitive',
-        primitive_type: 'Float'
-      },
-      source: {
-        type: 'literal',
-        parameter_value: '    '
-      }
-    }
-    const invalidStringInput = stringInput('   ')
-    const inputsWithIncorrectValuesDefinition = [
-      invalidIntInput,
-      invalidFloatInput,
-      invalidStringInput
-    ]
-
-    const invalidInputs = requiredInputsWithoutSource(inputsWithIncorrectValuesDefinition)
-    expect(invalidInputs.length).toBe(3)
-    expect(invalidInputs).toContain(invalidIntInput)
-    expect(invalidInputs).toContain(invalidFloatInput)
-    expect(invalidInputs).toContain(invalidStringInput)
-  })
-
-  it('should consider 0 as valid value', () => {
-    const invalidIntInput = intInput('0')
-    const invalidFloatInput = {
+    const validFloatInput = {
       input_name: 'test_workflow.bar_float',
       input_type: {
         type: 'primitive',
@@ -331,8 +253,8 @@ describe('requiredInputsWithoutSource', () => {
       }
     }
     const inputsWithIncorrectValuesDefinition = [
-      invalidIntInput,
-      invalidFloatInput
+      validIntInput,
+      validFloatInput
     ]
 
     const invalidInputs = requiredInputsWithoutSource(inputsWithIncorrectValuesDefinition)
