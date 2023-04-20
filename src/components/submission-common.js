@@ -339,10 +339,10 @@ const validateRequirements = (inputSource, inputType) => {
     }
     if (inputSource.type === 'literal') {
       // this condition is specifically added to allow '0' and 'false' as valid values because
-      // '!!inputSource.parameter_value' considers 0 and false as empty values
+      // '!!inputSource.parameter_value' considers '0' and 'false' as empty values
       // Note: '!=' null check also covers if value is undefined
       if (inputSource.parameter_value != null &&
-        (inputSource.parameter_value.toString() === '0' || inputSource.parameter_value.toString() === 'false')) {
+        (inputSource.parameter_value === 0 || inputSource.parameter_value === false)) {
         return true
       }
 

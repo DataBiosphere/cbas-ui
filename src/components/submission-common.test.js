@@ -229,7 +229,7 @@ describe('inputsWithIncorrectValues', () => {
 })
 
 describe('requiredInputsWithoutSource', () => {
-  it('should consider 0 as valid value', () => {
+  it('should consider 0 and false as valid value', () => {
     const validIntInput = {
       input_name: 'test_workflow.foo_int',
       input_type: {
@@ -238,7 +238,7 @@ describe('requiredInputsWithoutSource', () => {
       },
       source: {
         type: 'literal',
-        parameter_value: '0'
+        parameter_value: 0
       }
     }
     const validFloatInput = {
@@ -249,15 +249,26 @@ describe('requiredInputsWithoutSource', () => {
       },
       source: {
         type: 'literal',
-        parameter_value: '0'
+        parameter_value: 0
       }
     }
-    const inputsWithIncorrectValuesDefinition = [
+    const validBooleanInput = {
+      input_name: 'test_workflow.foo_boolean',
+      input_type: {
+        type: 'primitive',
+        primitive_type: 'Boolean'
+      },
+      source: {
+        type: 'literal',
+        parameter_value: false
+      }
+    }
+    const inputs = [
       validIntInput,
-      validFloatInput
+      validFloatInput,
+      validBooleanInput
     ]
 
-    const invalidInputs = requiredInputsWithoutSource(inputsWithIncorrectValuesDefinition)
-    expect(invalidInputs.length).toBe(0)
+    expect(requiredInputsWithoutSource(inputs).length).toBe(0)
   })
 })
