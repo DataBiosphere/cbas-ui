@@ -7,6 +7,7 @@ import ModalDrawer from 'src/components/ModalDrawer'
 import { TextInput } from 'src/components/input'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
+import { isURLEnabled } from 'src/libs/config'
 import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
 import { useCancellation } from 'src/libs/react-utils'
@@ -56,7 +57,7 @@ const suggestedWorkflowsList = [
     method_url: 'https://raw.githubusercontent.com/broadinstitute/warp/WholeGenomeGermlineSingleSample_v3.1.6/pipelines/broad/dna_seq/germline/single_sample/wgs/WholeGenomeGermlineSingleSample.wdl'
   },
   {
-    method_name: 'ExomeGermlineSingleSample ',
+    method_name: 'ExomeGermlineSingleSample',
     method_description: 'Processes germline exome/targeted sequencing data',
     method_source: 'GitHub',
     method_version: 'ExomeGermlineSingleSample_v3.0.0',
@@ -68,21 +69,24 @@ const suggestedWorkflowsList = [
 const FindWorkflowModal = ({ onDismiss }) => {
   const [selectedSubHeader, setSelectedSubHeader] = useState('browse-suggested-workflows')
   const [loading, setLoading] = useState()
+  const [workflowName, setWorkflowName] = useState()
+  const [versionName, setVersionName] = useState()
+  const [methodUrl, setMethodUrl] = useState()
 
   const signal = useCancellation()
 
-  const submitMethod = withBusyState(setLoading, async ({ method }, methodUrl) => {
+  const submitMethod = withBusyState(setLoading, async (method) => {
     try {
-      const methodPayload = {
-        method_name: method?.method_name,
-        method_description: method?.method_description,
-        method_source: method?.method_source,
-        method_version: method?.method_version,
-        method_url: method?.method_url
-      }
-      if (methodUrl) {
+      const rawGithubUrl = reconstructToGithubUrl(method.method_url)
 
+      const methodPayload = {
+        method_name: method.method_name,
+        method_description: method.method_description,
+        method_source: method.method_source,
+        method_version: method.method_version,
+        method_url: rawGithubUrl
       }
+
 
       const methodObject = await Ajax(signal).Cbas.methods.post(methodPayload)
       onDismiss()
@@ -95,9 +99,24 @@ const FindWorkflowModal = ({ onDismiss }) => {
     }
   })
 
+  const reconstructToGithubUrl = async url => {
+    const mapObj = {
+      github: 'githubusercontent',
+      blob: ''
+    }
+    try {
+      url = url.replace(/\b(?:github|blob)\b/gi, matched => mapObj[matched])
+    } catch (error) {
+      notify('error', 'Error creating new method', { detail: await (error instanceof Response ? error.text() : error) })
+      onDismiss()
+    }
+
+    return url
+  }
+
   const subHeadersMap = {
     'browse-suggested-workflows': 'Browse Suggested Workflows',
-    'add-a-workflow-link': 'Add a Workflow Link'
+    ...(isURLEnabled() && { 'add-a-workflow-link': 'Add a Workflow Link' })
   }
 
   const isSubHeaderActive = subHeader => selectedSubHeader === subHeader
@@ -133,17 +152,21 @@ const FindWorkflowModal = ({ onDismiss }) => {
       ]),
       isSubHeaderActive('browse-suggested-workflows') && div({ style: { overflowY: 'auto', flexGrow: 1, display: 'flex', flexDirection: 'column', paddingLeft: '20px' } }, [
         div({ style: { display: 'flex', flexWrap: 'wrap', overflowY: 'auto', paddingBottom: 5, paddingLeft: 5 } }, [
-          _.map(method => h(MethodCard, { method, onClick: () => submitMethod({ method }), key: method.method_name }), suggestedWorkflowsList)
+          _.map(method => h(MethodCard, { method, onClick: () =>
+            {
+              submitMethod(method)}, key: method.method_name }), suggestedWorkflowsList)
         ])
       ]),
-      isSubHeaderActive('add-a-workflow-link') && div({ style: { marginLeft: '4rem' } }, [
+      isURLEnabled() && isSubHeaderActive('add-a-workflow-link') && div({ style: { marginLeft: '4rem' } }, [
         div({ style: { width: 500 } }, [ h2(['Workflow Link'])
         ]),
         div({}, [
           h(TextInput, {
           style: { width: 500 },
           placeholder: 'Paste Github Link',
-          'aria-label': 'Search workflows',
+          value: methodUrl,
+          onChange: setMethodUrl,
+          'aria-label': 'Github link input',
           })
         ]),
         div({ style: { marginTop: '3rem', width: 500 } }, [
@@ -153,18 +176,23 @@ const FindWorkflowModal = ({ onDismiss }) => {
           h(TextInput, {
             style: { width: 200 },
             placeholder: 'Workflow name',
-            'aria-label': 'Search workflows',
+            value: workflowName,
+            onChange: setWorkflowName,
+            'aria-label': 'Workflow name input',
           }), ' / ',
           h(TextInput, {
             style: { width: 200 },
             placeholder: 'Version',
-            'aria-label': 'Search workflows',
+            value: versionName,
+            onChange: setVersionName,
+            'aria-label': 'Version name input',
           })
         ])
         ]),
         div({}, [h(ButtonPrimary, {
           style: { marginTop: '2rem' },
-          onClick: () => {}}, ['Add to Workspace'])]),
+          onClick: () => submitMethod({method_name: workflowName, method_version: versionName, method_url: methodUrl, method_source: 'GitHub'})
+        }, ['Add to Workspace'])]),
       ]),
     ])
   ])
