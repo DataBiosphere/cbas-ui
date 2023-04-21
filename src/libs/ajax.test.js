@@ -29,6 +29,8 @@ const {
 } = MatchersV3
 
 const UUID_REGEX = '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'
+const RUN_STATE_REGEX = 'UNKNOWN|QUEUED|INITIALIZING|RUNNING|PAUSED|COMPLETE|EXECUTOR_ERROR|SYSTEM_ERROR|CANCELED|CANCELING'
+const RUNSET_STATE_REGEX = 'UNKNOWN|QUEUED|RUNNING|COMPLETE|ERROR|CANCELED|CANCELING'
 
 const cbasPact = new PactV3({
   consumer: 'cbas-ui',
@@ -51,7 +53,7 @@ describe('Ajax tests', () => {
           is_template: boolean(true),
           run_set_name: string('struct_workflow_test template run set'),
           run_set_description: string('struct_workflow_test template submission'),
-          state: regex('RUNNING|COMPLETE', 'COMPLETE'),
+          state: regex(RUNSET_STATE_REGEX, 'COMPLETE'),
           record_type: string('sample'),
           submission_timestamp: timestamp('yyyy-MM-dd\'T\'HH:mm:ss.SSSXXX', '2023-03-28T13:05:02.690+00:00'),
           last_modified_timestamp: timestamp('yyyy-MM-dd\'T\'HH:mm:ss.SSSXXX', '2023-03-28T13:05:02.690+00:00'),
@@ -93,11 +95,11 @@ describe('Ajax tests', () => {
       runs: [
         {
           run_id: fromProviderState('${run_id}', '00000000-0000-0000-0000-000000000000'), // eslint-disable-line no-template-curly-in-string
-          state: regex('.*', 'RUNNING'),
+          state: regex(RUN_STATE_REGEX, 'RUNNING'),
           errors: regex('.*', 'some arbitrary string')
         }
       ],
-      state: regex('.*', 'RUNNING')
+      state: regex(RUNSET_STATE_REGEX, 'RUNNING')
     }
 
     const payload = {
@@ -147,11 +149,11 @@ describe('Ajax tests', () => {
       runs: [
         {
           run_id: fromProviderState('${run_id}', '00000000-0000-0000-0000-000000000000'), // eslint-disable-line no-template-curly-in-string
-          state: regex('.*', 'RUNNING'),
+          state: regex(RUN_STATE_REGEX, 'RUNNING'),
           errors: regex('.*', 'some arbitrary string')
         }
       ],
-      state: regex('.*', 'RUNNING')
+      state: regex(RUNSET_STATE_REGEX, 'RUNNING')
     }
 
     const payload = {
@@ -201,11 +203,11 @@ describe('Ajax tests', () => {
       runs: [
         {
           run_id: fromProviderState('${run_id}', '00000000-0000-0000-0000-000000000000'), // eslint-disable-line no-template-curly-in-string
-          state: regex('.*', 'RUNNING'),
+          state: regex(RUN_STATE_REGEX, 'RUNNING'),
           errors: regex('.*', 'some arbitrary string')
         }
       ],
-      state: regex('.*', 'RUNNING')
+      state: regex(RUNSET_STATE_REGEX, 'RUNNING')
     }
 
     const payload = {
