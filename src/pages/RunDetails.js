@@ -16,6 +16,7 @@ import {
 //import UriViewer from 'src/components/UriViewer'
 import WDLViewer from 'src/components/WDLViewer'
 import { Ajax } from 'src/libs/ajax'
+
 import { useCancellation, useOnMount } from 'src/libs/react-utils'
 import { codeFont, elements } from 'src/libs/style'
 import { cond, makeCompleteDate, newTabLinkProps } from 'src/libs/utils'
@@ -86,6 +87,15 @@ export const RunDetails = ({ submissionId, workflowId }) => {
       }
     }
 
+    const testGetSas = async () =>
+    {
+      //TODO: Get from context
+      const workspaceId = "97c7cccb-aaf8-424c-92cc-587ba49919b6"
+      const containerId = "181aa2f8-f72f-46c9-a06d-bff1cfa1bbbb"
+      const key = await Ajax(signal).WorkspaceManager.getSASToken(workspaceId, containerId)
+      console.log(key)
+    }
+    testGetSas()
     loadWorkflow()
     return () => {
       clearTimeout(stateRefreshTimer.current)

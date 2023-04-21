@@ -45,3 +45,4 @@ export const fetchCbas = withUrlPrefix(`${getConfig().cbasUrlRoot}/api/batch/v1/
 export const fetchCromwell = withUrlPrefix(`${getConfig().cromwellUrlRoot}/api/workflows/v1/`, fetchOk)
 export const fetchLeo = withUrlPrefix(`${getConfig().leoUrlRoot}/`, fetchOk) // TODO: How to add this config to Cromwhelm?
 export const fetchWds = wdsUrlRoot => withUrlPrefix(`${wdsUrlRoot}/`, fetchOk)
+export const fetchWorkspaceManager = withUrlPrefix(`${getConfig().workspaceManagerUrlRoot}/api/workspaces/v1/`, fetchOk)

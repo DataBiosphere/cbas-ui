@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import * as qs from 'qs'
-import { fetchCbas, fetchCromwell, fetchLeo, fetchOk, fetchWds } from 'src/libs/ajax-fetch'
+import { fetchCbas, fetchCromwell, fetchLeo, fetchOk, fetchWds, fetchWorkspaceManager } from 'src/libs/ajax-fetch'
 import { getConfig } from 'src/libs/config'
 
 
@@ -14,7 +14,6 @@ const leoToken = () => {
   return leoTokens[0]
 }
 const authHeader = { headers: { Authorization: `Bearer ${leoToken()}` } }
-
 
 const Cbas = signal => ({
   status: async () => {
@@ -125,12 +124,21 @@ const Leonardo = signal => ({
   }
 })
 
+const WorkspaceManager = signal => ({
+  getSASToken: async (workspaceId, containerId) => {
+    const path = `${workspaceId}/resources/controlled/azure/storageContainer/${containerId}/getSasToken?sasExpirationDuration=28800`
+    const res = await fetchWorkspaceManager(path,_.mergeAll([authHeader, {signal, method:'POST'}]))
+    return await res.json()
+  }
+})
+
 export const Ajax = signal => {
   return {
     Cbas: Cbas(signal),
     Cromwell: Cromwell(signal),
     Wds: Wds(signal),
     WorkflowScript: WorkflowScript(signal),
-    Leonardo: Leonardo(signal)
+    Leonardo: Leonardo(signal),
+    WorkspaceManager: WorkspaceManager(signal)
   }
 }
