@@ -4,7 +4,7 @@ import { MatchersV3, PactV3, SpecificationVersion } from '@pact-foundation/pact'
 import path from 'path'
 import { Ajax } from 'src/libs/ajax'
 import { fetchCbas } from 'src/libs/ajax-fetch'
-import { runSetInputDef, runSetOutputDef } from 'src/libs/mock-responses'
+import { runSetInputDef, runSetOutputDef, runSetInputDefWithSourceNone } from 'src/libs/mock-responses'
 
 jest.mock('src/libs/ajax-fetch')
 
@@ -81,7 +81,7 @@ describe('Ajax tests', () => {
     })
   })
 
-  it('should POST a simple run_set successfully', async () => {
+  it('should successfully POST a simple run_set', async () => {
     const expectedResponse = {
       run_set_id: fromProviderState('${run_set_id}', '00000000-0000-0000-0000-000000000000'),
       runs: [
@@ -100,6 +100,58 @@ describe('Ajax tests', () => {
       method_version_id: '90000000-0000-0000-0000-000000000009',
       wds_records: { record_type: 'FOO', record_ids: [ 'FOO1' ] },
       workflow_input_definitions: runSetInputDef,
+      workflow_output_definitions: runSetOutputDef
+    }
+
+    const body = JSON.stringify(payload)
+    const headers = { 'Content-Type': 'application/json' }
+
+    await cbasPact.addInteraction({
+      states: [{ description: "initialize" }, { description: "post run sets" }],
+      uponReceiving: 'post run set',
+      withRequest: { path: '/api/batch/v1/run_sets', method: 'POST', body, headers },
+      willRespondWith: { status: 200, body: expectedResponse }
+    })
+
+    await cbasPact.executeTest(async mockService => {
+      // ARRANGE
+      const signal = 'fakeSignal'
+
+      fetchCbas.mockImplementation(async path => await fetch(
+        `${mockService.url}/api/batch/v1/${path}`, { method: 'POST', body, headers }))
+
+      // ACT
+      const response = await Ajax(signal).Cbas.runSets.post(payload)
+
+      // ASSERT
+      expect(response).toBeDefined()
+      expect(fetchCbas).toBeCalledTimes(1)
+      expect(fetchCbas).toBeCalledWith('run_sets', { body, headers, method: 'POST', signal })
+      // expect(response).toHaveProperty('run_sets')
+      // expect(response).toHaveProperty('fully_updated')
+      // expect(response.run_sets.length).toEqual(1)
+    })
+  })
+
+  it('should successfully POST a run_set containing a "none" source', async () => {
+    const expectedResponse = {
+      run_set_id: fromProviderState('${run_set_id}', '00000000-0000-0000-0000-000000000000'),
+      runs: [
+        {
+          run_id: fromProviderState('${run_id}', '00000000-0000-0000-0000-000000000000'),
+          state: regex('.*', 'RUNNING'),
+          errors: regex('.*', 'some arbitrary string')
+        }
+      ],
+      state: regex('.*', 'RUNNING')
+    }
+
+    const payload = {
+      run_set_name: 'myRunSet',
+      run_set_description: 'myRunSet description',
+      method_version_id: '90000000-0000-0000-0000-000000000009',
+      wds_records: { record_type: 'FOO', record_ids: [ 'FOO1' ] },
+      workflow_input_definitions: runSetInputDefWithSourceNone,
       workflow_output_definitions: runSetOutputDef
     }
 
