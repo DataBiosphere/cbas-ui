@@ -4,12 +4,13 @@ import { MatchersV3, PactV3, SpecificationVersion } from '@pact-foundation/pact'
 import path from 'path'
 import { Ajax } from 'src/libs/ajax'
 import { fetchCbas } from 'src/libs/ajax-fetch'
-import { 
-  runSetInputDef, 
-  runSetOutputDef, 
-  runSetInputDefWithSourceNone, 
-  runSetInputDefWithStruct 
+import {
+  runSetInputDef,
+  runSetInputDefWithSourceNone,
+  runSetInputDefWithStruct,
+  runSetOutputDef
 } from 'src/libs/mock-responses'
+
 
 jest.mock('src/libs/ajax-fetch')
 
@@ -88,10 +89,10 @@ describe('Ajax tests', () => {
 
   it('should successfully POST a simple run_set', async () => {
     const expectedResponse = {
-      run_set_id: fromProviderState('${run_set_id}', '00000000-0000-0000-0000-000000000000'),
+      run_set_id: fromProviderState('${run_set_id}', '00000000-0000-0000-0000-000000000000'), // eslint-disable-line no-template-curly-in-string
       runs: [
         {
-          run_id: fromProviderState('${run_id}', '00000000-0000-0000-0000-000000000000'),
+          run_id: fromProviderState('${run_id}', '00000000-0000-0000-0000-000000000000'), // eslint-disable-line no-template-curly-in-string
           state: regex('.*', 'RUNNING'),
           errors: regex('.*', 'some arbitrary string')
         }
@@ -103,7 +104,7 @@ describe('Ajax tests', () => {
       run_set_name: 'myRunSet',
       run_set_description: 'myRunSet description',
       method_version_id: '90000000-0000-0000-0000-000000000009',
-      wds_records: { record_type: 'FOO', record_ids: [ 'FOO1' ] },
+      wds_records: { record_type: 'FOO', record_ids: ['FOO1'] },
       workflow_input_definitions: runSetInputDef,
       workflow_output_definitions: runSetOutputDef
     }
@@ -112,7 +113,11 @@ describe('Ajax tests', () => {
     const headers = { 'Content-Type': 'application/json' }
 
     await cbasPact.addInteraction({
-      states: [{ description: "initialize" }, { description: "post run sets" }],
+      states: [
+        { description: 'initialize dependencies' },
+        { description: 'initialize run_set_id' },
+        { description: 'initialize run_id' }
+      ],
       uponReceiving: 'post a simple run set',
       withRequest: { path: '/api/batch/v1/run_sets', method: 'POST', body, headers },
       willRespondWith: { status: 200, body: expectedResponse }
@@ -132,18 +137,17 @@ describe('Ajax tests', () => {
       expect(response).toBeDefined()
       expect(fetchCbas).toBeCalledTimes(1)
       expect(fetchCbas).toBeCalledWith('run_sets', { body, headers, method: 'POST', signal })
-      // expect(response).toHaveProperty('run_sets')
-      // expect(response).toHaveProperty('fully_updated')
-      // expect(response.run_sets.length).toEqual(1)
+      expect(response).toHaveProperty('run_set_id')
+      expect(response.runs.length).toEqual(1)
     })
   })
 
   it('should successfully POST a run_set containing a "none" source', async () => {
     const expectedResponse = {
-      run_set_id: fromProviderState('${run_set_id}', '00000000-0000-0000-0000-000000000000'),
+      run_set_id: fromProviderState('${run_set_id}', '00000000-0000-0000-0000-000000000000'), // eslint-disable-line no-template-curly-in-string
       runs: [
         {
-          run_id: fromProviderState('${run_id}', '00000000-0000-0000-0000-000000000000'),
+          run_id: fromProviderState('${run_id}', '00000000-0000-0000-0000-000000000000'), // eslint-disable-line no-template-curly-in-string
           state: regex('.*', 'RUNNING'),
           errors: regex('.*', 'some arbitrary string')
         }
@@ -155,7 +159,7 @@ describe('Ajax tests', () => {
       run_set_name: 'myRunSet',
       run_set_description: 'myRunSet description',
       method_version_id: '90000000-0000-0000-0000-000000000009',
-      wds_records: { record_type: 'FOO', record_ids: [ 'FOO1' ] },
+      wds_records: { record_type: 'FOO', record_ids: ['FOO1'] },
       workflow_input_definitions: runSetInputDefWithSourceNone,
       workflow_output_definitions: runSetOutputDef
     }
@@ -164,7 +168,11 @@ describe('Ajax tests', () => {
     const headers = { 'Content-Type': 'application/json' }
 
     await cbasPact.addInteraction({
-      states: [{ description: "initialize" }, { description: "post run sets" }],
+      states: [
+        { description: 'initialize dependencies' },
+        { description: 'initialize run_set_id' },
+        { description: 'initialize run_id' }
+      ],
       uponReceiving: 'post a run set with a "none" source',
       withRequest: { path: '/api/batch/v1/run_sets', method: 'POST', body, headers },
       willRespondWith: { status: 200, body: expectedResponse }
@@ -184,18 +192,17 @@ describe('Ajax tests', () => {
       expect(response).toBeDefined()
       expect(fetchCbas).toBeCalledTimes(1)
       expect(fetchCbas).toBeCalledWith('run_sets', { body, headers, method: 'POST', signal })
-      // expect(response).toHaveProperty('run_sets')
-      // expect(response).toHaveProperty('fully_updated')
-      // expect(response.run_sets.length).toEqual(1)
+      expect(response).toHaveProperty('run_set_id')
+      expect(response.runs.length).toEqual(1)
     })
   })
 
   it('should successfully POST a run_set containing a struct input', async () => {
     const expectedResponse = {
-      run_set_id: fromProviderState('${run_set_id}', '00000000-0000-0000-0000-000000000000'),
+      run_set_id: fromProviderState('${run_set_id}', '00000000-0000-0000-0000-000000000000'), // eslint-disable-line no-template-curly-in-string
       runs: [
         {
-          run_id: fromProviderState('${run_id}', '00000000-0000-0000-0000-000000000000'),
+          run_id: fromProviderState('${run_id}', '00000000-0000-0000-0000-000000000000'), // eslint-disable-line no-template-curly-in-string
           state: regex('.*', 'RUNNING'),
           errors: regex('.*', 'some arbitrary string')
         }
@@ -207,7 +214,7 @@ describe('Ajax tests', () => {
       run_set_name: 'myRunSet',
       run_set_description: 'myRunSet description',
       method_version_id: '90000000-0000-0000-0000-000000000009',
-      wds_records: { record_type: 'FOO', record_ids: [ 'FOO1' ] },
+      wds_records: { record_type: 'FOO', record_ids: ['FOO1'] },
       workflow_input_definitions: runSetInputDefWithStruct,
       workflow_output_definitions: runSetOutputDef
     }
@@ -216,7 +223,11 @@ describe('Ajax tests', () => {
     const headers = { 'Content-Type': 'application/json' }
 
     await cbasPact.addInteraction({
-      states: [{ description: "initialize" }, { description: "post run sets" }],
+      states: [
+        { description: 'initialize dependencies' },
+        { description: 'initialize run_set_id' },
+        { description: 'initialize run_id' }
+      ],
       uponReceiving: 'post a run set with a struct source',
       withRequest: { path: '/api/batch/v1/run_sets', method: 'POST', body, headers },
       willRespondWith: { status: 200, body: expectedResponse }
@@ -236,9 +247,8 @@ describe('Ajax tests', () => {
       expect(response).toBeDefined()
       expect(fetchCbas).toBeCalledTimes(1)
       expect(fetchCbas).toBeCalledWith('run_sets', { body, headers, method: 'POST', signal })
-      // expect(response).toHaveProperty('run_sets')
-      // expect(response).toHaveProperty('fully_updated')
-      // expect(response.run_sets.length).toEqual(1)
+      expect(response).toHaveProperty('run_set_id')
+      expect(response.runs.length).toEqual(1)
     })
   })
 })

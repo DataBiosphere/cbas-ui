@@ -1,5 +1,6 @@
 import _ from 'lodash/fp'
 
+
 export const runSetInputDef = [
   {
     input_name: 'target_workflow_1.foo.foo_rating_workflow_var',

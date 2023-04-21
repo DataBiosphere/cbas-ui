@@ -2,32 +2,28 @@ import '@testing-library/jest-dom'
 
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import _ from 'lodash/fp'
 import { h } from 'react-hyperscript-helpers'
 import selectEvent from 'react-select-event'
 import { Ajax } from 'src/libs/ajax'
 import { getConfig } from 'src/libs/config'
-import { SubmissionConfig } from 'src/pages/SubmissionConfig'
 import {
-  runSetInputDef,
-  runSetInputDefWithSourceNone,
+  badRecordTypeRunSetResponse,
+  methodsResponse,
+  mockApps,
   myStructInput,
+  runSetInputDef,
   runSetInputDefWithStruct,
   runSetOutputDef,
   runSetResponse,
   runSetResponseForNewMethod,
   runSetResponseWithStruct,
-  badRecordTypeRunSetResponse,
-  undefinedRecordTypeRunSetResponse,
-  methodsResponse,
+  searchResponses,
   typesResponse,
   typesResponseWithoutFooRating,
-  searchResponseFOO,
-  searchResponseBAR,
-  searchResponses,
-  mockWdsProxyUrl,
-  mockApps
+  undefinedRecordTypeRunSetResponse
 } from 'src/libs/mock-responses.js'
+import { SubmissionConfig } from 'src/pages/SubmissionConfig'
+
 
 jest.mock('src/libs/ajax')
 
