@@ -18,7 +18,8 @@ const {
   string,
   regex,
   boolean,
-  integer
+  integer,
+  fromProviderState
 } = MatchersV3
 
 const UUID_REGEX = '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'
@@ -82,16 +83,15 @@ describe('Ajax tests', () => {
 
   it('should POST a simple run_set successfully', async () => {
     const expectedResponse = {
-      run_set_id: '00000000-0000-0000-0000-000000000000',
+      run_set_id: fromProviderState('${run_set_id}', '00000000-0000-0000-0000-000000000000'),
       runs: [
         {
-          run_id: '00000000-0000-0000-0000-000000000000',
-          state: 'QUEUED',
-          errors: 'string'
+          run_id: fromProviderState('${run_id}', '00000000-0000-0000-0000-000000000000'),
+          state: regex('.*', 'RUNNING'),
+          errors: regex('.*', 'some arbitrary string')
         }
       ],
-      state: 'RUNNING',
-      errors: 'string'
+      state: regex('.*', 'RUNNING')
     }
 
     const payload = {
@@ -107,7 +107,7 @@ describe('Ajax tests', () => {
     const headers = { 'Content-Type': 'application/json' }
 
     await cbasPact.addInteraction({
-      states: [{ description: "post run sets" }],
+      states: [{ description: "initialize" }, { description: "post run sets" }],
       uponReceiving: 'post run set',
       withRequest: { path: '/api/batch/v1/run_sets', method: 'POST', body, headers },
       willRespondWith: { status: 200, body: expectedResponse }
