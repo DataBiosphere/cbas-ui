@@ -116,8 +116,9 @@ describe('Ajax tests', () => {
 
     await cbasPact.addInteraction({
       states: [
-        { description: 'initialize dependencies' },
-        { description: 'initialize run_set' }
+        { description: 'ready to fetch recordId FOO1 from recordType FOO from wdsService' },
+        { description: 'ready to fetch myMethodVersion with UUID 90000000-0000-0000-0000-000000000009' },
+        { description: 'ready to receive exactly 1 call to POST run_sets' }
       ],
       uponReceiving: 'post a simple run set',
       withRequest: { path: '/api/batch/v1/run_sets', method: 'POST', body, headers },
@@ -170,8 +171,9 @@ describe('Ajax tests', () => {
 
     await cbasPact.addInteraction({
       states: [
-        { description: 'initialize dependencies' },
-        { description: 'initialize run_set' }
+        { description: 'ready to fetch recordId FOO1 from recordType FOO from wdsService' },
+        { description: 'ready to fetch myMethodVersion with UUID 90000000-0000-0000-0000-000000000009' },
+        { description: 'ready to receive exactly 1 call to POST run_sets' }
       ],
       uponReceiving: 'post a run set with a "none" source',
       withRequest: { path: '/api/batch/v1/run_sets', method: 'POST', body, headers },
@@ -224,8 +226,9 @@ describe('Ajax tests', () => {
 
     await cbasPact.addInteraction({
       states: [
-        { description: 'initialize dependencies' },
-        { description: 'initialize run_set' }
+        { description: 'ready to fetch recordId FOO1 from recordType FOO from wdsService' },
+        { description: 'ready to fetch myMethodVersion with UUID 90000000-0000-0000-0000-000000000009' },
+        { description: 'ready to receive exactly 1 call to POST run_sets' }
       ],
       uponReceiving: 'post a run set with a struct source',
       withRequest: { path: '/api/batch/v1/run_sets', method: 'POST', body, headers },
