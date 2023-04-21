@@ -115,8 +115,7 @@ describe('Ajax tests', () => {
     await cbasPact.addInteraction({
       states: [
         { description: 'initialize dependencies' },
-        { description: 'initialize run_set_id' },
-        { description: 'initialize run_id' }
+        { description: "initialize run_set" }
       ],
       uponReceiving: 'post a simple run set',
       withRequest: { path: '/api/batch/v1/run_sets', method: 'POST', body, headers },
@@ -170,8 +169,7 @@ describe('Ajax tests', () => {
     await cbasPact.addInteraction({
       states: [
         { description: 'initialize dependencies' },
-        { description: 'initialize run_set_id' },
-        { description: 'initialize run_id' }
+        { description: "initialize run_set" }
       ],
       uponReceiving: 'post a run set with a "none" source',
       withRequest: { path: '/api/batch/v1/run_sets', method: 'POST', body, headers },
@@ -225,8 +223,7 @@ describe('Ajax tests', () => {
     await cbasPact.addInteraction({
       states: [
         { description: 'initialize dependencies' },
-        { description: 'initialize run_set_id' },
-        { description: 'initialize run_id' }
+        { description: "initialize run_set" }
       ],
       uponReceiving: 'post a run set with a struct source',
       withRequest: { path: '/api/batch/v1/run_sets', method: 'POST', body, headers },
