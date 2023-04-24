@@ -2,6 +2,7 @@ import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { div, h, h2 } from 'react-hyperscript-helpers'
 import { ButtonPrimary, Clickable, Link } from 'src/components/common'
+import HelpfulLinksBox from 'src/components/HelpfulLinksBox'
 import { centeredSpinner, icon } from 'src/components/icons'
 import ModalDrawer from 'src/components/ModalDrawer'
 import { TextInput } from 'src/components/input'
@@ -75,7 +76,7 @@ const FindWorkflowModal = ({ onDismiss }) => {
 
   const signal = useCancellation()
 
-  const submitMethod = withBusyState(setLoading, async (method) => {
+  const submitMethod = withBusyState(setLoading, async method => {
     try {
       const rawGithubUrl = reconstructToRawUrl(method.method_url)
 
@@ -152,48 +153,45 @@ const FindWorkflowModal = ({ onDismiss }) => {
       ]),
       isSubHeaderActive('browse-suggested-workflows') && div({ style: { overflowY: 'auto', flexGrow: 1, display: 'flex', flexDirection: 'column', paddingLeft: '20px' } }, [
         div({ style: { display: 'flex', flexWrap: 'wrap', overflowY: 'auto', paddingBottom: 5, paddingLeft: 5 } }, [
-          _.map(method => h(MethodCard, { method, onClick: () =>
-            {
-              submitMethod(method)}, key: method.method_name }), suggestedWorkflowsList)
+          _.map(method => h(MethodCard, { method, onClick: () => submitMethod(method), key: method.method_name }), suggestedWorkflowsList)
         ])
       ]),
       isURLEnabled() && isSubHeaderActive('add-a-workflow-link') && div({ style: { marginLeft: '4rem' } }, [
-        div({ style: { width: 500 } }, [ h2(['Workflow Link'])
-        ]),
+        div({ style: { width: 500 } }, [h2(['Workflow Link'])]),
         div({}, [
           h(TextInput, {
-          style: { width: 500 },
-          placeholder: 'Paste Github Link',
-          value: methodUrl,
-          onChange: setMethodUrl,
-          'aria-label': 'Github link input',
+            style: { width: 500 },
+            placeholder: 'Paste Github Link',
+            value: methodUrl,
+            onChange: setMethodUrl,
+            'aria-label': 'Github link input'
           })
         ]),
         div({ style: { marginTop: '3rem', width: 500 } }, [
-          h2(['New Workflow Name / Version']),
+          h2(['New Workflow Name / Version'])
         ]),
-        div({}, [ h(Fragment, [
+        div({}, [h(Fragment, [
           h(TextInput, {
             style: { width: 200 },
             placeholder: 'Workflow name',
             value: workflowName,
             onChange: setWorkflowName,
-            'aria-label': 'Workflow name input',
+            'aria-label': 'Workflow name input'
           }), ' / ',
           h(TextInput, {
             style: { width: 200 },
             placeholder: 'Version',
             value: versionName,
             onChange: setVersionName,
-            'aria-label': 'Version name input',
+            'aria-label': 'Version name input'
           })
-        ])
-        ]),
+        ])]),
         div({}, [h(ButtonPrimary, {
           style: { marginTop: '2rem' },
-          onClick: () => submitMethod({method_name: workflowName, method_version: versionName, method_url: methodUrl, method_source: 'GitHub'})
-        }, ['Add to Workspace'])]),
+          onClick: () => submitMethod({ method_name: workflowName, method_version: versionName, method_url: methodUrl, method_source: 'GitHub' })
+        }, ['Add to Workspace'])])
       ]),
+      div({ style: { marginLeft: '3rem', marginRight: '1.5rem', width: '100%' } }, [h(HelpfulLinksBox)])
     ])
   ])
 }
