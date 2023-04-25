@@ -83,7 +83,6 @@ describe('Add a Workflow Link', () => {
   })
 
   it('should render workflow link subheader with config enabled', async () => {
-
     // ** ACT **
     await render(h(FindWorkflowModal, { onDismiss: jest.fn() }))
 
@@ -124,7 +123,7 @@ describe('Add a Workflow Link', () => {
     })
 
     const githubLink = 'https://github.com/broadinstitute/cromwell/blob/develop/wdl/transforms/draft3/src/test/cases/simple_task.wdl'
-    const rawGithubLink ='https://raw.githubusercontent.com/broadinstitute/cromwell/develop/wdl/transforms/draft3/src/test/cases/simple_task.wdl'
+    const rawGithubLink = 'https://raw.githubusercontent.com/broadinstitute/cromwell/develop/wdl/transforms/draft3/src/test/cases/simple_task.wdl'
     // ** ACT **
     render(h(FindWorkflowModal, { onDismiss: jest.fn() }))
 
@@ -144,7 +143,7 @@ describe('Add a Workflow Link', () => {
 
     // ** ASSERT **
     // assert POST /methods endpoint was called with expected parameters & transformed github.com link
-    await waitFor(() =>{
+    await waitFor(() => {
       expect(postMethodFunction).toHaveBeenCalledTimes(1)
       expect(postMethodFunction).toHaveBeenCalledWith(
         {
@@ -159,7 +158,7 @@ describe('Add a Workflow Link', () => {
   })
 
   it('should accept raw github.com links', async () => {
-    const rawGithubLink ='https://raw.githubusercontent.com/broadinstitute/cromwell/develop/wdl/transforms/draft3/src/test/cases/simple_task.wdl'
+    const rawGithubLink = 'https://raw.githubusercontent.com/broadinstitute/cromwell/develop/wdl/transforms/draft3/src/test/cases/simple_task.wdl'
     const postMethodFunction = jest.fn(() => Promise.resolve({ method_id: 'abc123' }))
 
     await Ajax.mockImplementation(() => {
@@ -189,7 +188,7 @@ describe('Add a Workflow Link', () => {
     fireEvent.click(addToWorkspaceButton)
 
     // Check that raw github links still work
-    await waitFor(() =>{
+    await waitFor(() => {
       expect(postMethodFunction).toHaveBeenCalledTimes(1)
       expect(postMethodFunction).toHaveBeenCalledWith(
         {
@@ -233,7 +232,7 @@ describe('Add a Workflow Link', () => {
     fireEvent.click(addToWorkspaceButton)
 
     // Check that raw github links still work
-    await waitFor(() =>{
+    await waitFor(() => {
       expect(postMethodFunction).toHaveBeenCalledTimes(1)
       expect(postMethodFunction).toHaveBeenCalledWith(
         {
