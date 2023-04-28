@@ -6,6 +6,7 @@ import ReactJson from 'react-json-view'
 import Collapse from 'src/components/Collapse'
 import { ClipboardButton, Link, Navbar } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
+import { UriViewer } from 'src/components/URIViewer/UriViewer'
 import {
   collapseCromwellStatus, collapseStatus,
   HeaderSection,
@@ -13,10 +14,8 @@ import {
   SubmitNewWorkflowButton
 } from 'src/components/job-common'
 //  Q4-2022 Disable log-viewing
-//import UriViewer from 'src/components/UriViewer'
 import WDLViewer from 'src/components/WDLViewer'
 import { Ajax } from 'src/libs/ajax'
-
 import { useCancellation, useOnMount } from 'src/libs/react-utils'
 import { codeFont, elements } from 'src/libs/style'
 import { cond, makeCompleteDate, newTabLinkProps } from 'src/libs/utils'
@@ -61,8 +60,7 @@ export const RunDetails = ({ submissionId, workflowId }) => {
    * State setup
    */
   const [workflow, setWorkflow] = useState()
-  //Q4-2022 Disable log-viewing
-  //const [showLog, setShowLog] = useState(false)
+  const [showLog, setShowLog] = useState(false)
 
   const signal = useCancellation()
   const stateRefreshTimer = useRef()
@@ -87,15 +85,13 @@ export const RunDetails = ({ submissionId, workflowId }) => {
       }
     }
 
-    const testGetSas = async () =>
-    {
-      //TODO: Get from context
-      const workspaceId = "97c7cccb-aaf8-424c-92cc-587ba49919b6"
-      const containerId = "181aa2f8-f72f-46c9-a06d-bff1cfa1bbbb"
-      const key = await Ajax(signal).WorkspaceManager.getSASToken(workspaceId, containerId)
-      console.log(key)
+    const testGetFile = async () => {
+      const filePath = 'https://lz0d5275bdd36d3e6a22a130.blob.core.windows.net/sc-97c7cccb-aaf8-424c-92cc-587ba49919b6/workspace-services/cbas/wds-97c7cccb-aaf8-424c-92cc-587ba49919b6/cromwell-workflow-logs/workflow.85d75e23-eb96-4823-a0ad-dfc21903f1d4.log'
+      const sasToken = 'sv=2021-12-02&spr=https&st=2023-04-28T17%3A13%3A00Z&se=2023-04-29T01%3A28%3A00Z&sr=c&sp=racwdl&sig=w0n%2FeTp33%2Fs9zLJQ%2BMW6%2Fwn%2B40vsYnpQiprU08sqOVI%3D'
+      const result = await Ajax(signal).AzureStorage.getTextFileFromBlobStorage(filePath, sasToken)
+      console.log(result)
     }
-    testGetSas()
+    testGetFile()
     loadWorkflow()
     return () => {
       clearTimeout(stateRefreshTimer.current)
@@ -215,6 +211,10 @@ export const RunDetails = ({ submissionId, workflowId }) => {
                   {}
                 )
               ]),
+              makeSection("Logs", [h(Link, {
+                onClick: () => setShowLog(true),
+                style: { display: 'flex', marginLeft: '1rem', alignItems: 'center' }
+              }, [icon('fileAlt', { size: 18 }), ' Execution log'])], {}),
               failures &&
                 h(Collapse,
                   {
@@ -280,9 +280,9 @@ export const RunDetails = ({ submissionId, workflowId }) => {
             ]
           )
         ]
-        )
+        ),
         //  Q4-2022 Disable log-viewing
-        //showLog && h(UriViewer, { workspace, uri: workflowLog, onDismiss: () => setShowLog(false) })
+        showLog && h(UriViewer, { onDismiss: () => setShowLog(false) })
       ])
     )
   ])

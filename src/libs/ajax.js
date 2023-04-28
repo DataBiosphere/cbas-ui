@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import * as qs from 'qs'
-import { fetchCbas, fetchCromwell, fetchLeo, fetchOk, fetchWds, fetchWorkspaceManager } from 'src/libs/ajax-fetch'
+import { fetchAzureStorage, fetchCbas, fetchCromwell, fetchLeo, fetchOk, fetchWds, fetchWorkspaceManager } from 'src/libs/ajax-fetch'
 import { getConfig } from 'src/libs/config'
 
 
@@ -125,10 +125,28 @@ const Leonardo = signal => ({
 })
 
 const WorkspaceManager = signal => ({
+  /**
+   * Request a SAS token from Workspace Manager.
+   * This SAS token will have permission to view the files in the associated Blob storage container.
+   * @param {string} workspaceId The unique identifier for this app in WSM.
+   * Looks something like: aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa.
+   * @param {string} containerId The unique identifier for the container associated with this workspace.
+   *  Looks something like: aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa.
+   * @returns {string} A SAS token that may be used for future requests to Azure blob storage.
+   */
   getSASToken: async (workspaceId, containerId) => {
     const path = `${workspaceId}/resources/controlled/azure/storageContainer/${containerId}/getSasToken?sasExpirationDuration=28800`
-    const res = await fetchWorkspaceManager(path,_.mergeAll([authHeader, {signal, method:'POST'}]))
-    return await res.json()
+    const res = await fetchWorkspaceManager(path, _.mergeAll([authHeader, { signal, method: 'POST' }])) //Returns an object with the keys "token" and "url"
+    return await res.json().token
+  }
+})
+
+const AzureStorage = signal => ({
+  getTextFileFromBlobStorage: async (blobFilepath, SAStoken) => {
+    const url = `${blobFilepath}?${SAStoken}`
+    const res = await fetchAzureStorage(url, _.mergeAll([{ signal, method: 'GET' }]))
+    const text = await res.text()
+    return text
   }
 })
 
@@ -139,6 +157,7 @@ export const Ajax = signal => {
     Wds: Wds(signal),
     WorkflowScript: WorkflowScript(signal),
     Leonardo: Leonardo(signal),
-    WorkspaceManager: WorkspaceManager(signal)
+    WorkspaceManager: WorkspaceManager(signal),
+    AzureStorage: AzureStorage(signal)
   }
 }
