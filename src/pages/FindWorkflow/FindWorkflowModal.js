@@ -1,10 +1,10 @@
 import _ from 'lodash/fp'
-import { Fragment, useState } from 'react'
-import { div, h, h2 } from 'react-hyperscript-helpers'
-import { ButtonPrimary, Clickable, Link } from 'src/components/common'
+import { useState } from 'react'
+import { div, h } from 'react-hyperscript-helpers'
+import { Clickable, Link } from 'src/components/common'
 import HelpfulLinksBox from 'src/components/HelpfulLinksBox'
 import { centeredSpinner, icon } from 'src/components/icons'
-import { TextInput } from 'src/components/input'
+import ImportGithub from 'src/components/ImportGithub'
 import ModalDrawer from 'src/components/ModalDrawer'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
@@ -70,9 +70,6 @@ const suggestedWorkflowsList = [
 const FindWorkflowModal = ({ onDismiss }) => {
   const [selectedSubHeader, setSelectedSubHeader] = useState('browse-suggested-workflows')
   const [loading, setLoading] = useState()
-  const [methodName, setMethodName] = useState('')
-  const [methodVersionName, setMethodVersionName] = useState('')
-  const [methodUrl, setMethodUrl] = useState('')
 
   const signal = useCancellation()
 
@@ -157,42 +154,7 @@ const FindWorkflowModal = ({ onDismiss }) => {
           _.map(method => h(MethodCard, { method, onClick: () => submitMethod(method), key: method.method_name }), suggestedWorkflowsList)
         ])
       ]),
-      isSubHeaderActive('add-a-workflow-link') && div({ style: { marginLeft: '4rem' } }, [
-        div({ style: { width: 500 } }, [h2(['Workflow Link'])]),
-        div({}, [
-          h(TextInput, {
-            style: { width: 500 },
-            placeholder: 'Paste Github Link',
-            value: methodUrl,
-            onChange: u => setMethodUrl(u),
-            'aria-label': 'Github link input'
-          })
-        ]),
-        div({ style: { marginTop: '3rem', width: 500 } }, [
-          h2(['New Workflow Name / Version'])
-        ]),
-        div({}, [h(Fragment, [
-          h(TextInput, {
-            style: { width: 200 },
-            placeholder: 'Workflow name',
-            value: methodName,
-            onChange: w => setMethodName(w),
-            'aria-label': 'Workflow name input'
-          }), ' / ',
-          h(TextInput, {
-            style: { width: 200 },
-            placeholder: 'Version',
-            value: methodVersionName,
-            onChange: v => setMethodVersionName(v),
-            'aria-label': 'Version name input'
-          })
-        ])]),
-        div({}, [h(ButtonPrimary, {
-          style: { marginTop: '2rem' },
-          'aria-label': 'Add to Workspace button',
-          onClick: () => submitMethod({ method_name: methodName, method_version: methodVersionName, method_url: methodUrl, method_source: 'GitHub' })
-        }, ['Add to Workspace'])])
-      ]),
+      isSubHeaderActive('add-a-workflow-link') && h(ImportGithub, { submitMethod }),
       div({ style: { marginLeft: '3rem', marginRight: '1.5rem', width: '100%' } }, [h(HelpfulLinksBox)])
     ])
   ])
