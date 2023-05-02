@@ -70,8 +70,8 @@ const suggestedWorkflowsList = [
 const FindWorkflowModal = ({ onDismiss }) => {
   const [selectedSubHeader, setSelectedSubHeader] = useState('browse-suggested-workflows')
   const [loading, setLoading] = useState()
-  const [workflowName, setWorkflowName] = useState('')
-  const [versionName, setVersionName] = useState('')
+  const [methodName, setMethodName] = useState('')
+  const [methodVersionName, setMethodVersionName] = useState('')
   const [methodUrl, setMethodUrl] = useState('')
 
   const signal = useCancellation()
@@ -157,7 +157,7 @@ const FindWorkflowModal = ({ onDismiss }) => {
           _.map(method => h(MethodCard, { method, onClick: () => submitMethod(method), key: method.method_name }), suggestedWorkflowsList)
         ])
       ]),
-      getConfig().isURLEnabled && isSubHeaderActive('add-a-workflow-link') && div({ style: { marginLeft: '4rem' } }, [
+      isSubHeaderActive('add-a-workflow-link') && div({ style: { marginLeft: '4rem' } }, [
         div({ style: { width: 500 } }, [h2(['Workflow Link'])]),
         div({}, [
           h(TextInput, {
@@ -175,22 +175,22 @@ const FindWorkflowModal = ({ onDismiss }) => {
           h(TextInput, {
             style: { width: 200 },
             placeholder: 'Workflow name',
-            value: workflowName,
-            onChange: w => setWorkflowName(w),
+            value: methodName,
+            onChange: w => setMethodName(w),
             'aria-label': 'Workflow name input'
           }), ' / ',
           h(TextInput, {
             style: { width: 200 },
             placeholder: 'Version',
-            value: versionName,
-            onChange: v => setVersionName(v),
+            value: methodVersionName,
+            onChange: v => setMethodVersionName(v),
             'aria-label': 'Version name input'
           })
         ])]),
         div({}, [h(ButtonPrimary, {
           style: { marginTop: '2rem' },
           'aria-label': 'Add to Workspace button',
-          onClick: () => submitMethod({ method_name: workflowName, method_version: versionName, method_url: methodUrl, method_source: 'GitHub' })
+          onClick: () => submitMethod({ method_name: methodName, method_version: methodVersionName, method_url: methodUrl, method_source: 'GitHub' })
         }, ['Add to Workspace'])])
       ]),
       div({ style: { marginLeft: '3rem', marginRight: '1.5rem', width: '100%' } }, [h(HelpfulLinksBox)])
