@@ -1,12 +1,12 @@
 import { Fragment, useState } from 'react'
 import { div, h, img } from 'react-hyperscript-helpers'
+import { isAzureUri } from 'src/components/URIViewer/uri-viewer-utils'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { useCancellation, useOnMount } from 'src/libs/react-utils'
 import * as Utils from 'src/libs/utils'
 
 import els from './uri-viewer-styles'
-
 
 const styles = {
   previewText: {
@@ -34,6 +34,7 @@ const isBinary = ({ contentType, name }) => {
 }
 
 const isFilePreviewable = ({ size, ...metadata }) => {
+  console.log("hi")
   return !isBinary(metadata) && (isText(metadata) || (isImage(metadata) && size <= 1e9))
 }
 
@@ -42,11 +43,15 @@ export const UriPreview = ({ metadata, metadata: { bucket, name }, googleProject
   const [preview, setPreview] = useState()
   const loadPreview = async () => {
     try {
-      const res = await Ajax(signal).Buckets.getObjectPreview(googleProject, bucket, name, isImage(metadata))
-      if (isImage(metadata)) {
-        setPreview(URL.createObjectURL(await res.blob()))
+      if(isAzureUri(metadata.uri)) {
+        setPreview(metadata.textContent)
       } else {
-        setPreview(await res.text())
+        const res = await Ajax(signal).Buckets.getObjectPreview(googleProject, bucket, name, isImage(metadata))
+        if (isImage(metadata)) {
+          setPreview(URL.createObjectURL(await res.blob()))
+        } else {
+          setPreview(await res.text())
+        }
       }
     } catch (error) {
       setPreview(null)

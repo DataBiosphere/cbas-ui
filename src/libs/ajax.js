@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { fetchAzureStorage, fetchCbas, fetchCromwell, fetchLeo, fetchOk, fetchWds, fetchWorkspaceManager } from 'src/libs/ajax-fetch'
 import { getConfig } from 'src/libs/config'
-
+import { parseAzureBlobUri } from 'src/libs/utils'
 
 const jsonBody = body => ({ body: JSON.stringify(body), headers: { 'Content-Type': 'application/json' } })
 
@@ -145,8 +145,24 @@ const AzureStorage = signal => ({
   getTextFileFromBlobStorage: async (blobFilepath, SAStoken) => {
     const url = `${blobFilepath}?${SAStoken}`
     const res = await fetchAzureStorage(url, _.mergeAll([{ signal, method: 'GET' }]))
-    const text = await res.text()
-    return text
+    console.log()
+    const textContent = await res.text()
+    const blobDetails = parseAzureBlobUri(blobFilepath)
+    const parts = blobFilepath.split('/');
+    const lastSegment = parts.pop() || parts.pop();  // handle potential trailing slash
+    const ret =
+      {
+        uri : blobFilepath,
+        storageAccountName : blobDetails.storageAccountName,
+        containerName : blobDetails.containerName,
+        blobName : blobDetails.blobName, //path to blob file from container root
+        name : lastSegment, // name of the file
+        lastModified : res.headers.get('Last-Modified'),
+        size : res.headers.get('Content-Length'), //size of file, in bytes
+        contentType : res.headers.get('Content-Type'),
+        textContent : textContent
+      }
+    return ret
   }
 })
 

@@ -85,13 +85,6 @@ export const RunDetails = ({ submissionId, workflowId }) => {
       }
     }
 
-    const testGetFile = async () => {
-      const filePath = 'https://lz0d5275bdd36d3e6a22a130.blob.core.windows.net/sc-97c7cccb-aaf8-424c-92cc-587ba49919b6/workspace-services/cbas/wds-97c7cccb-aaf8-424c-92cc-587ba49919b6/cromwell-workflow-logs/workflow.85d75e23-eb96-4823-a0ad-dfc21903f1d4.log'
-      const sasToken = 'sv=2021-12-02&spr=https&st=2023-04-28T17%3A13%3A00Z&se=2023-04-29T01%3A28%3A00Z&sr=c&sp=racwdl&sig=w0n%2FeTp33%2Fs9zLJQ%2BMW6%2Fwn%2B40vsYnpQiprU08sqOVI%3D'
-      const result = await Ajax(signal).AzureStorage.getTextFileFromBlobStorage(filePath, sasToken)
-      console.log(result)
-    }
-    testGetFile()
     loadWorkflow()
     return () => {
       clearTimeout(stateRefreshTimer.current)
