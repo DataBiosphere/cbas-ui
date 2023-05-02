@@ -68,7 +68,6 @@ export const RunDetails = ({ submissionId, workflowId }) => {
   /*
    * Data fetchers
    */
-
   useOnMount(() => {
     const loadWorkflow = async () => {
       const includeKey = [
@@ -78,6 +77,14 @@ export const RunDetails = ({ submissionId, workflowId }) => {
       const excludeKey = []
 
       const metadata = await Ajax(signal).Cromwell.workflows(workflowId).metadata({ includeKey, excludeKey })
+
+      //For testing locally
+      if(!metadata.hasOwnProperty('workflowLog')) {
+        const filePath = 'https://lz0d5275bdd36d3e6a22a130.blob.core.windows.net/sc-97c7cccb-aaf8-424c-92cc-587ba49919b6/workspace-services/cbas/wds-97c7cccb-aaf8-424c-92cc-587ba49919b6/cromwell-workflow-logs/workflow.85d75e23-eb96-4823-a0ad-dfc21903f1d4.log'
+        metadata.workflowLog = filePath
+      }
+      //end local testing
+
       setWorkflow(metadata)
 
       if (includes(collapseStatus(metadata.status), [statusType.running, statusType.submitted])) {
@@ -86,6 +93,7 @@ export const RunDetails = ({ submissionId, workflowId }) => {
     }
 
     loadWorkflow()
+
     return () => {
       clearTimeout(stateRefreshTimer.current)
     }
@@ -274,8 +282,7 @@ export const RunDetails = ({ submissionId, workflowId }) => {
           )
         ]
         ),
-        //  Q4-2022 Disable log-viewing
-        showLog && h(UriViewer, { onDismiss: () => setShowLog(false) })
+        showLog && h(UriViewer, { workflow, onDismiss: () => setShowLog(false) })
       ])
     )
   ])

@@ -19,7 +19,6 @@ const getMaxDownloadCostNA = bytes => {
 }
 */
 
-
 export const UriDownloadButton = ({ uri, metadata: { bucket, name, fileName, size }, accessUrl }) => {
   const signal = useCancellation()
   const [url, setUrl] = useState()

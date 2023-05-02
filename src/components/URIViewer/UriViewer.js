@@ -18,25 +18,31 @@ import { UriPreview } from './UriPreview'
 
 export const UriViewer = _.flow(
   withDisplayName('UriViewer')
-)(({ onDismiss }) => {
-
+)(({ workflow, onDismiss }) => {
+  const uri = workflow.workflowLog
   const signal = useCancellation()
   const [metadata, setMetadata] = useState()
   const [loadingError, setLoadingError] = useState()
-  const testUri = 'https://lz0d5275bdd36d3e6a22a130.blob.core.windows.net/sc-97c7cccb-aaf8-424c-92cc-587ba49919b6/workspace-services/cbas/wds-97c7cccb-aaf8-424c-92cc-587ba49919b6/cromwell-workflow-logs/workflow.85d75e23-eb96-4823-a0ad-dfc21903f1d4.log'
-
-  const testGetFile = async () => {
-    const filePath = 'https://lz0d5275bdd36d3e6a22a130.blob.core.windows.net/sc-97c7cccb-aaf8-424c-92cc-587ba49919b6/workspace-services/cbas/wds-97c7cccb-aaf8-424c-92cc-587ba49919b6/cromwell-workflow-logs/workflow.85d75e23-eb96-4823-a0ad-dfc21903f1d4.log'
-    const sasToken = 'sv=2021-12-02&spr=https&st=2023-05-02T14%3A31%3A05Z&se=2023-05-02T22%3A46%3A05Z&sr=c&sp=racwdl&sig=vNKvY82jQ8OinblN5LuQFdZb2Od6xopZlX8OIv4v5rk%3D'
-    const result = await Ajax(signal).AzureStorage.getTextFileFromBlobStorage(filePath, sasToken)
-    return result
-  }
 
   const loadMetadata = async () => {
     try {
-      if (isAzureUri(testUri)) {
-        const details = await testGetFile()
-        setMetadata(details)
+      if (isAzureUri(uri)) {
+        const fileMetadata = await Ajax(signal).AzureStorage.getTextFileFromBlobStorage(uri)
+        setMetadata(fileMetadata)
+      } else if (isGsUri(uri)) {
+        /*
+        NB: Rather than bringing in all the dependencies needed to make GCP work for this component + its children,
+        I'm leaving them commented out for now.
+        */
+
+        /*
+        const [bucket, name] = parseGsUri(uri)
+        const loadObject = withRequesterPaysHandler(onRequesterPaysError, () => {
+          return Ajax(signal).Buckets.getObject(googleProject, bucket, name)
+        })
+        const metadata = await loadObject(googleProject, bucket, name)
+        setMetadata(metadata)
+        */
       } else {
         // TODO: change below comment after switch to DRSHub is complete, tracked in ticket [ID-170]
         // Fields are mapped from the martha_v3 fields to those used by google
@@ -58,10 +64,10 @@ export const UriViewer = _.flow(
   useOnMount(() => {
     loadMetadata()
   })
-  const { uri, storageAccountName , containerName, blobName, name, lastModified, size, contentType, textContent } = metadata || {}
+  const { storageAccountName , containerName, blobName, name, lastModified, size, contentType, textContent } = metadata || {}
   //const { size, timeCreated, updated, bucket, name, fileName, accessUrl } = metadata || {}
   //const gsUri = `gs://${bucket}/${name}`
-  if (isAzureUri(testUri)) {
+  if (isAzureUri(uri)) {
     return h(Modal, {
         onDismiss,
         title: 'File Details',
@@ -70,7 +76,6 @@ export const UriViewer = _.flow(
         showButtons: false
       } , [
       Utils.cond(
-
         [loadingError, () => h(Fragment, [
           div({ style: { paddingBottom: '1rem' } }, [
             'Error loading data. This file does not exist or you do not have permission to view it.'
@@ -81,14 +86,18 @@ export const UriViewer = _.flow(
             ])
           ])
         ])],
+        [!name, () => h(Fragment, [
+          'Loading file...',
+          spinner({ style: { marginLeft: 4 } })
+        ])],
         [name, () => h(Fragment, [
           els.cell([
             els.label('Filename'),
             els.data((name || _.last(name.split('/'))).split('.').join('.\u200B')) // allow line break on periods
           ]),
           els.cell([els.label('File size'), els.data(filesize(size))]),
-          h(UriPreview, { metadata, textContent }),
-          h(UriDownloadButton, { uri, metadata, size })
+          metadata && h(UriPreview, { metadata, textContent }),
+          uri && h(UriDownloadButton, { uri, metadata, size })
         ])]
       )]
     )
@@ -162,6 +171,5 @@ export const UriViewer = _.flow(
       ])
     )
   ])
-
    */
 })
