@@ -34,7 +34,7 @@ jobs:
       - name: Get the git SHA and use it as the repo-branch
         id: git-sha
         run: |
-          CONSUMER_VERSION=$(git rev-parse --abbrev-ref HEAD)
+          CONSUMER_VERSION=${{ github.event.pull_request.head.sha }}
           echo "repo-branch=${CONSUMER_VERSION}" >> $GITHUB_OUTPUT
           echo $CONSUMER_VERSION
 

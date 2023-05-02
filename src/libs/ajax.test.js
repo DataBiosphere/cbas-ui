@@ -4,6 +4,12 @@ import { MatchersV3, PactV3, SpecificationVersion } from '@pact-foundation/pact'
 import path from 'path'
 import { Ajax } from 'src/libs/ajax'
 import { fetchCbas } from 'src/libs/ajax-fetch'
+import {
+  runSetInputDef,
+  runSetInputDefWithSourceNone,
+  runSetInputDefWithStruct,
+  runSetOutputDef
+} from 'src/libs/mock-responses'
 
 
 jest.mock('src/libs/ajax-fetch')
@@ -18,10 +24,13 @@ const {
   string,
   regex,
   boolean,
-  integer
+  integer,
+  fromProviderState
 } = MatchersV3
 
 const UUID_REGEX = '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'
+const RUN_STATE_REGEX = 'UNKNOWN|QUEUED|INITIALIZING|RUNNING|PAUSED|COMPLETE|EXECUTOR_ERROR|SYSTEM_ERROR|CANCELED|CANCELING'
+const RUNSET_STATE_REGEX = 'UNKNOWN|QUEUED|RUNNING|COMPLETE|ERROR|CANCELED|CANCELING'
 
 const cbasPact = new PactV3({
   consumer: 'cbas-ui',
@@ -33,7 +42,7 @@ const cbasPact = new PactV3({
 })
 
 describe('Ajax tests', () => {
-  it('should get run_sets with method ID 00000000-0000-0000-0000-000000000009', async () => {
+  it('should GET run_sets with method ID 00000000-0000-0000-0000-000000000009', async () => {
     const expectedResponse = {
       fully_updated: boolean(true),
       run_sets: [
@@ -44,7 +53,7 @@ describe('Ajax tests', () => {
           is_template: boolean(true),
           run_set_name: string('struct_workflow_test template run set'),
           run_set_description: string('struct_workflow_test template submission'),
-          state: regex('RUNNING|COMPLETE', 'COMPLETE'),
+          state: regex(RUNSET_STATE_REGEX, 'COMPLETE'),
           record_type: string('sample'),
           submission_timestamp: timestamp('yyyy-MM-dd\'T\'HH:mm:ss.SSSXXX', '2023-03-28T13:05:02.690+00:00'),
           last_modified_timestamp: timestamp('yyyy-MM-dd\'T\'HH:mm:ss.SSSXXX', '2023-03-28T13:05:02.690+00:00'),
@@ -77,6 +86,171 @@ describe('Ajax tests', () => {
       expect(response).toHaveProperty('run_sets')
       expect(response).toHaveProperty('fully_updated')
       expect(response.run_sets.length).toEqual(1)
+    })
+  })
+
+  it('should successfully POST a simple run_set', async () => {
+    const expectedResponse = {
+      run_set_id: fromProviderState('${run_set_id}', '00000000-0000-0000-0000-000000000000'), // eslint-disable-line no-template-curly-in-string
+      runs: [
+        {
+          run_id: fromProviderState('${run_id}', '00000000-0000-0000-0000-000000000000'), // eslint-disable-line no-template-curly-in-string
+          state: regex(RUN_STATE_REGEX, 'RUNNING'),
+          errors: regex('.*', 'some arbitrary string')
+        }
+      ],
+      state: regex(RUNSET_STATE_REGEX, 'RUNNING')
+    }
+
+    const payload = {
+      run_set_name: 'myRunSet',
+      run_set_description: 'myRunSet description',
+      method_version_id: '90000000-0000-0000-0000-000000000009',
+      wds_records: { record_type: 'FOO', record_ids: ['FOO1'] },
+      workflow_input_definitions: runSetInputDef,
+      workflow_output_definitions: runSetOutputDef
+    }
+
+    const body = JSON.stringify(payload)
+    const headers = { 'Content-Type': 'application/json' }
+
+    await cbasPact.addInteraction({
+      states: [
+        { description: 'ready to fetch recordId FOO1 from recordType FOO from wdsService' },
+        { description: 'ready to fetch myMethodVersion with UUID 90000000-0000-0000-0000-000000000009' },
+        { description: 'ready to receive exactly 1 call to POST run_sets' }
+      ],
+      uponReceiving: 'post a simple run set',
+      withRequest: { path: '/api/batch/v1/run_sets', method: 'POST', body, headers },
+      willRespondWith: { status: 200, body: expectedResponse }
+    })
+
+    await cbasPact.executeTest(async mockService => {
+      // ARRANGE
+      const signal = 'fakeSignal'
+
+      fetchCbas.mockImplementation(async path => await fetch(
+        `${mockService.url}/api/batch/v1/${path}`, { method: 'POST', body, headers }))
+
+      // ACT
+      const response = await Ajax(signal).Cbas.runSets.post(payload)
+
+      // ASSERT
+      expect(response).toBeDefined()
+      expect(fetchCbas).toBeCalledTimes(1)
+      expect(fetchCbas).toBeCalledWith('run_sets', { body, headers, method: 'POST', signal })
+      expect(response).toHaveProperty('run_set_id')
+      expect(response.runs.length).toEqual(1)
+    })
+  })
+
+  it('should successfully POST a run_set containing a "none" source', async () => {
+    const expectedResponse = {
+      run_set_id: fromProviderState('${run_set_id}', '00000000-0000-0000-0000-000000000000'), // eslint-disable-line no-template-curly-in-string
+      runs: [
+        {
+          run_id: fromProviderState('${run_id}', '00000000-0000-0000-0000-000000000000'), // eslint-disable-line no-template-curly-in-string
+          state: regex(RUN_STATE_REGEX, 'RUNNING'),
+          errors: regex('.*', 'some arbitrary string')
+        }
+      ],
+      state: regex(RUNSET_STATE_REGEX, 'RUNNING')
+    }
+
+    const payload = {
+      run_set_name: 'myRunSet',
+      run_set_description: 'myRunSet description',
+      method_version_id: '90000000-0000-0000-0000-000000000009',
+      wds_records: { record_type: 'FOO', record_ids: ['FOO1'] },
+      workflow_input_definitions: runSetInputDefWithSourceNone,
+      workflow_output_definitions: runSetOutputDef
+    }
+
+    const body = JSON.stringify(payload)
+    const headers = { 'Content-Type': 'application/json' }
+
+    await cbasPact.addInteraction({
+      states: [
+        { description: 'ready to fetch recordId FOO1 from recordType FOO from wdsService' },
+        { description: 'ready to fetch myMethodVersion with UUID 90000000-0000-0000-0000-000000000009' },
+        { description: 'ready to receive exactly 1 call to POST run_sets' }
+      ],
+      uponReceiving: 'post a run set with a "none" source',
+      withRequest: { path: '/api/batch/v1/run_sets', method: 'POST', body, headers },
+      willRespondWith: { status: 200, body: expectedResponse }
+    })
+
+    await cbasPact.executeTest(async mockService => {
+      // ARRANGE
+      const signal = 'fakeSignal'
+
+      fetchCbas.mockImplementation(async path => await fetch(
+        `${mockService.url}/api/batch/v1/${path}`, { method: 'POST', body, headers }))
+
+      // ACT
+      const response = await Ajax(signal).Cbas.runSets.post(payload)
+
+      // ASSERT
+      expect(response).toBeDefined()
+      expect(fetchCbas).toBeCalledTimes(1)
+      expect(fetchCbas).toBeCalledWith('run_sets', { body, headers, method: 'POST', signal })
+      expect(response).toHaveProperty('run_set_id')
+      expect(response.runs.length).toEqual(1)
+    })
+  })
+
+  it('should successfully POST a run_set containing a struct input', async () => {
+    const expectedResponse = {
+      run_set_id: fromProviderState('${run_set_id}', '00000000-0000-0000-0000-000000000000'), // eslint-disable-line no-template-curly-in-string
+      runs: [
+        {
+          run_id: fromProviderState('${run_id}', '00000000-0000-0000-0000-000000000000'), // eslint-disable-line no-template-curly-in-string
+          state: regex(RUN_STATE_REGEX, 'RUNNING'),
+          errors: regex('.*', 'some arbitrary string')
+        }
+      ],
+      state: regex(RUNSET_STATE_REGEX, 'RUNNING')
+    }
+
+    const payload = {
+      run_set_name: 'myRunSet',
+      run_set_description: 'myRunSet description',
+      method_version_id: '90000000-0000-0000-0000-000000000009',
+      wds_records: { record_type: 'FOO', record_ids: ['FOO1'] },
+      workflow_input_definitions: runSetInputDefWithStruct,
+      workflow_output_definitions: runSetOutputDef
+    }
+
+    const body = JSON.stringify(payload)
+    const headers = { 'Content-Type': 'application/json' }
+
+    await cbasPact.addInteraction({
+      states: [
+        { description: 'ready to fetch recordId FOO1 from recordType FOO from wdsService' },
+        { description: 'ready to fetch myMethodVersion with UUID 90000000-0000-0000-0000-000000000009' },
+        { description: 'ready to receive exactly 1 call to POST run_sets' }
+      ],
+      uponReceiving: 'post a run set with a struct source',
+      withRequest: { path: '/api/batch/v1/run_sets', method: 'POST', body, headers },
+      willRespondWith: { status: 200, body: expectedResponse }
+    })
+
+    await cbasPact.executeTest(async mockService => {
+      // ARRANGE
+      const signal = 'fakeSignal'
+
+      fetchCbas.mockImplementation(async path => await fetch(
+        `${mockService.url}/api/batch/v1/${path}`, { method: 'POST', body, headers }))
+
+      // ACT
+      const response = await Ajax(signal).Cbas.runSets.post(payload)
+
+      // ASSERT
+      expect(response).toBeDefined()
+      expect(fetchCbas).toBeCalledTimes(1)
+      expect(fetchCbas).toBeCalledWith('run_sets', { body, headers, method: 'POST', signal })
+      expect(response).toHaveProperty('run_set_id')
+      expect(response.runs.length).toEqual(1)
     })
   })
 })
