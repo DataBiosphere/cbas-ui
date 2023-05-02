@@ -124,39 +124,36 @@ const Leonardo = signal => ({
   }
 })
 
+const workspaceId = getConfig().workspaceId || '97c7cccb-aaf8-424c-92cc-587ba49919b6'
+const containerId = getConfig().containerResourceId || '181aa2f8-f72f-46c9-a06d-bff1cfa1bbbb'
 const WorkspaceManager = signal => ({
   /**
    * Request a SAS token from Workspace Manager.
    * This SAS token will have permission to view the files in the associated Blob storage container.
-   * @param {string} workspaceId The unique identifier for this app in WSM.
-   * Looks something like: aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa.
-   * @param {string} containerId The unique identifier for the container associated with this workspace.
-   *  Looks something like: aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa.
    * @returns {string} A SAS token that may be used for future requests to Azure blob storage.
    */
-  getSASToken: async (workspaceId, containerId) => {
+  getSASToken: async () => {
     const path = `${workspaceId}/resources/controlled/azure/storageContainer/${containerId}/getSasToken?sasExpirationDuration=28800`
     const res = await fetchWorkspaceManager(path, _.mergeAll([authHeader, { signal, method: 'POST' }])) //Returns an object with the keys "token" and "url"
-    return await res.json().token
+    const jsonResponse = await res.json()
+    return jsonResponse.token
   }
 })
 
 const AzureStorage = signal => ({
-  getTextFileFromBlobStorage: async (blobFilepath, SAStoken) => {
-    const url = `${blobFilepath}?${SAStoken}`
+  getTextFileFromBlobStorage: async (blobFilepath) => {
+    const sasToken = await WorkspaceManager(signal).getSASToken()
+    const url = `${blobFilepath}?${sasToken}`
     const res = await fetchAzureStorage(url, _.mergeAll([{ signal, method: 'GET' }]))
-    console.log()
     const textContent = await res.text()
     const blobDetails = parseAzureBlobUri(blobFilepath)
-    const parts = blobFilepath.split('/');
-    const lastSegment = parts.pop() || parts.pop();  // handle potential trailing slash
     const ret =
       {
         uri : blobFilepath,
         storageAccountName : blobDetails.storageAccountName,
         containerName : blobDetails.containerName,
         blobName : blobDetails.blobName, //path to blob file from container root
-        name : lastSegment, // name of the file
+        name : blobDetails.fileName, // name of the file (i.e. the last segment end of the blobName)
         lastModified : res.headers.get('Last-Modified'),
         size : res.headers.get('Content-Length'), //size of file, in bytes
         contentType : res.headers.get('Content-Type'),

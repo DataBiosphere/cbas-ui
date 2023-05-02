@@ -203,6 +203,7 @@ export const renderTypeText = iotype => {
  *   - {string} storageAccountName
  *   - {string} containerName
  *   - {string} blobName
+ *   - {string} fileName
  */
 export const parseAzureBlobUri = (blobUri) => {
   const storageAccountRegex = new RegExp('[a-z0-9]{3,24}')
@@ -215,9 +216,13 @@ export const parseAzureBlobUri = (blobUri) => {
   const match = blobUriRegex.exec(blobUri)
   if (!match) return {}
 
+  const parts = blobUri.split('/');
+  const lastSegment = parts.pop() || parts.pop();  // handle potential trailing slash
+
   return {
     storageAccountName: match[1],
     containerName: match[2] || '$root',  // If not specified, then it is implicitly root container with name $root.
-    blobName: match[3]
+    blobName: match[3],
+    fileName: lastSegment
   }
 }

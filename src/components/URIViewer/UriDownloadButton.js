@@ -28,8 +28,6 @@ export const UriDownloadButton = ({ uri, metadata: { bucket, name, fileName, siz
       const filePath = 'https://lz0d5275bdd36d3e6a22a130.blob.core.windows.net/sc-97c7cccb-aaf8-424c-92cc-587ba49919b6/workspace-services/cbas/wds-97c7cccb-aaf8-424c-92cc-587ba49919b6/cromwell-workflow-logs/workflow.85d75e23-eb96-4823-a0ad-dfc21903f1d4.log'
       const sasToken = 'sv=2021-12-02&spr=https&st=2023-05-02T14%3A31%3A05Z&se=2023-05-02T22%3A46%3A05Z&sr=c&sp=racwdl&sig=vNKvY82jQ8OinblN5LuQFdZb2Od6xopZlX8OIv4v5rk%3D'
       const combined = filePath + '?' + sasToken
-      const result = await Ajax(signal).AzureStorage.getTextFileFromBlobStorage(filePath, sasToken)
-      console.log(uri)
       setUrl(combined)
     }
     /* Terra-UI stuff
@@ -61,7 +59,6 @@ export const UriDownloadButton = ({ uri, metadata: { bucket, name, fileName, siz
   }
   useOnMount(() => {
     getUrl()
-    console.log(url)
   })
 
 if(isAzureUri(uri)) {

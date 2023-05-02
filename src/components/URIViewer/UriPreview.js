@@ -34,7 +34,6 @@ const isBinary = ({ contentType, name }) => {
 }
 
 const isFilePreviewable = ({ size, ...metadata }) => {
-  console.log("hi")
   return !isBinary(metadata) && (isText(metadata) || (isImage(metadata) && size <= 1e9))
 }
 
