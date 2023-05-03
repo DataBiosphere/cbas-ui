@@ -12,12 +12,12 @@ export const extractLeoTokenFromCookies = cookieString => {
     _.map(c => c.trim()),
     _.filter(c => c.startsWith('LeoToken=')),
     _.map(c => c.substring(9)),
-    _.first)(cookies);
+    _.first)(cookies)
 }
 
 const leoToken = () => {
   const cookieString = document.cookie
-  return extractLeoTokenFromCookies(cookieString);
+  return extractLeoTokenFromCookies(cookieString)
 }
 const authHeader = { headers: { Authorization: `Bearer ${leoToken()}` } }
 
