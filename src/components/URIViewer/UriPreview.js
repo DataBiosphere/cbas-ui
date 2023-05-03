@@ -5,8 +5,8 @@ import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { useCancellation, useOnMount } from 'src/libs/react-utils'
 import * as Utils from 'src/libs/utils'
-
 import els from './uri-viewer-styles'
+
 
 const styles = {
   previewText: {
@@ -42,7 +42,7 @@ export const UriPreview = ({ metadata, metadata: { bucket, name }, googleProject
   const [preview, setPreview] = useState()
   const loadPreview = async () => {
     try {
-      if(isAzureUri(metadata.uri)) {
+      if (isAzureUri(metadata.uri)) {
         setPreview(metadata.textContent)
       } else {
         const res = await Ajax(signal).Buckets.getObjectPreview(googleProject, bucket, name, isImage(metadata))

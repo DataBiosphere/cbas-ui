@@ -1,4 +1,3 @@
-
 import { countBy, every, filter, flattenDepth, flow, includes, isEmpty, keys, map, min, sortBy, values } from 'lodash/fp'
 import { Fragment, useMemo, useRef, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
@@ -13,7 +12,6 @@ import {
   makeSection, makeStatusLine, statusType,
   SubmitNewWorkflowButton
 } from 'src/components/job-common'
-//  Q4-2022 Disable log-viewing
 import WDLViewer from 'src/components/WDLViewer'
 import { Ajax } from 'src/libs/ajax'
 import { useCancellation, useOnMount } from 'src/libs/react-utils'
@@ -79,7 +77,7 @@ export const RunDetails = ({ submissionId, workflowId }) => {
       const metadata = await Ajax(signal).Cromwell.workflows(workflowId).metadata({ includeKey, excludeKey })
 
       //For testing locally
-      if(!metadata.hasOwnProperty('workflowLog')) {
+      if (!metadata.hasOwnProperty('workflowLog')) {
         const filePath = 'https://lz0d5275bdd36d3e6a22a130.blob.core.windows.net/sc-97c7cccb-aaf8-424c-92cc-587ba49919b6/workspace-services/cbas/wds-97c7cccb-aaf8-424c-92cc-587ba49919b6/cromwell-workflow-logs/workflow.85d75e23-eb96-4823-a0ad-dfc21903f1d4.log'
         metadata.workflowLog = filePath
       }
@@ -212,7 +210,7 @@ export const RunDetails = ({ submissionId, workflowId }) => {
                   {}
                 )
               ]),
-              makeSection("Logs", [h(Link, {
+              makeSection('Logs', [h(Link, {
                 onClick: () => setShowLog(true),
                 style: { display: 'flex', marginLeft: '1rem', alignItems: 'center' }
               }, [icon('fileAlt', { size: 18 }), ' Execution log'])], {}),

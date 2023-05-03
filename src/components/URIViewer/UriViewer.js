@@ -1,15 +1,13 @@
 import filesize from 'filesize'
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
-import { div, h, input } from 'react-hyperscript-helpers'
+import { div, h } from 'react-hyperscript-helpers'
 import Collapse from 'src/components/Collapse'
-import { Link, ClipboardButton } from 'src/components/common'
 import { spinner } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import { Ajax } from 'src/libs/ajax'
 import { useCancellation, useOnMount, withDisplayName } from 'src/libs/react-utils'
 import * as Utils from 'src/libs/utils'
-
 import els from './uri-viewer-styles'
 import { isAzureUri, isGsUri } from './uri-viewer-utils'
 import { UriDownloadButton } from './UriDownloadButton'
@@ -61,20 +59,20 @@ export const UriViewer = _.flow(
       setLoadingError(await e.json())
     }
   }
+
   useOnMount(() => {
     loadMetadata()
   })
-  const { storageAccountName , containerName, blobName, name, lastModified, size, contentType, textContent } = metadata || {}
-  //const { size, timeCreated, updated, bucket, name, fileName, accessUrl } = metadata || {}
-  //const gsUri = `gs://${bucket}/${name}`
+  const { name, size, textContent } = metadata || {}
+
   if (isAzureUri(uri)) {
     return h(Modal, {
-        onDismiss,
-        title: 'File Details',
-        showCancel: false,
-        showX: true,
-        showButtons: false
-      } , [
+      onDismiss,
+      title: 'File Details',
+      showCancel: false,
+      showX: true,
+      showButtons: false
+    }, [
       Utils.cond(
         [loadingError, () => h(Fragment, [
           div({ style: { paddingBottom: '1rem' } }, [
@@ -97,12 +95,21 @@ export const UriViewer = _.flow(
           ]),
           els.cell([els.label('File size'), els.data(filesize(size))]),
           metadata && h(UriPreview, { metadata, textContent }),
-          uri && h(UriDownloadButton, { uri, metadata, size })
+          uri && h(UriDownloadButton, metadata)
         ])]
-      )]
+      )
+      ]
     )
+  } else {
+    return h(Fragment, [
+      div({ style: { paddingBottom: '1rem' } }, [
+        'Error loading data. This file does not exist or you do not have permission to view it.'
+      ])
+    ])
   }
   /*
+  const { size, timeCreated, updated, bucket, name, fileName, accessUrl } = metadata || {}
+  const gsUri = `gs://${bucket}/${name}`
   return h(Modal, {
     onDismiss,
     title: 'File Details',

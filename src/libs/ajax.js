@@ -4,6 +4,7 @@ import { fetchAzureStorage, fetchCbas, fetchCromwell, fetchLeo, fetchOk, fetchWd
 import { getConfig } from 'src/libs/config'
 import { parseAzureBlobUri } from 'src/libs/utils'
 
+
 const jsonBody = body => ({ body: JSON.stringify(body), headers: { 'Content-Type': 'application/json' } })
 
 const leoToken = () => {
@@ -141,7 +142,7 @@ const WorkspaceManager = signal => ({
 })
 
 const AzureStorage = signal => ({
-  getTextFileFromBlobStorage: async (blobFilepath) => {
+  getTextFileFromBlobStorage: async blobFilepath => {
     const sasToken = await WorkspaceManager(signal).getSASToken()
     const url = `${blobFilepath}?${sasToken}`
     const res = await fetchAzureStorage(url, _.mergeAll([{ signal, method: 'GET' }]))
@@ -149,15 +150,16 @@ const AzureStorage = signal => ({
     const blobDetails = parseAzureBlobUri(blobFilepath)
     const ret =
       {
-        uri : blobFilepath,
-        storageAccountName : blobDetails.storageAccountName,
-        containerName : blobDetails.containerName,
-        blobName : blobDetails.blobName, //path to blob file from container root
-        name : blobDetails.fileName, // name of the file (i.e. the last segment end of the blobName)
-        lastModified : res.headers.get('Last-Modified'),
-        size : res.headers.get('Content-Length'), //size of file, in bytes
-        contentType : res.headers.get('Content-Type'),
-        textContent : textContent
+        uri: blobFilepath,
+        sasToken,
+        storageAccountName: blobDetails.storageAccountName,
+        containerName: blobDetails.containerName,
+        blobName: blobDetails.blobName, //path to blob file from container root
+        name: blobDetails.fileName, // name of the file (i.e. the last segment end of the blobName)
+        lastModified: res.headers.get('Last-Modified'),
+        size: res.headers.get('Content-Length'), //size of file, in bytes
+        contentType: res.headers.get('Content-Type'),
+        textContent
       }
     return ret
   }
