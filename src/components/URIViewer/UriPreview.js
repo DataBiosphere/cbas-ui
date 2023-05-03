@@ -5,6 +5,7 @@ import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { useCancellation, useOnMount } from 'src/libs/react-utils'
 import * as Utils from 'src/libs/utils'
+
 import els from './uri-viewer-styles'
 
 
@@ -28,7 +29,7 @@ const isText = ({ contentType, name }) => {
 }
 
 const isBinary = ({ contentType, name }) => {
-  // excluding json and google's default types (i.e. wasn't set to anything else)
+  // excluding json and Google's default types (i.e. wasn't set to anything else)
   return /application(?!\/(json|octet-stream|x-www-form-urlencoded)$)/.test(contentType) ||
     /(?:(\.(?:(ba[mi]|cra[mi]|pac|sa|bwt|gz))$|\.gz\.))/.test(name)
 }

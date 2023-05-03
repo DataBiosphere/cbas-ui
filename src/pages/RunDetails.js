@@ -5,13 +5,13 @@ import ReactJson from 'react-json-view'
 import Collapse from 'src/components/Collapse'
 import { ClipboardButton, Link, Navbar } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
-import { UriViewer } from 'src/components/URIViewer/UriViewer'
 import {
   collapseCromwellStatus, collapseStatus,
   HeaderSection,
   makeSection, makeStatusLine, statusType,
   SubmitNewWorkflowButton
 } from 'src/components/job-common'
+import { UriViewer } from 'src/components/URIViewer/UriViewer'
 import WDLViewer from 'src/components/WDLViewer'
 import { Ajax } from 'src/libs/ajax'
 import { useCancellation, useOnMount } from 'src/libs/react-utils'

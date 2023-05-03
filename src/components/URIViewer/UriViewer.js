@@ -8,12 +8,14 @@ import Modal from 'src/components/Modal'
 import { Ajax } from 'src/libs/ajax'
 import { useCancellation, useOnMount, withDisplayName } from 'src/libs/react-utils'
 import * as Utils from 'src/libs/utils'
+
 import els from './uri-viewer-styles'
 import { isAzureUri, isGsUri } from './uri-viewer-utils'
 import { UriDownloadButton } from './UriDownloadButton'
 import { UriPreview } from './UriPreview'
 
 
+// eslint-disable-next-line lodash-fp/no-single-composition
 export const UriViewer = _.flow(
   withDisplayName('UriViewer')
 )(({ workflow, onDismiss }) => {
@@ -98,7 +100,7 @@ export const UriViewer = _.flow(
           uri && h(UriDownloadButton, metadata)
         ])]
       )
-      ]
+    ]
     )
   } else {
     return h(Fragment, [
@@ -120,7 +122,7 @@ export const UriViewer = _.flow(
     Utils.cond(
       [loadingError, () => h(Fragment, [
         div({ style: { paddingBottom: '1rem' } }, [
-          'Error loading data. This file does not exist or you do not have permission to view it.'
+          'Error loading data. This file does not exist, or you do not have permission to view it.'
         ]),
         h(Collapse, { title: 'Details' }, [
           div({ style: { marginTop: '0.5rem', whiteSpace: 'pre-wrap', fontFamily: 'monospace', overflowWrap: 'break-word' } }, [

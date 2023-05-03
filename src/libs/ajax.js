@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import * as qs from 'qs'
+import qs from 'qs'
 import { fetchAzureStorage, fetchCbas, fetchCromwell, fetchLeo, fetchOk, fetchWds, fetchWorkspaceManager } from 'src/libs/ajax-fetch'
 import { getConfig } from 'src/libs/config'
 import { parseAzureBlobUri } from 'src/libs/utils'

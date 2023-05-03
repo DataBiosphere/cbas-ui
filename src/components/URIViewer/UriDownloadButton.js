@@ -3,8 +3,9 @@ import { Fragment, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { ButtonPrimary } from 'src/components/common'
 import { spinner } from 'src/components/icons'
-import { useCancellation, useOnMount } from 'src/libs/react-utils'
+import { useOnMount } from 'src/libs/react-utils'
 import * as Utils from 'src/libs/utils'
+
 import els from './uri-viewer-styles'
 import { isAzureUri } from './uri-viewer-utils'
 
@@ -20,12 +21,11 @@ import { isAzureUri } from './uri-viewer-utils'
 export const UriDownloadButton = ({ uri, sasToken, name, accessUrl }) => {
   const fileName = name
   const [url, setUrl] = useState()
-  const getUrl = async () => {
+  const getUrl = () => {
     if (isAzureUri(uri)) {
       setUrl(`${uri}?${sasToken}`)
-    } else {
-      if (accessUrl?.url) {
-        /*
+    } else if (accessUrl?.url) {
+      /*
          NOTE: Not supporting downloading using `accessUrl.headers`:
          - https://ga4gh.github.io/data-repository-service-schemas/preview/release/drs-1.1.0/docs/#_accessurl
 
@@ -33,10 +33,10 @@ export const UriDownloadButton = ({ uri, sasToken, name, accessUrl }) => {
          As of 2021-05-17 a google search turned up this c. 2018 result that mentioned something called `ServiceWorker`
          - https://stackoverflow.com/questions/51721904/make-browser-submit-additional-http-header-if-click-on-hyperlink#answer-51784608
          */
-        setUrl(_.isEmpty(accessUrl.headers) ? accessUrl.url : null)
-      } else {
-        try {
-          /*
+      setUrl(_.isEmpty(accessUrl.headers) ? accessUrl.url : null)
+    } else {
+      try {
+        /*
           // This is still using Martha instead of DrsHub because DrsHub has not yet implemented signed URLs
           const { url } = await Ajax(signal).DrsUriResolver.getSignedUrl({
             bucket,
@@ -47,10 +47,9 @@ export const UriDownloadButton = ({ uri, sasToken, name, accessUrl }) => {
           const userProject = await getUserProjectForWorkspace(workspace)
           setUrl(knownBucketRequesterPaysStatuses.get()[bucket] ? Utils.mergeQueryParams({ userProject }, url) : url)
            */
-          setUrl(null) //TODO: Remove this and uncomment above on merge with Terra-UI
-        } catch (error) {
-          setUrl(null)
-        }
+        setUrl(null) //TODO: Remove this and uncomment above on merge with Terra-UI
+      } catch (error) {
+        setUrl(null)
       }
     }
   }
@@ -95,13 +94,13 @@ export const UriDownloadButton = ({ uri, sasToken, name, accessUrl }) => {
             },
             href: url,
             */
-            /*
+    /*
              NOTE:
              Some DOS/DRS servers return file names that are different from the end of the path in the gsUri/url.
              Attempt to hint to the browser the correct name.
              FYI this hint doesn't work in Chrome: https://bugs.chromium.org/p/chromium/issues/detail?id=373182#c24
              */
-            /*
+    /*
             download: fileName,
             ...Utils.newTabLinkProps
           }, [

@@ -205,23 +205,29 @@ export const renderTypeText = iotype => {
  *   - {string} blobName
  *   - {string} fileName
  */
-export const parseAzureBlobUri = (blobUri) => {
+export const parseAzureBlobUri = blobUri => {
   const storageAccountRegex = new RegExp('[a-z0-9]{3,24}')
   const containerRegex = new RegExp('[a-z0-9](?!.*--)[a-z0-9-]{1,61}[a-z0-9]')
   const blobRegex = new RegExp('.{1,1024}')
+  /*
   const blobUriRegex = new RegExp(
     `^http[s]?:\/\/(${storageAccountRegex.source})\.blob.core.windows.net\/` +
     `(?:(\$root|(?:${containerRegex.source}))\/)?(${blobRegex.source})$`
+  )
+  */
+  const blobUriRegex = new RegExp(
+    `^http[s]?://(${storageAccountRegex.source}).blob.core.windows.net/` +
+    `(?:($root|(?:${containerRegex.source}))/)?(${blobRegex.source})$`
   )
   const match = blobUriRegex.exec(blobUri)
   if (!match) return {}
 
   const parts = blobUri.split('/')
-  const lastSegment = parts.pop() || parts.pop()  // handle potential trailing slash
+  const lastSegment = parts.pop() || parts.pop() // handle potential trailing slash
 
   return {
     storageAccountName: match[1],
-    containerName: match[2] || '$root',  // If not specified, then it is implicitly root container with name $root.
+    containerName: match[2] || '$root', // If not specified, then it is implicitly root container with name $root.
     blobName: match[3],
     fileName: lastSegment
   }
