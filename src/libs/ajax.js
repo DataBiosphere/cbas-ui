@@ -6,12 +6,18 @@ import { getConfig } from 'src/libs/config'
 
 const jsonBody = body => ({ body: JSON.stringify(body), headers: { 'Content-Type': 'application/json' } })
 
-const leoToken = () => {
-  const cookies = document.cookie.split(';')
-  const leoTokens = cookies.filter(c => c.startsWith('LeoToken=')).map(c => c.substring(9)) // token value starting after `LeoToken=`
+export const extractLeoTokenFromCookies = cookieString => {
+  const cookies = cookieString.split(';')
+  return _.flow(
+    _.map(c => c.trim()),
+    _.filter(c => c.startsWith('LeoToken=')),
+    _.map(c => c.substring(9)),
+    _.first)(cookies)
+}
 
-  // only 1 LeoToken should have been sent to browser, hence return the first element in array
-  return leoTokens[0]
+const leoToken = () => {
+  const cookieString = document.cookie
+  return extractLeoTokenFromCookies(cookieString)
 }
 const authHeader = { headers: { Authorization: `Bearer ${leoToken()}` } }
 
