@@ -5,6 +5,7 @@ import { Clickable, Link } from 'src/components/common'
 import HelpfulLinksBox from 'src/components/HelpfulLinksBox'
 import { centeredSpinner, icon } from 'src/components/icons'
 import ImportGithub from 'src/components/ImportGithub'
+import { submitMethod } from 'src/components/method-common'
 import ModalDrawer from 'src/components/ModalDrawer'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
@@ -73,29 +74,29 @@ const FindWorkflowModal = ({ onDismiss }) => {
 
   const signal = useCancellation()
 
-  const submitMethod = withBusyState(setLoading, async method => {
-    try {
-      const rawGithubUrl = reconstructToRawUrl(method.method_url)
-
-      const methodPayload = {
-        method_name: method.method_name,
-        method_description: method.method_description,
-        method_source: method.method_source,
-        method_version: method.method_version,
-        method_url: rawGithubUrl
-      }
-
-
-      const methodObject = await Ajax(signal).Cbas.methods.post(methodPayload)
-      onDismiss()
-      Nav.goToPath('submission-config', {
-        methodId: methodObject.method_id
-      })
-    } catch (error) {
-      notify('error', 'Error creating new method', { detail: await (error instanceof Response ? error.text() : error) })
-      onDismiss()
-    }
-  })
+  // const submitMethod = withBusyState(setLoading, async method => {
+  //   try {
+  //     const rawGithubUrl = reconstructToRawUrl(method.method_url)
+  //
+  //     const methodPayload = {
+  //       method_name: method.method_name,
+  //       method_description: method.method_description,
+  //       method_source: method.method_source,
+  //       method_version: method.method_version,
+  //       method_url: rawGithubUrl
+  //     }
+  //
+  //
+  //     const methodObject = await Ajax(signal).Cbas.methods.post(methodPayload)
+  //     onDismiss()
+  //     Nav.goToPath('submission-config', {
+  //       methodId: methodObject.method_id
+  //     })
+  //   } catch (error) {
+  //     notify('error', 'Error creating new method', { detail: await (error instanceof Response ? error.text() : error) })
+  //     onDismiss()
+  //   }
+  // })
 
   const reconstructToRawUrl = url => {
     // mapping of searchValues (key) and their replaceValue (value)
@@ -151,10 +152,10 @@ const FindWorkflowModal = ({ onDismiss }) => {
       ]),
       isSubHeaderActive('browse-suggested-workflows') && div({ style: { overflowY: 'auto', flexGrow: 1, display: 'flex', flexDirection: 'column', paddingLeft: '20px' } }, [
         div({ style: { display: 'flex', flexWrap: 'wrap', overflowY: 'auto', paddingBottom: 5, paddingLeft: 5 } }, [
-          _.map(method => h(MethodCard, { method, onClick: () => submitMethod(method), key: method.method_name }), suggestedWorkflowsList)
+          _.map(method => h(MethodCard, { method, onClick: () => submitMethod(setLoading, onDismiss, method), key: method.method_name }), suggestedWorkflowsList)
         ])
       ]),
-      isSubHeaderActive('add-a-workflow-link') && h(ImportGithub, { submitMethod }),
+      isSubHeaderActive('add-a-workflow-link') && h(ImportGithub, { setLoading, onDismiss }),
       div({ style: { marginLeft: '3rem', marginRight: '1.5rem', width: '100%' } }, [h(HelpfulLinksBox)])
     ])
   ])
