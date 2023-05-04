@@ -22,9 +22,7 @@ export const UriDownloadButton = ({ uri, sasToken, name, accessUrl }) => {
   const fileName = name
   const [url, setUrl] = useState()
   const getUrl = () => {
-    if (isAzureUri(uri)) {
-      setUrl(`${uri}?${sasToken}`)
-    } else if (accessUrl?.url) {
+    if (accessUrl?.url) {
       /*
          NOTE: Not supporting downloading using `accessUrl.headers`:
          - https://ga4gh.github.io/data-repository-service-schemas/preview/release/drs-1.1.0/docs/#_accessurl
@@ -34,6 +32,8 @@ export const UriDownloadButton = ({ uri, sasToken, name, accessUrl }) => {
          - https://stackoverflow.com/questions/51721904/make-browser-submit-additional-http-header-if-click-on-hyperlink#answer-51784608
          */
       setUrl(_.isEmpty(accessUrl.headers) ? accessUrl.url : null)
+    } else if (isAzureUri(uri)) {
+      setUrl(`${uri}?${sasToken}`)
     } else {
       try {
         /*
@@ -57,66 +57,49 @@ export const UriDownloadButton = ({ uri, sasToken, name, accessUrl }) => {
     getUrl()
   })
 
-  const buildAzureDownloadButton = () => {
-    return els.cell([
-      url === null ?
-        'Unable to generate download link.' :
-        div({ style: { display: 'flex', justifyContent: 'center' } }, [
-          h(ButtonPrimary, {
-            disabled: !url,
-            href: url,
-            download: fileName,
-            ...Utils.newTabLinkProps
-          }, [
-            url ?
-              `Download file` :
-              h(Fragment, [`Generating download link...${url}`, spinner({ style: { color: 'white', marginLeft: 4 } })])
-          ])
-        ])
-    ])
+  const loadingSpinner = () => {
+    return h(Fragment, ['Generating download link...', spinner({ style: { color: 'white', marginLeft: 4 } })])
   }
 
-  const buildGCPDownloadButton = () => {
-    return els.cell(['Unable to generate download link.'])
-    /*
-    return els.cell([
-      url === null ?
-        'Unable to generate download link.' :
-        div({ style: { display: 'flex', justifyContent: 'center' } }, [
-          h(ButtonPrimary, {
-            disabled: !url,
-            onClick: () => {
-              Ajax().Metrics.captureEvent(Events.workspaceDataDownload, {
-                ...extractWorkspaceDetails(workspaceStore.get().workspace),
-                fileType: _.head((/\.\w+$/).exec(uri)),
-                downloadFrom: 'file direct'
-              })
-            },
-            href: url,
-            */
-    /*
-             NOTE:
-             Some DOS/DRS servers return file names that are different from the end of the path in the gsUri/url.
-             Attempt to hint to the browser the correct name.
-             FYI this hint doesn't work in Chrome: https://bugs.chromium.org/p/chromium/issues/detail?id=373182#c24
-             */
-    /*
-            download: fileName,
-            ...Utils.newTabLinkProps
-          }, [
-            url ?
-              `Download for ${getMaxDownloadCostNA(size)}*` :
-              h(Fragment, ['Generating download link...', spinner({ style: { color: 'white', marginLeft: 4 } })])
-          ])
-        ])
-    ])
-  */
+  const azureDownloadButton = () => {
+    return h(ButtonPrimary, {
+      disabled: !url,
+      href: url,
+      download: fileName,
+      ...Utils.newTabLinkProps
+    },
+    [url ? 'Download' : loadingSpinner()]
+    )
   }
 
-  if (isAzureUri(uri)) {
-    return buildAzureDownloadButton()
-  } else {
-    return buildGCPDownloadButton()
+  const googleDownloadButton = () => {
+    const cost = '$free.99' // TODO: Uncomment/replace on merge with Terra UI: getMaxDownloadCostNA(size)
+    h(ButtonPrimary, {
+      disabled: !url,
+      /* Since no metrics in CBAS-UI, this should stay commented until we merge with Terra-UI. When we do, uncomment the following.
+      onClick: () => {
+        Ajax().Metrics.captureEvent(Events.workspaceDataDownload, {
+          ...extractWorkspaceDetails(workspaceStore.get().workspace),
+          fileType: _.head((/\.\w+$/).exec(uri)),
+          downloadFrom: 'file direct'
+        })
+      },
+      */
+      href: url,
+      /*
+       NOTE:
+       Some DOS/DRS servers return file names that are different from the end of the path in the gsUri/url.
+       Attempt to hint to the browser the correct name.
+       FYI this hint doesn't work in Chrome: https://bugs.chromium.org/p/chromium/issues/detail?id=373182#c24
+       */
+      download: fileName,
+      ...Utils.newTabLinkProps
+    },
+    [url ? `Download for ${cost}*` : loadingSpinner()]
+    )
   }
+
+  return els.cell([
+    url === null ? 'Unable to generate download link.' : isAzureUri(uri) ? azureDownloadButton() : googleDownloadButton()
+  ])
 }
-

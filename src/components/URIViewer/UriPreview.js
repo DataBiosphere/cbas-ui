@@ -38,13 +38,17 @@ const isFilePreviewable = ({ size, ...metadata }) => {
   return !isBinary(metadata) && (isText(metadata) || (isImage(metadata) && size <= 1e9))
 }
 
-export const UriPreview = ({ metadata, metadata: { bucket, name }, googleProject }) => {
+export const UriPreview = ({ metadata }) => {
+  const uri = metadata.uri
+  const name = metadata.name
+  const [googleProject, bucket] = isAzureUri(uri) ? [null, null] : [metadata.googleProject, metadata.bucket]
+
   const signal = useCancellation()
   const [preview, setPreview] = useState()
   const loadPreview = async () => {
     try {
-      if (isAzureUri(metadata.uri)) {
-        setPreview(metadata.textContent)
+      if (isAzureUri(uri)) {
+        setPreview(metadata.textContent) //NB: For now, we only support text previews for Azure URIs, and only if the text is already in the metadata.
       } else {
         const res = await Ajax(signal).Buckets.getObjectPreview(googleProject, bucket, name, isImage(metadata))
         if (isImage(metadata)) {

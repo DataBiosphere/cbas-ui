@@ -1,16 +1,19 @@
 import filesize from 'filesize'
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
-import { div, h } from 'react-hyperscript-helpers'
+import { div, h, p, pre, span } from 'react-hyperscript-helpers'
+import { ClipboardButton } from 'src/components/ClipboardButton'
 import Collapse from 'src/components/Collapse'
+import { Link } from 'src/components/common'
 import { spinner } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import { Ajax } from 'src/libs/ajax'
+import colors from 'src/libs/colors'
 import { useCancellation, useOnMount, withDisplayName } from 'src/libs/react-utils'
 import * as Utils from 'src/libs/utils'
 
 import els from './uri-viewer-styles'
-import { isAzureUri, isGsUri } from './uri-viewer-utils'
+import { getDownloadCommand, isAzureUri, isGsUri } from './uri-viewer-utils'
 import { UriDownloadButton } from './UriDownloadButton'
 import { UriPreview } from './UriPreview'
 
@@ -27,15 +30,10 @@ export const UriViewer = _.flow(
   const loadMetadata = async () => {
     try {
       if (isAzureUri(uri)) {
-        const fileMetadata = await Ajax(signal).AzureStorage.getTextFileFromBlobStorage(uri)
-        setMetadata(fileMetadata)
+        const azureMetadata = await Ajax(signal).AzureStorage.getTextFileFromBlobStorage(uri)
+        setMetadata(azureMetadata)
       } else if (isGsUri(uri)) {
-        /*
-        NB: Rather than bringing in all the dependencies needed to make GCP work for this component + its children,
-        I'm leaving them commented out for now.
-        */
-
-        /*
+        /* TODO: Uncomment on merge with Terra UI
         const [bucket, name] = parseGsUri(uri)
         const loadObject = withRequesterPaysHandler(onRequesterPaysError, () => {
           return Ajax(signal).Buckets.getObject(googleProject, bucket, name)
@@ -50,135 +48,152 @@ export const UriViewer = _.flow(
         // https://cloud.google.com/storage/docs/json_api/v1/objects#resource-representations
         // The time formats returned are in ISO 8601 vs. RFC 3339 but should be ok for parsing by `new Date()`
         const { bucket, name, size, timeCreated, timeUpdated: updated, fileName, accessUrl } =
-          await Ajax(signal).DrsUriResolver.getDataObjectMetadata(
-            uri,
-            ['bucket', 'name', 'size', 'timeCreated', 'timeUpdated', 'fileName', 'accessUrl']
-          )
-        const metadata = { bucket, name, fileName, size, timeCreated, updated, accessUrl }
-        setMetadata(metadata)
+          await Ajax(signal).DrsUriResolver.getDataObjectMetadata(uri, [
+            'bucket',
+            'name',
+            'size',
+            'timeCreated',
+            'timeUpdated',
+            'fileName',
+            'accessUrl'
+          ])
+        const googleMetadata = { bucket, name, fileName, size, timeCreated, updated, accessUrl }
+        setMetadata(googleMetadata)
       }
     } catch (e) {
       setLoadingError(await e.json())
     }
   }
 
+  const renderFailureMessage = loadingError => {
+    return h(Fragment, [
+      div({ style: { paddingBottom: '1rem' } }, ['Error loading data. This file does not exist or you do not have permission to view it.']),
+      h(Collapse, { title: 'Details' }, [
+        div({ style: { marginTop: '0.5rem', whiteSpace: 'pre-wrap', fontFamily: 'monospace', overflowWrap: 'break-word' } }, [
+          JSON.stringify(loadingError, null, 2)
+        ])
+      ])
+    ])
+  }
+
+  const renderGoogleStorageBrowserLink = metadata => {
+    const { accessUrl, bucket, name } = metadata
+    const gsUri = `gs://${bucket}/${name}`
+
+    return !accessUrl && !!gsUri &&
+      els.cell([
+        h(
+          Link,
+          {
+            ...Utils.newTabLinkProps
+            //href: bucketBrowserUrl(gsUri.match(/gs:\/\/(.+)\//)[1]), TODO: Uncomment on merge with Terra UI
+          },
+          ['View this file in the Google Cloud Storage Browser']
+        )
+      ])
+  }
+
+  const renderLoadingSymbol = uri => {
+    h(Fragment, [isGsUri(uri) || isAzureUri(uri) ? 'Loading metadata...' : 'Resolving DRS file...', spinner({ style: { marginLeft: 4 } })])
+  }
+
+
   useOnMount(() => {
     loadMetadata()
   })
-  const { name, size, textContent } = metadata || {}
 
-  if (isAzureUri(uri)) {
-    return h(Modal, {
+  const renderTerminalCommand = metadata => {
+    const { bucket, name } = metadata
+    const gsUri = `gs://${bucket}/${name}`
+    const downloadCommand = isAzureUri(metadata.uri) ? getDownloadCommand(metadata.name, metadata.uri, metadata.accessUrl) : getDownloadCommand(metadata.name, gsUri, metadata.uri)
+
+    h(Fragment, [
+      p({ style: { marginBottom: '0.5rem', fontWeight: 500 } }, ['Terminal download command']),
+      pre(
+        {
+          style: {
+            display: 'flex',
+            alignItems: 'center',
+            margin: 0,
+            padding: '0 0.5rem',
+            background: colors.light(0.4)
+          }
+        },
+        [
+          span(
+            {
+              style: {
+                overflowX: 'auto',
+                flex: '1 1 0',
+                padding: '1rem 0'
+              },
+              tabIndex: 0
+            },
+            [downloadCommand || ' ']
+          ),
+          h(ClipboardButton, {
+            'aria-label': 'Copy download URL to clipboard',
+            disabled: !downloadCommand,
+            style: { marginLeft: '1ch' },
+            text: downloadCommand
+          })
+        ]
+      )
+    ])
+  }
+
+  const renderMoreInfo = metadata => {
+    const { timeCreated, updated } = metadata
+    return (timeCreated || updated) &&
+    h(
+      Collapse,
+      {
+        title: 'More Information',
+        style: { marginTop: '2rem' },
+        summaryStyle: { marginBottom: '0.5rem' }
+      },
+      [
+        timeCreated && els.cell([els.label('Created'), els.data(new Date(timeCreated).toLocaleString())]),
+        updated && els.cell([els.label('Updated'), els.data(new Date(updated).toLocaleString())])
+        //isFeaturePreviewEnabled('data-table-provenance') && //TODO: Uncomment on merge with Terra UI
+        //  els.cell([els.label('Where did this file come from?'), els.data([h(FileProvenance, { workspace, fileUrl: uri })])])
+      ]
+    )
+  }
+
+  const { name, size } = metadata || {}
+  const fileName = isAzureUri(metadata.uri) ? metadata.name : metadata.fileName
+
+  return h(
+    Modal,
+    {
       onDismiss,
       title: 'File Details',
       showCancel: false,
       showX: true,
-      showButtons: false
-    }, [
+      okButton: 'Done'
+    },
+    [
       Utils.cond(
-        [loadingError, () => h(Fragment, [
-          div({ style: { paddingBottom: '1rem' } }, [
-            'Error loading data. This file does not exist or you do not have permission to view it.'
-          ]),
-          h(Collapse, { title: 'Details' }, [
-            div({ style: { marginTop: '0.5rem', whiteSpace: 'pre-wrap', fontFamily: 'monospace', overflowWrap: 'break-word' } }, [
-              JSON.stringify(loadingError, null, 2)
-            ])
+        [loadingError, () => renderFailureMessage(loadingError)],
+        [
+          metadata,
+          () => h(Fragment, [
+            els.cell([
+              els.label('Filename'),
+              els.data((fileName || _.last(name.split('/'))).split('.').join('.\u200B')) // allow line break on periods
+            ]),
+            h(UriPreview, { metadata }),
+            els.cell([els.label('File size'), els.data(filesize(size))]),
+            renderGoogleStorageBrowserLink(metadata),
+            h(UriDownloadButton, metadata),
+            renderTerminalCommand(metadata),
+            renderMoreInfo(metadata),
+            div({ style: { fontSize: 10 } }, ['* Estimated. Download cost may be higher in China or Australia.'])
           ])
-        ])],
-        [!name, () => h(Fragment, [
-          'Loading file...',
-          spinner({ style: { marginLeft: 4 } })
-        ])],
-        [name, () => h(Fragment, [
-          els.cell([
-            els.label('Filename'),
-            els.data((name || _.last(name.split('/'))).split('.').join('.\u200B')) // allow line break on periods
-          ]),
-          els.cell([els.label('File size'), els.data(filesize(size))]),
-          metadata && h(UriPreview, { metadata, textContent }),
-          uri && h(UriDownloadButton, metadata)
-        ])]
+        ],
+        () => renderLoadingSymbol(metadata.uri)
       )
     ]
-    )
-  } else {
-    return h(Fragment, [
-      div({ style: { paddingBottom: '1rem' } }, [
-        'Error loading data. This file does not exist or you do not have permission to view it.'
-      ])
-    ])
-  }
-  /*
-  const { size, timeCreated, updated, bucket, name, fileName, accessUrl } = metadata || {}
-  const gsUri = `gs://${bucket}/${name}`
-  return h(Modal, {
-    onDismiss,
-    title: 'File Details',
-    showCancel: false,
-    showX: true,
-    okButton: 'Done'
-  }, [
-    Utils.cond(
-      [loadingError, () => h(Fragment, [
-        div({ style: { paddingBottom: '1rem' } }, [
-          'Error loading data. This file does not exist, or you do not have permission to view it.'
-        ]),
-        h(Collapse, { title: 'Details' }, [
-          div({ style: { marginTop: '0.5rem', whiteSpace: 'pre-wrap', fontFamily: 'monospace', overflowWrap: 'break-word' } }, [
-            JSON.stringify(loadingError, null, 2)
-          ])
-        ])
-      ])],
-      [metadata, () => h(Fragment, [
-        els.cell([
-          els.label('Filename'),
-          els.data((fileName || _.last(name.split('/'))).split('.').join('.\u200B')) // allow line break on periods
-        ]),
-        els.cell([els.label('File size'), els.data(filesize(size))]),
-        !accessUrl && !!gsUri && els.cell([
-          h(Link, {
-            ...Utils.newTabLinkProps,
-            href: "www.google.com"
-          }, ['View this file in the Google Cloud Storage Browser'])
-        ]),
-        h(UriDownloadButton, { uri, metadata, accessUrl }),
-        els.cell([
-          els.label('Terminal download command'),
-          els.data([
-            div({ style: { display: 'flex' } }, [
-              input({
-                readOnly: true,
-                value: "Download Command Text",
-                style: { flexGrow: 1, fontWeight: 400, fontFamily: 'Menlo, monospace' }
-              }),
-              h(ClipboardButton, {
-                text: "Download Command Clipboard",
-                style: { margin: '0 1rem' }
-              })
-            ])
-          ])
-        ]),
-        (timeCreated || updated) && h(Collapse, {
-          title: 'More Information',
-          style: { marginTop: '2rem' },
-          summaryStyle: { marginBottom: '0.5rem' }
-        }, [
-          timeCreated && els.cell([
-            els.label('Created'),
-            els.data(new Date(timeCreated).toLocaleString())
-          ]),
-          updated && els.cell([
-            els.label('Updated'),
-            els.data(new Date(updated).toLocaleString())
-          ])
-        ]),
-      ])],
-      () => h(Fragment, [
-        'Loading file...',
-        spinner({ style: { marginLeft: 4 } })
-      ])
-    )
-  ])
-   */
+  )
 })
