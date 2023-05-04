@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 
 
-const azureRegex = RegExp('^https:\/\/([a-zA-Z0-9])+\.blob\.core\.windows\.net')
+const azureRegex = RegExp('^https://([a-zA-Z0-9])+.blob.core.windows.net')
 
 export const isAzureUri = uri => azureRegex.test(uri)
 

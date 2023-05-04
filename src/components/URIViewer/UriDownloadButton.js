@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
-import { div, h } from 'react-hyperscript-helpers'
+import { h } from 'react-hyperscript-helpers'
 import { ButtonPrimary } from 'src/components/common'
 import { spinner } from 'src/components/icons'
 import { useOnMount } from 'src/libs/react-utils'

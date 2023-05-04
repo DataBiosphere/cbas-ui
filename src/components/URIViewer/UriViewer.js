@@ -2,9 +2,8 @@ import filesize from 'filesize'
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { div, h, p, pre, span } from 'react-hyperscript-helpers'
-import { ClipboardButton } from 'src/components/ClipboardButton'
 import Collapse from 'src/components/Collapse'
-import { Link } from 'src/components/common'
+import { ClipboardButton, Link } from 'src/components/common'
 import { spinner } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import { Ajax } from 'src/libs/ajax'
@@ -41,6 +40,7 @@ export const UriViewer = _.flow(
         const metadata = await loadObject(googleProject, bucket, name)
         setMetadata(metadata)
         */
+        setMetadata(null) //Delete this when the above is uncommented.
       } else {
         // TODO: change below comment after switch to DRSHub is complete, tracked in ticket [ID-170]
         // Fields are mapped from the martha_v3 fields to those used by google
@@ -64,6 +64,11 @@ export const UriViewer = _.flow(
       setLoadingError(await e.json())
     }
   }
+
+  useOnMount(() => {
+    loadMetadata()
+  })
+
 
   const renderFailureMessage = loadingError => {
     return h(Fragment, [
@@ -97,17 +102,12 @@ export const UriViewer = _.flow(
     h(Fragment, [isGsUri(uri) || isAzureUri(uri) ? 'Loading metadata...' : 'Resolving DRS file...', spinner({ style: { marginLeft: 4 } })])
   }
 
-
-  useOnMount(() => {
-    loadMetadata()
-  })
-
   const renderTerminalCommand = metadata => {
     const { bucket, name } = metadata
     const gsUri = `gs://${bucket}/${name}`
-    const downloadCommand = isAzureUri(metadata.uri) ? getDownloadCommand(metadata.name, metadata.uri, metadata.accessUrl) : getDownloadCommand(metadata.name, gsUri, metadata.uri)
-
-    h(Fragment, [
+    const azUri = `${uri}?${metadata.sasToken}`
+    const downloadCommand = isAzureUri(uri) ? getDownloadCommand(metadata.name, azUri, metadata.accessUrl) : getDownloadCommand(metadata.name, gsUri, metadata.accessUrl)
+    return h(Fragment, [
       p({ style: { marginBottom: '0.5rem', fontWeight: 500 } }, ['Terminal download command']),
       pre(
         {
@@ -162,7 +162,7 @@ export const UriViewer = _.flow(
   }
 
   const { name, size } = metadata || {}
-  const fileName = isAzureUri(metadata.uri) ? metadata.name : metadata.fileName
+  const fileName = isAzureUri(uri) ? name : metadata.fileName
 
   return h(
     Modal,
@@ -171,7 +171,7 @@ export const UriViewer = _.flow(
       title: 'File Details',
       showCancel: false,
       showX: true,
-      okButton: 'Done'
+      showButtons: false
     },
     [
       Utils.cond(
@@ -184,15 +184,15 @@ export const UriViewer = _.flow(
               els.data((fileName || _.last(name.split('/'))).split('.').join('.\u200B')) // allow line break on periods
             ]),
             h(UriPreview, { metadata }),
-            els.cell([els.label('File size'), els.data(filesize(size))]),
-            renderGoogleStorageBrowserLink(metadata),
             h(UriDownloadButton, metadata),
+            els.cell([els.label('File size'), els.data(filesize(size))]),
+            !isAzureUri(uri) && renderGoogleStorageBrowserLink(metadata),
             renderTerminalCommand(metadata),
             renderMoreInfo(metadata),
-            div({ style: { fontSize: 10 } }, ['* Estimated. Download cost may be higher in China or Australia.'])
+            !isAzureUri(uri) && div({ style: { fontSize: 10 } }, ['* Estimated. Download cost may be higher in China or Australia.'])
           ])
         ],
-        () => renderLoadingSymbol(metadata.uri)
+        () => renderLoadingSymbol(uri)
       )
     ]
   )
