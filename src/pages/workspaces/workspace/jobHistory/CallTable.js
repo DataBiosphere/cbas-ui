@@ -10,26 +10,38 @@ import colors from 'src/libs/colors'
 import * as Utils from 'src/libs/utils'
 import { FailuresModal } from 'src/pages/workspaces/workspace/jobHistory/FailuresViewer'
 
-const StatusCounts = statusCountMap => {
-  const statusList = Object.keys(statusCountMap);
-  const statusCountRender = statusCountMap.map((count, name) => {
-    return span({ key: `${name}-status-count` })
+const StatusCounts = ({statusListObjects}) => {
+  const statuses = Object.keys(statusListObjects)
+  const statusCountRender = statuses.map(status => {
+    const { count, icon } = statusListObjects[status]
+    return span({ key: `${status}-status-count`, style: { marginRight: '20px' } }, [
+      icon(),
+      span({ style: { fontWeight: 800, marginLeft: '3px' } }, [`${count} `]),
+      span(`${status}`),
+    ]);
   })
+  return div({}, [statusCountRender])
 }
-
 
 const CallTable = ({ callName, callObjects }) => {
   const [failuresModalParams, setFailuresModalParams] = useState()
   const [sort, setSort] = useState({ field: 'index', direction: 'asc' });
   const [statusFilter, setStatusFilter] = useState([])
 
-  const statusList = useMemo(() => {
+  const statusListObjects = useMemo(() => {
     const statusSet = {}
-    callObjects.forEach(call => {
-      if (!statusSet[call.uiStatusLabel]) {
-        statusSet[call.uiStatusLabel] = 0
+    callObjects.forEach(({ statusObj }) => {
+      if (!_.isEmpty(statusObj)) {
+        const { icon, id } = statusObj
+        const startCasedId = _.startCase(id)
+        if (!statusSet[startCasedId]) {
+          statusSet[startCasedId] = { count: 0 }
+        }
+        statusSet[startCasedId].count += 1
+        statusSet[startCasedId].icon = icon
+      } else {
+        return {}
       }
-      statusSet[call.uiStatusLabel] += 1
     })
     return statusSet
   }, [callObjects])
@@ -54,20 +66,33 @@ const CallTable = ({ callName, callObjects }) => {
       }
     }, ['Filter by:']),
     div({ style: { margin: '1rem 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' } }, [
-      div({ style: { flexBasis: 350 } }, [
-        h(Select, {
-          isClearable: true,
-          isMulti: true,
-          isSearchable: false,
-          placeholder: 'Status',
-          'aria-label': 'Status',
-          value: statusFilter,
-          onChange: data => setStatusFilter(_.map('value', data)),
-          options: Object.keys(statusList)
-        })
+      div({
+        id: 'filter-section-left',
+        style: {
+          display: 'flex',
+          justifyContent: 'flex-start',
+          alignItems: 'center',
+          flexBasis: 400,
+          flexGrow: 2
+        }
+      }, [
+        div({ style: { flexBasis: 250, marginRight: '20px' } }, [
+          h(Select, {
+            isClearable: true,
+            isMulti: true,
+            isSearchable: false,
+            placeholder: 'Status',
+            'aria-label': 'Status',
+            value: statusFilter,
+            onChange: data => setStatusFilter(_.map('value', data)),
+            options: Object.keys(statusListObjects)
+          })
+        ]),
+        h(StatusCounts, { statusListObjects })
       ]),
+
       //NOTE: add task name search here
-      div({}, []),
+      div({}, [])
     ]),
 
     /*
@@ -90,11 +115,20 @@ const CallTable = ({ callName, callObjects }) => {
             {
               size: { basis: 300, grow: 2 },
               field: 'taskName',
-              headerRenderer: () => h(Sortable, { sort, field: 'taskName', onSort: setSort }, ['Task Name']),
+              headerRenderer: () => h(Sortable, { sort, field: 'taskName', onSort: setSort }, ['Name']),
               cellRenderer: ({ rowIndex }) => {
                 const { taskName } = filteredCallObjects[rowIndex]
                 return taskName
-              },
+              }
+            },
+            {
+              size: { basis: 100, grow: 1 },
+              field: 'type',
+              headerRenderer: () => h(Sortable, {sort, field: 'type', onSort: setSort }, ['Type']),
+              cellRenderer: ({ rowIndex }) => {
+                const { workflowName } = filteredCallObjects[rowIndex]
+                return _.isEmpty(workflowName) ? 'Task' : 'Subworkflow'
+              }
             },
             {
               size: { basis: 100, grow: 1 },

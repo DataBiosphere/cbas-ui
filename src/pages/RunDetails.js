@@ -74,8 +74,7 @@ export const generateCallTableData = tasks => {
       call.latest ??= call.attempt === maxAttempt
       //assigning status styling object for use in call table
       const cromwellStatusObj = collapseCromwellStatus(call.executionStatus, call.backendStatus)
-      call.statusObj = cromwellStatusObj;
-      debugger; // eslint-disable-line
+      call.statusObj = cromwellStatusObj
       return call
     })
     //localeCompare returns a negative, positive, or 0 when comparing strings
@@ -235,7 +234,7 @@ export const RunDetails = ({ submissionId, workflowId }) => {
               ]
             },
             {
-              executionStatus: 'Done',
+              executionStatus: 'Failed',
               stdout:
                 'https://lz0d5275bdd36d3e6a22a130.blob.core.windows.net/sc-af87d167-4fcf-43f4-8447-555010fc2ac8/workspace-services/cbas/wds-af87d167-4fcf-43f4-8447-555010fc2ac8/fetch_sra_to_bam/56ee000a-3e05-4f21-b4c7-772627729b02/call-Fetch_SRA_to_BAM/execution/stdout',
               commandLine:
@@ -562,7 +561,6 @@ export const RunDetails = ({ submissionId, workflowId }) => {
       setWorkflow(metadata)
       const formattedTableData = generateCallTableData(metadata.calls)
       setTableData(formattedTableData)
-      debugger; // eslint-disable-line
       if (includes(collapseStatus(metadata.status), [statusType.running, statusType.submitted])) {
         stateRefreshTimer.current = setTimeout(loadWorkflow, 60000)
       }
