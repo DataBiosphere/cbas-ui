@@ -152,10 +152,14 @@ const FindWorkflowModal = ({ onDismiss }) => {
       ]),
       isSubHeaderActive('browse-suggested-workflows') && div({ style: { overflowY: 'auto', flexGrow: 1, display: 'flex', flexDirection: 'column', paddingLeft: '20px' } }, [
         div({ style: { display: 'flex', flexWrap: 'wrap', overflowY: 'auto', paddingBottom: 5, paddingLeft: 5 } }, [
-          _.map(method => h(MethodCard, { method, onClick: () => submitMethod(setLoading, onDismiss, method), key: method.method_name }), suggestedWorkflowsList)
+          _.map(method =>
+              h(MethodCard, {
+                method,
+                onClick: () => withBusyState(setLoading, submitMethod(signal, onDismiss, method)), key: method.method_name }),
+            suggestedWorkflowsList)
         ])
       ]),
-      isSubHeaderActive('add-a-workflow-link') && h(ImportGithub, { setLoading, onDismiss }),
+      isSubHeaderActive('add-a-workflow-link') && h(ImportGithub, { setLoading, signal, onDismiss }),
       div({ style: { marginLeft: '3rem', marginRight: '1.5rem', width: '100%' } }, [h(HelpfulLinksBox)])
     ])
   ])

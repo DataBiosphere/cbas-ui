@@ -12,7 +12,7 @@ import { notify } from 'src/libs/notifications'
 import { differenceFromDatesInSeconds, differenceFromNowInSeconds, withBusyState } from 'src/libs/utils'
 import * as Utils from 'src/libs/utils'
 
-export const submitMethod = (setLoading, onDismiss, method) => { return withBusyState(setLoading, async (signal) => {
+export const submitMethod = async (signal, onDismiss, method) => {
   try {
     console.log("I'M BEING CALLED")
     const rawGithubUrl = reconstructToRawUrl(method.method_url, onDismiss)
@@ -34,7 +34,7 @@ export const submitMethod = (setLoading, onDismiss, method) => { return withBusy
     notify('error', 'Error creating new method', { detail: await (error instanceof Response ? error.text() : error) })
     onDismiss()
   }
-})}
+}
 
 export const reconstructToRawUrl = (url, onDismiss) => {
   // mapping of searchValues (key) and their replaceValue (value)
