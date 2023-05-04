@@ -126,8 +126,8 @@ const CallTable = ({ callName, callObjects }) => {
               field: 'type',
               headerRenderer: () => h(Sortable, {sort, field: 'type', onSort: setSort }, ['Type']),
               cellRenderer: ({ rowIndex }) => {
-                const { workflowName } = filteredCallObjects[rowIndex]
-                return _.isEmpty(workflowName) ? 'Task' : 'Subworkflow'
+                const { subWorkflowId } = filteredCallObjects[rowIndex]
+                return _.isEmpty(subWorkflowId) ? 'Task' : 'Subworkflow'
               }
             },
             {
