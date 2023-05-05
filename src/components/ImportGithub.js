@@ -3,10 +3,10 @@ import { div, h, h2 } from 'react-hyperscript-helpers'
 import { ButtonPrimary } from 'src/components/common'
 import { TextInput } from 'src/components/input'
 import { submitMethod } from 'src/components/method-common'
-import {withBusyState} from "src/libs/utils";
+import { withBusyState } from 'src/libs/utils'
 
-
-const ImportGithub = ({setLoading, signal, onDismiss}) => {
+// { tooltip: 'Link must start with https://github.com or https://raw.githubusercontent.com' },
+const ImportGithub = ({ setLoading, signal, onDismiss }) => {
   const [methodName, setMethodName] = useState('')
   const [methodVersionName, setMethodVersionName] = useState('')
   const [methodUrl, setMethodUrl] = useState('')
@@ -51,7 +51,7 @@ const ImportGithub = ({setLoading, signal, onDismiss}) => {
           method_url: methodUrl,
           method_source: 'GitHub'
         }
-        withBusyState(setLoading, submitMethod(signal, onDismiss,method))
+        withBusyState(setLoading, submitMethod(signal, onDismiss, method))
       }
     }, ['Add to Workspace'])])
   ])

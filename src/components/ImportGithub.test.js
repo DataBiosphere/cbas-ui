@@ -37,7 +37,7 @@ describe('Add a Workflow Link', () => {
     expect(addToWorkspaceButton).toBeInTheDocument()
   })
 
-  it('should submit github.com and raw github links', async () => {
+  it('should submit github.com links', async () => {
     const postMethodFunction = jest.fn(() => Promise.resolve({ method_id: 'abc123' }))
 
     await Ajax.mockImplementation(() => {
@@ -53,7 +53,7 @@ describe('Add a Workflow Link', () => {
     const githubLink = 'https://github.com/broadinstitute/cromwell/blob/develop/wdl/transforms/draft3/src/test/cases/simple_task.wdl'
     const rawGithubLink = 'https://raw.githubusercontent.com/broadinstitute/cromwell/develop/wdl/transforms/draft3/src/test/cases/simple_task.wdl'
     // ** ACT **
-    render(h(ImportGithub, {setLoading: jest.fn(), onDismiss: jest.fn()}))
+    render(h(ImportGithub, {setLoading: jest.fn(), signal: jest.fn(), onDismiss: jest.fn()}))
 
     const urlLink = screen.getByLabelText('Github link input')
     const workflowName = screen.getByLabelText('Workflow name input')
@@ -96,7 +96,7 @@ describe('Add a Workflow Link', () => {
     })
 
     // ** ACT **
-    render(h(ImportGithub, { onDismiss: jest.fn() }))
+    render(h(ImportGithub, {setLoading: jest.fn(), signal: jest.fn(), onDismiss: jest.fn()}))
 
     const urlLink = screen.getByLabelText('Github link input')
     const workflowName = screen.getByLabelText('Workflow name input')
@@ -137,7 +137,7 @@ describe('Add a Workflow Link', () => {
 
     const onDismiss = jest.fn()
     // ** ACT **
-    render(h(ImportGithub, { onDismiss }))
+    render(h(ImportGithub, {setLoading: jest.fn(), signal: jest.fn(), onDismiss}))
 
     const urlLink = screen.getByLabelText('Github link input')
     const workflowName = screen.getByLabelText('Workflow name input')

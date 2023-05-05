@@ -1,20 +1,10 @@
-import _ from 'lodash/fp'
-import { div, h } from 'react-hyperscript-helpers'
-import { Link, Select } from 'src/components/common'
-import { icon } from 'src/components/icons'
-import { TextInput } from 'src/components/input'
-import TooltipTrigger from 'src/components/TooltipTrigger'
 import { Ajax } from 'src/libs/ajax'
-import colors from 'src/libs/colors'
-import { getConfig } from 'src/libs/config'
 import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
-import { differenceFromDatesInSeconds, differenceFromNowInSeconds, withBusyState } from 'src/libs/utils'
-import * as Utils from 'src/libs/utils'
+
 
 export const submitMethod = async (signal, onDismiss, method) => {
   try {
-    console.log("I'M BEING CALLED")
     const rawGithubUrl = reconstructToRawUrl(method.method_url, onDismiss)
 
     const methodPayload = {
