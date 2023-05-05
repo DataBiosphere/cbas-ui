@@ -3,8 +3,6 @@ import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { h } from 'react-hyperscript-helpers'
 import ImportGithub from 'src/components/ImportGithub'
 import { Ajax } from 'src/libs/ajax'
-import { getConfig } from 'src/libs/config'
-import FindWorkflowModal from 'src/pages/FindWorkflow/FindWorkflowModal'
 
 
 jest.mock('src/libs/ajax')
@@ -53,7 +51,7 @@ describe('Add a Workflow Link', () => {
     const githubLink = 'https://github.com/broadinstitute/cromwell/blob/develop/wdl/transforms/draft3/src/test/cases/simple_task.wdl'
     const rawGithubLink = 'https://raw.githubusercontent.com/broadinstitute/cromwell/develop/wdl/transforms/draft3/src/test/cases/simple_task.wdl'
     // ** ACT **
-    render(h(ImportGithub, {setLoading: jest.fn(), signal: jest.fn(), onDismiss: jest.fn()}))
+    render(h(ImportGithub, { setLoading: jest.fn(), signal: jest.fn(), onDismiss: jest.fn() }))
 
     const urlLink = screen.getByLabelText('Github link input')
     const workflowName = screen.getByLabelText('Workflow name input')
@@ -96,7 +94,7 @@ describe('Add a Workflow Link', () => {
     })
 
     // ** ACT **
-    render(h(ImportGithub, {setLoading: jest.fn(), signal: jest.fn(), onDismiss: jest.fn()}))
+    render(h(ImportGithub, { setLoading: jest.fn(), signal: jest.fn(), onDismiss: jest.fn() }))
 
     const urlLink = screen.getByLabelText('Github link input')
     const workflowName = screen.getByLabelText('Workflow name input')
@@ -137,7 +135,7 @@ describe('Add a Workflow Link', () => {
 
     const onDismiss = jest.fn()
     // ** ACT **
-    render(h(ImportGithub, {setLoading: jest.fn(), signal: jest.fn(), onDismiss}))
+    render(h(ImportGithub, { setLoading: jest.fn(), signal: jest.fn(), onDismiss }))
 
     const urlLink = screen.getByLabelText('Github link input')
     const workflowName = screen.getByLabelText('Workflow name input')
