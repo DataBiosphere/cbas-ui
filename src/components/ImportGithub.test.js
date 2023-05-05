@@ -1,4 +1,5 @@
 import '@testing-library/jest-dom'
+
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { h } from 'react-hyperscript-helpers'
 import ImportGithub from 'src/components/ImportGithub'
