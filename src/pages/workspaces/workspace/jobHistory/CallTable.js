@@ -181,10 +181,10 @@ const CallTable = ({ callName, callObjects }) => {
             {
               size: { basis: 100, grow: 1 },
               field: 'type',
-              headerRenderer: () => h(Sortable, {sort, field: 'type', onSort: setSort }, ['Type']),
+              headerRenderer: () => h(Sortable, { sort, field: 'type', onSort: setSort }, ['Type']),
               cellRenderer: ({ rowIndex }) => {
                 const { subWorkflowId } = filteredCallObjects[rowIndex]
-                return _.isEmpty(subWorkflowId) ? 'Task' : 'Subworkflow'
+                return _.isEmpty(subWorkflowId) ? 'Task' : 'Sub-workflow'
               }
             },
             {
@@ -246,7 +246,7 @@ const CallTable = ({ callName, callObjects }) => {
         })
     ]),
     failuresModalParams && h(FailuresModal, { ...failuresModalParams, callFqn: callName, onDismiss: () => setFailuresModalParams(undefined) }),
-  ]);
+  ])
 }
 
 export default CallTable
