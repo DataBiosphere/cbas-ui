@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
-import { useMemo, useState } from 'react'
-import { div, h, label, span } from 'react-hyperscript-helpers'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { div, h, input, label, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import { Link, Select } from 'src/components/common'
 import { icon } from 'src/components/icons'
@@ -10,6 +10,36 @@ import colors from 'src/libs/colors'
 import * as Utils from 'src/libs/utils'
 import { FailuresModal } from 'src/pages/workspaces/workspace/jobHistory/FailuresViewer'
 
+
+///////////////FILTER UTILITY FUNCTIONS/////////////////////////////
+
+const taskNameFilter = searchText => {
+  const searchTerms = searchText.toLowerCase().split(' ')
+  return _.filter(callObject => {
+    return searchTerms.every(term => (callObject?.taskName || '').toLowerCase().includes(term))
+  })
+}
+
+const statusFilter = statuses => {
+  return _.filter(({ statusObj }) => {
+    const { id } = statusObj
+    return _.isEmpty(statuses) ? true : statuses.includes(_.startCase(id))
+  })
+}
+
+const filterCalllObjectsFn = (callObjects, sort, setFilteredCallObjects, statuses) => {
+  return (searchText = '') => {
+    const results = _.flow(
+      taskNameFilter(searchText),
+      statusFilter(statuses),
+      _.sortBy(sort.field),
+      sort.direction === 'asc' ? _.identity : _.reverse)(callObjects)
+    setFilteredCallObjects(results)
+  }
+}
+
+//////////////STATUS COUNT SUB-COMPONENT///////////////////////////
+
 const StatusCounts = ({statusListObjects}) => {
   const statuses = Object.keys(statusListObjects)
   const statusCountRender = statuses.map(status => {
@@ -17,16 +47,51 @@ const StatusCounts = ({statusListObjects}) => {
     return span({ key: `${status}-status-count`, style: { marginRight: '20px' } }, [
       icon(),
       span({ style: { fontWeight: 800, marginLeft: '3px' } }, [`${count} `]),
-      span(`${status}`),
-    ]);
+      span(`${status}`)
+    ])
   })
   return div({}, [statusCountRender])
 }
 
+//////////////TABLE SEARCH BAR///////////////////////
+const SearchBar = ({ filterFn }) => {
+  const [searchText, setSearchText] = useState('')
+
+  useEffect(() => {
+    filterFn(searchText)
+  }, [filterFn, searchText])
+
+  return div(
+    {
+      id: 'task-name-search',
+      style: {
+        flexBasis: '400px',
+      },
+    },
+    [
+      input({
+        id: 'task-name-search-input',
+        type: 'text',
+        placeholder: 'Search by task name',
+        style: { width: '100%', padding: '9px', borderRadius: '15px', border: '1px solid #8F95A0' },
+        value: searchText,
+        onChange: e => setSearchText(e.target.value)
+      }),
+    ]
+  );
+}
+
+
+////////CALL TABLE///////////////////////
 const CallTable = ({ callName, callObjects }) => {
   const [failuresModalParams, setFailuresModalParams] = useState()
   const [sort, setSort] = useState({ field: 'index', direction: 'asc' });
   const [statusFilter, setStatusFilter] = useState([])
+  const [filteredCallObjects, setFilteredCallObjects] = useState([])
+
+  const filterFn = useMemo(() => {
+    return filterCalllObjectsFn(callObjects, sort, setFilteredCallObjects, statusFilter)
+  }, [callObjects, sort, setFilteredCallObjects, statusFilter])
 
   const statusListObjects = useMemo(() => {
     const statusSet = {}
@@ -45,19 +110,6 @@ const CallTable = ({ callName, callObjects }) => {
     })
     return statusSet
   }, [callObjects])
-
-  //NOTE: This is the current filter method, it's tied to the dropdown
-  //Need to add a search bar to filter by task name
-  //Can either bind this same method to the search bar and add a filter on text
-  //or I create a new method that's exclusive to the search bar and filter on the current state of filteredCallObjects
-  const filteredCallObjects = _.flow(
-    _.filter(({ executionStatus, backendStatus }) => {
-      const status = collapseCromwellStatus(executionStatus, backendStatus).label()
-      return (_.isEmpty(statusFilter) || statusFilter.includes(status))
-    }),
-    _.sortBy(sort.field),
-    sort.direction === 'asc' ? _.identity : _.reverse
-  )(callObjects)
 
   return div([
     label({
@@ -92,7 +144,16 @@ const CallTable = ({ callName, callObjects }) => {
       ]),
 
       //NOTE: add task name search here
-      div({}, [])
+      div({
+        id: 'filter-section-right', style: {
+          display: 'flex',
+          justifyContent: 'flex-end',
+          alignItems: 'center',
+          flexBasis: 400,
+          flexGrow: 1
+        }}, [
+        h(SearchBar, { filterFn })
+      ])
     ]),
 
     /*

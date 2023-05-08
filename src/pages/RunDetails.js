@@ -89,7 +89,6 @@ export const RunDetails = ({ submissionId, workflowId }) => {
    */
   const [workflow, setWorkflow] = useState()
   const [tableData, setTableData] = useState([])
-  const [dropdownStatusSelection, setDropdownStatusSelection] = useState()
   //Q4-2022 Disable log-viewing
   //const [showLog, setShowLog] = useState(false)
 
@@ -729,7 +728,7 @@ export const RunDetails = ({ submissionId, workflowId }) => {
                                     title: div({ style: { ...codeFont, ...elements.sectionHeader } }, [`${callName} × ${calls[callName].length}`]),
                                     initialOpenState: !every({ executionStatus: 'Done' }, calls[callName])
                                   },
-                                  [h(CallTable, { callName, callObjects: calls[callName] })]
+                                  // [h(CallTable, { callName, callObjects: calls[callName] })]
                                 )
                               }, callNames)
                             ],
