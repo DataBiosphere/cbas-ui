@@ -1,10 +1,10 @@
 import _ from 'lodash/fp'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { div, h, input, label, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import { Link, Select } from 'src/components/common'
 import { icon } from 'src/components/icons'
-import { collapseCromwellStatus, makeCromwellStatusLine } from 'src/components/job-common'
+import { makeCromwellStatusLine } from 'src/components/job-common'
 import { FlexTable, Sortable, tableHeight, TooltipCell } from 'src/components/table'
 import colors from 'src/libs/colors'
 import * as Utils from 'src/libs/utils'
@@ -12,22 +12,21 @@ import { FailuresModal } from 'src/pages/workspaces/workspace/jobHistory/Failure
 
 
 ///////////////FILTER UTILITY FUNCTIONS/////////////////////////////
-
-const taskNameFilter = searchText => {
-  const searchTerms = searchText.toLowerCase().split(' ')
+export const taskNameFilter = searchText => {
+  const searchTerms = searchText.toLowerCase().split(/[\s_/]/)
   return _.filter(callObject => {
     return searchTerms.every(term => (callObject?.taskName || '').toLowerCase().includes(term))
   })
 }
 
-const statusFilter = statuses => {
+export const statusFilter = statuses => {
   return _.filter(({ statusObj }) => {
     const { id } = statusObj
     return _.isEmpty(statuses) ? true : statuses.includes(_.startCase(id))
   })
 }
 
-const filterCalllObjectsFn = (callObjects, sort, setFilteredCallObjects, statuses) => {
+export const filterCalllObjectsFn = (callObjects, sort, setFilteredCallObjects, statuses) => {
   return (searchText = '') => {
     const results = _.flow(
       taskNameFilter(searchText),
@@ -39,7 +38,6 @@ const filterCalllObjectsFn = (callObjects, sort, setFilteredCallObjects, statuse
 }
 
 //////////////STATUS COUNT SUB-COMPONENT///////////////////////////
-
 const StatusCounts = ({statusListObjects}) => {
   const statuses = Object.keys(statusListObjects)
   const statusCountRender = statuses.map(status => {
@@ -65,8 +63,8 @@ const SearchBar = ({ filterFn }) => {
     {
       id: 'task-name-search',
       style: {
-        flexBasis: '400px',
-      },
+        flexBasis: '400px'
+      }
     },
     [
       input({
@@ -76,9 +74,9 @@ const SearchBar = ({ filterFn }) => {
         style: { width: '100%', padding: '9px', borderRadius: '15px', border: '1px solid #8F95A0' },
         value: searchText,
         onChange: e => setSearchText(e.target.value)
-      }),
+      })
     ]
-  );
+  )
 }
 
 
@@ -142,8 +140,6 @@ const CallTable = ({ callName, callObjects }) => {
         ]),
         h(StatusCounts, { statusListObjects })
       ]),
-
-      //NOTE: add task name search here
       div({
         id: 'filter-section-right', style: {
           display: 'flex',
@@ -198,7 +194,7 @@ const CallTable = ({ callName, callObjects }) => {
               cellRenderer: ({ rowIndex }) => {
                 const { attempt } = filteredCallObjects[rowIndex]
                 return attempt
-              },
+              }
             },
             {
               size: { basis: 150, grow: 2 },
@@ -225,8 +221,8 @@ const CallTable = ({ callName, callObjects }) => {
               cellRenderer: ({ rowIndex }) => {
                 const { end } = filteredCallObjects[rowIndex];
                 return h(TooltipCell, [end ? Utils.makeCompleteDate(end) : 'N/A'])
-              },
-            },
+              }
+            }
             //NOTE: This final section will be held for the action modals
             //Tempted to leave this off as a seperate ticket (where the modals are developed and implemented in the page independently)
             // {
@@ -246,8 +242,8 @@ const CallTable = ({ callName, callObjects }) => {
             //     ])
             //   }
             // }
-          ],
-        }),
+          ]
+        })
     ]),
     failuresModalParams && h(FailuresModal, { ...failuresModalParams, callFqn: callName, onDismiss: () => setFailuresModalParams(undefined) }),
   ]);
