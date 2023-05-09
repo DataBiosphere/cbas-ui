@@ -25,10 +25,10 @@ describe('Add a Workflow Link', () => {
       await render(h(ImportGithub, { onDismiss: jest.fn() }))
     })
 
-    const urlLink = screen.getByLabelText('Github link input')
-    const workflowName = screen.getByLabelText('Workflow name input')
-    const workflowVersion = screen.getByLabelText('Version name input')
-    const addToWorkspaceButton = screen.getByLabelText('Add to Workspace button')
+    const urlLink = screen.getByText('Workflow Link *')
+    const workflowName = screen.getByText('Workflow Name *')
+    const workflowVersion = screen.getByText('Workflow Version *')
+    const addToWorkspaceButton = screen.getByText('Add to Workspace')
 
     expect(urlLink).toBeInTheDocument()
     expect(workflowName).toBeInTheDocument()
@@ -54,10 +54,10 @@ describe('Add a Workflow Link', () => {
     // ** ACT **
     render(h(ImportGithub, { setLoading: jest.fn(), signal: jest.fn(), onDismiss: jest.fn() }))
 
-    const urlLink = screen.getByLabelText('Github link input')
-    const workflowName = screen.getByLabelText('Workflow name input')
-    const workflowVersion = screen.getByLabelText('Version name input')
-    const addToWorkspaceButton = screen.getByLabelText('Add to Workspace button')
+    const urlLink = screen.getByPlaceholderText('Paste Github link')
+    const workflowName = screen.getByPlaceholderText('Workflow Name')
+    const workflowVersion = screen.getByPlaceholderText('Workflow Version')
+    const addToWorkspaceButton = screen.getByText('Add to Workspace')
 
     fireEvent.change(urlLink, { target: { value: githubLink } })
     fireEvent.change(workflowName, { target: { value: 'Test workflow' } })

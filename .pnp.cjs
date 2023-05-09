@@ -83,6 +83,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["source-map-explorer", "npm:2.5.2"],\
             ["svgo", "npm:1.3.2"],\
             ["uuid", "npm:8.3.2"],\
+            ["validate.js", "npm:0.13.1"],\
             ["webpack", "virtual:fb20b3957fc03094516f4839bd921e6cbe6fbbbdf6e579aef6a9e0d78799f936b29bbbdf85e777033619e8c90d7b9339b4056e75490ce5faba123bfbab64860f#npm:5.75.0"]\
           ],\
           "linkType": "SOFT"\
@@ -7279,6 +7280,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["source-map-explorer", "npm:2.5.2"],\
             ["svgo", "npm:1.3.2"],\
             ["uuid", "npm:8.3.2"],\
+            ["validate.js", "npm:0.13.1"],\
             ["webpack", "virtual:fb20b3957fc03094516f4839bd921e6cbe6fbbbdf6e579aef6a9e0d78799f936b29bbbdf85e777033619e8c90d7b9339b4056e75490ce5faba123bfbab64860f#npm:5.75.0"]\
           ],\
           "linkType": "SOFT"\
@@ -19163,6 +19165,15 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@types/istanbul-lib-coverage", "npm:2.0.4"],\
             ["convert-source-map", "npm:1.8.0"],\
             ["source-map", "npm:0.7.4"]\
+          ],\
+          "linkType": "HARD"\
+        }]\
+      ]],\
+      ["validate.js", [\
+        ["npm:0.13.1", {\
+          "packageLocation": "./.yarn/cache/validate.js-npm-0.13.1-4f3d10ee65-a3ddc8744b.zip/node_modules/validate.js/",\
+          "packageDependencies": [\
+            ["validate.js", "npm:0.13.1"]\
           ],\
           "linkType": "HARD"\
         }]\

@@ -1,52 +1,90 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
-import { div, h, h3 } from 'react-hyperscript-helpers'
-import { ButtonPrimary } from 'src/components/common'
-import { TextInput } from 'src/components/input'
+import { div, h, h3, span } from 'react-hyperscript-helpers'
+import { ButtonPrimary, IdContainer } from 'src/components/common'
+import { icon } from 'src/components/icons'
+import { TextInput, ValidatedInput } from 'src/components/input'
 import { submitMethod } from 'src/components/method-common'
+import { TooltipCell } from 'src/components/table'
+import colors from 'src/libs/colors'
+import { FormLabel } from 'src/libs/form'
+import * as Utils from 'src/libs/utils'
 import { withBusyState } from 'src/libs/utils'
+import validate from 'validate.js'
 
-// { tooltip: 'Link must start with https://github.com or https://raw.githubusercontent.com' },
+const constraints = {
+  methodUrl: {
+    presence: { allowEmpty: false },
+    length: { maximum: 254 },
+    url: true
+  },
+  methodVersionName: {
+    presence: { allowEmpty: false }
+  },
+  methodName: {
+    presence: { allowEmpty: false }
+  }
+}
+
 const ImportGithub = ({ setLoading, signal, onDismiss }) => {
   const [methodName, setMethodName] = useState('')
   const [methodVersionName, setMethodVersionName] = useState('')
   const [methodUrl, setMethodUrl] = useState('')
+  const [urlModified, setUrlModified] = useState(false)
+  const [methodNameModified, setMethodNameModified] = useState(false)
+  const [versionNameModified, setVersionNameModified] = useState(false)
 
-  return div({ style: { marginLeft: '4rem' } }, [
-    div({ style: { width: 500 /* make width 50% */ } }, [h3(['Workflow Link'])]),
-    div({}, [
-      h(TextInput, {
-        style: { width: 500 },
-        placeholder: 'Paste Github Link',
+  const errors = validate({ methodName, methodVersionName, methodUrl }, constraints, {
+    prettify: v => ({ methodName: 'Method name', methodVersionName: 'Method version name', methodUrl: "Workflow url" }[v] || validate.prettify(v))
+  })
+
+  return div({ style: { marginLeft: '4rem', width: '50%' }}, [
+    h(FormLabel, { htmlFor: 'methodurl', required: true }, ['Workflow Link']),
+    h(ValidatedInput, {
+      inputProps: {
+        id: 'methodurl',
+        placeholder: 'Paste Github link',
         value: methodUrl,
-        onChange: u => setMethodUrl(u),
-        'aria-label': 'Github link input'
-      })
-    ]),
-    div({ style: { marginTop: '3rem', width: 500 } }, [
-      h3(['New Workflow Name / Version'])
-    ]),
-    div({}, [h(Fragment, [
-      h(TextInput, {
-        style: { width: 200 },
-        placeholder: 'Workflow name',
+        onChange: u => {
+          setMethodUrl(u)
+          setUrlModified(true)
+        }
+      },
+      error: Utils.summarizeErrors(urlModified && errors?.methodUrl),
+    }),
+    h(FormLabel, { htmlFor: 'workflowName', required: true }, ['Workflow Name']),
+    h(ValidatedInput, {
+      inputProps: {
+        id: 'workflowName',
+        placeholder: 'Workflow Name',
         value: methodName,
-        onChange: w => setMethodName(w),
-        'aria-label': 'Workflow name input'
-      }), ' / ',
-      h(TextInput, {
-        style: { width: 200 },
-        placeholder: 'Version',
+        onChange: n => {
+          setMethodName(n)
+          setMethodNameModified(true)
+        }
+      },
+      error: Utils.summarizeErrors(methodNameModified && errors?.methodName)
+    }),
+    h(FormLabel, { htmlFor: 'workflowVersion', required: true }, ['Workflow Version']),
+    h(ValidatedInput, {
+      inputProps: {
+        id: 'workflowVersion',
+        placeholder: 'Workflow Version',
         value: methodVersionName,
-        onChange: v => setMethodVersionName(v),
-        'aria-label': 'Version name input'
-      })
-    ])]),
+        onChange: v => {
+          setMethodVersionName(v)
+          setVersionNameModified(true)
+        }
+      },
+      error: Utils.summarizeErrors(versionNameModified && errors?.methodVersionName)
+    }),
     div({}, [h(ButtonPrimary, {
       style: { marginTop: '2rem' },
       'aria-label': 'Add to Workspace button',
-      disabled: _.isEmpty(methodName) || _.isEmpty(methodVersionName) || _.isEmpty(methodUrl),
+      tooltip: Utils.summarizeErrors(errors),
+      disabled: errors,
       onClick: () => {
+        console.log("ON CLICK")
         const method = {
           method_name: methodName,
           method_version: methodVersionName,

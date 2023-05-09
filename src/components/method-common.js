@@ -5,6 +5,7 @@ import { notify } from 'src/libs/notifications'
 
 export const submitMethod = async (signal, onDismiss, method) => {
   try {
+    console.log('SUBMIT ME')
     const rawGithubUrl = reconstructToRawUrl(method.method_url, onDismiss)
 
     const methodPayload = {
