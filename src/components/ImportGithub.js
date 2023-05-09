@@ -1,11 +1,9 @@
-import _ from 'lodash/fp'
-import { Fragment, useState } from 'react'
-import { div, h, h3, span } from 'react-hyperscript-helpers'
-import { ButtonPrimary, IdContainer } from 'src/components/common'
+import { useState } from 'react'
+import { div, h } from 'react-hyperscript-helpers'
+import { ButtonPrimary } from 'src/components/common'
 import { icon } from 'src/components/icons'
-import { TextInput, ValidatedInput } from 'src/components/input'
+import { ValidatedInput } from 'src/components/input'
 import { submitMethod } from 'src/components/method-common'
-import { TooltipCell } from 'src/components/table'
 import colors from 'src/libs/colors'
 import { FormLabel } from 'src/libs/form'
 import * as Utils from 'src/libs/utils'
@@ -39,7 +37,7 @@ const ImportGithub = ({ setLoading, signal, onDismiss }) => {
   })
 
   return div({ style: { marginLeft: '4rem', width: '50%' }}, [
-    h(FormLabel, { htmlFor: 'methodurl', required: true }, ['Workflow Link']),
+    div({style: {display: 'flex', alignItems: 'center'}}, [h(FormLabel, { htmlFor: 'methodurl', required: true }, ['Workflow Link']), icon('error-standard', {size: 20, style: { marginLeft: '0.6rem', color: colors.accent() }})]),
     h(ValidatedInput, {
       inputProps: {
         id: 'methodurl',
@@ -84,7 +82,6 @@ const ImportGithub = ({ setLoading, signal, onDismiss }) => {
       tooltip: Utils.summarizeErrors(errors),
       disabled: errors,
       onClick: () => {
-        console.log("ON CLICK")
         const method = {
           method_name: methodName,
           method_version: methodVersionName,

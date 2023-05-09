@@ -84,7 +84,7 @@ const createValidatedInput = ({ inputProps, width, error }, ref) => {
   const props = _.merge({
     style: error ? {
       paddingRight: '2.25rem', // leave room for error icon
-      border: `1px solid ${colors.danger()}`
+      border: `1px solid ${colors.warning()}`
     } : undefined
   }, inputProps)
   return h(Fragment, [
@@ -95,7 +95,7 @@ const createValidatedInput = ({ inputProps, width, error }, ref) => {
       error && icon('error-standard', {
         size: 24,
         style: {
-          position: 'absolute', color: colors.danger(),
+          position: 'absolute', color: colors.warning(),
           right: '.5rem'
         }
       })

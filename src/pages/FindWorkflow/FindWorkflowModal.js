@@ -111,11 +111,11 @@ const FindWorkflowModal = ({ onDismiss }) => {
         div({ style: { display: 'flex', flexWrap: 'wrap', overflowY: 'auto', paddingBottom: 5, paddingLeft: 5 } }, [
           _.map(method => h(MethodCard, {
             method,
-            onClick: () => submitMethod(method)//withBusyState(setLoading, submitMethod(signal, onDismiss, method)), key: method.method_name
+            onClick: () => withBusyState(setLoading, submitMethod(signal, onDismiss, method)), key: method.method_name
           }), suggestedWorkflowsList)
         ])
       ]),
-      isSubHeaderActive('add-a-workflow-link') && h(ImportGithub, { submitMethod/*setLoading, signal, onDismiss*/ }),
+      isSubHeaderActive('add-a-workflow-link') && h(ImportGithub, { setLoading, signal, onDismiss }),
       div({ style: { marginLeft: '10rem', marginRight: '1.5rem', width: '40%' } }, [h(HelpfulLinksBox)])
     ])
   ])
