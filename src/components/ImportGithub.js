@@ -4,11 +4,13 @@ import { ButtonPrimary } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { ValidatedInput } from 'src/components/input'
 import { submitMethod } from 'src/components/method-common'
+import { TooltipCell } from 'src/components/table'
 import colors from 'src/libs/colors'
 import { FormLabel } from 'src/libs/form'
 import * as Utils from 'src/libs/utils'
 import { withBusyState } from 'src/libs/utils'
 import validate from 'validate.js'
+
 
 const constraints = {
   methodUrl: {
@@ -28,16 +30,16 @@ const ImportGithub = ({ setLoading, signal, onDismiss }) => {
   const [methodName, setMethodName] = useState('')
   const [methodVersionName, setMethodVersionName] = useState('')
   const [methodUrl, setMethodUrl] = useState('')
-  const [urlModified, setUrlModified] = useState(false)
+  const [methodUrlModified, setMethodUrlModified] = useState(false)
   const [methodNameModified, setMethodNameModified] = useState(false)
   const [versionNameModified, setVersionNameModified] = useState(false)
 
   const errors = validate({ methodName, methodVersionName, methodUrl }, constraints, {
-    prettify: v => ({ methodName: 'Method name', methodVersionName: 'Method version name', methodUrl: "Workflow url" }[v] || validate.prettify(v))
+    prettify: v => ({ methodName: 'Method name', methodVersionName: 'Method version name', methodUrl: 'Workflow url' }[v] || validate.prettify(v))
   })
 
   return div({ style: { marginLeft: '4rem', width: '50%' }}, [
-    div({style: {display: 'flex', alignItems: 'center'}}, [h(FormLabel, { htmlFor: 'methodurl', required: true }, ['Workflow Link']), icon('error-standard', {size: 20, style: { marginLeft: '0.6rem', color: colors.accent() }})]),
+    div({ style: { fontSize: 30, display: 'flex', alignItems: 'center' }}, [h(FormLabel, { htmlFor: 'methodurl', required: true }, ['Workflow Link']), h(TooltipCell, { tooltip: 'Link must start with https://github.com or https://raw.githubusercontent.com' }, [icon('error-standard', {size: 20, style: { top: '50px', marginLeft: '1rem', color: colors.accent(), cursor: 'help' }})])]),
     h(ValidatedInput, {
       inputProps: {
         id: 'methodurl',
@@ -45,10 +47,10 @@ const ImportGithub = ({ setLoading, signal, onDismiss }) => {
         value: methodUrl,
         onChange: u => {
           setMethodUrl(u)
-          setUrlModified(true)
+          setMethodUrlModified(true)
         }
       },
-      error: Utils.summarizeErrors(urlModified && errors?.methodUrl),
+      error: Utils.summarizeErrors(methodUrlModified && errors?.methodUrl),
     }),
     h(FormLabel, { htmlFor: 'workflowName', required: true }, ['Workflow Name']),
     h(ValidatedInput, {
