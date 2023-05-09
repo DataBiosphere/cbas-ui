@@ -1,7 +1,6 @@
 import '@testing-library/jest-dom'
 
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
 import { h } from 'react-hyperscript-helpers'
 import ImportGithub from 'src/components/ImportGithub'
 import { Ajax } from 'src/libs/ajax'
@@ -39,7 +38,6 @@ describe('Add a Workflow Link', () => {
 
   it('should submit github.com links', async () => {
     const postMethodFunction = jest.fn(() => Promise.resolve({ method_id: 'abc123' }))
-    const user = userEvent.setup()
 
     await Ajax.mockImplementation(() => {
       return {

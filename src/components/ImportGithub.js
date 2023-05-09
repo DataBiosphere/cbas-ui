@@ -38,8 +38,8 @@ const ImportGithub = ({ setLoading, signal, onDismiss }) => {
     prettify: v => ({ methodName: 'Method name', methodVersionName: 'Method version name', methodUrl: 'Workflow url' }[v] || validate.prettify(v))
   })
 
-  return div({ style: { marginLeft: '4rem', width: '50%' }}, [
-    div({ style: { fontSize: 30, display: 'flex', alignItems: 'center' }}, [h(FormLabel, { htmlFor: 'methodurl', required: true }, ['Workflow Link']), h(TooltipCell, { tooltip: 'Link must start with https://github.com or https://raw.githubusercontent.com' }, [icon('error-standard', {size: 20, style: { top: '50px', marginLeft: '1rem', color: colors.accent(), cursor: 'help' }})])]),
+  return div({ style: { marginLeft: '4rem', width: '50%' } }, [
+    div({ style: { fontSize: 30, display: 'flex', alignItems: 'center' } }, [h(FormLabel, { htmlFor: 'methodurl', required: true }, ['Workflow Link']), h(TooltipCell, { tooltip: 'Link must start with https://github.com or https://raw.githubusercontent.com' }, [icon('error-standard', { size: 20, style: { top: '50px', marginLeft: '1rem', color: colors.accent(), cursor: 'help' } })])]),
     h(ValidatedInput, {
       inputProps: {
         id: 'methodurl',
@@ -50,7 +50,7 @@ const ImportGithub = ({ setLoading, signal, onDismiss }) => {
           setMethodUrlModified(true)
         }
       },
-      error: Utils.summarizeErrors(methodUrlModified && errors?.methodUrl),
+      error: Utils.summarizeErrors(methodUrlModified && errors?.methodUrl)
     }),
     h(FormLabel, { htmlFor: 'workflowName', required: true }, ['Workflow Name']),
     h(ValidatedInput, {
