@@ -14,7 +14,6 @@ import validate from 'validate.js'
 
 const constraints = {
   methodUrl: {
-    presence: { allowEmpty: false },
     length: { maximum: 254 },
     url: true
   },
@@ -81,7 +80,6 @@ const ImportGithub = ({ setLoading, signal, onDismiss }) => {
     div({}, [h(ButtonPrimary, {
       style: { marginTop: '2rem' },
       'aria-label': 'Add to Workspace button',
-      tooltip: Utils.summarizeErrors(errors),
       disabled: errors,
       onClick: () => {
         const method = {
