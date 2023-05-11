@@ -3,15 +3,23 @@ import '@testing-library/jest-dom'
 import { act, fireEvent, render, screen } from '@testing-library/react'
 import { h } from 'react-hyperscript-helpers'
 import { Ajax } from 'src/libs/ajax'
+import { getConfig } from 'src/libs/config'
 import FindWorkflowModal from 'src/pages/FindWorkflow/FindWorkflowModal'
 
 
 jest.mock('src/libs/ajax')
 jest.mock('src/libs/notifications.js')
 jest.mock('src/libs/nav.js')
+jest.mock('src/libs/config', () => ({
+  ...jest.requireActual('src/libs/config'),
+  getConfig: jest.fn().mockReturnValue({})
+}))
 
 
 describe('FindWorkflowModal', () => {
+  beforeEach(() => {
+    getConfig.mockReturnValue({ isURLEnabled: false })
+  })
   it('should render FindWorkflowModal with 5 hardcoded Method cards', () => {
     // ** ACT **
     render(h(FindWorkflowModal, { onDismiss: jest.fn() }))

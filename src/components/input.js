@@ -1,6 +1,8 @@
 import _ from 'lodash/fp'
-import { h, input } from 'react-hyperscript-helpers'
+import { Fragment } from 'react'
+import { div, h, input } from 'react-hyperscript-helpers'
 import TextAreaAutosize from 'react-textarea-autosize'
+import { icon } from 'src/components/icons'
 import colors from 'src/libs/colors'
 import { forwardRefWithName, useLabelAssert } from 'src/libs/react-utils'
 
@@ -69,3 +71,39 @@ export const TextInput = forwardRefWithName('TextInput', ({ onChange, nativeOnCh
     ref
   })
 })
+
+/**
+ * @param {object} props.inputProps
+ * @param {object} [props.error] - error message content
+ */
+export const ValidatedInput = ({ inputProps, width, error }) => {
+  return createValidatedInput({ inputProps, width, error }, null)
+}
+
+const createValidatedInput = ({ inputProps, width, error }, ref) => {
+  const props = _.merge({
+    style: error ? {
+      paddingRight: '2.25rem', // leave room for error icon
+      border: `1px solid ${colors.warning()}`
+    } : undefined
+  }, inputProps)
+  return h(Fragment, [
+    div({
+      style: { position: 'relative', display: 'flex', alignItems: 'center', width }
+    }, [
+      h(TextInput, { ...props, ref }),
+      error && icon('error-standard', {
+        size: 24,
+        style: {
+          position: 'absolute', color: colors.warning(),
+          right: '.5rem'
+        }
+      })
+    ]),
+    error && div({
+      style: styles.validationError,
+      'aria-live': 'assertive',
+      'aria-relevant': 'all'
+    }, [error])
+  ])
+}
