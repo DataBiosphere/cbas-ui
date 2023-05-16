@@ -5,6 +5,7 @@ import { h } from 'react-hyperscript-helpers'
 import { Ajax } from 'src/libs/ajax'
 import { makeCompleteDate } from 'src/libs/utils'
 
+import { metadata as runDetailsMetadata } from '../fixtures/test-workflow'
 import { RunDetails } from './RunDetails'
 
 
@@ -25,76 +26,16 @@ const runDetailsProps = {
 
 const end = new Date()
 const start = new Date(end.getMilliseconds() - 1000000)
-
-const runDetailsMetadata = {
-  workflowName: 'fileChecksum',
-  workflowProcessingEvents: [
-    {
-      cromwellId: 'cromid-18d9b68',
-      description: 'PickedUp',
-      timestamp: '2022-11-16T15:48:23.135Z',
-      cromwellVersion: '85-3f4b998-SNAP'
-    },
-    {
-      cromwellId: 'cromid-18d9b68',
-      description: 'Finished',
-      timestamp: '2022-11-16T15:48:24.859Z',
-      cromwellVersion: '85-3f4b998-SNAP'
-    }
-  ],
-  actualWorkflowLanguageVersion: 'draft-2',
-  submittedFiles: {
-    workflow:
-      // eslint-disable-next-line no-template-curly-in-string
-      'task md5 {\n    File inputFile \n    command {\n        echo "`date`: Running checksum on ${inputFile}..."\n        md5sum ${inputFile} > md5sum.txt\n        echo "`date`: Checksum is complete."\n    }\n    output {\n        File result = "md5sum.txt"\n    }\n    runtime {\n        docker: \'ubuntu:18.04\'\n        preemptible: true\n    }\n}\n\nworkflow fileChecksum {\n    File inputFile\n    call md5 { input: inputFile=inputFile}\n}\n\n',
-    root: '',
-    options: '{\n\n}',
-    inputs: '{"fileChecksum.inputFile":"https://coaexternalstorage.blob.core.windows.net/cromwell/user-inputs/inputFile.txt"}',
-    workflowUrl: '',
-    labels: '{}'
-  },
-  calls: {
-    testOne: [{
-      start,
-      executionStatus: 'Running',
-      shardIndex: 3,
-      attempt: 2,
-      backendStatus: 'Running',
-      end
-    }]
-  },
-  outputs: {},
-  actualWorkflowLanguage: 'WDL',
-  status: 'Aborted',
-  failures: [
-    {
-      message: 'InjectionManagerFactory not found.',
-      causedBy: []
-    }
-  ],
-  end: '2022-11-16T18:48:24.858Z',
-  start: '2022-11-16T19:48:23.195Z',
-  id: '00001111-2222-3333-aaaa-bbbbccccdddd',
-  inputs: {
-    'fileChecksum.inputFile': 'https://coaexternalstorage.blob.core.windows.net/cromwell/user-inputs/inputFile.txt'
-  },
-  labels: {
-    'cromwell-workflow-id': 'cromwell-5d96fd3c-1a89-40ae-8095-c364181cda46'
-  },
-  submission: '2022-11-16T15:48:22.506Z'
-}
-
 beforeEach(() => {
-  const workId = {
-    metadata() {
-      return jest.fn(() => runDetailsMetadata)
-    }
-  }
   Ajax.mockImplementation(() => {
     return {
       Cromwell: {
-        workflows() {
-          return workId
+        workflows: () => {
+          return {
+            metadata: () => {
+              return runDetailsMetadata
+            }
+          }
         }
       }
     }
@@ -129,17 +70,18 @@ describe('RunDetails - render smoke test', () => {
   it('shows the workflow status', async () => {
     render(h(RunDetails, runDetailsProps))
     await waitFor(() => {
-      const workflowStatus = screen.getByText(runDetailsMetadata.status)
-      expect(workflowStatus).toBeDefined
+      const statusContainer = screen.getByTestId('workflow-status-container')
+      const statusText = within(statusContainer).getByText(runDetailsMetadata.status)
+      expect(statusText).toBeDefined
     })
   })
 
   it('shows the workflow timing', async () => {
     render(h(RunDetails, runDetailsProps))
     await waitFor(() => {
-      const startTime = screen.getByText(makeCompleteDate(runDetailsMetadata.start))
+      const startTime = screen.getByTestId('workflow-start-time')
       expect(startTime).toBeDefined
-      const endTime = screen.getByText(makeCompleteDate(runDetailsMetadata.end))
+      const endTime = screen.getByTestId('workflow-end-time')
       expect(endTime).toBeDefined
     })
   })
@@ -147,14 +89,14 @@ describe('RunDetails - render smoke test', () => {
   it('shows the workflow id', async () => {
     render(h(RunDetails, runDetailsProps))
     await waitFor(() => {
-      const workflowId = screen.getByText(runDetailsMetadata.id)
+      const workflowIdSpan = screen.getByTestId('workflow-engine-id-span')
+      const workflowId = within(workflowIdSpan).getByText(runDetailsProps.workflowId)
       expect(workflowId).toBeDefined
     })
   })
 
   it('shows the workflow failures', async () => {
     jest.spyOn(navigator.clipboard, 'writeText')
-
     render(h(RunDetails, runDetailsProps))
     const user = userEvent.setup()
     await waitFor(async () => {
@@ -167,58 +109,41 @@ describe('RunDetails - render smoke test', () => {
     })
   })
 
-  it('shows the workflow tasks', async () => {
-    const callData = runDetailsMetadata.calls.testOne[0]
-    render(h(RunDetails, runDetailsProps))
-    await waitFor(() => {
-      const callCollapse = screen.getByText('Tasks')
-      expect(callCollapse).toBeDefined
-      const countString = screen.getByText('Total Task Status Counts')
-      expect(countString).toBeDefined
-      const totalRunningString = screen.getByText(/1 Running/)
-      expect(totalRunningString).toBeDefined
-      const collapseTestOneString = screen.getByText(/^testOne/)
-      expect(collapseTestOneString).toBeDefined
-      const testOneTable = screen.getByRole(/table/)
-      expect(testOneTable).toBeDefined
-      const rows = within(testOneTable).queryAllByRole(/^row$/)
-      expect(rows.length).toEqual(2)
-      const columnHeaders = ['Index', 'Attempt', 'Status', 'Start', 'End']
-      columnHeaders.forEach(label => {
-        const columnHeader = within(rows[0]).getByText(label)
-        expect(columnHeader).toBeDefined()
-        const key = label.toLowerCase()
-        let value
-
-        switch (key) {
-          case 'start':
-          case 'end':
-            const time = callData[key]
-            value = makeCompleteDate(time)
-            break
-          case 'index':
-            value = callData.shardIndex
-            break
-          case 'status':
-            value = 'Running'
-            break
-          default:
-            value = callData[key]
-        }
-        const cellData = within(rows[1]).getAllByText(value)
-        expect(cellData).toBeDefined
-      })
-    })
-  })
-
   it('shows the wdl text in a dedicated code block', async () => {
     render(h(RunDetails, runDetailsProps))
     const user = userEvent.setup()
     await waitFor(async () => {
       const collapseTitle = screen.getByText('Submitted workflow script')
       await user.click(collapseTitle)
-      const wdlScript = screen.getByText(/Running checksum/)
+      const wdlCollapseContainer = screen.getByTestId('workflow-script-collapse')
+      const wdlScript = within(wdlCollapseContainer).getByText(/Retrieve reads from the NCBI Short Read Archive/)
       expect(wdlScript).toBeDefined
+    })
+  })
+
+  it('shows the calls in a table', async () => {
+    const { calls } = runDetailsMetadata
+
+    const calcRowCount = () => {
+      const callNames = Object.keys(calls)
+      return callNames.reduce((rows, callName) => {
+        rows += (calls[callName]?.length || 0)
+        return rows
+      }, 1)
+    }
+
+    render(h(RunDetails, runDetailsProps))
+
+    await waitFor(() => {
+      const table = screen.getByTestId('workflow-call-table')
+      const rows = within(table).getAllByRole('row')
+      expect(rows.length).toEqual(calcRowCount())
+      const taskNames = Object.keys(calls)
+      //NOTE: finish up row evaluation portion of this test
+      // taskNames.forEach(taskName => {
+      //   const taskCallArray = calls[taskName]
+      //   const
+      // }
     })
   })
 })

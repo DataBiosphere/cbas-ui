@@ -1,7 +1,7 @@
 
-import { countBy, every, filter, flattenDepth, flow, includes, isEmpty, keys, map, min, sortBy, startCase, values } from 'lodash/fp'
+import { cloneDeep, countBy, every, filter, flattenDepth, flow, includes, isEmpty, keys, map, min, sortBy, startCase, values } from 'lodash/fp'
 import { Fragment, useMemo, useRef, useState } from 'react'
-import { div, h } from 'react-hyperscript-helpers'
+import { div, h, span } from 'react-hyperscript-helpers'
 import ReactJson from 'react-json-view'
 import Collapse from 'src/components/Collapse'
 import { ClipboardButton, Link, Navbar } from 'src/components/common'
@@ -63,7 +63,7 @@ export const statusFilterFn = status => filter(call => call.uiStatusLabel.toLoca
 //Filter functions/selections should act on this data, not the workflow source data
 //Flag the latest attempt as latest for table row updates
 export const generateCallTableData = tasks => {
-  const clonedTasks = structuredClone(tasks)
+  const clonedTasks = cloneDeep(tasks)
   const taskNames = Object.keys(clonedTasks)
   return taskNames.flatMap(taskName => {
     const attempts = clonedTasks[taskName]
@@ -107,17 +107,15 @@ export const RunDetails = ({ submissionId, workflowId }) => {
       ]
       const excludeKey = []
 
-      //NOTE: below is mock metadata for local development
-      //Remove before submitting PR
-
       //NOTE: commenting this out for now, setting metadata to mock workflow for local development purposes. Re-enable when submitting PR
       const metadata = await Ajax(signal).Cromwell.workflows(workflowId).metadata({ includeKey, excludeKey })
-
       setWorkflow(metadata)
-      const formattedTableData = generateCallTableData(metadata.calls)
-      setTableData(formattedTableData)
-      if (includes(collapseStatus(metadata.status), [statusType.running, statusType.submitted])) {
-        stateRefreshTimer.current = setTimeout(loadWorkflow, 60000)
+      if (!isEmpty(metadata?.calls)) {
+        const formattedTableData = generateCallTableData(metadata.calls)
+        setTableData(formattedTableData)
+        if (includes(collapseStatus(metadata.status), [statusType.running, statusType.submitted])) {
+          stateRefreshTimer.current = setTimeout(loadWorkflow, 60000)
+        }
       }
     }
 
@@ -153,7 +151,6 @@ export const RunDetails = ({ submissionId, workflowId }) => {
   // TODO maybe display the path to the workflow log file rather than the contents?
   // eslint-disable-next-line
   const { metadataArchiveStatus, calls, end, failures, start, status, workflowLog, workflowRoot, submittedFiles: { workflow: wdl } = {} } = workflow || {}
-
   const restructureFailures = failuresArray => {
     const filtered = filter(({ message }) => !isEmpty(message) && !message.startsWith('Will not start job'), failuresArray)
     const sizeDiff = failuresArray.length - filtered.length
@@ -167,8 +164,6 @@ export const RunDetails = ({ submissionId, workflowId }) => {
       ...(!isEmpty(causedBy) ? { causedBy: restructureFailures(causedBy) } : {})
     }), simplifiedFailures)
   }
-
-  const callNames = sortBy(callName => min(map('start', calls[callName])), keys(calls))
 
   return div({ 'data-testid': 'run-details-container', id: 'run-details-page' }, [
     Navbar('RUN WORKFLOWS WITH CROMWELL'),
@@ -214,7 +209,7 @@ export const RunDetails = ({ submissionId, workflowId }) => {
                 }
               },
               [
-                div({ style: { display: 'flex', justifyContent: 'flex-start' } }, [
+                div({ 'data-testid': 'workflow-status-container', style: { display: 'flex', justifyContent: 'flex-start' } }, [
                   makeSection(
                     'Workflow Status',
                     [
@@ -227,12 +222,17 @@ export const RunDetails = ({ submissionId, workflowId }) => {
                   makeSection('Workflow Timing', [
                     div({ style: { marginTop: '0.5rem', display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '0.5rem' } }, [
                       div({ style: styles.sectionTableLabel }, ['Start:']),
-                      div([start ? makeCompleteDate(start) : 'N/A']),
+                      div({ 'data-testid': 'workflow-start-time' }, [start ? makeCompleteDate(start) : 'N/A']),
                       div({ style: styles.sectionTableLabel }, ['End:']),
-                      div([end ? makeCompleteDate(end) : 'N/A'])
+                      div({ 'data-testid': 'workflow-end-time' }, [end ? makeCompleteDate(end) : 'N/A'])
                     ])
                   ]),
-                  makeSection('Workflow Engine Id', [div({ style: { lineHeight: '24px', marginTop: '0.5rem' } }, [div([workflowId])])], {})
+                  makeSection('Workflow Engine Id', [
+                    div({
+                      style: { lineHeight: '24px', marginTop: '0.5rem' }
+                    }, [span({ 'data-testid': 'workflow-engine-id-span' }, [workflowId])]
+                    )
+                  ])
                 ]),
                 failures &&
                     h(
@@ -258,45 +258,11 @@ export const RunDetails = ({ submissionId, workflowId }) => {
                         })
                       ]
                     ),
-                h(
-                  Collapse,
-                  {
-                    title: div({ style: elements.sectionHeader }, ['Tasks']),
-                    initialOpenState: true
-                  },
-                  [
-                    div({ style: { marginLeft: '1rem' } }, [
-                      makeSection('Total Task Status Counts', [
-                        !isEmpty(calls) ?
-                          statusCell(workflow) :
-                          div({ style: { marginTop: '0.5rem' } }, ['No calls have been started by this workflow.'])
-                      ]),
-                      !isEmpty(calls) &&
-                          makeSection(
-                            'Task Lists',
-                            [
-                              map(callName => {
-                                return h(
-                                  Collapse,
-                                  {
-                                    key: callName,
-                                    style: { marginLeft: '1rem', marginTop: '0.5rem' },
-                                    title: div({ style: { ...codeFont, ...elements.sectionHeader } }, [`${callName} × ${calls[callName].length}`]),
-                                    initialOpenState: !every({ executionStatus: 'Done' }, calls[callName])
-                                  },
-                                  // [h(CallTable, { callName, callObjects: calls[callName] })]
-                                )
-                              }, callNames)
-                            ],
-                            { style: { overflow: 'visible' } }
-                          )
-                    ])
-                  ]
-                ),
                 wdl &&
                     h(
                       Collapse,
                       {
+                        'data-testid': 'workflow-script-collapse',
                         title: div({ style: elements.sectionHeader }, ['Submitted workflow script'])
                       },
                       [h(WDLViewer, { wdl })]
@@ -308,12 +274,12 @@ export const RunDetails = ({ submissionId, workflowId }) => {
         //NOTE:filter drop down, status count, and taskname search will occur here
 
         div({
-          id: 'workflow-details-call-table-container',
+          'data-testid': 'workflow-call-table',
           style: {
             margin: '1rem 3rem'
           }
         }, [
-          h(CallTable, { key: 'workflow-tasks', callObjects: tableData })
+          !isEmpty(tableData) && h(CallTable, { key: 'workflow-tasks', callObjects: tableData })
         ])
 
         //  Q4-2022 Disable log-viewing
