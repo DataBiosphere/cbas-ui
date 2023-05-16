@@ -73,7 +73,7 @@ export const UriDownloadButton = ({ uri, sasToken, name, accessUrl }) => {
   }
 
   const googleDownloadButton = () => {
-    const cost = '$free.99' // TODO: Uncomment/replace on merge with Terra UI: getMaxDownloadCostNA(size)
+    const cost = '$free.99' //TODO: Uncomment/replace on merge with Terra UI: getMaxDownloadCostNA(size).
     h(ButtonPrimary, {
       disabled: !url,
       /* Since no metrics in CBAS-UI, this should stay commented until we merge with Terra-UI. When we do, uncomment the following.

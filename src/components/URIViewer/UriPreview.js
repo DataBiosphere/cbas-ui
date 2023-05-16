@@ -48,7 +48,7 @@ export const UriPreview = ({ metadata }) => {
   const loadPreview = async () => {
     try {
       if (isAzureUri(uri)) {
-        setPreview(metadata.textContent) //NB: For now, we only support text previews for Azure URIs, and only if the text is already in the metadata.
+        setPreview(metadata.textContent) //NB: For now, we only support text previews for Azure URIs.
       } else {
         const res = await Ajax(signal).Buckets.getObjectPreview(googleProject, bucket, name, isImage(metadata))
         if (isImage(metadata)) {

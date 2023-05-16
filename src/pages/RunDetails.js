@@ -67,7 +67,6 @@ export const RunDetails = ({ submissionId, workflowId }) => {
    * Data fetchers
    */
   useOnMount(() => {
-    console.log('canary2 canary2')
     const loadWorkflow = async () => {
       const includeKey = [
         'end', 'executionStatus', 'failures', 'start', 'status', 'submittedFiles:workflow', 'workflowLog', 'workflowRoot',
@@ -77,13 +76,6 @@ export const RunDetails = ({ submissionId, workflowId }) => {
 
       const metadata = await Ajax(signal).Cromwell.workflows(workflowId).metadata({ includeKey, excludeKey })
 
-      //For testing locally. Cromwell running locally doesn't supply this field, but the dev/prod ones do.
-      if (!metadata.hasOwnProperty('workflowLog')) {
-        const filePath = 'https://lz0d5275bdd36d3e6a22a130.blob.core.windows.net/sc-97c7cccb-aaf8-424c-92cc-587ba49919b6/workspace-services/cbas/wds-97c7cccb-aaf8-424c-92cc-587ba49919b6/cromwell-workflow-logs/workflow.85d75e23-eb96-4823-a0ad-dfc21903f1d4.log'
-        metadata.workflowLog = filePath
-      }
-      //end local testing
-
       setWorkflow(metadata)
 
       if (includes(collapseStatus(metadata.status), [statusType.running, statusType.submitted])) {
@@ -92,7 +84,6 @@ export const RunDetails = ({ submissionId, workflowId }) => {
     }
 
     loadWorkflow()
-
     return () => {
       clearTimeout(stateRefreshTimer.current)
     }
