@@ -205,9 +205,12 @@ export const SubmissionDetails = ({ submissionId }) => {
               {
                 size: { basis: 350 },
                 field: 'record_id',
-                headerRenderer: () => h(Sortable, { sort, field: 'record_id', onSort: setSort }, [' ID']),
+                headerRenderer: () => h(Sortable, { sort, field: 'record_id', onSort: setSort }, ['Sample ID']),
                 cellRenderer: ({ rowIndex }) => {
-                  return h(TextCell, [paginatedPreviousRuns[rowIndex].record_id])
+                  return div({ style: { width: '100%', textAlign: 'left' } }, [
+                    h(Link, { onClick: () => { goToPath('run-details', { submissionId, workflowId: paginatedPreviousRuns[rowIndex].engine_id }) }, style: { fontWeight: 'bold' } },
+                      [paginatedPreviousRuns[rowIndex].record_id])
+                  ])
                 }
               },
               {
@@ -234,17 +237,6 @@ export const SubmissionDetails = ({ submissionId }) => {
                 headerRenderer: () => h(Sortable, { sort, field: 'duration', onSort: setSort }, ['Duration']),
                 cellRenderer: ({ rowIndex }) => {
                   return h(TextCell, [customFormatDuration(paginatedPreviousRuns[rowIndex].duration)])
-                }
-              },
-              {
-                size: { basis: 550, grow: 0 },
-                field: 'run_id',
-                headerRenderer: () => h(Sortable, { sort, field: 'run_id', onSort: setSort }, ['Workflow ID']),
-                cellRenderer: ({ rowIndex }) => {
-                  return div({ style: { width: '100%', textAlign: 'left' } }, [
-                    h(Link, { onClick: () => { goToPath('run-details', { submissionId, workflowId: paginatedPreviousRuns[rowIndex].engine_id }) }, style: { fontWeight: 'bold' } },
-                      [paginatedPreviousRuns[rowIndex].engine_id])
-                  ])
                 }
               }
             ],
