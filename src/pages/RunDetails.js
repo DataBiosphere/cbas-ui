@@ -67,6 +67,7 @@ export const RunDetails = ({ submissionId, workflowId }) => {
    * Data fetchers
    */
   useOnMount(() => {
+    console.log('canary2 canary2')
     const loadWorkflow = async () => {
       const includeKey = [
         'end', 'executionStatus', 'failures', 'start', 'status', 'submittedFiles:workflow', 'workflowLog', 'workflowRoot',

@@ -184,7 +184,8 @@ export const UriViewer = _.flow(
               els.data((fileName || _.last(name.split('/'))).split('.').join('.\u200B')) // allow line break on periods
             ]),
             h(UriPreview, { metadata }),
-            h(UriDownloadButton, metadata),
+            div({ style: { display: 'flex', justifyContent: 'space-around' } }, [h(UriDownloadButton, metadata)]),
+            //h(UriDownloadButton, metadata),
             els.cell([els.label('File size'), els.data(filesize(size))]),
             !isAzureUri(uri) && renderGoogleStorageBrowserLink(metadata),
             renderTerminalCommand(metadata),
