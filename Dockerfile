@@ -3,7 +3,7 @@ FROM node:14
 RUN set -x \
   && git clone https://github.com/DataBiosphere/cbas-ui.git \
   && cd cbas-ui \
-  && git checkout workflow_logs \
+  && git checkout main \
   && npm install \
   && PUBLIC_URL="." npm run build # to get relative URLs so that it can be load up in proxied environment
 
