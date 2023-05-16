@@ -2,12 +2,13 @@ import _ from 'lodash/fp'
 import { useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { Clickable, Link } from 'src/components/common'
+import HelpfulLinksBox from 'src/components/HelpfulLinksBox'
 import { centeredSpinner, icon } from 'src/components/icons'
+import ImportGithub from 'src/components/ImportGithub'
+import { submitMethod } from 'src/components/method-common'
 import ModalDrawer from 'src/components/ModalDrawer'
-import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
-import * as Nav from 'src/libs/nav'
-import { notify } from 'src/libs/notifications'
+import { getConfig } from 'src/libs/config'
 import { useCancellation } from 'src/libs/react-utils'
 import * as Style from 'src/libs/style'
 import { withBusyState } from 'src/libs/utils'
@@ -55,7 +56,7 @@ const suggestedWorkflowsList = [
     method_url: 'https://raw.githubusercontent.com/broadinstitute/warp/WholeGenomeGermlineSingleSample_v3.1.6/pipelines/broad/dna_seq/germline/single_sample/wgs/WholeGenomeGermlineSingleSample.wdl'
   },
   {
-    method_name: 'ExomeGermlineSingleSample ',
+    method_name: 'ExomeGermlineSingleSample',
     method_description: 'Processes germline exome/targeted sequencing data',
     method_source: 'GitHub',
     method_version: 'ExomeGermlineSingleSample_v3.0.0',
@@ -70,29 +71,9 @@ const FindWorkflowModal = ({ onDismiss }) => {
 
   const signal = useCancellation()
 
-  const submitMethod = withBusyState(setLoading, async ({ method }) => {
-    try {
-      const methodPayload = {
-        method_name: method.method_name,
-        method_description: method.method_description,
-        method_source: method.method_source,
-        method_version: method.method_version,
-        method_url: method.method_url
-      }
-
-      const methodObject = await Ajax(signal).Cbas.methods.post(methodPayload)
-      onDismiss()
-      Nav.goToPath('submission-config', {
-        methodId: methodObject.method_id
-      })
-    } catch (error) {
-      notify('error', 'Error creating new method', { detail: await (error instanceof Response ? error.text() : error) })
-      onDismiss()
-    }
-  })
-
   const subHeadersMap = {
-    'browse-suggested-workflows': 'Browse Suggested Workflows'
+    'browse-suggested-workflows': 'Browse Suggested Workflows',
+    ...(getConfig().isURLEnabled && { 'add-a-workflow-link': 'Add a Workflow Link' })
   }
 
   const isSubHeaderActive = subHeader => selectedSubHeader === subHeader
@@ -128,9 +109,14 @@ const FindWorkflowModal = ({ onDismiss }) => {
       ]),
       isSubHeaderActive('browse-suggested-workflows') && div({ style: { overflowY: 'auto', flexGrow: 1, display: 'flex', flexDirection: 'column', paddingLeft: '20px' } }, [
         div({ style: { display: 'flex', flexWrap: 'wrap', overflowY: 'auto', paddingBottom: 5, paddingLeft: 5 } }, [
-          _.map(method => h(MethodCard, { method, onClick: () => submitMethod({ method }), key: method.method_name }), suggestedWorkflowsList)
+          _.map(method => h(MethodCard, {
+            method,
+            onClick: () => withBusyState(setLoading, submitMethod(signal, onDismiss, method)), key: method.method_name
+          }), suggestedWorkflowsList)
         ])
-      ])
+      ]),
+      isSubHeaderActive('add-a-workflow-link') && h(ImportGithub, { setLoading, signal, onDismiss }),
+      div({ style: { marginLeft: '10rem', marginRight: '1.5rem', width: '40%' } }, [h(HelpfulLinksBox)])
     ])
   ])
 }

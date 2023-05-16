@@ -9,7 +9,7 @@ import * as Utils from 'src/libs/utils'
 const HelpfulLinksBox = ({ method }) => {
   return div({ style: { backgroundColor: colors.accent(0.2), paddingTop: '0.25em', paddingBottom: '0.25em', paddingLeft: '1em', paddingRight: '1em' } }, [
     h4('Have questions?'),
-    isCovid19Method(method.name) && p([
+    isCovid19Method(method?.name) && p([
       h(Link, { href: 'https://support.terra.bio/hc/en-us/articles/12028928980123-Covid-19-Surveillance-tutorial-guide', ...Utils.newTabLinkProps },
         [
           'Covid-19 Surveillance tutorial guide',
@@ -17,7 +17,7 @@ const HelpfulLinksBox = ({ method }) => {
         ]
       )
     ]),
-    isCovid19Method(method.name) && p([
+    isCovid19Method(method?.name) && p([
       h(Link, { href: 'https://app.terra.bio/#workspaces/azure-featured-workspaces/COVID-19-Surveillance', ...Utils.newTabLinkProps },
         [
           'Covid-19 Featured Workspace',

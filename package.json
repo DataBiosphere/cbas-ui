@@ -1,6 +1,6 @@
 {
   "name": "composite-batch-analysis-service-ui",
-  "version": "0.0.117",
+  "version": "0.0.119",
   "private": true,
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^1.2.36",
@@ -41,7 +41,8 @@
     "react-transition-group": "^4.4.2",
     "react-virtualized": "^9.22.3",
     "setimmediate": "^1.0.5",
-    "uuid": "^8.3.2"
+    "uuid": "^8.3.2",
+    "validate.js": "^0.13.1"
   },
   "scripts": {
     "analyze": "yarn build && source-map-explorer 'build/static/js/*.js' --gzip",

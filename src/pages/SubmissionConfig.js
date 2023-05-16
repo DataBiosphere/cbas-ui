@@ -266,7 +266,7 @@ export const SubmissionConfig = ({ methodId }) => {
                   setSelectedMethodVersion(_.find(m => m.name === value, availableMethodVersions))
                 },
                 placeholder: 'None',
-                styles: { container: old => ({ ...old, display: 'inline-block', width: 100, marginLeft: 20 }) },
+                styles: { container: old => ({ ...old, display: 'inline-block', width: 325, marginLeft: 20 }) },
                 options: _.map(m => m.name, availableMethodVersions)
               }) :
               'Fetching available workflow versions...']),
