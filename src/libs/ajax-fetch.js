@@ -46,8 +46,6 @@ export const fetchCromwell = withUrlPrefix(`${getConfig().cromwellUrlRoot}/api/w
 export const fetchLeo = withUrlPrefix(`${getConfig().leoUrlRoot}/`, fetchOk) // TODO: How to add this config to Cromwhelm?
 export const fetchWds = wdsUrlRoot => withUrlPrefix(`${wdsUrlRoot}/`, fetchOk)
 
-const wsmRoot = getConfig().workspaceManagerRoot ?
-  `${getConfig().workspaceManagerRoot}/api/workspaces/v1` :
-  `https://workspace.dsde-dev.broadinstitute.org/api/workspaces/v1`
+const wsmRoot = `${getConfig().workspaceManagerRoot}/api/workspaces/v1`
 export const fetchWorkspaceManager = withUrlPrefix(`${wsmRoot}/`, fetchOk)
 export const fetchAzureStorage = withUrlPrefix('', fetchOk)

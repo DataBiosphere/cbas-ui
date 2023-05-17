@@ -99,7 +99,8 @@ export const UriDownloadButton = ({ uri, sasToken, name, accessUrl }) => {
     )
   }
 
+  //If URL missing, show error. Otherwise, show the Azure/GCP download button.
   return els.cell([
-    url === null ? 'Unable to generate download link.' : isAzureUri(uri) ? azureDownloadButton() : googleDownloadButton()
+    url.isEmpty() ? 'Unable to generate download link.' : isAzureUri(uri) ? azureDownloadButton() : googleDownloadButton()
   ])
 }

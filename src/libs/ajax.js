@@ -131,8 +131,8 @@ const Leonardo = signal => ({
   }
 })
 
-const workspaceId = getConfig().workspaceId || '97c7cccb-aaf8-424c-92cc-587ba49919b6'
-const containerId = getConfig().containerResourceId || '181aa2f8-f72f-46c9-a06d-bff1cfa1bbbb'
+const workspaceId = getConfig().workspaceId
+const containerId = getConfig().containerResourceId
 const WorkspaceManager = signal => ({
   /**
    * Request a SAS token from Workspace Manager.
