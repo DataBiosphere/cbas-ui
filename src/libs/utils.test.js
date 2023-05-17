@@ -43,12 +43,12 @@ describe('getDockstoreUrlRoot', () => {
   })
 
   it.each([
-    { testEnv: 'development', url: 'https://staging.dockstore.org'},
-    { testEnv: 'staging', url: 'https://staging.dockstore.org'},
-    { testEnv: 'production', url: 'https://dockstore.org'},
-    { testEnv: 'local', url: 'https://staging.dockstore.org'},
-    { testEnv: 'alpha', url: 'https://staging.dockstore.org'}
-  ])('returns proper url for given environment', ({testEnv, url}) => {
+    { testEnv: 'development', url: 'https://staging.dockstore.org' },
+    { testEnv: 'staging', url: 'https://staging.dockstore.org' },
+    { testEnv: 'production', url: 'https://dockstore.org' },
+    { testEnv: 'local', url: 'https://staging.dockstore.org' },
+    { testEnv: 'alpha', url: 'https://staging.dockstore.org' }
+  ])('returns proper url for given environment', ({ testEnv, url }) => {
     // Arrange
     process.env.NODE_ENV = testEnv
 
