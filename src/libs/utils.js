@@ -189,3 +189,15 @@ export const renderTypeText = iotype => {
   }
   return 'Unsupported Type'
 }
+
+export const getDockstoreUrlRoot = () => {
+  let rootUrl
+  switch (process.env.NODE_ENV) {
+    case 'production':
+      rootUrl = 'https://dockstore.org'
+      break
+    default:
+      rootUrl = 'https://staging.dockstore.org'
+  }
+  return rootUrl
+}

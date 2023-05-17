@@ -14,3 +14,4 @@ export const getConfig = () => {
 export const isFindWorkflowEnabled = () => getConfig().isFindWorkflowEnabled
 export const isActionMenuEnabled = () => getConfig().isActionMenuEnabled
 export const isURLEnabled = () => getConfig().isURLEnabled
+export const isDockstoreEnabled = () => getConfig().isURLEnabled

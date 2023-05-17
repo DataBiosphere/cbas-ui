@@ -11,7 +11,7 @@ import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
 import { useCancellation } from 'src/libs/react-utils'
 import * as Style from 'src/libs/style'
-import { withBusyState } from 'src/libs/utils'
+import { getDockstoreUrlRoot, withBusyState } from 'src/libs/utils'
 import { MethodCard } from 'src/pages/FindWorkflow/MethodCard'
 
 
@@ -77,6 +77,7 @@ const FindWorkflowModal = ({ onDismiss }) => {
   }
 
   const isSubHeaderActive = subHeader => selectedSubHeader === subHeader
+  const dockstoreRootUrl = getDockstoreUrlRoot()
 
   return h(ModalDrawer, {
     'aria-label': 'find-workflow-modal', isOpen: true, width: '70%',
@@ -105,7 +106,10 @@ const FindWorkflowModal = ({ onDismiss }) => {
             'aria-current': isActive,
             key: subHeaderKey
           }, [subHeaderName])
-        }, Object.entries(subHeadersMap))
+        }, Object.entries(subHeadersMap)),
+        getConfig().isDockstoreEnabled && [div({ style: { fontSize: 18, fontWeight: 600, marginTop: '3rem' } }, ['Browse More Workflows']),
+          h(Link, { style: { fontSize: 17 }, href: `${dockstoreRootUrl}/search?_type=workflow&descriptorType=WDL&searchMode=files` },
+            ['Dockstore', icon('export', { style: { marginLeft: '0.5rem', marginTop: '1.5rem' } })])]
       ]),
       isSubHeaderActive('browse-suggested-workflows') && div({ style: { overflowY: 'auto', flexGrow: 1, display: 'flex', flexDirection: 'column', paddingLeft: '20px' } }, [
         div({ style: { display: 'flex', flexWrap: 'wrap', overflowY: 'auto', paddingBottom: 5, paddingLeft: 5 } }, [

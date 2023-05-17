@@ -1,6 +1,6 @@
 import '@testing-library/jest-dom'
 
-import { makeCompleteDate, renderTypeText } from 'src/libs/utils'
+import { getDockstoreUrlRoot, makeCompleteDate, renderTypeText } from 'src/libs/utils'
 
 
 describe('makeCompleteDate', () => {
@@ -28,5 +28,31 @@ describe('submission-common tests', () => {
         primitive_type: 'String'
       }
     })).toStrictEqual('Map[File, String]')
+  })
+})
+
+describe('getDockstoreUrlRoot', () => {
+  let env
+
+  beforeAll(() => {
+    env = process.env.NODE_ENV
+  })
+
+  afterAll(() => {
+    process.env.NODE_ENV = env
+  })
+
+  it.each([
+    { testEnv: 'development', url: 'https://staging.dockstore.org'},
+    { testEnv: 'staging', url: 'https://staging.dockstore.org'},
+    { testEnv: 'production', url: 'https://dockstore.org'},
+    { testEnv: 'local', url: 'https://staging.dockstore.org'},
+    { testEnv: 'alpha', url: 'https://staging.dockstore.org'}
+  ])('returns proper url for given environment', ({testEnv, url}) => {
+    // Arrange
+    process.env.NODE_ENV = testEnv
+
+    // Assert
+    expect(getDockstoreUrlRoot()).toBe(url)
   })
 })
