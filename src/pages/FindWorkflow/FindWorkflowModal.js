@@ -1,12 +1,13 @@
 import _ from 'lodash/fp'
 import { useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
-import { Clickable, Link } from 'src/components/common'
+import { ButtonPrimary, Clickable, Link } from 'src/components/common'
 import HelpfulLinksBox from 'src/components/HelpfulLinksBox'
 import { centeredSpinner, icon } from 'src/components/icons'
 import ImportGithub from 'src/components/ImportGithub'
 import { submitMethod } from 'src/components/method-common'
 import ModalDrawer from 'src/components/ModalDrawer'
+import { TextCell } from 'src/components/table'
 import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
 import { useCancellation } from 'src/libs/react-utils'
@@ -73,7 +74,8 @@ const FindWorkflowModal = ({ onDismiss }) => {
 
   const subHeadersMap = {
     'browse-suggested-workflows': 'Browse Suggested Workflows',
-    ...(getConfig().isURLEnabled && { 'add-a-workflow-link': 'Add a Workflow Link' })
+    ...(getConfig().isURLEnabled && { 'add-a-workflow-link': 'Add a Workflow Link' }),
+    ...(getConfig().isDockstoreEnabled && { 'go-to-dockstore': h(TextCell, {}, ['Dockstore', icon('export', { style: { marginLeft: '0.5rem' } })])})
   }
 
   const isSubHeaderActive = subHeader => selectedSubHeader === subHeader
@@ -106,10 +108,7 @@ const FindWorkflowModal = ({ onDismiss }) => {
             'aria-current': isActive,
             key: subHeaderKey
           }, [subHeaderName])
-        }, Object.entries(subHeadersMap)),
-        getConfig().isDockstoreEnabled && [div({ style: { fontSize: 18, fontWeight: 600, marginTop: '3rem' } }, ['Browse More Workflows']),
-          h(Link, { style: { fontSize: 17 }, href: `${dockstoreRootUrl}/search?_type=workflow&descriptorType=WDL&searchMode=files` },
-            ['Dockstore', icon('export', { style: { marginLeft: '0.5rem', marginTop: '1.5rem' } })])]
+        }, Object.entries(subHeadersMap))
       ]),
       isSubHeaderActive('browse-suggested-workflows') && div({ style: { overflowY: 'auto', flexGrow: 1, display: 'flex', flexDirection: 'column', paddingLeft: '20px' } }, [
         div({ style: { display: 'flex', flexWrap: 'wrap', overflowY: 'auto', paddingBottom: 5, paddingLeft: 5 } }, [
@@ -120,6 +119,7 @@ const FindWorkflowModal = ({ onDismiss }) => {
         ])
       ]),
       isSubHeaderActive('add-a-workflow-link') && h(ImportGithub, { setLoading, signal, onDismiss }),
+      isSubHeaderActive('go-to-dockstore') && div({style: { marginLeft: '4rem', width: '50%' }}, [h(ButtonPrimary, { style: { width: 225 }, href: `${dockstoreRootUrl}/search?_type=workflow&descriptorType=WDL&searchMode=files` }, ['Go to Dockstore'])]),
       div({ style: { marginLeft: '10rem', marginRight: '1.5rem', width: '40%' } }, [h(HelpfulLinksBox)])
     ])
   ])
