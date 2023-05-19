@@ -12,6 +12,7 @@ import {
   makeSection, makeStatusLine, statusType,
   SubmitNewWorkflowButton
 } from 'src/components/job-common'
+import { TroubleshootingBox } from 'src/components/TroubleshootingBox'
 //  Q4-2022 Disable log-viewing
 //import UriViewer from 'src/components/UriViewer'
 import WDLViewer from 'src/components/WDLViewer'
@@ -163,6 +164,7 @@ export const RunDetails = ({ submissionId, workflowId }) => {
       ],
       () => h(Fragment, {}, [
         div({ style: { padding: '1rem 2rem 2rem' } }, [header]),
+        div({ style: { display: 'flex', justifyContent: 'flex-start' } }, [TroubleshootingBox()]),
         div({
           style: {
             id: 'details-colored-container',
