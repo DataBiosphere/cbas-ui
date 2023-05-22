@@ -202,10 +202,18 @@ export const RunDetails = ({ submissionId, workflowId }) => {
                   {}
                 )
               ]),
-              makeSection('Logs', [h(Link, {
-                onClick: () => setShowLog(true),
-                style: { display: 'flex', marginLeft: '1rem', alignItems: 'center' }
-              }, [icon('fileAlt', { size: 18 }), ' Execution log'])], {}),
+              makeSection(
+                'Logs',
+                [
+                  h(Link, {
+                    onClick: () => setShowLog(true),
+                    style: { display: 'flex', marginLeft: '1rem', alignItems: 'center' }
+                  },
+                  [
+                    div({ 'data-testid': 'run-details-container' }, [icon('fileAlt', { size: 18 }), ' Execution log'])
+                  ]
+                  )
+                ], {}),
               failures &&
                 h(Collapse,
                   {

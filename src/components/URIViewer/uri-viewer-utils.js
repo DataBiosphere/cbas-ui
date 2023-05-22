@@ -1,6 +1,7 @@
 import _ from 'lodash/fp'
 
-
+//Used to differentiate an azure blob file URI from a google or drs one.
+//Matches the form https://someAlphaNumericCharacters.blob.core.windows.net
 const azRegexLiteral = /^https:\/\/([a-zA-Z0-9])+\.blob\.core\.windows\.net/
 const azureRegex = RegExp(azRegexLiteral)
 

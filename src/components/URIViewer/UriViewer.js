@@ -162,8 +162,7 @@ export const UriViewer = _.flow(
   }
 
   const { name, size } = metadata || {}
-  const fileName = isAzureUri(uri) ? name : metadata.fileName
-
+  const fileName = isAzureUri(uri) ? name : metadata ? metadata.fileName : 'Loading...'
   return h(
     Modal,
     {
@@ -185,7 +184,6 @@ export const UriViewer = _.flow(
             ]),
             h(UriPreview, { metadata }),
             div({ style: { display: 'flex', justifyContent: 'space-around' } }, [h(UriDownloadButton, metadata)]),
-            //h(UriDownloadButton, metadata),
             els.cell([els.label('File size'), els.data(filesize(size))]),
             !isAzureUri(uri) && renderGoogleStorageBrowserLink(metadata),
             renderTerminalCommand(metadata),
