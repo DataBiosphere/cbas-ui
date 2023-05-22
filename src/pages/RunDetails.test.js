@@ -254,7 +254,7 @@ describe('RunDetails - render smoke test', () => {
     })
   })
 
-  it('correctly identifies azure URIs', async () => {
+  it('correctly identifies azure URIs', () => {
     expect(isAzureUri('https://coaexternalstorage.blob.core.windows.net/cromwell/user-inputs/inputFile.txt'))
     expect(!isAzureUri('gs://some-bucket/some-file.txt'))
   })
