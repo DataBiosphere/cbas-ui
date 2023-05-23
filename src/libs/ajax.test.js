@@ -276,25 +276,47 @@ describe('Ajax tests', () => {
 
   it('should successfully POST an abort request for a running submission', async () => {
     const expectedResponse = {
-      run_set_id: fromProviderState('${run_set_id}', '00000000-0000-0000-0000-000000000000'), // eslint-disable-line no-template-curly-in-string
+      run_set_id: fromProviderState('${run_set_id}', '00000000-0000-0000-0000-000000000000'),
       runs: [
         {
-          run_id: fromProviderState('${run_id}', '00000000-0000-0000-0000-000000000000'), // eslint-disable-line no-template-curly-in-string
+          run_id: fromProviderState('${run_id}', '00000000-0000-0000-0000-000000000000'),
         }
       ],
       state: regex(RUNSET_STATE_REGEX, 'CANCELING')
     }
 
-    const payload = {
-      run_set_name: 'myRunSet',
-      run_set_description: 'myRunSet description',
-      method_version_id: '90000000-0000-0000-0000-000000000009',
-      wds_records: { record_type: 'FOO', record_ids: ['FOO1'] },
-      workflow_input_definitions: runSetInputDefWithStruct,
-      workflow_output_definitions: runSetOutputDef
-    }
-
-    const body = JSON.stringify(payload)
+    const runSetId = '20000000-0000-0000-0000-000000000002'
     const headers = { 'Content-Type': 'application/json' }
+
+    await cbasPact.addInteraction({
+      states: [
+        { description: 'posts cancel with UUID 20000000-0000-0000-0000-000000000002' },
+        { description: 'ready to receive exactly 1 call to POST run_sets/abort' }
+      ],
+      uponReceiving: 'post a run set to be canceled',
+      withRequest: { method: 'POST', path: '/api/batch/v1/run_sets/abort', query: { run_set_id: '20000000-0000-0000-0000-000000000002' } },
+      willRespondWith: { status: 200, body: expectedResponse }
+    })
+
+    await cbasPact.executeTest(async mockService => {
+      // ARRANGE
+      const signal = 'fakeSignal'
+
+      fetchCbas.mockImplementation(async path => await fetch(
+        `${mockService.url}/api/batch/v1/${path}`, { method: 'POST', headers }))
+
+      // ACT
+      const response = await Ajax(signal).Cbas.runSets.cancel(runSetId)
+
+      // ASSERT
+      expect(response).toBeDefined()
+      expect(fetchCbas).toBeCalledTimes(1)
+      console.log(response)
+      expect(fetchCbas).toBeCalledWith('run_sets/abort?run_set_id=20000000-0000-0000-0000-000000000002', { method: 'POST', signal })
+      expect(response).toHaveProperty('run_set_id')
+      expect(response).toHaveProperty('runs')
+      expect(response).toHaveProperty('state')
+      expect(response.runs.length).toEqual(1)
+    })
   })
 })
