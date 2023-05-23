@@ -273,4 +273,28 @@ describe('Ajax tests', () => {
       expect(response.runs.length).toEqual(1)
     })
   })
+
+  it('should successfully POST an abort request for a running submission', async () => {
+    const expectedResponse = {
+      run_set_id: fromProviderState('${run_set_id}', '00000000-0000-0000-0000-000000000000'), // eslint-disable-line no-template-curly-in-string
+      runs: [
+        {
+          run_id: fromProviderState('${run_id}', '00000000-0000-0000-0000-000000000000'), // eslint-disable-line no-template-curly-in-string
+        }
+      ],
+      state: regex(RUNSET_STATE_REGEX, 'CANCELING')
+    }
+
+    const payload = {
+      run_set_name: 'myRunSet',
+      run_set_description: 'myRunSet description',
+      method_version_id: '90000000-0000-0000-0000-000000000009',
+      wds_records: { record_type: 'FOO', record_ids: ['FOO1'] },
+      workflow_input_definitions: runSetInputDefWithStruct,
+      workflow_output_definitions: runSetOutputDef
+    }
+
+    const body = JSON.stringify(payload)
+    const headers = { 'Content-Type': 'application/json' }
+  })
 })
