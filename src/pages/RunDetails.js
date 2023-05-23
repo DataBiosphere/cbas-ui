@@ -1,4 +1,3 @@
-
 import { countBy, every, filter, flattenDepth, flow, includes, isEmpty, keys, map, min, sortBy, values } from 'lodash/fp'
 import { Fragment, useMemo, useRef, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
@@ -12,8 +11,7 @@ import {
   makeSection, makeStatusLine, statusType,
   SubmitNewWorkflowButton
 } from 'src/components/job-common'
-//  Q4-2022 Disable log-viewing
-//import UriViewer from 'src/components/UriViewer'
+import { UriViewer } from 'src/components/URIViewer/UriViewer'
 import WDLViewer from 'src/components/WDLViewer'
 import { Ajax } from 'src/libs/ajax'
 import { useCancellation, useOnMount } from 'src/libs/react-utils'
@@ -60,8 +58,7 @@ export const RunDetails = ({ submissionId, workflowId }) => {
    * State setup
    */
   const [workflow, setWorkflow] = useState()
-  //Q4-2022 Disable log-viewing
-  //const [showLog, setShowLog] = useState(false)
+  const [showLog, setShowLog] = useState(false)
 
   const signal = useCancellation()
   const stateRefreshTimer = useRef()
@@ -69,7 +66,6 @@ export const RunDetails = ({ submissionId, workflowId }) => {
   /*
    * Data fetchers
    */
-
   useOnMount(() => {
     const loadWorkflow = async () => {
       const includeKey = [
@@ -79,6 +75,7 @@ export const RunDetails = ({ submissionId, workflowId }) => {
       const excludeKey = []
 
       const metadata = await Ajax(signal).Cromwell.workflows(workflowId).metadata({ includeKey, excludeKey })
+
       setWorkflow(metadata)
 
       if (includes(collapseStatus(metadata.status), [statusType.running, statusType.submitted])) {
@@ -205,6 +202,18 @@ export const RunDetails = ({ submissionId, workflowId }) => {
                   {}
                 )
               ]),
+              makeSection(
+                'Logs',
+                [
+                  h(Link, {
+                    onClick: () => setShowLog(true),
+                    style: { display: 'flex', marginLeft: '1rem', alignItems: 'center' }
+                  },
+                  [
+                    div({ 'data-testid': 'run-details-container' }, [icon('fileAlt', { size: 18 }), ' Execution log'])
+                  ]
+                  )
+                ], {}),
               failures &&
                 h(Collapse,
                   {
@@ -270,9 +279,8 @@ export const RunDetails = ({ submissionId, workflowId }) => {
             ]
           )
         ]
-        )
-        //  Q4-2022 Disable log-viewing
-        //showLog && h(UriViewer, { workspace, uri: workflowLog, onDismiss: () => setShowLog(false) })
+        ),
+        showLog && h(UriViewer, { workflow, onDismiss: () => setShowLog(false) })
       ])
     )
   ])
