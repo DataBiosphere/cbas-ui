@@ -2,6 +2,7 @@
 import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { h } from 'react-hyperscript-helpers'
+import { isAzureUri } from 'src/components/URIViewer/uri-viewer-utils'
 import { Ajax } from 'src/libs/ajax'
 import { makeCompleteDate } from 'src/libs/utils'
 
@@ -20,7 +21,8 @@ const runDetailsProps = {
   namespace: 'example-billing-project',
   name: 'workspace',
   submissionId: 1,
-  workflowId: '00001111-2222-3333-aaaa-bbbbccccdddd'
+  workflowId: '00001111-2222-3333-aaaa-bbbbccccdddd',
+  uri: 'https://coaexternalstorage.blob.core.windows.net/cromwell/user-inputs/inputFile.txt'
 }
 
 const end = new Date()
@@ -66,6 +68,7 @@ const runDetailsMetadata = {
   outputs: {},
   actualWorkflowLanguage: 'WDL',
   status: 'Aborted',
+  workflowLog: 'https://coaexternalstorage.blob.core.windows.net/cromwell/user-inputs/inputFile.txt',
   failures: [
     {
       message: 'InjectionManagerFactory not found.',
@@ -95,6 +98,27 @@ beforeEach(() => {
       Cromwell: {
         workflows() {
           return workId
+        }
+      },
+      WorkspaceManager: {
+        getSASToken() {
+          return '1234-this-is-a-mock-sas-token-5678'
+        }
+      },
+      AzureStorage: {
+        getTextFileFromBlobStorage() {
+          return {
+            uri: 'https://someBlobFilePath.blob.core.windows.net/cromwell/user-inputs/inputFile.txt',
+            sasToken: '1234-this-is-a-mock-sas-token-5678',
+            storageAccountName: 'mockStorageAccountName',
+            containerName: 'mockContainerName',
+            blobName: '/mockcromwell/mock-inputs/inputFile.txt',
+            name: 'inputFile.txt',
+            lastModified: 'Mon, 22 May 2023 17:12:58 GMT',
+            size: '324',
+            contentType: 'text/plain',
+            textContent: 'this is the text of a mock file'
+          }
         }
       }
     }
@@ -219,6 +243,40 @@ describe('RunDetails - render smoke test', () => {
       await user.click(collapseTitle)
       const wdlScript = screen.getByText(/Running checksum/)
       expect(wdlScript).toBeDefined
+    })
+  })
+
+  it('shows the execution log button', async () => {
+    render(h(RunDetails, runDetailsProps))
+    await waitFor(() => {
+      const executionLog = screen.getByText('Execution log')
+      expect(executionLog).toBeDefined
+    })
+  })
+
+  it('correctly identifies azure URIs', () => {
+    expect(isAzureUri('https://coaexternalstorage.blob.core.windows.net/cromwell/user-inputs/inputFile.txt')).toBeTruthy
+    expect(isAzureUri('gs://some-bucket/some-file.txt')).toBeFalsy
+  })
+
+  it('shows a functional log modal when clicked', async () => {
+    render(h(RunDetails, runDetailsProps))
+    const user = userEvent.setup()
+    await waitFor(async () => {
+      const executionLog = screen.getByText('Execution log')
+      await user.click(executionLog) //Open the modal
+
+      //Verify all the element titles are present
+      expect(screen.getByText('File Details')).toBeDefined
+      expect(screen.getByText('Filename')).toBeDefined
+      expect(screen.getByText('Preview')).toBeDefined
+      expect(screen.getByText('File size')).toBeDefined
+      expect(screen.getByText('Terminal download command')).toBeDefined
+      expect(screen.getByText('Download')).toBeDefined
+
+      //Verify the data loaded properly
+      expect(screen.getByText('inputFile.\u200Btxt')).toBeDefined //This weird character is here because we allow line breaks on periods when displaying the filename
+      expect(screen.getByText('this is the text of a mock file')).toBeDefined
     })
   })
 })

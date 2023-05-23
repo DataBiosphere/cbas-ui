@@ -189,3 +189,41 @@ export const renderTypeText = iotype => {
   }
   return 'Unsupported Type'
 }
+
+/**
+ * Adapted from: https://gist.github.com/Martinsos/34d962b81b01082a45d90b2af5988097
+ * Validates and parses given blob uri and returns storage account, container and blob names.
+ * @param {string} blobUri - Valid Azure storage blob uri.
+ *   Check link for more details: https://docs.microsoft.com/en-us/rest/api/storageservices/naming-and-referencing-containers--blobs--and-metadata#resource-uri-syntax .
+ *   Few examples of valid uris:
+ *     - https://myaccount.blob.core.windows.net/mycontainer/myblob
+ *     - http://myaccount.blob.core.windows.net/myblob
+ *     - https://myaccount.blob.core.windows.net/$root/myblob
+ * @returns {Object} With following properties:
+ *   - {string} storageAccountName
+ *   - {string} containerName
+ *   - {string} blobName
+ *   - {string} fileName
+ */
+export const parseAzureBlobUri = blobUri => {
+  const storageAccountRegex = new RegExp('[a-z0-9]{3,24}')
+  const containerRegex = new RegExp('[a-z0-9](?!.*--)[a-z0-9-]{1,61}[a-z0-9]')
+  const blobRegex = new RegExp('.{1,1024}')
+
+  const blobUriRegex = new RegExp(
+    `^http[s]?://(${storageAccountRegex.source}).blob.core.windows.net/` +
+    `(?:($root|(?:${containerRegex.source}))/)?(${blobRegex.source})$`
+  )
+  const match = blobUriRegex.exec(blobUri)
+  if (!match) return {}
+
+  const parts = blobUri.split('/')
+  const lastSegment = parts.pop() || parts.pop() // handle potential trailing slash
+
+  return {
+    storageAccountName: match[1],
+    containerName: match[2] || '$root', // If not specified, then it is implicitly root container with name $root.
+    blobName: match[3],
+    fileName: lastSegment
+  }
+}
