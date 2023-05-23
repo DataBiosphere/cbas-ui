@@ -12,8 +12,8 @@ import {
   SubmitNewWorkflowButton
 } from 'src/components/job-common'
 import { TroubleshootingBox } from 'src/components/TroubleshootingBox'
-import { UriViewer } from 'src/components/URIViewer/UriViewer'
 import WDLViewer from 'src/components/WDLViewer'
+import { WorkflowInfoBox } from 'src/components/WorkflowInfoBox'
 import { Ajax } from 'src/libs/ajax'
 import { useCancellation, useOnMount } from 'src/libs/react-utils'
 import { codeFont, elements } from 'src/libs/style'
@@ -59,7 +59,6 @@ export const RunDetails = ({ submissionId, workflowId }) => {
    * State setup
    */
   const [workflow, setWorkflow] = useState()
-  const [showLog, setShowLog] = useState(false)
 
   const signal = useCancellation()
   const stateRefreshTimer = useRef()
@@ -161,7 +160,10 @@ export const RunDetails = ({ submissionId, workflowId }) => {
       ],
       () => h(Fragment, {}, [
         div({ style: { padding: '1rem 2rem 2rem' } }, [header]),
-        div({ style: { display: 'flex', justifyContent: 'flex-start' } }, [TroubleshootingBox()]),
+        div({ 'data-testid': 'details-top-container', style: { display: 'flex', justifyContent: 'space-between' } }, [
+          h(WorkflowInfoBox, {}, []),
+          h(TroubleshootingBox, {}, [])
+        ]),
         div({
           style: {
             id: 'details-colored-container',
@@ -204,18 +206,6 @@ export const RunDetails = ({ submissionId, workflowId }) => {
                   {}
                 )
               ]),
-              makeSection(
-                'Logs',
-                [
-                  h(Link, {
-                    onClick: () => setShowLog(true),
-                    style: { display: 'flex', marginLeft: '1rem', alignItems: 'center' }
-                  },
-                  [
-                    div({ 'data-testid': 'run-details-container' }, [icon('fileAlt', { size: 18 }), ' Execution log'])
-                  ]
-                  )
-                ], {}),
               failures &&
                 h(Collapse,
                   {
@@ -281,8 +271,7 @@ export const RunDetails = ({ submissionId, workflowId }) => {
             ]
           )
         ]
-        ),
-        showLog && h(UriViewer, { workflow, onDismiss: () => setShowLog(false) })
+        )
       ])
     )
   ])
