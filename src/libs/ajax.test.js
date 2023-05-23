@@ -290,7 +290,7 @@ describe('Ajax tests', () => {
 
     await cbasPact.addInteraction({
       states: [
-        { description: 'posts cancel with UUID 20000000-0000-0000-0000-000000000002' },
+        { description: 'ready to make POST cancel request with UUID 20000000-0000-0000-0000-000000000002' },
         { description: 'ready to receive exactly 1 call to POST run_sets/abort' }
       ],
       uponReceiving: 'post a run set to be canceled',
@@ -311,7 +311,6 @@ describe('Ajax tests', () => {
       // ASSERT
       expect(response).toBeDefined()
       expect(fetchCbas).toBeCalledTimes(1)
-      console.log(response)
       expect(fetchCbas).toBeCalledWith('run_sets/abort?run_set_id=20000000-0000-0000-0000-000000000002', { method: 'POST', signal })
       expect(response).toHaveProperty('run_set_id')
       expect(response).toHaveProperty('runs')
