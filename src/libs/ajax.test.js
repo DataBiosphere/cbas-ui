@@ -25,7 +25,8 @@ const {
   regex,
   boolean,
   integer,
-  fromProviderState
+  fromProviderState,
+  valueFromProviderState
 } = MatchersV3
 
 const UUID_REGEX = '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'
@@ -291,7 +292,7 @@ describe('Ajax tests', () => {
         { description: 'a run set with UUID 20000000-0000-0000-0000-000000000002 exists' }
       ],
       uponReceiving: 'a POST request to abort a run set',
-      withRequest: { method: 'POST', path: '/api/batch/v1/run_sets/abort', query: { run_set_id: '20000000-0000-0000-0000-000000000002' } },
+      withRequest: { method: 'POST', path: '/api/batch/v1/run_sets/abort', query: { run_set_id: runSetId } },
       willRespondWith: { status: 200, body: expectedResponse }
     })
 
@@ -308,7 +309,7 @@ describe('Ajax tests', () => {
       // ASSERT
       expect(response).toBeDefined()
       expect(fetchCbas).toBeCalledTimes(1)
-      expect(fetchCbas).toBeCalledWith('run_sets/abort?run_set_id=20000000-0000-0000-0000-000000000002', { method: 'POST', signal })
+      expect(fetchCbas).toBeCalledWith(`run_sets/abort?run_set_id=${runSetId}`, { method: 'POST', signal })
       expect(response).toHaveProperty('run_set_id')
       expect(response).toHaveProperty('runs')
       expect(response).toHaveProperty('state')
