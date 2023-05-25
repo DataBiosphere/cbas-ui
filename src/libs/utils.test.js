@@ -1,6 +1,6 @@
 import '@testing-library/jest-dom'
 
-import { getDockstoreUrlRoot, makeCompleteDate, renderTypeText } from 'src/libs/utils'
+import { makeCompleteDate, renderTypeText } from 'src/libs/utils'
 
 
 describe('makeCompleteDate', () => {
