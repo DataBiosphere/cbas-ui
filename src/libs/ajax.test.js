@@ -290,8 +290,7 @@ describe('Ajax tests', () => {
 
     await cbasPact.addInteraction({
       states: [
-        { description: 'a response with UUID 20000000-0000-0000-0000-000000000002' },
-        { description: 'a response with 3 expected fields' }
+        { description: 'a run set with UUID 20000000-0000-0000-0000-000000000002 exists' }
       ],
       uponReceiving: 'a POST request to abort a run set',
       withRequest: { method: 'POST', path: '/api/batch/v1/run_sets/abort', query: { run_set_id: '20000000-0000-0000-0000-000000000002' } },
