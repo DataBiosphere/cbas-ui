@@ -276,11 +276,9 @@ describe('Ajax tests', () => {
 
   it('should successfully POST an abort request for a running submission', async () => {
     const expectedResponse = {
-      run_set_id: fromProviderState('${run_set_id}', '00000000-0000-0000-0000-000000000000'), // eslint-disable-line no-template-curly-in-string
+      run_set_id: fromProviderState('${run_set_id}', '20000000-0000-0000-0000-000000000002'), // eslint-disable-line no-template-curly-in-string
       runs: [
-        {
-          run_id: fromProviderState('${run_id}', '00000000-0000-0000-0000-000000000000') // eslint-disable-line no-template-curly-in-string
-        }
+        fromProviderState('${run_id}', '30000000-0000-0000-0000-000000000003') // eslint-disable-line no-template-curly-in-string
       ],
       state: regex(RUNSET_STATE_REGEX, 'CANCELING')
     }
