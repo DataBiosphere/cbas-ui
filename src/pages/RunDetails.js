@@ -111,7 +111,6 @@ export const RunDetails = ({ submissionId, workflowId }) => {
       ]
       const excludeKey = []
       const metadata = await Ajax(signal).Cromwell.workflows(workflowId).metadata({ includeKey, excludeKey })
-
       setWorkflow(metadata)
       if (!isEmpty(metadata?.calls)) {
         const formattedTableData = generateCallTableData(metadata.calls)
@@ -304,13 +303,10 @@ export const RunDetails = ({ submissionId, workflowId }) => {
             },
             [
               h(CallTable, {
-                isFailed: () => {
-                  workflow?.status.toLocaleLowerCase().contains('failed');
-                },
+                defaultFailedFilter: workflow?.status.toLocaleLowerCase().includes('failed'),
                 isRendered: !isEmpty(tableData),
                 showLogModal,
-                tableData,
-                failedTaskView: true,
+                tableData
               }),
             ]
           ),

@@ -8,8 +8,6 @@ import { makeCromwellStatusLine } from 'src/components/job-common'
 import { FlexTable, HeaderCell, Sortable, tableHeight, TooltipCell } from 'src/components/table'
 import colors from 'src/libs/colors'
 import * as Utils from 'src/libs/utils'
-import { FailuresModal } from 'src/pages/workspaces/workspace/jobHistory/FailuresViewer'
-
 
 ///////////////FILTER UTILITY FUNCTIONS/////////////////////////////
 export const taskNameFilter = searchText => {
@@ -80,10 +78,16 @@ const SearchBar = ({ filterFn }) => {
 }
 
 ////////CALL TABLE///////////////////////
-const CallTable = ({ tableData, failedTaskView = false, showLogModal}) => {
-  const [sort, setSort] = useState({ field: 'index', direction: 'asc' });
+const CallTable = ({ tableData, defaultFailedFilter = false, showLogModal}) => {
+  const [sort, setSort] = useState({ field: 'index', direction: 'asc' })
   const [statusFilter, setStatusFilter] = useState([])
   const [filteredCallObjects, setFilteredCallObjects] = useState([])
+
+  useEffect(() => {
+    if(defaultFailedFilter) {
+      setStatusFilter(['Failed'])
+    }
+  }, [defaultFailedFilter])
 
   const filterFn = useMemo(() => {
     return filterCalllObjectsFn(tableData, sort, setFilteredCallObjects, statusFilter)
@@ -113,7 +117,7 @@ const CallTable = ({ tableData, failedTaskView = false, showLogModal}) => {
         fontWeight: 700
       }
     }, ['Filter by:']),
-    div({ style: { margin: '1rem 0', display: 'flex', alignItems: 'center', justifyContent: failedTaskView ? 'flex-end' : 'space-between' } }, [
+    div({ style: { margin: '1rem 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' } }, [
       div({
         id: 'filter-section-left',
         style: {
