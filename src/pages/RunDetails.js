@@ -17,7 +17,7 @@ import {
 import WDLViewer from 'src/components/WDLViewer'
 import { Ajax } from 'src/libs/ajax'
 import { useCancellation, useOnMount } from 'src/libs/react-utils'
-import { codeFont, elements } from 'src/libs/style'
+import { elements } from 'src/libs/style'
 import { cond, makeCompleteDate, newTabLinkProps } from 'src/libs/utils'
 import CallTable from 'src/pages/workspaces/workspace/jobHistory/CallTable'
 
@@ -59,27 +59,17 @@ const statusCell = ({ calls }) => {
 export const taskNameFilterFn = searchTerm => filter(call => call?.taskName?.includes(searchTerm))
 export const statusFilterFn = status => filter(call => call.uiStatusLabel.toLocaleLowerCase() === status.toLocaleLowerCase())
 
-//Helper function to generate base table data for unfiltered view
-//Filter functions/selections should act on this data, not the workflow source data
-//Flag the latest attempt as latest for table row updates
-export const generateCallTableData = tasks => {
-  const clonedTasks = cloneDeep(tasks)
-  const taskNames = Object.keys(clonedTasks)
-  return taskNames.flatMap(taskName => {
-    const attempts = clonedTasks[taskName]
-    const maxAttempt = attempts.length
-    const calls = attempts.map(call => {
-      call.taskName = taskName
-      //Nullish coalescing operator to set latest to true if attempt value is the max attempt
-      call.latest ??= call.attempt === maxAttempt
-      //assigning status styling object for use in call table
-      const cromwellStatusObj = collapseCromwellStatus(call.executionStatus, call.backendStatus)
-      call.statusObj = cromwellStatusObj
-      return call
-    })
-    //localeCompare returns a negative, positive, or 0 when comparing strings
-    //so the line before is a shorthand for sorting by taskName, then by attempt
-    return calls.sort((a, b) => a.taskName.localeCompare(b.taskName) || b.attempt - a.attempt)
+//Helper method to generate data for the call table
+export const generateCallTableData = calls => {
+  const taskName = Object.keys(calls)
+  return taskName.map(taskName => {
+    const targetData = calls[taskName]
+    const lastCall = cloneDeep(targetData[targetData.length - 1])
+    const additionalData = {
+      taskName,
+      statusObj: collapseCromwellStatus(lastCall.executionStatus, lastCall.backendStatus)
+    }
+    return Object.assign(additionalData, lastCall)
   })
 }
 
@@ -102,13 +92,25 @@ export const RunDetails = ({ submissionId, workflowId }) => {
   useOnMount(() => {
     const loadWorkflow = async () => {
       const includeKey = [
-        'end', 'executionStatus', 'failures', 'start', 'status', 'submittedFiles:workflow', 'workflowLog', 'workflowRoot',
-        'backendStatus'
-      ]
+        'backendStatus',
+        'executionStatus',
+        'shardIndex',
+        // 'outputs', //not sure if I need this yet
+        // 'inputs', //not sure if I need this yet
+        'jobId',
+        'start',
+        'end',
+        'stderr',
+        'stdout',
+        'attempt'
+        // 'subWorkflowId', //might not need this
+        // 'subWorkflowMetadata' //don't need this now, will need it when subworkflows data is fetched in one shot
+      ];
       const excludeKey = []
 
-      //NOTE: commenting this out for now, setting metadata to mock workflow for local development purposes. Re-enable when submitting PR
-      const metadata = await Ajax(signal).Cromwell.workflows(workflowId).metadata({ includeKey, excludeKey })
+
+      const metadata = await Ajax(signal).Cromwell.workflows(workflowId).metadata({ includeKey, excludeKey, expandWorkflow: true })
+
       setWorkflow(metadata)
       if (!isEmpty(metadata?.calls)) {
         const formattedTableData = generateCallTableData(metadata.calls)

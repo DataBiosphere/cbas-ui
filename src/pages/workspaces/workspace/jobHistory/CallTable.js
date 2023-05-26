@@ -79,9 +79,8 @@ const SearchBar = ({ filterFn }) => {
   )
 }
 
-
 ////////CALL TABLE///////////////////////
-const CallTable = ({ callName, callObjects }) => {
+const CallTable = ({ callName, callObjects, failedTaskView }) => {
   const [failuresModalParams, setFailuresModalParams] = useState()
   const [sort, setSort] = useState({ field: 'index', direction: 'asc' });
   const [statusFilter, setStatusFilter] = useState([])
@@ -115,8 +114,8 @@ const CallTable = ({ callName, callObjects }) => {
         fontWeight: 700
       }
     }, ['Filter by:']),
-    div({ style: { margin: '1rem 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' } }, [
-      div({
+    div({ style: { margin: '1rem 0', display: 'flex', alignItems: 'center', justifyContent: failedTaskView ? 'flex-end' : 'space-between' } }, [
+      !failedTaskView && div({
         id: 'filter-section-left',
         style: {
           display: 'flex',
@@ -152,13 +151,6 @@ const CallTable = ({ callName, callObjects }) => {
       ])
     ]),
 
-    /*
-      How to deal with visible rows?
-      Initial view shows only the latest attempt with a "Show all attempts" button that expands the table to show all attempts on click
-      This can be compromised if the user is allowed to sort by attempts in ascending order since it'll put the latest attempt at the bottom
-      Gut feeling is to assume that users shoudn't be able to sort the table in a way that overrides (name, attempt) ordering
-      NOTE: React-Virtualized has a multisort option, need to utilize that to sort by column plus attempt in desc order
-    */
     h(AutoSizer, { disableHeight: true }, [
       ({ width }) =>
         h(FlexTable, {
