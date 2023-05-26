@@ -5,7 +5,7 @@ import { AutoSizer } from 'react-virtualized'
 import { Link, Select } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { makeCromwellStatusLine } from 'src/components/job-common'
-import { FlexTable, Sortable, tableHeight, TooltipCell } from 'src/components/table'
+import { FlexTable, HeaderCell, Sortable, tableHeight, TooltipCell } from 'src/components/table'
 import colors from 'src/libs/colors'
 import * as Utils from 'src/libs/utils'
 import { FailuresModal } from 'src/pages/workspaces/workspace/jobHistory/FailuresViewer'
@@ -80,19 +80,18 @@ const SearchBar = ({ filterFn }) => {
 }
 
 ////////CALL TABLE///////////////////////
-const CallTable = ({ callName, callObjects, failedTaskView }) => {
-  const [failuresModalParams, setFailuresModalParams] = useState()
+const CallTable = ({ tableData, failedTaskView = false, showLogModal}) => {
   const [sort, setSort] = useState({ field: 'index', direction: 'asc' });
   const [statusFilter, setStatusFilter] = useState([])
   const [filteredCallObjects, setFilteredCallObjects] = useState([])
 
   const filterFn = useMemo(() => {
-    return filterCalllObjectsFn(callObjects, sort, setFilteredCallObjects, statusFilter)
-  }, [callObjects, sort, setFilteredCallObjects, statusFilter])
+    return filterCalllObjectsFn(tableData, sort, setFilteredCallObjects, statusFilter)
+  }, [tableData, sort, setFilteredCallObjects, statusFilter])
 
   const statusListObjects = useMemo(() => {
     const statusSet = {}
-    callObjects.forEach(({ statusObj }) => {
+    tableData.forEach(({ statusObj }) => {
       if (!_.isEmpty(statusObj)) {
         const { icon, id } = statusObj
         const startCasedId = _.startCase(id)
@@ -106,7 +105,7 @@ const CallTable = ({ callName, callObjects, failedTaskView }) => {
       }
     })
     return statusSet
-  }, [callObjects])
+  }, [tableData])
 
   return div([
     label({
@@ -115,7 +114,7 @@ const CallTable = ({ callName, callObjects, failedTaskView }) => {
       }
     }, ['Filter by:']),
     div({ style: { margin: '1rem 0', display: 'flex', alignItems: 'center', justifyContent: failedTaskView ? 'flex-end' : 'space-between' } }, [
-      !failedTaskView && div({
+      div({
         id: 'filter-section-left',
         style: {
           display: 'flex',
@@ -214,30 +213,29 @@ const CallTable = ({ callName, callObjects, failedTaskView }) => {
                 const { end } = filteredCallObjects[rowIndex];
                 return h(TooltipCell, [end ? Utils.makeCompleteDate(end) : 'N/A'])
               }
+            },
+            {
+              size: { basis: 200, grow: 1},
+              field: 'logs',
+              headerRenderer: () => h(HeaderCell, ['Logs']),
+              cellRenderer: (({ rowIndex }) => {
+                const { stdout, stderr } = filteredCallObjects[rowIndex]
+                return div({ style: { display: 'flex', justifyContent: 'flex-start' } }, [
+                  h(Link, {
+                    style: {
+                      marginRight: '0.5rem'
+                    },
+                    onClick: () => showLogModal(stdout)
+                  }, ['stdout']),
+                  h(Link, {
+                    onClick: () => showLogModal(stderr)
+                  }, 'stderr')
+                ])
+              })
             }
-            //NOTE: This final section will be held for the action modals
-            //Tempted to leave this off as a seperate ticket (where the modals are developed and implemented in the page independently)
-            // {
-            //   size: { basis: 200, grow: 2 },
-            //   headerRenderer: () => 'Links',
-            //   cellRenderer: ({ rowIndex }) => {
-            //     const { failures, shardIndex: index, attempt } = filteredCallObjects[rowIndex]
-            //     const failureCount = _.size(failures)
-            //     return !!failureCount && h(Link, {
-            //       style: { marginLeft: '0.5rem' },
-            //       onClick: () => setFailuresModalParams({ index, attempt, failures })
-            //     }, [
-            //       div({ style: { display: 'flex', alignItems: 'center' } }, [
-            //         icon('warning-standard', { size: 18, style: { color: colors.warning(), marginRight: '0.5rem' } }),
-            //         `${failureCount} Message${failureCount > 1 ? 's' : ''}`
-            //       ])
-            //     ])
-            //   }
-            // }
           ]
         })
-    ]),
-    failuresModalParams && h(FailuresModal, { ...failuresModalParams, callFqn: callName, onDismiss: () => setFailuresModalParams(undefined) }),
+    ])
   ])
 }
 

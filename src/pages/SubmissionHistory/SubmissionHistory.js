@@ -9,7 +9,6 @@ import { AutoRefreshInterval, getDuration, isRunSetInTerminalState, loadAllRunSe
 import { FlexTable, paginator, Sortable, tableHeight, TextCell } from 'src/components/table'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
-import { getConfig } from 'src/libs/config'
 import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
 import { useCancellation, useOnMount } from 'src/libs/react-utils'
@@ -134,35 +133,32 @@ export const SubmissionHistory = () => {
                 paddingTop: '1em'
               }),
               columns: [
-                ...getConfig().isActionMenuEnabled ?
-                  [{
-                    size: { basis: 100, grow: 0 },
-                    field: 'actions',
-                    headerRenderer: () => h(TextCell, {}, ['Actions']),
-                    cellRenderer: ({ rowIndex }) => {
-                      return h(MenuTrigger, {
-                        'aria-label': 'Action selection menu',
-                        popupProps: {
-                          style: { left: '-20px' }
-                        },
-                        content: h(Fragment, [
-                          h(MenuButton, {
-                            style: { fontSize: 15 },
-                            disabled: isRunSetInTerminalState(paginatedPreviousRunSets[rowIndex].state) || paginatedPreviousRunSets[rowIndex].state === 'CANCELING',
-                            tooltip: isRunSetInTerminalState(paginatedPreviousRunSets[rowIndex].state) && 'Cannot abort a terminal submission',
-                            onClick: () => {
-                              cancelRunSet(paginatedPreviousRunSets[rowIndex].run_set_id)
-                            }
-                          }, ['Abort'])
-                        ])
-                      }, [
-                        h(Clickable, {
-                          style: { textAlign: 'center' },
-                          'aria-label': 'Action selection menu'
-                        }, [icon('cardMenuIcon', { size: 35 })])
+                {
+                  size: { basis: 100, grow: 0 },
+                  field: 'actions',
+                  headerRenderer: () => h(TextCell, {}, ['Actions']),
+                  cellRenderer: ({ rowIndex }) => {
+                    return h(MenuTrigger, {
+                      'aria-label': 'Action selection menu',
+                      popupProps: {
+                        style: { left: '-20px' }
+                      },
+                      content: h(Fragment, [
+                        h(MenuButton, {
+                          style: { fontSize: 15 },
+                          disabled: isRunSetInTerminalState(paginatedPreviousRunSets[rowIndex].state) || paginatedPreviousRunSets[rowIndex].state === 'CANCELING',
+                          tooltip: isRunSetInTerminalState(paginatedPreviousRunSets[rowIndex].state) && 'Cannot abort a terminal submission',
+                          onClick: () => cancelRunSet(paginatedPreviousRunSets[rowIndex].run_set_id)
+                        }, ['Abort'])
                       ])
-                    }
-                  }] : [],
+                    }, [
+                      h(Clickable, {
+                        style: { textAlign: 'center' },
+                        'aria-label': 'Action selection menu'
+                      }, [icon('cardMenuIcon', { size: 35 })])
+                    ])
+                  }
+                },
                 {
                   size: { basis: 350 },
                   field: 'runset_name',

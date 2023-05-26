@@ -62,16 +62,3 @@ jobs:
           ref: refs/heads/main
           token: ${{ secrets.BROADBOT_TOKEN}} # github token for access to kick off a job in the private repo
           inputs: '{ "pact-b64": "${{ needs.setup-and-test.outputs.nb-b64 }}", "repo-owner": "DataBiosphere", "repo-name": "cbas-ui", "repo-branch": "${{ needs.setup-and-test.outputs.repo-branch }}" }'
-
-  dispatch-tag:
-    needs: [ setup-and-test ]
-    runs-on: ubuntu-latest
-
-    if: success() && github.ref == 'refs/heads/main'
-
-    steps:
-      - name: Fire off tag action
-        uses: broadinstitute/workflow-dispatch@v1
-        with:
-          workflow: Tag
-          token: ${{ secrets.BROADBOT_TOKEN }}

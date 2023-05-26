@@ -1,20 +1,26 @@
 import _ from 'lodash/fp'
-import * as qs from 'qs'
-import { fetchCbas, fetchCromwell, fetchLeo, fetchOk, fetchWds } from 'src/libs/ajax-fetch'
+import qs from 'qs'
+import { fetchAzureStorage, fetchCbas, fetchCromwell, fetchLeo, fetchOk, fetchWds, fetchWorkspaceManager } from 'src/libs/ajax-fetch'
 import { getConfig } from 'src/libs/config'
+import { parseAzureBlobUri } from 'src/libs/utils'
 
 
 const jsonBody = body => ({ body: JSON.stringify(body), headers: { 'Content-Type': 'application/json' } })
 
-const leoToken = () => {
-  const cookies = document.cookie.split(';')
-  const leoTokens = cookies.filter(c => c.startsWith('LeoToken=')).map(c => c.substring(9)) // token value starting after `LeoToken=`
+export const extractLeoTokenFromCookies = cookieString => {
+  const cookies = cookieString.split(';')
+  return _.flow(
+    _.map(c => c.trim()),
+    _.filter(c => c.startsWith('LeoToken=')),
+    _.map(c => c.substring(9)),
+    _.first)(cookies)
+}
 
-  // only 1 LeoToken should have been sent to browser, hence return the first element in array
-  return leoTokens[0]
+const leoToken = () => {
+  const cookieString = document.cookie
+  return extractLeoTokenFromCookies(cookieString)
 }
 const authHeader = { headers: { Authorization: `Bearer ${leoToken()}` } }
-
 
 const Cbas = signal => ({
   status: async () => {
@@ -125,12 +131,54 @@ const Leonardo = signal => ({
   }
 })
 
+const workspaceId = getConfig().workspaceId
+const containerId = getConfig().containerResourceId
+const WorkspaceManager = signal => ({
+  /**
+   * Request a SAS token from Workspace Manager.
+   * This SAS token will have permission to view the files in the associated Blob storage container.
+   * @returns {string} A SAS token that may be used for future requests to Azure blob storage.
+   */
+  getSASToken: async () => {
+    const path = `${workspaceId}/resources/controlled/azure/storageContainer/${containerId}/getSasToken?sasExpirationDuration=28800`
+    const res = await fetchWorkspaceManager(path, _.mergeAll([authHeader, { signal, method: 'POST' }])) //Returns an object with the keys "token" and "url"
+    const jsonResponse = await res.json()
+    return jsonResponse.token
+  }
+})
+
+const AzureStorage = signal => ({
+  getTextFileFromBlobStorage: async blobFilepath => {
+    const sasToken = await WorkspaceManager(signal).getSASToken()
+    const url = `${blobFilepath}?${sasToken}`
+    const res = await fetchAzureStorage(url, _.mergeAll([{ signal, method: 'GET' }]))
+    const textContent = await res.text()
+    const blobDetails = parseAzureBlobUri(blobFilepath)
+    const ret =
+      {
+        uri: blobFilepath,
+        sasToken,
+        storageAccountName: blobDetails.storageAccountName,
+        containerName: blobDetails.containerName,
+        blobName: blobDetails.blobName, //path to blob file from container root
+        name: blobDetails.fileName, // name of the file (i.e. the last segment end of the blobName)
+        lastModified: res.headers.get('Last-Modified'),
+        size: res.headers.get('Content-Length'), //size of file, in bytes
+        contentType: res.headers.get('Content-Type'),
+        textContent
+      }
+    return ret
+  }
+})
+
 export const Ajax = signal => {
   return {
     Cbas: Cbas(signal),
     Cromwell: Cromwell(signal),
     Wds: Wds(signal),
     WorkflowScript: WorkflowScript(signal),
-    Leonardo: Leonardo(signal)
+    Leonardo: Leonardo(signal),
+    WorkspaceManager: WorkspaceManager(signal),
+    AzureStorage: AzureStorage(signal)
   }
 }

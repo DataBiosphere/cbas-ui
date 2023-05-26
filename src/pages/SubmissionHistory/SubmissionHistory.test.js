@@ -6,18 +6,12 @@ import { div, h } from 'react-hyperscript-helpers'
 import selectEvent from 'react-select-event'
 import { MenuTrigger } from 'src/components/PopupTrigger'
 import { Ajax } from 'src/libs/ajax'
-import { getConfig } from 'src/libs/config'
 import { SubmissionHistory } from 'src/pages/SubmissionHistory/SubmissionHistory'
 
 // Necessary to mock the AJAX module.
 jest.mock('src/libs/ajax')
 
 jest.mock('src/libs/notifications.js')
-
-jest.mock('src/libs/config', () => ({
-  ...jest.requireActual('src/libs/config'),
-  getConfig: jest.fn().mockReturnValue({})
-}))
 
 jest.mock('src/components/PopupTrigger', () => {
   const originalModule = jest.requireActual('src/components/PopupTrigger')
@@ -88,16 +82,13 @@ afterAll(() => {
 // Note: Since the timestamps in the data is being converted to Local timezone, it returns different time when the tests
 //       are run locally and in GitHub action. Hence everywhere in this file we are verifying only the date format for now.
 describe('SubmissionHistory page', () => {
-  beforeEach(() => {
-    getConfig.mockReturnValue({ isActionMenuEnabled: false })
-  })
-
   const headerPosition = {
-    Submission: 0,
-    Status: 1,
-    'Date Submitted': 2,
-    Duration: 3,
-    Comment: 4
+    Actions: 0,
+    Submission: 1,
+    Status: 2,
+    'Date Submitted': 3,
+    Duration: 4,
+    Comment: 5
   }
 
   it('should display no content message when there are no previous run sets', async () => {
@@ -123,7 +114,7 @@ describe('SubmissionHistory page', () => {
 
 
     const table = screen.getByRole('table')
-    expect(table).toHaveAttribute('aria-colcount', '5')
+    expect(table).toHaveAttribute('aria-colcount', '6')
     expect(table).toHaveAttribute('aria-rowcount', '1')
 
     const rows = within(table).queryAllByRole('cell')
@@ -139,14 +130,15 @@ describe('SubmissionHistory page', () => {
     const table = screen.getByRole('table')
 
     // Assert
-    expect(table).toHaveAttribute('aria-colcount', '5')
+    expect(table).toHaveAttribute('aria-colcount', '6')
     expect(table).toHaveAttribute('aria-rowcount', '3')
 
     const rows = within(table).queryAllByRole('row')
     expect(rows.length).toBe(3)
 
     const headers = within(rows[0]).queryAllByRole('columnheader')
-    expect(headers.length).toBe(5)
+    expect(headers.length).toBe(6)
+    within(headers[headerPosition['Actions']]).getByText('Actions')
     within(headers[headerPosition['Submission']]).getByText('Submission name')
     within(headers[headerPosition['Status']]).getByText('Status')
     within(headers[headerPosition['Date Submitted']]).getByText('Date Submitted')
@@ -155,7 +147,8 @@ describe('SubmissionHistory page', () => {
 
     // check data rows are rendered as expected
     const cellsFromDataRow1 = within(rows[1]).queryAllByRole('cell')
-    expect(cellsFromDataRow1.length).toBe(5)
+    expect(cellsFromDataRow1.length).toBe(6)
+    within(headers[headerPosition['Actions']]).getByText('Actions')
     within(cellsFromDataRow1[headerPosition['Submission']]).getByText('Data used: FOO')
     within(cellsFromDataRow1[headerPosition['Submission']]).getByText('1 workflows')
     within(cellsFromDataRow1[headerPosition['Status']]).getByText('Success')
@@ -163,7 +156,8 @@ describe('SubmissionHistory page', () => {
     within(cellsFromDataRow1[headerPosition['Duration']]).getByText('1 day 1 hour 1 minute 1 second')
 
     const cellsFromDataRow2 = within(rows[2]).queryAllByRole('cell')
-    expect(cellsFromDataRow2.length).toBe(5)
+    expect(cellsFromDataRow2.length).toBe(6)
+    within(headers[headerPosition['Actions']]).getByText('Actions')
     within(cellsFromDataRow2[headerPosition['Submission']]).getByText('Data used: FOO')
     within(cellsFromDataRow2[headerPosition['Status']]).getByText('Failed with 1 errors')
     within(cellsFromDataRow2[headerPosition['Date Submitted']]).getByText(/Jul 10, 2021/)
@@ -214,7 +208,7 @@ describe('SubmissionHistory page', () => {
     const table = screen.getByRole('table')
 
     // Assert
-    expect(table).toHaveAttribute('aria-colcount', '5')
+    expect(table).toHaveAttribute('aria-colcount', '6')
     expect(table).toHaveAttribute('aria-rowcount', '3')
 
     const rows = within(table).queryAllByRole('row')
@@ -239,7 +233,7 @@ describe('SubmissionHistory page', () => {
     expect(rows.length).toBe(3)
 
     const headers = within(rows[0]).queryAllByRole('columnheader')
-    expect(headers.length).toBe(5)
+    expect(headers.length).toBe(6)
 
     const topRowCells = column => {
       const topRowCells = within(rows[1]).queryAllByRole('cell')
@@ -348,22 +342,6 @@ describe('SubmissionHistory page', () => {
     })
 
     expect(screen.getByText('Some submission statuses are not up to date. Refreshing the page may update more statuses.')).toBeInTheDocument()
-  })
-})
-
-describe('Actions column', () => {
-  beforeEach(() => {
-    getConfig.mockReturnValue({ isActionMenuEnabled: true })
-  })
-
-  it('Shows Actions column on table', async () => {
-    await act(async () => {
-      await render(h(SubmissionHistory))
-    })
-
-    const table = screen.getByRole('table')
-    expect(table).toHaveAttribute('aria-colcount', '6')
-    expect(table).toHaveAttribute('aria-rowcount', '3')
   })
 
   it('Gives abort option for actions button', async () => {

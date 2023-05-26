@@ -1,6 +1,6 @@
 
-import { cloneDeep, countBy, every, filter, flattenDepth, flow, includes, isEmpty, keys, map, min, sortBy, startCase, values } from 'lodash/fp'
-import { Fragment, useMemo, useRef, useState } from 'react'
+import { cloneDeep, countBy, filter, flattenDepth, flow, includes, isEmpty, map, values } from 'lodash/fp'
+import { Fragment, useCallback, useMemo, useRef, useState } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import ReactJson from 'react-json-view'
 import Collapse from 'src/components/Collapse'
@@ -12,11 +12,11 @@ import {
   makeSection, makeStatusLine, statusType,
   SubmitNewWorkflowButton
 } from 'src/components/job-common'
-//  Q4-2022 Disable log-viewing
-//import UriViewer from 'src/components/UriViewer'
+import { UriViewer } from 'src/components/URIViewer/UriViewer'
 import WDLViewer from 'src/components/WDLViewer'
 import { Ajax } from 'src/libs/ajax'
 import { useCancellation, useOnMount } from 'src/libs/react-utils'
+import { set } from 'src/libs/state-history';
 import { elements } from 'src/libs/style'
 import { cond, makeCompleteDate, newTabLinkProps } from 'src/libs/utils'
 import CallTable from 'src/pages/workspaces/workspace/jobHistory/CallTable'
@@ -79,16 +79,19 @@ export const RunDetails = ({ submissionId, workflowId }) => {
    */
   const [workflow, setWorkflow] = useState()
   const [tableData, setTableData] = useState([])
-  //Q4-2022 Disable log-viewing
-  //const [showLog, setShowLog] = useState(false)
+  const [showLog, setShowLog] = useState(false)
+  const [logUri, setLogUri] = useState({})
 
   const signal = useCancellation()
   const stateRefreshTimer = useRef()
 
+  const showLogModal = useCallback(logUri => {
+    setLogUri(logUri)
+    setShowLog(true)
+  }, [])
   /*
    * Data fetchers
    */
-
   useOnMount(() => {
     const loadWorkflow = async () => {
       const includeKey = [
@@ -105,11 +108,9 @@ export const RunDetails = ({ submissionId, workflowId }) => {
         'attempt'
         // 'subWorkflowId', //might not need this
         // 'subWorkflowMetadata' //don't need this now, will need it when subworkflows data is fetched in one shot
-      ];
+      ]
       const excludeKey = []
-
-
-      const metadata = await Ajax(signal).Cromwell.workflows(workflowId).metadata({ includeKey, excludeKey, expandWorkflow: true })
+      const metadata = await Ajax(signal).Cromwell.workflows(workflowId).metadata({ includeKey, excludeKey })
 
       setWorkflow(metadata)
       if (!isEmpty(metadata?.calls)) {
@@ -173,122 +174,150 @@ export const RunDetails = ({ submissionId, workflowId }) => {
     cond(
       [
         workflow === undefined,
-        () => h(Fragment, [div({ style: { fontStyle: 'italic', marginBottom: '1rem' } }, ['Fetching workflow metadata...']), centeredSpinner()])
+        () => h(Fragment, [div({ style: { fontStyle: 'italic', marginBottom: '1rem' } }, ['Fetching workflow metadata...']), centeredSpinner()]),
       ],
       [
         metadataArchiveStatus === 'ArchivedAndDeleted',
-        () => h(Fragment, [
-          div({ style: { lineHeight: '24px', marginTop: '0.5rem', ...elements.sectionHeader } }, ' Run Details Archived'),
-          div({ style: { lineHeight: '24px', marginTop: '0.5rem' } }, [
-            "This run's details have been archived. Please refer to the ",
-            h(
-              Link,
-              {
-                href: 'https://support.terra.bio/hc/en-us/articles/360060601631',
-                ...newTabLinkProps
-              },
-              [icon('pop-out', { size: 18 }), ' Run Details Archived']
-            ),
-            ' support article for details on how to access the archive.'
-          ])
-        ])
+        () =>
+          h(Fragment, [
+            div({ style: { lineHeight: '24px', marginTop: '0.5rem', ...elements.sectionHeader } }, ' Run Details Archived'),
+            div({ style: { lineHeight: '24px', marginTop: '0.5rem' } }, [
+              "This run's details have been archived. Please refer to the ",
+              h(
+                Link,
+                {
+                  href: 'https://support.terra.bio/hc/en-us/articles/360060601631',
+                  ...newTabLinkProps,
+                },
+                [icon('pop-out', { size: 18 }), ' Run Details Archived']
+              ),
+              ' support article for details on how to access the archive.',
+            ]),
+          ]),
       ],
-      () => h(Fragment, {}, [
-        div({ style: { padding: '1rem 2rem 2rem' } }, [header]),
-        div(
-          {
-            style: {
-              id: 'details-colored-container',
-              backgroundColor: 'rgb(222, 226, 232)'
-            }
-          },
-          [
-            div(
-              {
-                id: `details-colored-container-content`,
-                style: {
-                  padding: '1rem 2rem 2rem'
-                }
+      () =>
+        h(Fragment, {}, [
+          div({ style: { padding: '1rem 2rem 2rem' } }, [header]),
+          div(
+            {
+              style: {
+                id: 'details-colored-container',
+                backgroundColor: 'rgb(222, 226, 232)',
               },
-              [
-                div({ 'data-testid': 'workflow-status-container', style: { display: 'flex', justifyContent: 'flex-start' } }, [
-                  makeSection(
-                    'Workflow Status',
-                    [
-                      div({ style: { lineHeight: '24px', marginTop: '0.5rem' } }, [
-                        makeStatusLine(style => collapseStatus(status).icon(style), status)
-                      ])
-                    ],
-                    {}
-                  ),
-                  makeSection('Workflow Timing', [
-                    div({ style: { marginTop: '0.5rem', display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '0.5rem' } }, [
-                      div({ style: styles.sectionTableLabel }, ['Start:']),
-                      div({ 'data-testid': 'workflow-start-time' }, [start ? makeCompleteDate(start) : 'N/A']),
-                      div({ style: styles.sectionTableLabel }, ['End:']),
-                      div({ 'data-testid': 'workflow-end-time' }, [end ? makeCompleteDate(end) : 'N/A'])
-                    ])
-                  ]),
-                  makeSection('Workflow Engine Id', [
-                    div({
-                      style: { lineHeight: '24px', marginTop: '0.5rem' }
-                    }, [span({ 'data-testid': 'workflow-engine-id-span' }, [workflowId])]
-                    )
-                  ])
-                ]),
-                failures &&
-                    h(
-                      Collapse,
-                      {
-                        style: { marginBottom: '1rem' },
-                        initialOpenState: true,
-                        title: div({ style: elements.sectionHeader }, 'Workflow-Level Failures'),
-                        afterTitle: h(ClipboardButton, {
-                          text: JSON.stringify(failures, null, 2),
-                          style: { marginLeft: '0.5rem' }
-                        })
-                      },
+            },
+            [
+              div(
+                {
+                  id: `details-colored-container-content`,
+                  style: {
+                    padding: '1rem 2rem 2rem',
+                  },
+                },
+                [
+                  div({ 'data-testid': 'workflow-status-container', style: { display: 'flex', justifyContent: 'flex-start' } }, [
+                    makeSection(
+                      'Workflow Status',
                       [
-                        h(ReactJson, {
-                          style: { whiteSpace: 'pre-wrap' },
-                          name: false,
-                          collapsed: 4,
-                          enableClipboard: false,
-                          displayDataTypes: false,
-                          displayObjectSize: false,
-                          src: restructureFailures(failures)
-                        })
-                      ]
+                        div({ style: { lineHeight: '24px', marginTop: '0.5rem' } }, [
+                          makeStatusLine((style) => collapseStatus(status).icon(style), status),
+                        ]),
+                      ],
+                      {}
                     ),
-                wdl &&
-                    h(
-                      Collapse,
-                      {
-                        'data-testid': 'workflow-script-collapse',
-                        title: div({ style: elements.sectionHeader }, ['Submitted workflow script'])
+                    makeSection('Workflow Timing', [
+                      div({ style: { marginTop: '0.5rem', display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '0.5rem' } }, [
+                        div({ style: styles.sectionTableLabel }, ['Start:']),
+                        div({ 'data-testid': 'workflow-start-time' }, [start ? makeCompleteDate(start) : 'N/A']),
+                        div({ style: styles.sectionTableLabel }, ['End:']),
+                        div({ 'data-testid': 'workflow-end-time' }, [end ? makeCompleteDate(end) : 'N/A']),
+                      ]),
+                    ]),
+                    makeSection('Workflow Engine Id', [
+                      div(
+                        {
+                          style: { lineHeight: '24px', marginTop: '0.5rem' },
+                        },
+                        [span({ 'data-testid': 'workflow-engine-id-span' }, [workflowId])]
+                      ),
+                    ]),
+                  ]),
+                  makeSection('Workflow Engine Id', [div({ style: { lineHeight: '24px', marginTop: '0.5rem' } }, [div([workflowId])])], {}),
+                ]
+              ),
+              makeSection(
+                'Logs',
+                [
+                  h(
+                    Link,
+                    {
+                      onClick: () => {
+                        setShowLog(true);
+                        setLogUri(workflow.workflowLog);
                       },
-                      [h(WDLViewer, { wdl })]
-                    )
-              ]
-            )
-          ]
-        ),
-        //NOTE:filter drop down, status count, and taskname search will occur here
-
-        div({
-          'data-testid': 'workflow-call-table',
-          style: {
-            margin: '1rem 3rem'
-          }
-        }, [
-          !isEmpty(tableData) && h(CallTable, { key: 'workflow-tasks', callObjects: tableData })
+                      style: { display: 'flex', marginLeft: '1rem', alignItems: 'center' },
+                    },
+                    [div({ 'data-testid': 'run-details-container' }, [icon('fileAlt', { size: 18 }), ' Execution log'])]
+                  ),
+                ],
+                {}
+              ),
+              failures &&
+                h(
+                  Collapse,
+                  {
+                    style: { marginBottom: '1rem' },
+                    initialOpenState: true,
+                    title: div({ style: elements.sectionHeader }, 'Workflow-Level Failures'),
+                    afterTitle: h(ClipboardButton, {
+                      text: JSON.stringify(failures, null, 2),
+                      style: { marginLeft: '0.5rem' },
+                    }),
+                  },
+                  [
+                    h(ReactJson, {
+                      style: { whiteSpace: 'pre-wrap' },
+                      name: false,
+                      collapsed: 4,
+                      enableClipboard: false,
+                      displayDataTypes: false,
+                      displayObjectSize: false,
+                      src: restructureFailures(failures),
+                    }),
+                  ]
+                ),
+              wdl &&
+                h(
+                  Collapse,
+                  {
+                    title: div({ style: elements.sectionHeader }, ['Submitted workflow script']),
+                  },
+                  [h(WDLViewer, { wdl })]
+                ),
+            ]
+          ),
+          div(
+            {
+              'data-testid': 'call-table-container',
+              style: {
+                margin: '2rem',
+              },
+            },
+            [
+              h(CallTable, {
+                isFailed: () => {
+                  workflow?.status.toLocaleLowerCase().contains('failed');
+                },
+                isRendered: !isEmpty(tableData),
+                showLogModal,
+                tableData,
+                failedTaskView: true,
+              }),
+            ]
+          ),
+          showLog && h(UriViewer, { uri: logUri || '', onDismiss: () => setShowLog(false) })
         ])
-
-        //  Q4-2022 Disable log-viewing
-        //showLog && h(UriViewer, { workspace, uri: workflowLog, onDismiss: () => setShowLog(false) })
-      ])
-    )
-  ])
+    ),
+  ]);
 }
 
 export const navPaths = [
