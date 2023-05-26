@@ -377,16 +377,20 @@ export const SubmissionConfig = ({ methodId }) => {
           div({ style: { lineHeight: 2.0, marginTop: '1.5rem' } }, [
             div([h(TextCell, ['This will launch ', span({ style: { fontWeight: 'bold' } }, [_.keys(selectedRecords).length]), ' workflow(s).'])]),
             h(TextCell, { style: { marginTop: '1rem' } }, ['Running workflows will generate cloud compute charges.']),
-            ...(workflowSubmissionError ? [
-              h(TextCell, {style: {marginTop: '1rem'}}, ['An error occurred:']),
-              div({ style: {
-                padding: '0.5rem', backgroundColor: colors.light(),
-                whiteSpace: 'pre-wrap', overflow: 'auto', overflowWrap: 'break-word',
-                fontFamily: 'Menlo, monospace',
-                maxHeight: 400
-              } }, [workflowSubmissionError])
-
-              ] : [])
+            ...Utils.cond([workflowSubmissionError, [
+              div({ style: { display: 'flex', alignItems: 'center', marginTop: '1rem' } }, [
+                icon('warning-standard', { size: 16, style: { color: colors.danger() } }),
+                h(TextCell, { style: { marginLeft: '0.5rem' } }, ['Error submitting workflow:'])
+              ]),
+              div({
+                style: {
+                  padding: '0.5rem', backgroundColor: colors.light(),
+                  whiteSpace: 'pre-wrap', overflowY: 'scroll', overflowWrap: 'break-word',
+                  fontFamily: 'Menlo, monospace',
+                  maxHeight: 160
+                }
+              }, [workflowSubmissionError])
+            ]], [true, []])
           ])
         ]),
         viewWorkflowScriptModal && h(ViewWorkflowScriptModal, { workflowScript, onDismiss: () => setViewWorkflowScriptModal(false) })
