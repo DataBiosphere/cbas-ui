@@ -806,7 +806,7 @@ describe('Input source and requirements validation', () => {
 
     // ** ACT **
     // user selects the attribute 'rating_for_foo' for input 'foo_rating_workflow_var'
-    await userEvent.click(within(cellsFoo[4]).getByText('foo_rating'))
+    act(async () => {await userEvent.click(within(cellsFoo[4]).getByText('foo_rating'))})
     const selectOption = await screen.findByText(`rating_for_foo`)
     await userEvent.click(selectOption)
 
