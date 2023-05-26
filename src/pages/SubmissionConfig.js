@@ -377,7 +377,7 @@ export const SubmissionConfig = ({ methodId }) => {
           div({ style: { lineHeight: 2.0, marginTop: '1.5rem' } }, [
             div([h(TextCell, ['This will launch ', span({ style: { fontWeight: 'bold' } }, [_.keys(selectedRecords).length]), ' workflow(s).'])]),
             h(TextCell, { style: { marginTop: '1rem' } }, ['Running workflows will generate cloud compute charges.']),
-            ...Utils.cond([workflowSubmissionError, [
+            ...Utils.cond([workflowSubmissionError, () => [
               div({ style: { display: 'flex', alignItems: 'center', marginTop: '1rem' } }, [
                 icon('warning-standard', { size: 16, style: { color: colors.danger() } }),
                 h(TextCell, { style: { marginLeft: '0.5rem' } }, ['Error submitting workflow:'])
@@ -390,7 +390,7 @@ export const SubmissionConfig = ({ methodId }) => {
                   maxHeight: 160
                 }
               }, [workflowSubmissionError])
-            ]], [true, []])
+            ]], () => '')
           ])
         ]),
         viewWorkflowScriptModal && h(ViewWorkflowScriptModal, { workflowScript, onDismiss: () => setViewWorkflowScriptModal(false) })
