@@ -459,7 +459,7 @@ export const SubmissionConfig = ({ methodId }) => {
       })
     } catch (error) {
       setIsSubmitting(false)
-      setWorkflowSubmissionError(error instanceof Response ? JSON.stringify(await error.json(), null, 2) : error)
+      setWorkflowSubmissionError(JSON.stringify(error instanceof Response ? (await error.json()) : error, null, 2))
     }
   }
 
