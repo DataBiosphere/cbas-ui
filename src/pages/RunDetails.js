@@ -1,57 +1,22 @@
-import { countBy, every, filter, flattenDepth, flow, includes, isEmpty, keys, map, min, sortBy, values } from 'lodash/fp'
+import { every, includes, isEmpty, keys, map, min, sortBy } from 'lodash/fp'
 import { Fragment, useMemo, useRef, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
-import ReactJson from 'react-json-view'
 import Collapse from 'src/components/Collapse'
-import { ClipboardButton, Link, Navbar } from 'src/components/common'
+import { Link, Navbar } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
 import {
-  collapseCromwellStatus, collapseStatus,
+  collapseStatus,
   HeaderSection,
-  makeSection, makeStatusLine, statusType,
+  makeSection, statusType,
   SubmitNewWorkflowButton
 } from 'src/components/job-common'
 import { TroubleshootingBox } from 'src/components/TroubleshootingBox'
-import WDLViewer from 'src/components/WDLViewer'
 import { WorkflowInfoBox } from 'src/components/WorkflowInfoBox'
 import { Ajax } from 'src/libs/ajax'
 import { useCancellation, useOnMount } from 'src/libs/react-utils'
 import { codeFont, elements } from 'src/libs/style'
-import { cond, makeCompleteDate, newTabLinkProps } from 'src/libs/utils'
+import { cond, newTabLinkProps } from 'src/libs/utils'
 import CallTable from 'src/pages/workspaces/workspace/jobHistory/CallTable'
-
-
-const commonStatuses = ['submitted', 'waitingForQuota', 'running', 'succeeded', 'failed']
-
-const styles = {
-  sectionTableLabel: { fontWeight: 600 }
-}
-
-// Note: this can take a while with large data inputs. Consider memoization if the page ever needs re-rendering.
-const groupCallStatuses = flow(
-  values,
-  flattenDepth(1),
-  countBy(a => {
-    const collapsedStatus = collapseCromwellStatus(a.executionStatus, a.backendStatus)
-    return collapsedStatus !== statusType.unknown ? collapsedStatus.id : collapsedStatus.label(a.executionStatus)
-  })
-)
-
-const statusCell = ({ calls }) => {
-  const statusGroups = groupCallStatuses(calls)
-  const makeRow = (count, status, labelOverride) => {
-    const seeMore = !!status.moreInfoLink ? h(Link, { href: status.moreInfoLink, style: { marginLeft: '0.50rem' }, ...newTabLinkProps },
-      [status.moreInfoLabel, icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })]) : ''
-    return !!count && div({ style: { display: 'flex', alignItems: 'center', marginTop: '0.25rem' } }, [
-      status.icon(),
-      ` ${count} ${!!labelOverride ? labelOverride : status.label()}`,
-      seeMore
-    ])
-  }
-  const status = commonStatuses.filter(
-    s => statusGroups[s]).map(s => makeRow(statusGroups[s], statusType[s]))
-  return h(Fragment, status)
-}
 
 
 export const RunDetails = ({ submissionId, workflowId }) => {
@@ -116,20 +81,6 @@ export const RunDetails = ({ submissionId, workflowId }) => {
   // eslint-disable-next-line
   const { metadataArchiveStatus, calls, end, failures, start, status, workflowLog, workflowRoot, submittedFiles: { workflow: wdl } = {} } = workflow || {}
 
-  const restructureFailures = failuresArray => {
-    const filtered = filter(({ message }) => !isEmpty(message) && !message.startsWith('Will not start job'), failuresArray)
-    const sizeDiff = failuresArray.length - filtered.length
-    const newMessage = sizeDiff > 0 ? [{
-      message: `${sizeDiff} jobs were queued in Cromwell but never sent to the cloud backend due to failures elsewhere in the workflow`
-    }] : []
-    const simplifiedFailures = [...filtered, ...newMessage]
-
-    return map(({ message, causedBy }) => ({
-      message,
-      ...(!isEmpty(causedBy) ? { causedBy: restructureFailures(causedBy) } : {})
-    }), simplifiedFailures)
-  }
-
   const callNames = sortBy(callName => min(map('start', calls[callName])), keys(calls))
 
   return div({ 'data-testid': 'run-details-container', id: 'run-details-page' }, [
@@ -160,118 +111,32 @@ export const RunDetails = ({ submissionId, workflowId }) => {
       ],
       () => h(Fragment, {}, [
         div({ style: { padding: '1rem 2rem 2rem' } }, [header]),
-        div({ 'data-testid': 'details-top-container', style: { display: 'flex', justifyContent: 'space-between' } }, [
-          h(WorkflowInfoBox, {}, []),
-          h(TroubleshootingBox, {}, [])
+        div({ 'data-testid': 'details-top-container', style: { display: 'flex', justifyContent: 'space-between', padding: '1rem 2rem 2rem' } }, [
+          h(WorkflowInfoBox, { workflow }, []),
+          h(TroubleshootingBox, { workflow, submissionId, workflowId }, [])
         ]),
-        div({
-          style: {
-            id: 'details-colored-container',
-            backgroundColor: 'rgb(222, 226, 232)'
-          }
-        }, [
-          div(
-            {
-              id: `details-colored-container-content`,
-              style: {
-                padding: '1rem 2rem 2rem'
-              }
-            },
+        div({ 'data-testid': 'details-table-container', style: { padding: '1rem 2rem 2rem' } }, [
+          !isEmpty(calls) &&
+          makeSection(
+            'Tasks:',
             [
-              div({ style: { display: 'flex', justifyContent: 'flex-start' } }, [
-                makeSection(
-                  'Workflow Status',
-                  [
-                    div({ style: { lineHeight: '24px', marginTop: '0.5rem' } }, [
-                      makeStatusLine(style => collapseStatus(status).icon(style), status)
-                    ])
-                  ],
-                  {}
-                ),
-                makeSection('Workflow Timing', [
-                  div({ style: { marginTop: '0.5rem', display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '0.5rem' } }, [
-                    div({ style: styles.sectionTableLabel }, ['Start:']),
-                    div([start ? makeCompleteDate(start) : 'N/A']),
-                    div({ style: styles.sectionTableLabel }, ['End:']),
-                    div([end ? makeCompleteDate(end) : 'N/A'])
-                  ])
-                ]),
-                makeSection(
-                  'Workflow Engine Id',
-                  [
-                    div({ style: { lineHeight: '24px', marginTop: '0.5rem' } }, [
-                      div([workflowId])
-                    ])
-                  ],
-                  {}
-                )
-              ]),
-              failures &&
-                h(Collapse,
+              map(callName => {
+                return h(
+                  Collapse,
                   {
-                    style: { marginBottom: '1rem' },
-                    initialOpenState: true,
-                    title: div({ style: elements.sectionHeader }, 'Workflow-Level Failures'),
-                    afterTitle: h(ClipboardButton, {
-                      text: JSON.stringify(failures, null, 2),
-                      style: { marginLeft: '0.5rem' }
-                    })
+                    key: callName,
+                    style: { marginLeft: '1rem', marginTop: '0.5rem' },
+                    title: div({ style: { ...codeFont, ...elements.sectionHeader } }, [`${callName} × ${calls[callName].length}`]),
+                    initialOpenState: !every({ executionStatus: 'Done' }, calls[callName]),
+                    'data-testid': 'call-table-collapse'
                   },
-                  [
-                    h(ReactJson, {
-                      style: { whiteSpace: 'pre-wrap' },
-                      name: false,
-                      collapsed: 4,
-                      enableClipboard: false,
-                      displayDataTypes: false,
-                      displayObjectSize: false,
-                      src: restructureFailures(failures)
-                    })
-                  ]
-                ),
-              h(Collapse,
-                {
-                  title: div({ style: elements.sectionHeader }, ['Tasks']),
-                  initialOpenState: true
-                },
-                [
-                  div({ style: { marginLeft: '1rem' } }, [
-                    makeSection('Total Task Status Counts', [
-                      !isEmpty(calls) ? statusCell(workflow) :
-                        div({ style: { marginTop: '0.5rem' } }, ['No calls have been started by this workflow.'])
-                    ]),
-                    !isEmpty(calls) &&
-                      makeSection(
-                        'Task Lists',
-                        [
-                          map(callName => {
-                            return h(
-                              Collapse,
-                              {
-                                key: callName,
-                                style: { marginLeft: '1rem', marginTop: '0.5rem' },
-                                title: div({ style: { ...codeFont, ...elements.sectionHeader } }, [`${callName} × ${calls[callName].length}`]),
-                                initialOpenState: !every({ executionStatus: 'Done' }, calls[callName])
-                              },
-                              [h(CallTable, { callName, callObjects: calls[callName] })]
-                            )
-                          }, callNames)
-                        ],
-                        { style: { overflow: 'visible' } }
-                      )
-                  ])
-                ]
-              ),
-              wdl && h(Collapse,
-                {
-                  title: div({ style: elements.sectionHeader }, ['Submitted workflow script'])
-                },
-                [h(WDLViewer, { wdl })]
-              )
-            ]
+                  [h(CallTable, { callName, callObjects: calls[callName] })]
+                )
+              }, callNames)
+            ],
+            { style: { overflow: 'visible' } }
           )
-        ]
-        )
+        ])
       ])
     )
   ])

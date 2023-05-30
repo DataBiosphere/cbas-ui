@@ -182,12 +182,12 @@ describe('RunDetails - render smoke test', () => {
     render(h(RunDetails, runDetailsProps))
     const user = userEvent.setup()
     await waitFor(async () => {
-      const collapseTitle = screen.getByText('Workflow-Level Failures')
-      await user.click(collapseTitle)
-      const clipboardButton = screen.getByText('Copy to clipboard')
-      expect(clipboardButton).toBeDefined
-      await user.click(clipboardButton)
-      expect(navigator.clipboard.writeText).toHaveBeenCalled
+      const callCollapse = screen.getByTestId('call-table-collapse')
+      await user.click(callCollapse)
+      const attemptColumnTitle = screen.getByText('Attempt')
+      const indexColumnTitle = screen.getByText('Index')
+      expect(attemptColumnTitle).toBeDefined
+      expect(indexColumnTitle).toBeDefined
     })
   })
 
@@ -195,12 +195,8 @@ describe('RunDetails - render smoke test', () => {
     const callData = runDetailsMetadata.calls.testOne[0]
     render(h(RunDetails, runDetailsProps))
     await waitFor(() => {
-      const callCollapse = screen.getByText('Tasks')
+      const callCollapse = screen.getByTestId('call-table-collapse')
       expect(callCollapse).toBeDefined
-      const countString = screen.getByText('Total Task Status Counts')
-      expect(countString).toBeDefined
-      const totalRunningString = screen.getByText(/1 Running/)
-      expect(totalRunningString).toBeDefined
       const collapseTestOneString = screen.getByText(/^testOne/)
       expect(collapseTestOneString).toBeDefined
       const testOneTable = screen.getByRole(/table/)
@@ -235,12 +231,12 @@ describe('RunDetails - render smoke test', () => {
     })
   })
 
-  it('shows the wdl text in a dedicated code block', async () => {
+  it('shows the wdl text in a modal component', async () => {
     render(h(RunDetails, runDetailsProps))
     const user = userEvent.setup()
     await waitFor(async () => {
-      const collapseTitle = screen.getByText('Submitted workflow script')
-      await user.click(collapseTitle)
+      const viewModalLink = screen.getByText('View Workflow Script')
+      await user.click(viewModalLink)
       const wdlScript = screen.getByText(/Running checksum/)
       expect(wdlScript).toBeDefined
     })
@@ -249,7 +245,7 @@ describe('RunDetails - render smoke test', () => {
   it('shows the execution log button', async () => {
     render(h(RunDetails, runDetailsProps))
     await waitFor(() => {
-      const executionLog = screen.getByText('Execution log')
+      const executionLog = screen.getByText('Execution Log')
       expect(executionLog).toBeDefined
     })
   })
@@ -263,7 +259,7 @@ describe('RunDetails - render smoke test', () => {
     render(h(RunDetails, runDetailsProps))
     const user = userEvent.setup()
     await waitFor(async () => {
-      const executionLog = screen.getByText('Execution log')
+      const executionLog = screen.getByText('Execution Log')
       await user.click(executionLog) //Open the modal
 
       //Verify all the element titles are present
