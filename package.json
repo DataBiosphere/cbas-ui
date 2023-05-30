@@ -42,7 +42,9 @@
     "react-virtualized": "^9.22.3",
     "setimmediate": "^1.0.5",
     "uuid": "^8.3.2",
-    "validate.js": "^0.13.1",
+    "validate.js": "^0.13.1"
+  },
+  "resolutions": {
     "webpack": "^5.76.0"
   },
   "scripts": {
