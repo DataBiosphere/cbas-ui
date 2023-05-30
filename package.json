@@ -44,6 +44,9 @@
     "uuid": "^8.3.2",
     "validate.js": "^0.13.1"
   },
+  "resolutions": {
+    "nth-check": "^2.0.1"
+  },
   "scripts": {
     "analyze": "yarn build && source-map-explorer 'build/static/js/*.js' --gzip",
     "build": "env $(yarn setenv) react-app-rewired build && rm build/config.json",

@@ -7700,7 +7700,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["boolbase", "npm:1.0.0"],\
             ["css-what", "npm:3.4.2"],\
             ["domutils", "npm:1.7.0"],\
-            ["nth-check", "npm:1.0.2"]\
+            ["nth-check", "npm:2.1.1"]\
           ],\
           "linkType": "HARD"\
         }],\
@@ -13513,14 +13513,6 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         }]\
       ]],\
       ["nth-check", [\
-        ["npm:1.0.2", {\
-          "packageLocation": "./.yarn/cache/nth-check-npm-1.0.2-3f6d0d22eb-59e115fdd7.zip/node_modules/nth-check/",\
-          "packageDependencies": [\
-            ["nth-check", "npm:1.0.2"],\
-            ["boolbase", "npm:1.0.0"]\
-          ],\
-          "linkType": "HARD"\
-        }],\
         ["npm:2.1.1", {\
           "packageLocation": "./.yarn/cache/nth-check-npm-2.1.1-f97afc8169-5afc3dafcd.zip/node_modules/nth-check/",\
           "packageDependencies": [\
