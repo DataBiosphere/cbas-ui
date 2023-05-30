@@ -5,7 +5,6 @@ import userEvent from '@testing-library/user-event'
 import { h } from 'react-hyperscript-helpers'
 import selectEvent from 'react-select-event'
 import { Ajax } from 'src/libs/ajax'
-import * as Nav from 'src/libs/nav'
 import { getConfig } from 'src/libs/config'
 import {
   badRecordTypeRunSetResponse,
@@ -23,7 +22,9 @@ import {
   typesResponseWithoutFooRating,
   undefinedRecordTypeRunSetResponse
 } from 'src/libs/mock-responses.js'
+import * as Nav from 'src/libs/nav'
 import { SubmissionConfig } from 'src/pages/SubmissionConfig'
+
 
 jest.mock('src/libs/nav')
 
@@ -1508,7 +1509,7 @@ describe('SubmissionConfig submitting a run set', () => {
     const mockSearchResponse = jest.fn(() => Promise.resolve(searchResponses['FOO']))
     const mockTypesResponse = jest.fn(() => Promise.resolve(typesResponse))
 
-    const postRunSetSuccessResponse = { run_set_id: "00000000-0000-0000-000000000000" }
+    const postRunSetSuccessResponse = { run_set_id: '00000000-0000-0000-000000000000' }
 
     const postRunSetFunction = jest.fn(() => Promise.resolve(postRunSetSuccessResponse))
 
@@ -1594,10 +1595,10 @@ describe('SubmissionConfig submitting a run set', () => {
     const mockSearchResponse = jest.fn(() => Promise.resolve(searchResponses['FOO']))
     const mockTypesResponse = jest.fn(() => Promise.resolve(typesResponse))
 
-    const postRunSetSuccessResponse = { run_set_id: "00000000-0000-0000-000000000000" }
-    const postRunSetErrorResponse = { errors: "Sample Error Message" }
+    const postRunSetSuccessResponse = { run_set_id: '00000000-0000-0000-000000000000' }
+    const postRunSetErrorResponse = { errors: 'Sample Error Message' }
 
-    const postRunSetFunction = jest.fn();
+    const postRunSetFunction = jest.fn()
     postRunSetFunction.mockRejectedValueOnce(postRunSetErrorResponse).mockResolvedValueOnce(postRunSetSuccessResponse)
 
     await Ajax.mockImplementation(() => {
@@ -1659,9 +1660,9 @@ describe('SubmissionConfig submitting a run set', () => {
 
     // ** ASSERT **
     // assert error message on first submit
-    await waitFor(async () => await expect(postRunSetFunction).toHaveReturned());
-    screen.getByLabelText("Modal submission error")
-    screen.getByText(postRunSetErrorResponse.errors, {exact: false})
+    await waitFor(async () => await expect(postRunSetFunction).toHaveReturned())
+    screen.getByLabelText('Modal submission error')
+    screen.getByText(postRunSetErrorResponse.errors, { exact: false })
 
     // ** ACT **
     // user click on Submit button again
@@ -1669,7 +1670,7 @@ describe('SubmissionConfig submitting a run set', () => {
 
     // ** ASSERT **
     // assert success on second submit
-    await waitFor(async () => await expect(postRunSetFunction).toHaveReturned());
+    await waitFor(async () => await expect(postRunSetFunction).toHaveReturned())
     expect(Nav.goToPath).toHaveBeenCalled()
     expect(Nav.goToPath).toHaveBeenCalledWith('submission-details', {
       submissionId: postRunSetSuccessResponse.run_set_id
