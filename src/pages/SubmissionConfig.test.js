@@ -838,8 +838,8 @@ describe('Input source and requirements validation', () => {
     // ** ASSERT **
     const table = await screen.findByRole('table')
     const rows = within(table).queryAllByRole('row')
-    const viewStructLink = within(rows[4]).getByText('View Struct')
-    const inputWarningMessageActive = within(rows[4]).queryByText("One of this struct's inputs has an invalid configuration")
+    const viewStructLink = within(rows[2]).getByText('View Struct')
+    const inputWarningMessageActive = within(rows[2]).queryByText("One of this struct's inputs has an invalid configuration")
     expect(inputWarningMessageActive).not.toBeNull()
 
     // ** ACT **
@@ -917,39 +917,40 @@ describe('Input source and requirements validation', () => {
     const table = await screen.findByRole('table')
     const rows = within(table).queryAllByRole('row')
 
+    // inputs sorted according to required -> task name -> variable name
     const firstInputRowCells = within(rows[1]).queryAllByRole('cell')
     within(firstInputRowCells[4]).getByText('This input is required')
 
-    const secondInputRowCells = within(rows[2]).queryAllByRole('cell')
-    within(secondInputRowCells[4]).getByText('Optional')
+    const thirdInputRowCells = within(rows[3]).queryAllByRole('cell')
+    within(thirdInputRowCells[4]).getByText('Optional')
 
     // struct input
-    const thirdInputRowCells = within(rows[3]).queryAllByRole('cell')
-    within(thirdInputRowCells[4]).getByText('This input is required')
+    const secondInputRowCells = within(rows[2]).queryAllByRole('cell')
+    within(secondInputRowCells[4]).getByText('This input is required')
 
     // ** ACT **
     // user sets the source to 'Fetch from data table' for struct input
-    await userEvent.click(within(thirdInputRowCells[3]).getByText('Select Source'))
+    await userEvent.click(within(secondInputRowCells[3]).getByText('Select Source'))
     const selectOption1 = await screen.findByText('Fetch from Data Table')
     await userEvent.click(selectOption1)
 
     // ** ASSERT **
     // check that the warning message for struct input has changed since no attribute has been selected yet
-    within(thirdInputRowCells[4]).getByText('This attribute doesn\'t exist in data table')
+    within(secondInputRowCells[4]).getByText('This attribute doesn\'t exist in data table')
 
     // ** ACT **
     // user sets the source to 'Use Struct Builder' for struct input
-    await userEvent.click(within(thirdInputRowCells[3]).getByText('Fetch from Data Table'))
+    await userEvent.click(within(secondInputRowCells[3]).getByText('Fetch from Data Table'))
     const selectOption2 = await screen.findByText('Use Struct Builder')
     await userEvent.click(selectOption2)
 
     // ** ASSERT **
     // check that the warning message for struct input has changed
-    within(thirdInputRowCells[4]).getByText('One of this struct\'s inputs has an invalid configuration')
+    within(secondInputRowCells[4]).getByText('One of this struct\'s inputs has an invalid configuration')
 
     // ** ACT **
     // click on View struct to open modal
-    const viewStructLink = within(thirdInputRowCells[4]).getByText('View Struct')
+    const viewStructLink = within(secondInputRowCells[4]).getByText('View Struct')
     await fireEvent.click(viewStructLink)
 
     // ** ASSERT **
@@ -975,7 +976,7 @@ describe('Input source and requirements validation', () => {
 
     // ** ASSERT **
     // check that the warning message for struct input still exists as it still has invalid input configurations
-    within(thirdInputRowCells[4]).getByText('One of this struct\'s inputs has an invalid configuration')
+    within(secondInputRowCells[4]).getByText('One of this struct\'s inputs has an invalid configuration')
   })
 
   it('should display warning icon for input with value not matching expected type', async () => {
@@ -1678,7 +1679,6 @@ describe('SubmissionConfig submitting a run set', () => {
         method_version_id: runSetResponse.run_sets[0].method_version_id,
         workflow_input_definitions: [
           runSetInputDef[0],
-          runSetInputDef[1],
           {
             input_name: 'target_workflow_1.optional_var',
             input_type: {
@@ -1691,7 +1691,8 @@ describe('SubmissionConfig submitting a run set', () => {
             source: {
               type: 'none'
             }
-          }
+          },
+          runSetInputDef[2]
         ],
         workflow_output_definitions: runSetOutputDef,
         wds_records: {
