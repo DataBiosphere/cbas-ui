@@ -25,8 +25,6 @@ import {
 import { SubmissionConfig } from 'src/pages/SubmissionConfig'
 
 
-jest.mock('src/libs/nav')
-
 jest.mock('src/libs/ajax')
 
 jest.mock('src/libs/notifications.js')
@@ -1508,7 +1506,7 @@ describe('SubmissionConfig submitting a run set', () => {
     const mockSearchResponse = jest.fn(() => Promise.resolve(searchResponses['FOO']))
     const mockTypesResponse = jest.fn(() => Promise.resolve(typesResponse))
 
-    const postRunSetFunction = jest.fn(() => Promise.resolve({ run_set_id: '00000000-0000-0000-000000000000' }))
+    const postRunSetFunction = jest.fn()
 
     await Ajax.mockImplementation(() => {
       return {
@@ -1592,7 +1590,7 @@ describe('SubmissionConfig submitting a run set', () => {
     const mockSearchResponse = jest.fn(() => Promise.resolve(searchResponses['FOO']))
     const mockTypesResponse = jest.fn(() => Promise.resolve(typesResponse))
 
-    const postRunSetFunction = jest.fn(() => Promise.resolve({ run_set_id: '00000000-0000-0000-000000000000' }))
+    const postRunSetFunction = jest.fn()
 
     await Ajax.mockImplementation(() => {
       return {
@@ -1713,7 +1711,7 @@ describe('SubmissionConfig submitting a run set', () => {
     const mockSearchResponse = jest.fn((_, recordType) => Promise.resolve(searchResponses[recordType]))
     const mockTypesResponse = jest.fn(() => Promise.resolve(typesResponse))
 
-    const postRunSetFunction = jest.fn(() => Promise.resolve({ run_set_id: '00000000-0000-0000-000000000000' }))
+    const postRunSetFunction = jest.fn()
 
     await Ajax.mockImplementation(() => {
       return {
