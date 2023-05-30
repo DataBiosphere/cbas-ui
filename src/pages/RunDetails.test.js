@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-expressions */
-import { render, screen, waitFor, within } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { cloneDeep } from 'lodash/fp'
 import { h } from 'react-hyperscript-helpers'
@@ -287,6 +287,21 @@ describe('RunDetails - render smoke test', () => {
       //Verify the data loaded properly
       expect(screen.getByText('inputFile.\u200Btxt')).toBeDefined //This weird character is here because we allow line breaks on periods when displaying the filename
       expect(screen.getByText('this is the text of a mock file')).toBeDefined
+    })
+  })
+
+  it('filters out task list via task name search', async () => {
+    const taskName = Object.keys(runDetailsMetadata.calls)[0]
+    render(h(RunDetails, runDetailsProps))
+    await waitFor(async () => {
+      const searchInput = screen.getByTestId('task-name-search-input')
+      expect(searchInput).toBeDefined
+      await fireEvent.change(searchInput, { target: { value: 'Random' } })
+      const updatedTable = screen.getByTestId('call-table-container')
+      const updatedRows = within(updatedTable).getAllByRole('row')
+      expect(updatedRows.length).toEqual(1)
+      const updatedElements = within(updatedTable).queryAllByText(taskName)
+      expect(updatedElements.length).toEqual(0)
     })
   })
 })

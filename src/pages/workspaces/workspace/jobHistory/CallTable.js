@@ -64,7 +64,7 @@ const SearchBar = ({ filterFn }) => {
     },
     [
       input({
-        id: 'task-name-search-input',
+        'data-testid': 'task-name-search-input',
         type: 'text',
         placeholder: 'Search by task name',
         style: { width: '100%', padding: '9px', borderRadius: '15px', border: '1px solid #8F95A0' },
