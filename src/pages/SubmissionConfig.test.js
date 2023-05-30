@@ -1509,9 +1509,7 @@ describe('SubmissionConfig submitting a run set', () => {
     const mockSearchResponse = jest.fn(() => Promise.resolve(searchResponses['FOO']))
     const mockTypesResponse = jest.fn(() => Promise.resolve(typesResponse))
 
-    const postRunSetSuccessResponse = { run_set_id: '00000000-0000-0000-000000000000' }
-
-    const postRunSetFunction = jest.fn(() => Promise.resolve(postRunSetSuccessResponse))
+    const postRunSetFunction = jest.fn()
 
     await Ajax.mockImplementation(() => {
       return {
