@@ -1,5 +1,5 @@
 
-import { cloneDeep, countBy, filter, flattenDepth, flow, includes, isEmpty, map, values } from 'lodash/fp'
+import { cloneDeep, filter, includes, isEmpty, map } from 'lodash/fp'
 import { Fragment, useCallback, useMemo, useRef, useState } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import ReactJson from 'react-json-view'
@@ -146,93 +146,91 @@ export const RunDetails = ({ submissionId, workflowId }) => {
     cond(
       [
         workflow === undefined,
-        () => h(Fragment, [div({ style: { fontStyle: 'italic', marginBottom: '1rem' } }, ['Fetching workflow metadata...']), centeredSpinner()]),
+        () => h(Fragment, [div({ style: { fontStyle: 'italic', marginBottom: '1rem' } }, ['Fetching workflow metadata...']), centeredSpinner()])
       ],
       [
         metadataArchiveStatus === 'ArchivedAndDeleted',
-        () =>
-          h(Fragment, [
-            div({ style: { lineHeight: '24px', marginTop: '0.5rem', ...elements.sectionHeader } }, ' Run Details Archived'),
-            div({ style: { lineHeight: '24px', marginTop: '0.5rem' } }, [
-              "This run's details have been archived. Please refer to the ",
-              h(
-                Link,
-                {
-                  href: 'https://support.terra.bio/hc/en-us/articles/360060601631',
-                  ...newTabLinkProps,
-                },
-                [icon('pop-out', { size: 18 }), ' Run Details Archived']
-              ),
-              ' support article for details on how to access the archive.',
-            ]),
-          ]),
-      ],
-      () =>
-        h(Fragment, {}, [
-          div({ style: { padding: '1rem 2rem 2rem' } }, [header]),
-          div(
-            {
-              style: {
-                id: 'details-colored-container',
-                backgroundColor: 'rgb(222, 226, 232)',
+        () => h(Fragment, [
+          div({ style: { lineHeight: '24px', marginTop: '0.5rem', ...elements.sectionHeader } }, ' Run Details Archived'),
+          div({ style: { lineHeight: '24px', marginTop: '0.5rem' } }, [
+            "This run's details have been archived. Please refer to the ",
+            h(
+              Link,
+              {
+                href: 'https://support.terra.bio/hc/en-us/articles/360060601631',
+                ...newTabLinkProps
               },
-            },
-            [
-              div(
-                {
-                  id: `details-colored-container-content`,
-                  style: {
-                    padding: '1rem 2rem 2rem',
-                  },
-                },
-                [
-                  div({ 'data-testid': 'workflow-status-container', style: { display: 'flex', justifyContent: 'flex-start' } }, [
-                    makeSection(
-                      'Workflow Status',
-                      [
-                        div({ style: { lineHeight: '24px', marginTop: '0.5rem' } }, [
-                          makeStatusLine((style) => collapseStatus(status).icon(style), status),
-                        ]),
-                      ],
-                      {}
-                    ),
-                    makeSection('Workflow Timing', [
-                      div({ style: { marginTop: '0.5rem', display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '0.5rem' } }, [
-                        div({ style: styles.sectionTableLabel }, ['Start:']),
-                        div({ 'data-testid': 'workflow-start-time' }, [start ? makeCompleteDate(start) : 'N/A']),
-                        div({ style: styles.sectionTableLabel }, ['End:']),
-                        div({ 'data-testid': 'workflow-end-time' }, [end ? makeCompleteDate(end) : 'N/A']),
-                      ]),
-                    ]),
-                    makeSection('Workflow Engine Id', [
-                      div(
-                        {
-                          style: { lineHeight: '24px', marginTop: '0.5rem' },
-                        },
-                        [span({ 'data-testid': 'workflow-engine-id-span' }, [workflowId])]
-                      ),
-                    ]),
-                  ]),
-                ]
-              ),
-              makeSection(
-                'Logs',
-                [
-                  h(
-                    Link,
-                    {
-                      onClick: () => {
-                        setShowLog(true);
-                        setLogUri(workflow.workflowLog);
-                      },
-                      style: { display: 'flex', marginLeft: '1rem', alignItems: 'center' },
-                    },
-                    [div({ 'data-testid': 'execution-log-container' }, [icon('fileAlt', { size: 18 }), ' Execution log'])]
+              [icon('pop-out', { size: 18 }), ' Run Details Archived']
+            ),
+            ' support article for details on how to access the archive.'
+          ])
+        ])
+      ],
+      () => h(Fragment, {}, [
+        div({ style: { padding: '1rem 2rem 2rem' } }, [header]),
+        div(
+          {
+            style: {
+              id: 'details-colored-container',
+              backgroundColor: 'rgb(222, 226, 232)'
+            }
+          },
+          [
+            div(
+              {
+                id: `details-colored-container-content`,
+                style: {
+                  padding: '1rem 2rem 2rem'
+                }
+              },
+              [
+                div({ 'data-testid': 'workflow-status-container', style: { display: 'flex', justifyContent: 'flex-start' } }, [
+                  makeSection(
+                    'Workflow Status',
+                    [
+                      div({ style: { lineHeight: '24px', marginTop: '0.5rem' } }, [
+                        makeStatusLine(style => collapseStatus(status).icon(style), status)
+                      ])
+                    ],
+                    {}
                   ),
-                ],
-                {}
-              ),
-              failures &&
+                  makeSection('Workflow Timing', [
+                    div({ style: { marginTop: '0.5rem', display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '0.5rem' } }, [
+                      div({ style: styles.sectionTableLabel }, ['Start:']),
+                      div({ 'data-testid': 'workflow-start-time' }, [start ? makeCompleteDate(start) : 'N/A']),
+                      div({ style: styles.sectionTableLabel }, ['End:']),
+                      div({ 'data-testid': 'workflow-end-time' }, [end ? makeCompleteDate(end) : 'N/A'])
+                    ])
+                  ]),
+                  makeSection('Workflow Engine Id', [
+                    div(
+                      {
+                        style: { lineHeight: '24px', marginTop: '0.5rem' }
+                      },
+                      [span({ 'data-testid': 'workflow-engine-id-span' }, [workflowId])]
+                    )
+                  ])
+                ])
+              ]
+            ),
+            makeSection(
+              'Logs',
+              [
+                h(
+                  Link,
+                  {
+                    onClick: () => {
+                      setShowLog(true)
+                      setLogUri(workflow.workflowLog)
+                    },
+                    style: { display: 'flex', marginLeft: '1rem', alignItems: 'center' }
+                  },
+                  [div({ 'data-testid': 'execution-log-container' }, [icon('fileAlt', { size: 18 }), ' Execution log'])]
+                )
+              ],
+              {}
+            ),
+            failures &&
                 h(
                   Collapse,
                   {
@@ -244,7 +242,7 @@ export const RunDetails = ({ submissionId, workflowId }) => {
                       'data-testid': 'clipboard-button-failures',
                       text: JSON.stringify(failures, null, 2),
                       style: { marginLeft: '0.5rem' }
-                    }),
+                    })
                   },
                   [
                     h(ReactJson, {
@@ -258,36 +256,36 @@ export const RunDetails = ({ submissionId, workflowId }) => {
                     })
                   ]
                 ),
-              wdl &&
+            wdl &&
                 h(
                   Collapse,
                   {
-                    title: div({ 'data-testid': 'workflow-script-dropdown', style: elements.sectionHeader }, ['Submitted workflow script']),
+                    title: div({ 'data-testid': 'workflow-script-dropdown', style: elements.sectionHeader }, ['Submitted workflow script'])
                   },
                   [h(WDLViewer, { wdl })]
-                ),
-            ]
-          ),
-          div(
-            {
-              'data-testid': 'call-table-container',
-              style: {
-                margin: '2rem',
-              },
-            },
-            [
-              h(CallTable, {
-                defaultFailedFilter: workflow?.status.toLocaleLowerCase().includes('failed'),
-                isRendered: !isEmpty(tableData),
-                showLogModal,
-                tableData,
-              }),
-            ]
-          ),
-          showLog && h(UriViewer, { uri: logUri || '', onDismiss: () => setShowLog(false) }),
-        ])
-    ),
-  ]);
+                )
+          ]
+        ),
+        div(
+          {
+            'data-testid': 'call-table-container',
+            style: {
+              margin: '2rem'
+            }
+          },
+          [
+            h(CallTable, {
+              defaultFailedFilter: workflow?.status.toLocaleLowerCase().includes('failed'),
+              isRendered: !isEmpty(tableData),
+              showLogModal,
+              tableData
+            })
+          ]
+        ),
+        showLog && h(UriViewer, { uri: logUri || '', onDismiss: () => setShowLog(false) })
+      ])
+    )
+  ])
 }
 
 export const navPaths = [

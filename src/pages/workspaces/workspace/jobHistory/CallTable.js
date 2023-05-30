@@ -3,10 +3,8 @@ import { useEffect, useMemo, useState } from 'react'
 import { div, h, input, label, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import { Link, Select } from 'src/components/common'
-import { icon } from 'src/components/icons'
 import { makeCromwellStatusLine } from 'src/components/job-common'
 import { FlexTable, HeaderCell, Sortable, tableHeight, TooltipCell } from 'src/components/table'
-import colors from 'src/libs/colors'
 import * as Utils from 'src/libs/utils'
 
 ///////////////FILTER UTILITY FUNCTIONS/////////////////////////////
@@ -36,7 +34,7 @@ export const filterCalllObjectsFn = (callObjects, sort, setFilteredCallObjects, 
 }
 
 //////////////STATUS COUNT SUB-COMPONENT///////////////////////////
-const StatusCounts = ({statusListObjects}) => {
+const StatusCounts = ({ statusListObjects }) => {
   const statuses = Object.keys(statusListObjects)
   const statusCountRender = statuses.map(status => {
     const { count, icon } = statusListObjects[status]
@@ -78,7 +76,7 @@ const SearchBar = ({ filterFn }) => {
 }
 
 ////////CALL TABLE///////////////////////
-const CallTable = ({ tableData, defaultFailedFilter = false, showLogModal}) => {
+const CallTable = ({ tableData, defaultFailedFilter = false, showLogModal }) => {
   const [sort, setSort] = useState({ field: 'index', direction: 'asc' })
   const [statusFilter, setStatusFilter] = useState([])
   const [filteredCallObjects, setFilteredCallObjects] = useState([])
@@ -128,7 +126,7 @@ const CallTable = ({ tableData, defaultFailedFilter = false, showLogModal}) => {
           flexGrow: 2
         }
       }, [
-        div({'data-testid': 'status-dropdown-filter', style: { flexBasis: 250, marginRight: '20px' } }, [
+        div({ 'data-testid': 'status-dropdown-filter', style: { flexBasis: 250, marginRight: '20px' } }, [
           h(Select, {
             isClearable: true,
             isMulti: true,
@@ -149,96 +147,96 @@ const CallTable = ({ tableData, defaultFailedFilter = false, showLogModal}) => {
           alignItems: 'center',
           flexBasis: 400,
           flexGrow: 1
-        }}, [
+        }
+      }, [
         h(SearchBar, { filterFn })
       ])
     ]),
 
     h(AutoSizer, { disableHeight: true }, [
-      ({ width }) =>
-        h(FlexTable, {
-          'aria-label': 'call table',
-          height: tableHeight({ actualRows: filteredCallObjects.length, maxRows: 10.5 }), // The half-row here hints at there being extra rows if scrolled
-          width,
-          sort,
-          rowCount: filteredCallObjects.length,
-          noContentMessage: 'No matching calls',
-          columns: [
-            {
-              size: { basis: 300, grow: 2 },
-              field: 'taskName',
-              headerRenderer: () => h(Sortable, { sort, field: 'taskName', onSort: setSort }, ['Name']),
-              cellRenderer: ({ rowIndex }) => {
-                const { taskName } = filteredCallObjects[rowIndex]
-                return taskName
-              }
-            },
-            {
-              size: { basis: 100, grow: 1 },
-              field: 'type',
-              headerRenderer: () => h(Sortable, { sort, field: 'type', onSort: setSort }, ['Type']),
-              cellRenderer: ({ rowIndex }) => {
-                const { subWorkflowId } = filteredCallObjects[rowIndex]
-                return _.isEmpty(subWorkflowId) ? 'Task' : 'Sub-workflow'
-              }
-            },
-            {
-              size: { basis: 100, grow: 1 },
-              field: 'attempt',
-              headerRenderer: () => h(Sortable, { sort, field: 'attempt', onSort: setSort }, ['Attempt']),
-              cellRenderer: ({ rowIndex }) => {
-                const { attempt } = filteredCallObjects[rowIndex]
-                return attempt
-              }
-            },
-            {
-              size: { basis: 150, grow: 2 },
-              field: 'status',
-              headerRenderer: () => h(Sortable, { sort, field: 'status', onSort: setSort }, ['Status']),
-              cellRenderer: ({ rowIndex }) => {
-                const { executionStatus, backendStatus } = filteredCallObjects[rowIndex]
-                return makeCromwellStatusLine(executionStatus, backendStatus)
-              },
-            },
-            {
-              size: { basis: 200, grow: 1 },
-              field: 'start',
-              headerRenderer: () => h(Sortable, { sort, field: 'start', onSort: setSort }, ['Start']),
-              cellRenderer: ({ rowIndex }) => {
-                const { start } = filteredCallObjects[rowIndex];
-                return h(TooltipCell, [start ? Utils.makeCompleteDate(start) : 'N/A'])
-              }
-            },
-            {
-              size: { basis: 200, grow: 1 },
-              field: 'end',
-              headerRenderer: () => h(Sortable, { sort, field: 'end', onSort: setSort }, ['End']),
-              cellRenderer: ({ rowIndex }) => {
-                const { end } = filteredCallObjects[rowIndex]
-                return h(TooltipCell, [end ? Utils.makeCompleteDate(end) : 'N/A'])
-              }
-            },
-            {
-              size: { basis: 200, grow: 1},
-              field: 'logs',
-              headerRenderer: () => h(HeaderCell, { fontWeight: 500 }, ['Logs']),
-              cellRenderer: (({ rowIndex }) => {
-                const { stdout, stderr } = filteredCallObjects[rowIndex]
-                return div({ style: { display: 'flex', justifyContent: 'flex-start' } }, [
-                  h(Link, {
-                    style: {
-                      marginRight: '0.5rem'
-                    },
-                    onClick: () => showLogModal(stdout)
-                  }, ['stdout']),
-                  h(Link, {
-                    onClick: () => showLogModal(stderr)
-                  }, 'stderr')
-                ])
-              })
+      ({ width }) => h(FlexTable, {
+        'aria-label': 'call table',
+        height: tableHeight({ actualRows: filteredCallObjects.length, maxRows: 10.5 }), // The half-row here hints at there being extra rows if scrolled
+        width,
+        sort,
+        rowCount: filteredCallObjects.length,
+        noContentMessage: 'No matching calls',
+        columns: [
+          {
+            size: { basis: 300, grow: 2 },
+            field: 'taskName',
+            headerRenderer: () => h(Sortable, { sort, field: 'taskName', onSort: setSort }, ['Name']),
+            cellRenderer: ({ rowIndex }) => {
+              const { taskName } = filteredCallObjects[rowIndex]
+              return taskName
             }
-          ]
-        })
+          },
+          {
+            size: { basis: 100, grow: 1 },
+            field: 'type',
+            headerRenderer: () => h(Sortable, { sort, field: 'type', onSort: setSort }, ['Type']),
+            cellRenderer: ({ rowIndex }) => {
+              const { subWorkflowId } = filteredCallObjects[rowIndex]
+              return _.isEmpty(subWorkflowId) ? 'Task' : 'Sub-workflow'
+            }
+          },
+          {
+            size: { basis: 100, grow: 1 },
+            field: 'attempt',
+            headerRenderer: () => h(Sortable, { sort, field: 'attempt', onSort: setSort }, ['Attempt']),
+            cellRenderer: ({ rowIndex }) => {
+              const { attempt } = filteredCallObjects[rowIndex]
+              return attempt
+            }
+          },
+          {
+            size: { basis: 150, grow: 2 },
+            field: 'status',
+            headerRenderer: () => h(Sortable, { sort, field: 'status', onSort: setSort }, ['Status']),
+            cellRenderer: ({ rowIndex }) => {
+              const { executionStatus, backendStatus } = filteredCallObjects[rowIndex]
+              return makeCromwellStatusLine(executionStatus, backendStatus)
+            }
+          },
+          {
+            size: { basis: 200, grow: 1 },
+            field: 'start',
+            headerRenderer: () => h(Sortable, { sort, field: 'start', onSort: setSort }, ['Start']),
+            cellRenderer: ({ rowIndex }) => {
+              const { start } = filteredCallObjects[rowIndex]
+              return h(TooltipCell, [start ? Utils.makeCompleteDate(start) : 'N/A'])
+            }
+          },
+          {
+            size: { basis: 200, grow: 1 },
+            field: 'end',
+            headerRenderer: () => h(Sortable, { sort, field: 'end', onSort: setSort }, ['End']),
+            cellRenderer: ({ rowIndex }) => {
+              const { end } = filteredCallObjects[rowIndex]
+              return h(TooltipCell, [end ? Utils.makeCompleteDate(end) : 'N/A'])
+            }
+          },
+          {
+            size: { basis: 200, grow: 1 },
+            field: 'logs',
+            headerRenderer: () => h(HeaderCell, { fontWeight: 500 }, ['Logs']),
+            cellRenderer: (({ rowIndex }) => {
+              const { stdout, stderr } = filteredCallObjects[rowIndex]
+              return div({ style: { display: 'flex', justifyContent: 'flex-start' } }, [
+                h(Link, {
+                  style: {
+                    marginRight: '0.5rem'
+                  },
+                  onClick: () => showLogModal(stdout)
+                }, ['stdout']),
+                h(Link, {
+                  onClick: () => showLogModal(stderr)
+                }, 'stderr')
+              ])
+            })
+          }
+        ]
+      })
     ])
   ])
 }

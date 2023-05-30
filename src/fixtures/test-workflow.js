@@ -5,14 +5,14 @@ export const metadata = {
       cromwellId: 'cromid-e70311e',
       description: 'PickedUp',
       timestamp: '2023-05-22T11:10:42.600Z',
-      cromwellVersion: '86-17efd59',
+      cromwellVersion: '86-17efd59'
     },
     {
       cromwellId: 'cromid-e70311e',
       description: 'Finished',
       timestamp: '2023-05-22T11:22:33.705Z',
-      cromwellVersion: '86-17efd59',
-    },
+      cromwellVersion: '86-17efd59'
+    }
   ],
   actualWorkflowLanguageVersion: '1.0',
   submittedFiles: {
@@ -23,7 +23,7 @@ export const metadata = {
       '{\n  "final_workflow_log_dir": "https://lz43a8a3d21540dfd25f5ace.blob.core.windows.net/sc-0cd50a9c-d2d4-49f8-8038-e40982530830/workspace-services/cbas/terra-app-e79dfdc2-354e-496e-99b5-555b3097c8a2/cromwell-workflow-logs"\n}',
     inputs: '{"fetch_sra_to_bam.Fetch_SRA_to_BAM.SRA_ID":"SRR13379731"}',
     workflowUrl: 'https://raw.githubusercontent.com/broadinstitute/viral-pipelines/v2.1.33.16/pipes/WDL/workflows/fetch_sra_to_bam.wdl',
-    labels: '{}',
+    labels: '{}'
   },
   calls: {
     'fetch_sra_to_bam.Fetch_SRA_to_BAM': [
@@ -52,7 +52,7 @@ export const metadata = {
           sample_geo_loc: 'USA: Utah',
           sequencing_platform: 'ILLUMINA',
           sample_collected_by: 'Utah Public Health Laboratory',
-          sequencing_platform_model: 'NextSeq 550',
+          sequencing_platform_model: 'NextSeq 550'
         },
         runtimeAttributes: {
           preemptible: 'true',
@@ -63,17 +63,17 @@ export const metadata = {
           docker: 'quay.io/broadinstitute/ncbi-tools:2.10.7.10',
           maxRetries: '2',
           cpu: '2',
-          memory: '6 GB',
+          memory: '6 GB'
         },
         callCaching: {
           allowResultReuse: false,
-          effectiveCallCachingMode: 'CallCachingOff',
+          effectiveCallCachingMode: 'CallCachingOff'
         },
         inputs: {
           docker: 'quay.io/broadinstitute/ncbi-tools:2.10.7.10',
           disk_size: 750,
           SRA_ID: 'SRR13379731',
-          machine_mem_gb: null,
+          machine_mem_gb: null
         },
         returnCode: 0,
         jobId: '117f49d5_59bbeae7208642e686a1ca0f57c8c25a',
@@ -92,36 +92,36 @@ export const metadata = {
           {
             startTime: '2023-05-22T11:10:47.864Z',
             description: 'PreparingJob',
-            endTime: '2023-05-22T11:10:47.871Z',
+            endTime: '2023-05-22T11:10:47.871Z'
           },
           {
             startTime: '2023-05-22T11:10:43.783Z',
             description: 'Pending',
-            endTime: '2023-05-22T11:10:43.783Z',
+            endTime: '2023-05-22T11:10:43.783Z'
           },
           {
             startTime: '2023-05-22T11:10:47.871Z',
             description: 'RunningJob',
-            endTime: '2023-05-22T11:22:31.608Z',
+            endTime: '2023-05-22T11:22:31.608Z'
           },
           {
             startTime: '2023-05-22T11:22:31.608Z',
             description: 'UpdatingJobStore',
-            endTime: '2023-05-22T11:22:31.784Z',
+            endTime: '2023-05-22T11:22:31.784Z'
           },
           {
             startTime: '2023-05-22T11:10:43.783Z',
             description: 'RequestingExecutionToken',
-            endTime: '2023-05-22T11:10:47.863Z',
+            endTime: '2023-05-22T11:10:47.863Z'
           },
           {
             startTime: '2023-05-22T11:10:47.863Z',
             description: 'WaitingForValueStore',
-            endTime: '2023-05-22T11:10:47.864Z',
-          },
-        ],
-      },
-    ],
+            endTime: '2023-05-22T11:10:47.864Z'
+          }
+        ]
+      }
+    ]
   },
   outputs: {
     'fetch_sra_to_bam.sra_metadata':
@@ -137,7 +137,7 @@ export const metadata = {
     'fetch_sra_to_bam.run_date': '2022-06-22',
     'fetch_sra_to_bam.sample_collected_by': 'Utah Public Health Laboratory',
     'fetch_sra_to_bam.sample_strain': 'SARS-CoV-2/USA/44165/2020',
-    'fetch_sra_to_bam.sequencing_platform_model': 'NextSeq 550',
+    'fetch_sra_to_bam.sequencing_platform_model': 'NextSeq 550'
   },
   workflowRoot:
     'https://lz43a8a3d21540dfd25f5ace.blob.core.windows.net/sc-0cd50a9c-d2d4-49f8-8038-e40982530830/workspace-services/cbas/terra-app-e79dfdc2-354e-496e-99b5-555b3097c8a2/fetch_sra_to_bam/117f49d5-413a-4cd8-976b-5204681ba097',
@@ -157,10 +157,10 @@ export const metadata = {
   inputs: {
     'fetch_sra_to_bam.Fetch_SRA_to_BAM.SRA_ID': 'SRR13379731',
     'fetch_sra_to_bam.Fetch_SRA_to_BAM.machine_mem_gb': null,
-    'fetch_sra_to_bam.Fetch_SRA_to_BAM.docker': 'quay.io/broadinstitute/ncbi-tools:2.10.7.10',
+    'fetch_sra_to_bam.Fetch_SRA_to_BAM.docker': 'quay.io/broadinstitute/ncbi-tools:2.10.7.10'
   },
   labels: {
-    'cromwell-workflow-id': 'cromwell-117f49d5-413a-4cd8-976b-5204681ba097',
+    'cromwell-workflow-id': 'cromwell-117f49d5-413a-4cd8-976b-5204681ba097'
   },
-  submission: '2023-05-22T11:10:00.741Z',
-};
+  submission: '2023-05-22T11:10:00.741Z'
+}

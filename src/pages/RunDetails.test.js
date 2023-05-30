@@ -33,15 +33,15 @@ const mockObj = {
     workflows: () => {
       return {
         metadata: () => {
-          return runDetailsMetadata;
-        },
-      };
-    },
+          return runDetailsMetadata
+        }
+      }
+    }
   },
   WorkspaceManager: {
     getSASToken() {
-      return '1234-this-is-a-mock-sas-token-5678';
-    },
+      return '1234-this-is-a-mock-sas-token-5678'
+    }
   },
   AzureStorage: {
     getTextFileFromBlobStorage() {
@@ -55,11 +55,11 @@ const mockObj = {
         lastModified: 'Mon, 22 May 2023 17:12:58 GMT',
         size: '324',
         contentType: 'text/plain',
-        textContent: 'this is the text of a mock file',
-      };
-    },
-  },
-};
+        textContent: 'this is the text of a mock file'
+      }
+    }
+  }
+}
 
 beforeEach(() => {
   Ajax.mockImplementation(() => {
@@ -189,12 +189,12 @@ describe('RunDetails - render smoke test', () => {
   })
 
   it('only shows failed tasks if a workflow has failed', async () => {
-    const workflowCopy = cloneDeep(runDetailsMetadata);
-    const targetCall = Object.values(workflowCopy.calls)[0];
-    const callCopy = cloneDeep(targetCall);
-    callCopy[0].executionStatus = 'Failed';
-    workflowCopy.calls['Failed Call'] = callCopy;
-    workflowCopy.status = 'Failed';
+    const workflowCopy = cloneDeep(runDetailsMetadata)
+    const targetCall = Object.values(workflowCopy.calls)[0]
+    const callCopy = cloneDeep(targetCall)
+    callCopy[0].executionStatus = 'Failed'
+    workflowCopy.calls['Failed Call'] = callCopy
+    workflowCopy.status = 'Failed'
     const { start, end } = callCopy[0]
 
     const modifiedMock = Object.assign({}, cloneDeep(mockObj), { Cromwell: { workflows: () => { return { metadata: () => { return workflowCopy } } } } })
@@ -204,30 +204,30 @@ describe('RunDetails - render smoke test', () => {
       return modifiedMock
     })
 
-    render(h(RunDetails, { runDetailsProps }));
+    render(h(RunDetails, { runDetailsProps }))
     await waitFor(() => {
-      const statusFilter = screen.getByTestId('status-dropdown-filter');
-      const failedOption = within(statusFilter).getByText('Failed');
-      expect(failedOption).toBeDefined;
+      const statusFilter = screen.getByTestId('status-dropdown-filter')
+      const failedOption = within(statusFilter).getByText('Failed')
+      expect(failedOption).toBeDefined
 
-      const table = screen.getByTestId('call-table-container');
-      const rows = within(table).getAllByRole('row');
-      expect(rows.length).toEqual(2);
-      const targetRow = within(table).getAllByRole('row')[1];
-      expect(targetRow).toBeDefined;
-      const taskName = within(targetRow).getByText('Failed Call');
-      expect(taskName).toBeDefined;
-      const failedStatus = within(targetRow).queryAllByText('Failed');
-      expect(failedStatus.length).toEqual(2);
-      const startTime = within(targetRow).queryAllByText(makeCompleteDate(start));
-      expect(startTime.length).toEqual(2);
-      const endTime = within(targetRow).queryAllByText(makeCompleteDate(end));
-      expect(endTime.length).toEqual(2);
-      const stdout = within(targetRow).getByText('stdout');
-      expect(stdout).toBeDefined;
-      const stderr = within(targetRow).getByText('stderr');
-      expect(stderr).toBeDefined;
-    });
+      const table = screen.getByTestId('call-table-container')
+      const rows = within(table).getAllByRole('row')
+      expect(rows.length).toEqual(2)
+      const targetRow = within(table).getAllByRole('row')[1]
+      expect(targetRow).toBeDefined
+      const taskName = within(targetRow).getByText('Failed Call')
+      expect(taskName).toBeDefined
+      const failedStatus = within(targetRow).queryAllByText('Failed')
+      expect(failedStatus.length).toEqual(2)
+      const startTime = within(targetRow).queryAllByText(makeCompleteDate(start))
+      expect(startTime.length).toEqual(2)
+      const endTime = within(targetRow).queryAllByText(makeCompleteDate(end))
+      expect(endTime.length).toEqual(2)
+      const stdout = within(targetRow).getByText('stdout')
+      expect(stdout).toBeDefined
+      const stderr = within(targetRow).getByText('stderr')
+      expect(stderr).toBeDefined
+    })
   })
 
   it('opens the uri viewer modal when stdout is clicked', async () => {
@@ -273,20 +273,20 @@ describe('RunDetails - render smoke test', () => {
     render(h(RunDetails, runDetailsProps))
     const user = userEvent.setup()
     await waitFor(async () => {
-      const executionLog = screen.getByText('Execution log');
-      await user.click(executionLog); //Open the modal
+      const executionLog = screen.getByText('Execution log')
+      await user.click(executionLog) //Open the modal
 
       //Verify all the element titles are present
-      expect(screen.getByText('File Details')).toBeDefined;
-      expect(screen.getByText('Filename')).toBeDefined;
-      expect(screen.getByText('Preview')).toBeDefined;
-      expect(screen.getByText('File size')).toBeDefined;
-      expect(screen.getByText('Terminal download command')).toBeDefined;
-      expect(screen.getByText('Download')).toBeDefined;
+      expect(screen.getByText('File Details')).toBeDefined
+      expect(screen.getByText('Filename')).toBeDefined
+      expect(screen.getByText('Preview')).toBeDefined
+      expect(screen.getByText('File size')).toBeDefined
+      expect(screen.getByText('Terminal download command')).toBeDefined
+      expect(screen.getByText('Download')).toBeDefined
 
       //Verify the data loaded properly
-      expect(screen.getByText('inputFile.\u200Btxt')).toBeDefined; //This weird character is here because we allow line breaks on periods when displaying the filename
-      expect(screen.getByText('this is the text of a mock file')).toBeDefined;
+      expect(screen.getByText('inputFile.\u200Btxt')).toBeDefined //This weird character is here because we allow line breaks on periods when displaying the filename
+      expect(screen.getByText('this is the text of a mock file')).toBeDefined
     })
   })
 })
