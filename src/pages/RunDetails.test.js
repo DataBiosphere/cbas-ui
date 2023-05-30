@@ -304,4 +304,20 @@ describe('RunDetails - render smoke test', () => {
       expect(updatedElements.length).toEqual(0)
     })
   })
+
+  it('filters in tasks via task name search', async () => {
+    const taskName = Object.keys(runDetailsMetadata.calls)[0]
+    render(h(RunDetails, runDetailsProps))
+    await waitFor(async () => {
+      const searchInput = screen.getByTestId('task-name-search-input')
+      expect(searchInput).toBeDefined
+      await fireEvent.change(searchInput, { target: { value: 'Fetch' } })
+      const updatedTable = screen.getByTestId('call-table-container')
+      const updatedRows = within(updatedTable).getAllByRole('row')
+      expect(updatedRows.length).toEqual(2)
+      const updatedElement = within(updatedTable).queryAllByText(taskName)
+      expect(updatedElement.length).toEqual(1)
+      expect(updatedElement[0].textContent).toEqual(taskName)
+    })
+  })
 })
