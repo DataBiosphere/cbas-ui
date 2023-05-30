@@ -5,6 +5,7 @@ import userEvent from '@testing-library/user-event'
 import { h } from 'react-hyperscript-helpers'
 import selectEvent from 'react-select-event'
 import { Ajax } from 'src/libs/ajax'
+import * as Nav from 'src/libs/nav'
 import { getConfig } from 'src/libs/config'
 import {
   badRecordTypeRunSetResponse,
@@ -24,6 +25,7 @@ import {
 } from 'src/libs/mock-responses.js'
 import { SubmissionConfig } from 'src/pages/SubmissionConfig'
 
+jest.mock('src/libs/nav')
 
 jest.mock('src/libs/ajax')
 
@@ -1506,7 +1508,9 @@ describe('SubmissionConfig submitting a run set', () => {
     const mockSearchResponse = jest.fn(() => Promise.resolve(searchResponses['FOO']))
     const mockTypesResponse = jest.fn(() => Promise.resolve(typesResponse))
 
-    const postRunSetFunction = jest.fn()
+    const postRunSetSuccessResponse = { run_set_id: "00000000-0000-0000-000000000000" }
+
+    const postRunSetFunction = jest.fn(() => Promise.resolve(postRunSetSuccessResponse))
 
     await Ajax.mockImplementation(() => {
       return {
@@ -1581,6 +1585,95 @@ describe('SubmissionConfig submitting a run set', () => {
         }
       })
     )
+  })
+
+  it('error message should display on workflow launch fail, and not on success', async () => {
+    // ** ARRANGE **
+    const mockRunSetResponse = jest.fn(() => Promise.resolve(runSetResponse))
+    const mockMethodsResponse = jest.fn(() => Promise.resolve(methodsResponse))
+    const mockSearchResponse = jest.fn(() => Promise.resolve(searchResponses['FOO']))
+    const mockTypesResponse = jest.fn(() => Promise.resolve(typesResponse))
+
+    const postRunSetSuccessResponse = { run_set_id: "00000000-0000-0000-000000000000" }
+    const postRunSetErrorResponse = { errors: "Sample Error Message" }
+
+    const postRunSetFunction = jest.fn();
+    postRunSetFunction.mockRejectedValueOnce(postRunSetErrorResponse).mockResolvedValueOnce(postRunSetSuccessResponse)
+
+    await Ajax.mockImplementation(() => {
+      return {
+        Cbas: {
+          runSets: {
+            post: postRunSetFunction,
+            getForMethod: mockRunSetResponse
+          },
+          methods: {
+            getById: mockMethodsResponse
+          }
+        },
+        Wds: {
+          search: {
+            post: mockSearchResponse
+          },
+          types: {
+            get: mockTypesResponse
+          }
+        }
+      }
+    })
+
+    // ** ACT **
+    render(h(SubmissionConfig))
+
+    // ** ASSERT **
+    await waitFor(() => {
+      expect(mockRunSetResponse).toHaveBeenCalledTimes(1)
+      expect(mockTypesResponse).toHaveBeenCalledTimes(1)
+      expect(mockSearchResponse).toHaveBeenCalledTimes(1)
+      expect(mockMethodsResponse).toHaveBeenCalledTimes(1)
+    })
+
+    // ** ACT **
+    // user selects 'FOO1' record from Data Table
+    const checkboxes = screen.getAllByRole('checkbox')
+    const checkbox = checkboxes[1]
+    fireEvent.click(checkbox)
+
+    // ** ASSERT **
+    // verify that the record was indeed selected
+    expect(checkbox).toHaveAttribute('aria-checked', 'true')
+
+    // ** ACT **
+    // user clicks on Submit (inputs and outputs should be rendered based on previous submission)
+    const button = screen.getByLabelText('Submit button')
+    fireEvent.click(button)
+
+    // ** ASSERT **
+    // Launch modal should be displayed
+    await screen.getByText('Send submission')
+    const modalSubmitButton = await screen.getByLabelText('Launch Submission')
+
+    // ** ACT **
+    // user click on Submit button
+    fireEvent.click(modalSubmitButton)
+
+    // ** ASSERT **
+    // assert error message on first submit
+    await waitFor(async () => await expect(postRunSetFunction).toHaveReturned());
+    screen.getByLabelText("Modal submission error")
+    screen.getByText(postRunSetErrorResponse.errors, {exact: false})
+
+    // ** ACT **
+    // user click on Submit button again
+    fireEvent.click(modalSubmitButton)
+
+    // ** ASSERT **
+    // assert success on second submit
+    await waitFor(async () => await expect(postRunSetFunction).toHaveReturned());
+    expect(Nav.goToPath).toHaveBeenCalled()
+    expect(Nav.goToPath).toHaveBeenCalledWith('submission-details', {
+      submissionId: postRunSetSuccessResponse.run_set_id
+    })
   })
 
   it('should call POST /run_sets endpoint with expected parameters after an optional input is set to None', async () => {

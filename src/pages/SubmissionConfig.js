@@ -378,7 +378,8 @@ export const SubmissionConfig = ({ methodId }) => {
                   whiteSpace: 'pre-wrap', overflowY: 'scroll', overflowWrap: 'break-word',
                   fontFamily: 'Menlo, monospace',
                   maxHeight: 160
-                }
+                },
+                'aria-label': 'Modal submission error'
               }, [workflowSubmissionError])
             ]], () => '')
           ])
