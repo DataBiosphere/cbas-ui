@@ -37,9 +37,13 @@ const InputsTable = props => {
         _.set('taskName', call || workflow || ''),
         _.set('variable', variable || ''),
         _.set('inputTypeStr', Utils.renderTypeText(row.input_type)),
-        _.set('configurationIndex', parseInt(index))
+        _.set('configurationIndex', parseInt(index)),
+        _.set('optional', Utils.isInputOptional(row.input_type))
       ])(row)
     }),
+    _.orderBy([({ variable }) => _.lowerCase(variable)], ['asc']),
+    _.orderBy([({ taskName }) => _.lowerCase(taskName)], ['asc']),
+    _.orderBy([({ optional }) => _.lowerCase(optional)], ['asc']),
     _.orderBy([({ [inputTableSort.field]: field }) => _.lowerCase(field)], [inputTableSort.direction])
   )(configuredInputDefinition)
 
@@ -164,7 +168,7 @@ const InputsTable = props => {
             }
           },
           {
-            headerRenderer: () => h(HeaderCell, ['Attribute']),
+            headerRenderer: () => h(Sortable, { sort: inputTableSort, field: 'optional', onSort: setInputTableSort }, [h(HeaderCell, ['Attribute'])]),
             cellRenderer: ({ rowIndex }) => {
               const source = _.get(`${rowIndex}.source`, inputTableData)
               const inputName = _.get(`${rowIndex}.input_name`, inputTableData)

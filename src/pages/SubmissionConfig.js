@@ -60,7 +60,7 @@ export const SubmissionConfig = ({ methodId }) => {
 
   // TODO: this should probably be moved to a scope more local to the data selector
   const [recordsTableSort, setRecordsTableSort] = useState({ field: 'id', direction: 'asc' })
-  const [inputTableSort, setInputTableSort] = useState({ field: '', direction: 'asc' })
+  const [inputTableSort, setInputTableSort] = useState({ field: 'optional', direction: 'asc' })
   const [outputTableSort, setOutputTableSort] = useState({ field: '', direction: 'asc' })
 
   const [displayLaunchModal, setDisplayLaunchModal] = useState(false)
