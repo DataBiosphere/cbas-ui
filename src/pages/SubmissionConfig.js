@@ -91,11 +91,8 @@ export const SubmissionConfig = ({ methodId }) => {
       }
       return res
     } catch (error) {
-      if (error.status === 401) {
-        res = { status: 'Unauthorized', state: error }
-      } else {
-        res = { status: 'Error', state: error }
-      }
+      if (error.status === 401) res = { status: 'Unauthorized', state: error }
+      else res = { status: 'Error', state: error }
 
       setWdsProxyUrl(res)
       return res
@@ -160,16 +157,14 @@ export const SubmissionConfig = ({ methodId }) => {
       if (!wdsProxyUrl || (wdsProxyUrl.status !== 'Ready')) {
         const { status, state: wdsUrlRoot } = await loadWdsUrl()
         if (status === 'Unauthorized') {
-          notify('warn', 'Error loading data tables',
-            { detail: 'Service returned Unauthorized error. Session might have expired. Please close the tab and re-open it.' })
+          notify('warn', 'Error loading data tables', { detail: 'Service returned Unauthorized error. Session might have expired. Please close the tab and re-open it.' })
         } else if (!!wdsUrlRoot) {
           if (includeLoadRecordTypes) { await loadRecordTypes(wdsUrlRoot) }
           await loadRecordsData(recordType, wdsUrlRoot)
         } else {
           const errorDetails = await (wdsUrlRoot instanceof Response ? wdsUrlRoot.text() : wdsUrlRoot)
           // to avoid stacked warning banners due to auto-poll for WDS url, we remove the current banner at 29th second
-          notify('warn', 'Error loading data tables',
-            { detail: `Data Table app not found. Will retry in 30 seconds. Error details: ${errorDetails}`, timeout: WdsPollInterval - 1000 })
+          notify('warn', 'Error loading data tables', { detail: `Data Table app not found. Will retry in 30 seconds. Error details: ${errorDetails}`, timeout: WdsPollInterval - 1000 })
         }
       } else {
         // if we have the WDS proxy URL load the WDS data
@@ -303,17 +298,13 @@ export const SubmissionConfig = ({ methodId }) => {
             options: _.map(t => t.name, recordTypes)
           }),
           noRecordTypeData && h(Fragment, [
-            a({ 'aria-label': 'warning message', style: { marginLeft: '1rem', fontSize: 15, marginTop: '1rem', height: '2rem', fontWeight: 'bold' } },
-              [icon('error-standard', { size: 20, style: { color: colors.warning(), flex: 'none', marginRight: '0.5rem' } }), noRecordTypeData])
+            a({ 'aria-label': 'warning message', style: { marginLeft: '1rem', fontSize: 15, marginTop: '1rem', height: '2rem', fontWeight: 'bold' } }, [icon('error-standard', { size: 20, style: { color: colors.warning(), flex: 'none', marginRight: '0.5rem' } }), noRecordTypeData])
           ])
         ]),
         h(StepButtons, {
           tabs: [
             { key: 'select-data', title: 'Select Data', isValid: true },
-            {
-              key: 'inputs', title: 'Inputs',
-              isValid: !missingRequiredInputs.length && !missingExpectedAttributes.length && !inputsWithInvalidValues.length
-            },
+            { key: 'inputs', title: 'Inputs', isValid: !missingRequiredInputs.length && !missingExpectedAttributes.length && !inputsWithInvalidValues.length },
             { key: 'outputs', title: 'Outputs', isValid: true }
           ],
           activeTab: activeTab.key || 'select-data',
@@ -321,8 +312,7 @@ export const SubmissionConfig = ({ methodId }) => {
           finalStep: h(ButtonPrimary, {
             'aria-label': 'Submit button',
             style: { marginLeft: '1rem' },
-            disabled: _.isEmpty(selectedRecords) || missingRequiredInputs.length || missingExpectedAttributes.length ||
-              inputsWithInvalidValues.length,
+            disabled: _.isEmpty(selectedRecords) || missingRequiredInputs.length || missingExpectedAttributes.length || inputsWithInvalidValues.length,
             tooltip: Utils.cond(
               [_.isEmpty(selectedRecords), () => 'No records selected'],
               [missingRequiredInputs.length || missingExpectedAttributes.length, () => 'One or more inputs have missing values'],
@@ -452,8 +442,7 @@ export const SubmissionConfig = ({ methodId }) => {
 
       setIsSubmitting(true)
       const runSetObject = await Ajax(signal).Cbas.runSets.post(runSetsPayload)
-      notify('success', 'Workflow successfully submitted',
-        { message: 'You may check on the progress of workflow on this page anytime.', timeout: 5000 })
+      notify('success', 'Workflow successfully submitted', { message: 'You may check on the progress of workflow on this page anytime.', timeout: 5000 })
       Nav.goToPath('submission-details', {
         submissionId: runSetObject.run_set_id
       })
