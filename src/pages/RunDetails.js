@@ -16,43 +16,15 @@ import { UriViewer } from 'src/components/URIViewer/UriViewer'
 import WDLViewer from 'src/components/WDLViewer'
 import { Ajax } from 'src/libs/ajax'
 import { useCancellation, useOnMount } from 'src/libs/react-utils'
-import { set } from 'src/libs/state-history';
 import { elements } from 'src/libs/style'
 import { cond, makeCompleteDate, newTabLinkProps } from 'src/libs/utils'
 import CallTable from 'src/pages/workspaces/workspace/jobHistory/CallTable'
 
 
-const commonStatuses = ['submitted', 'waitingForQuota', 'running', 'succeeded', 'failed']
-
 const styles = {
   sectionTableLabel: { fontWeight: 600 }
 }
 
-// Note: this can take a while with large data inputs. Consider memoization if the page ever needs re-rendering.
-const groupCallStatuses = flow(
-  values,
-  flattenDepth(1),
-  countBy(a => {
-    const collapsedStatus = collapseCromwellStatus(a.executionStatus, a.backendStatus)
-    return collapsedStatus !== statusType.unknown ? collapsedStatus.id : collapsedStatus.label(a.executionStatus)
-  })
-)
-
-const statusCell = ({ calls }) => {
-  const statusGroups = groupCallStatuses(calls)
-  const makeRow = (count, status, labelOverride) => {
-    const seeMore = !!status.moreInfoLink ? h(Link, { href: status.moreInfoLink, style: { marginLeft: '0.50rem' }, ...newTabLinkProps },
-      [status.moreInfoLabel, icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })]) : ''
-    return !!count && div({ style: { display: 'flex', alignItems: 'center', marginTop: '0.25rem' } }, [
-      status.icon(),
-      ` ${count} ${!!labelOverride ? labelOverride : status.label()}`,
-      seeMore
-    ])
-  }
-  const status = commonStatuses.filter(
-    s => statusGroups[s]).map(s => makeRow(statusGroups[s], statusType[s]))
-  return h(Fragment, status)
-}
 
 // Filter function that only displays rows based on task name search parameters
 // NOTE: the viewable call should have the task name stored on the call instance itself, should be done via pre-processing step
@@ -111,6 +83,7 @@ export const RunDetails = ({ submissionId, workflowId }) => {
       ]
       const excludeKey = []
       const metadata = await Ajax(signal).Cromwell.workflows(workflowId).metadata({ includeKey, excludeKey })
+
       setWorkflow(metadata)
       if (!isEmpty(metadata?.calls)) {
         const formattedTableData = generateCallTableData(metadata.calls)
@@ -240,7 +213,6 @@ export const RunDetails = ({ submissionId, workflowId }) => {
                       ),
                     ]),
                   ]),
-                  makeSection('Workflow Engine Id', [div({ style: { lineHeight: '24px', marginTop: '0.5rem' } }, [div([workflowId])])], {}),
                 ]
               ),
               makeSection(
@@ -255,7 +227,7 @@ export const RunDetails = ({ submissionId, workflowId }) => {
                       },
                       style: { display: 'flex', marginLeft: '1rem', alignItems: 'center' },
                     },
-                    [div({ 'data-testid': 'run-details-container' }, [icon('fileAlt', { size: 18 }), ' Execution log'])]
+                    [div({ 'data-testid': 'execution-log-container' }, [icon('fileAlt', { size: 18 }), ' Execution log'])]
                   ),
                 ],
                 {}
@@ -264,12 +236,14 @@ export const RunDetails = ({ submissionId, workflowId }) => {
                 h(
                   Collapse,
                   {
+                    'data-testid': 'workflow-failures-dropdown',
                     style: { marginBottom: '1rem' },
                     initialOpenState: true,
                     title: div({ style: elements.sectionHeader }, 'Workflow-Level Failures'),
                     afterTitle: h(ClipboardButton, {
+                      'data-testid': 'clipboard-button-failures',
                       text: JSON.stringify(failures, null, 2),
-                      style: { marginLeft: '0.5rem' },
+                      style: { marginLeft: '0.5rem' }
                     }),
                   },
                   [
@@ -280,15 +254,15 @@ export const RunDetails = ({ submissionId, workflowId }) => {
                       enableClipboard: false,
                       displayDataTypes: false,
                       displayObjectSize: false,
-                      src: restructureFailures(failures),
-                    }),
+                      src: restructureFailures(failures)
+                    })
                   ]
                 ),
               wdl &&
                 h(
                   Collapse,
                   {
-                    title: div({ style: elements.sectionHeader }, ['Submitted workflow script']),
+                    title: div({ 'data-testid': 'workflow-script-dropdown', style: elements.sectionHeader }, ['Submitted workflow script']),
                   },
                   [h(WDLViewer, { wdl })]
                 ),
@@ -306,11 +280,11 @@ export const RunDetails = ({ submissionId, workflowId }) => {
                 defaultFailedFilter: workflow?.status.toLocaleLowerCase().includes('failed'),
                 isRendered: !isEmpty(tableData),
                 showLogModal,
-                tableData
+                tableData,
               }),
             ]
           ),
-          showLog && h(UriViewer, { uri: logUri || '', onDismiss: () => setShowLog(false) })
+          showLog && h(UriViewer, { uri: logUri || '', onDismiss: () => setShowLog(false) }),
         ])
     ),
   ]);

@@ -84,7 +84,7 @@ const CallTable = ({ tableData, defaultFailedFilter = false, showLogModal}) => {
   const [filteredCallObjects, setFilteredCallObjects] = useState([])
 
   useEffect(() => {
-    if(defaultFailedFilter) {
+    if (defaultFailedFilter) {
       setStatusFilter(['Failed'])
     }
   }, [defaultFailedFilter])
@@ -128,7 +128,7 @@ const CallTable = ({ tableData, defaultFailedFilter = false, showLogModal}) => {
           flexGrow: 2
         }
       }, [
-        div({ style: { flexBasis: 250, marginRight: '20px' } }, [
+        div({'data-testid': 'status-dropdown-filter', style: { flexBasis: 250, marginRight: '20px' } }, [
           h(Select, {
             isClearable: true,
             isMulti: true,
@@ -214,14 +214,14 @@ const CallTable = ({ tableData, defaultFailedFilter = false, showLogModal}) => {
               field: 'end',
               headerRenderer: () => h(Sortable, { sort, field: 'end', onSort: setSort }, ['End']),
               cellRenderer: ({ rowIndex }) => {
-                const { end } = filteredCallObjects[rowIndex];
+                const { end } = filteredCallObjects[rowIndex]
                 return h(TooltipCell, [end ? Utils.makeCompleteDate(end) : 'N/A'])
               }
             },
             {
               size: { basis: 200, grow: 1},
               field: 'logs',
-              headerRenderer: () => h(HeaderCell, ['Logs']),
+              headerRenderer: () => h(HeaderCell, { fontWeight: 500 }, ['Logs']),
               cellRenderer: (({ rowIndex }) => {
                 const { stdout, stderr } = filteredCallObjects[rowIndex]
                 return div({ style: { display: 'flex', justifyContent: 'flex-start' } }, [

@@ -78,10 +78,10 @@ export const metadata = {
         returnCode: 0,
         jobId: '117f49d5_59bbeae7208642e686a1ca0f57c8c25a',
         backend: 'TES',
-        start: '2023-05-22T11:10:43.783Z',
+        start: '2023-05-23T10:10:43.783Z',
         backendStatus: 'Complete',
         compressedDockerSize: 1339143280,
-        end: '2023-05-22T11:22:31.784Z',
+        end: '2023-05-24T11:22:31.784Z',
         dockerImageUsed: 'quay.io/broadinstitute/ncbi-tools@sha256:c6228528a9fa7d3abd78d40821231ec49c122f8c10bb27ae603540c46fc05797',
         stderr:
           'https://lz43a8a3d21540dfd25f5ace.blob.core.windows.net/sc-0cd50a9c-d2d4-49f8-8038-e40982530830/workspace-services/cbas/terra-app-e79dfdc2-354e-496e-99b5-555b3097c8a2/fetch_sra_to_bam/117f49d5-413a-4cd8-976b-5204681ba097/call-Fetch_SRA_to_BAM/execution/stderr',
@@ -143,6 +143,12 @@ export const metadata = {
     'https://lz43a8a3d21540dfd25f5ace.blob.core.windows.net/sc-0cd50a9c-d2d4-49f8-8038-e40982530830/workspace-services/cbas/terra-app-e79dfdc2-354e-496e-99b5-555b3097c8a2/fetch_sra_to_bam/117f49d5-413a-4cd8-976b-5204681ba097',
   actualWorkflowLanguage: 'WDL',
   status: 'Succeeded',
+  failures: [
+    {
+      message: 'InjectionManagerFactory not found.',
+      causedBy: []
+    }
+  ],
   workflowLog:
     'https://lz43a8a3d21540dfd25f5ace.blob.core.windows.net/sc-0cd50a9c-d2d4-49f8-8038-e40982530830/workspace-services/cbas/terra-app-e79dfdc2-354e-496e-99b5-555b3097c8a2/cromwell-workflow-logs/workflow.117f49d5-413a-4cd8-976b-5204681ba097.log',
   end: '2023-05-22T11:22:33.705Z',
@@ -157,4 +163,4 @@ export const metadata = {
     'cromwell-workflow-id': 'cromwell-117f49d5-413a-4cd8-976b-5204681ba097',
   },
   submission: '2023-05-22T11:10:00.741Z',
-}
+};
