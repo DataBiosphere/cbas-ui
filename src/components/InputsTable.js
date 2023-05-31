@@ -2,6 +2,7 @@ import _ from 'lodash/fp'
 import { useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
+import { Link } from 'src/components/common'
 import { StructBuilderModal } from 'src/components/StructBuilder'
 import {
   InputSourceSelect,
@@ -26,6 +27,7 @@ const InputsTable = props => {
 
   const [structBuilderVisible, setStructBuilderVisible] = useState(false)
   const [structBuilderRow, setStructBuilderRow] = useState(null)
+  const [includeOptionalInputs, setIncludeOptionalInputs] = useState(true)
 
   const dataTableAttributes = _.keyBy('name', selectedDataTable.attributes)
 
@@ -44,7 +46,8 @@ const InputsTable = props => {
     _.orderBy([({ variable }) => _.lowerCase(variable)], ['asc']),
     _.orderBy([({ taskName }) => _.lowerCase(taskName)], ['asc']),
     _.orderBy([({ optional }) => _.lowerCase(optional)], ['asc']),
-    _.orderBy([({ [inputTableSort.field]: field }) => _.lowerCase(field)], [inputTableSort.direction])
+    _.orderBy([({ [inputTableSort.field]: field }) => _.lowerCase(field)], [inputTableSort.direction]),
+    _.filter(({ optional }) => includeOptionalInputs || !optional)
   )(configuredInputDefinition)
 
   const recordLookupWithWarnings = (rowIndex, selectedInputName) => {
@@ -123,12 +126,22 @@ const InputsTable = props => {
           setStructBuilderVisible(false)
         }
       }),
+      (!includeOptionalInputs || _.some(row => row.optional, inputTableData)) && h(div,
+        { style: { height: 0.08 * height, width, display: 'flex', alignItems: 'center' } },
+        [h(Link,
+          {
+            style: { marginRight: 'auto' },
+            onClick: () => setIncludeOptionalInputs(includeOptionalInputs => !includeOptionalInputs)
+          },
+          [includeOptionalInputs ? 'Hide optional inputs' : 'Show optional inputs']
+        )]
+      ),
       h(FlexTable, {
         'aria-label': 'input-table',
         rowCount: inputTableData.length,
         sort: inputTableSort,
         readOnly: false,
-        height,
+        height: (!includeOptionalInputs || _.some(row => row.optional, inputTableData)) ? 0.92 * height : height,
         width,
         columns: [
           {
@@ -168,7 +181,7 @@ const InputsTable = props => {
             }
           },
           {
-            headerRenderer: () => h(Sortable, { sort: inputTableSort, field: 'optional', onSort: setInputTableSort }, [h(HeaderCell, ['Attribute'])]),
+            headerRenderer: () => h(HeaderCell, ['Attribute']),
             cellRenderer: ({ rowIndex }) => {
               const source = _.get(`${rowIndex}.source`, inputTableData)
               const inputName = _.get(`${rowIndex}.input_name`, inputTableData)
