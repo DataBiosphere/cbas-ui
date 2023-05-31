@@ -78,7 +78,7 @@ export const RunDetails = ({ submissionId, workflowId }) => {
         'stderr',
         'stdout',
         'attempt',
-        'subWorkflowId', //needed for task type column
+        'subWorkflowId' //needed for task type column
         // 'subWorkflowMetadata' //may need this later
       ]
       const excludeKey = []
