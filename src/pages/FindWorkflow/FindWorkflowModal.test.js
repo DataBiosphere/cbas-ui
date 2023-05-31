@@ -4,7 +4,6 @@ import { act, fireEvent, render, screen } from '@testing-library/react'
 import { h } from 'react-hyperscript-helpers'
 import { Ajax } from 'src/libs/ajax'
 import { getConfig } from 'src/libs/config'
-import * as Nav from 'src/libs/nav'
 import FindWorkflowModal from 'src/pages/FindWorkflow/FindWorkflowModal'
 
 
@@ -78,7 +77,7 @@ describe('FindWorkflowModal', () => {
       })
   })
 
-  it('should link to Dockstore staging when clicked', async () => {
+  it('should link to Dockstore staging when clicked', () => {
     getConfig().isDockstoreEnabled = true
 
     // ** ACT **
