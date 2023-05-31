@@ -77,9 +77,9 @@ export const RunDetails = ({ submissionId, workflowId }) => {
         'end',
         'stderr',
         'stdout',
-        'attempt'
-        // 'subWorkflowId', //might not need this
-        // 'subWorkflowMetadata' //don't need this now, will need it when subworkflows data is fetched in one shot
+        'attempt',
+        'subWorkflowId', //needed for task type column
+        // 'subWorkflowMetadata' //may need this later
       ]
       const excludeKey = []
       const metadata = await Ajax(signal).Cromwell.workflows(workflowId).metadata({ includeKey, excludeKey })
