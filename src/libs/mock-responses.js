@@ -11,6 +11,14 @@ export const runSetInputDef = [
     }
   },
   {
+    input_name: 'target_workflow_1.bar_string_workflow_var',
+    input_type: { type: 'primitive', primitive_type: 'String' },
+    source: {
+      type: 'record_lookup',
+      record_attribute: 'bar_string'
+    }
+  },
+  {
     input_name: 'target_workflow_1.optional_var',
     input_type: {
       type: 'optional',
@@ -22,14 +30,6 @@ export const runSetInputDef = [
     source: {
       type: 'literal',
       parameter_value: 'Hello World'
-    }
-  },
-  {
-    input_name: 'target_workflow_1.bar_string_workflow_var',
-    input_type: { type: 'primitive', primitive_type: 'String' },
-    source: {
-      type: 'record_lookup',
-      record_attribute: 'bar_string'
     }
   }
 ]
