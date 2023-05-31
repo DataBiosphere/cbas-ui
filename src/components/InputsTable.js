@@ -45,7 +45,6 @@ const InputsTable = props => {
     }),
     _.orderBy([({ variable }) => _.lowerCase(variable)], ['asc']),
     _.orderBy([({ taskName }) => _.lowerCase(taskName)], ['asc']),
-    _.orderBy([({ optional }) => _.lowerCase(optional)], ['asc']),
     _.orderBy([({ [inputTableSort.field]: field }) => _.lowerCase(field)], [inputTableSort.direction]),
     _.filter(({ optional }) => includeOptionalInputs || !optional)
   )(configuredInputDefinition)
