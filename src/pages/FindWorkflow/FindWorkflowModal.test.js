@@ -4,6 +4,7 @@ import { act, fireEvent, render, screen } from '@testing-library/react'
 import { h } from 'react-hyperscript-helpers'
 import { Ajax } from 'src/libs/ajax'
 import { getConfig } from 'src/libs/config'
+import * as Nav from 'src/libs/nav'
 import FindWorkflowModal from 'src/pages/FindWorkflow/FindWorkflowModal'
 
 
@@ -18,7 +19,9 @@ jest.mock('src/libs/config', () => ({
 
 describe('FindWorkflowModal', () => {
   beforeEach(() => {
+    getConfig.mockReturnValue({ isDockstoreEnabled: false })
     getConfig.mockReturnValue({ isURLEnabled: false })
+    getConfig.mockReturnValue(({ dockstoreRootUrl: 'https://staging.dockstore.org/search?descriptorType=WDL&entryType=workflows&searchMode=files' }))
   })
   it('should render FindWorkflowModal with 5 hardcoded Method cards', () => {
     // ** ACT **
@@ -73,5 +76,18 @@ describe('FindWorkflowModal', () => {
         method_version: 'Optimus_v5.5.0',
         method_url: 'https://raw.githubusercontent.com/broadinstitute/warp/develop/pipelines/skylab/optimus/Optimus.wdl'
       })
+  })
+
+  it('should link to Dockstore staging when clicked', async () => {
+    getConfig().isDockstoreEnabled = true
+
+    // ** ACT **
+    render(h(FindWorkflowModal, { onDismiss: jest.fn() }))
+
+    const dockstoreSubHeader = screen.getByText('Dockstore')
+    fireEvent.click(dockstoreSubHeader)
+
+    const dockstoreButton = screen.getByText('Go to Dockstore')
+    expect(dockstoreButton).toHaveAttribute('href', 'https://staging.dockstore.org/search?descriptorType=WDL&entryType=workflows&searchMode=files')
   })
 })
