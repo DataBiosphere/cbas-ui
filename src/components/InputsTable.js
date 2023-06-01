@@ -97,27 +97,18 @@ const InputsTable = props => {
   }
 
   const sourceNoneWithWarnings = (rowIndex, selectedInputName) => {
-    if (_.has(inputTableData[rowIndex].variable, dataTableAttributes)) {
-      return WithWarnings({
-        baseComponent: h(TextCell,
-          { style: Utils.inputTypeStyle(inputTableData[rowIndex].input_type) },
-          ['Use ', h(Link, {
-            onClick: () => {
-              console.log(`clicked ${inputTableData[rowIndex].variable}`)
-              console.log(inputTableData[rowIndex])
-              setConfiguredInputDefinition(
-                _.set(`[${inputTableData[rowIndex].configurationIndex}].source`, { type: 'record_lookup', record_attribute: inputTableData[rowIndex].variable }, configuredInputDefinition))
-            }
-          }, [inputTableData[rowIndex].variable]), ' from data table?']
-        ),
-        warningMessage: missingRequiredInputs.includes(selectedInputName) ? 'This attribute is required' : ''
-      })
-    }
     return WithWarnings({
       baseComponent: h(TextCell,
         { style: Utils.inputTypeStyle(inputTableData[rowIndex].input_type) },
-        [isInputOptional(inputTableData[rowIndex].input_type) ? 'Optional' : 'This input is required']
-      ),
+        _.has(inputTableData[rowIndex].variable, dataTableAttributes)) ? (['Use ', h(Link, {
+          onClick: () => {
+            console.log(`clicked ${inputTableData[rowIndex].variable}`)
+            console.log(inputTableData[rowIndex])
+            setConfiguredInputDefinition(
+              _.set(`[${inputTableData[rowIndex].configurationIndex}].source`, { type: 'record_lookup', record_attribute: inputTableData[rowIndex].variable }, configuredInputDefinition))
+          }
+        }, [inputTableData[rowIndex].variable]), ' from data table?']) :
+        ([isInputOptional(inputTableData[rowIndex].input_type) ? 'Optional' : 'This input is required']),
       warningMessage: missingRequiredInputs.includes(selectedInputName) ? 'This attribute is required' : ''
     })
   }
