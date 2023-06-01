@@ -15,7 +15,7 @@ import {
   runSetInputDefWithStruct,
   runSetOutputDef,
   runSetResponse,
-  runSetResponseForNewMethod,
+  runSetResponseForNewMethod, runSetResponseSameInputNames,
   runSetResponseWithStruct,
   searchResponses,
   typesResponse,
@@ -1305,6 +1305,150 @@ describe('SubmissionConfig inputs/outputs definitions', () => {
     within(cells3[2]).getByText('String')
     within(cells3[3]).getByText('Fetch from Data Table')
     within(cells3[4]).getByText('bar_string')
+  })
+
+  it('should populate fields from data table on click', async () => {
+    const mockRunSetResponse = jest.fn(() => Promise.resolve(runSetResponseSameInputNames))
+    const mockMethodsResponse = jest.fn(() => Promise.resolve(methodsResponse))
+    const mockSearchResponse = jest.fn((_, recordType) => Promise.resolve(searchResponses[recordType]))
+    const mockTypesResponse = jest.fn(() => Promise.resolve(typesResponse))
+
+    await Ajax.mockImplementation(() => {
+      return {
+        Cbas: {
+          runSets: {
+            getForMethod: mockRunSetResponse
+          },
+          methods: {
+            getById: mockMethodsResponse
+          }
+        },
+        Wds: {
+          search: {
+            post: mockSearchResponse
+          },
+          types: {
+            get: mockTypesResponse
+          }
+        }
+      }
+    })
+
+    render(h(SubmissionConfig))
+
+    await waitFor(() => {
+      expect(mockRunSetResponse).toHaveBeenCalledTimes(1)
+      expect(mockTypesResponse).toHaveBeenCalledTimes(1)
+      expect(mockMethodsResponse).toHaveBeenCalledTimes(1)
+      expect(mockSearchResponse).toHaveBeenCalledTimes(1)
+    })
+
+    const button = await screen.findByRole('button', { name: 'Inputs' })
+    await fireEvent.click(button)
+
+    const table = await screen.findByRole('table')
+    const rows = within(table).queryAllByRole('row')
+    const cells1 = within(rows[1]).queryAllByRole('cell')
+    const cells2 = within(rows[2]).queryAllByRole('cell')
+    const cells3 = within(rows[3]).queryAllByRole('cell')
+
+    within(cells1[0]).getByText('foo')
+    within(cells1[1]).getByText('foo_rating')
+    within(cells1[2]).getByText('Int')
+    within(cells1[3]).getByText('None')
+    within(cells1[4]).getByText(/Use /)
+    const inputFillButton = within(cells1[4]).getByText('foo_rating')
+    within(cells1[4]).getByText(/ from data table?/)
+
+    within(cells2[0]).getByText('target_workflow_1')
+    within(cells2[1]).getByText('bar_string')
+    within(cells2[2]).getByText('String')
+    within(cells1[3]).getByText('None')
+    within(cells2[4]).getByText(/Use /)
+    within(cells2[4]).getByText('bar_string')
+    within(cells2[4]).getByText(/ from data table?/)
+
+    within(cells3[0]).getByText('target_workflow_1')
+    within(cells3[1]).getByText('not_in_table')
+    within(cells3[2]).getByText('String')
+    within(cells3[3]).getByText('None')
+    within(cells3[4]).getByText('Optional')
+
+    // fill single input from click
+    await act(async () => {
+      await fireEvent.click(inputFillButton)
+    })
+
+    within(cells1[0]).getByText('foo')
+    within(cells1[1]).getByText('foo_rating')
+    within(cells1[2]).getByText('Int')
+    const selectSourceDropdown = within(cells1[3]).getByText('Fetch from Data Table')
+    within(cells1[4]).getByText('foo_rating')
+
+    within(cells2[0]).getByText('target_workflow_1')
+    within(cells2[1]).getByText('bar_string')
+    within(cells2[2]).getByText('String')
+    within(cells2[4]).getByText(/Use /)
+    within(cells2[4]).getByText('bar_string')
+    within(cells2[4]).getByText(/ from data table?/)
+
+    within(cells3[0]).getByText('target_workflow_1')
+    within(cells3[1]).getByText('not_in_table')
+    within(cells3[2]).getByText('String')
+    within(cells3[3]).getByText('None')
+    within(cells3[4]).getByText('Optional')
+
+    // reset input
+    await act(async () => {
+      await userEvent.click(selectSourceDropdown)
+      const selectOptionNone = within(screen.getByRole('listbox')).getByText('None')
+      await userEvent.click(selectOptionNone)
+    })
+
+    within(cells1[0]).getByText('foo')
+    within(cells1[1]).getByText('foo_rating')
+    within(cells1[2]).getByText('Int')
+    within(cells1[3]).getByText('None')
+    within(cells1[4]).getByText(/Use /)
+    within(cells1[4]).getByText('foo_rating')
+    within(cells1[4]).getByText(/ from data table?/)
+
+    within(cells2[0]).getByText('target_workflow_1')
+    within(cells2[1]).getByText('bar_string')
+    within(cells2[2]).getByText('String')
+    within(cells2[4]).getByText(/Use /)
+    within(cells2[4]).getByText('bar_string')
+    within(cells2[4]).getByText(/ from data table?/)
+
+    within(cells3[0]).getByText('target_workflow_1')
+    within(cells3[1]).getByText('not_in_table')
+    within(cells3[2]).getByText('String')
+    within(cells3[3]).getByText('None')
+    within(cells3[4]).getByText('Optional')
+
+    // fill all from data table
+    await act(async () => {
+      const fillAllButton = await screen.findByText('Set all from data table')
+      await userEvent.click(fillAllButton)
+    })
+
+    within(cells1[0]).getByText('foo')
+    within(cells1[1]).getByText('foo_rating')
+    within(cells1[2]).getByText('Int')
+    within(cells1[3]).getByText('Fetch from Data Table')
+    within(cells1[4]).getByText('foo_rating')
+
+    within(cells2[0]).getByText('target_workflow_1')
+    within(cells2[1]).getByText('bar_string')
+    within(cells2[2]).getByText('String')
+    within(cells2[3]).getByText('Fetch from Data Table')
+    within(cells2[4]).getByText('bar_string')
+
+    within(cells3[0]).getByText('target_workflow_1')
+    within(cells3[1]).getByText('not_in_table')
+    within(cells3[2]).getByText('String')
+    within(cells3[3]).getByText('None')
+    within(cells3[4]).getByText('Optional')
   })
 
   it('should change output table sort order when column headers are clicked', async () => {

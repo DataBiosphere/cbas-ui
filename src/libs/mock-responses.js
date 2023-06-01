@@ -87,6 +87,43 @@ export const runSetInputDefWithSourceNone = [
   }
 ]
 
+// example input configuration for a newly imported method with some of the same variable names as the table
+export const runSetInputDefSameInputNames = [
+  {
+    input_name: 'target_workflow_1.foo.foo_rating',
+    input_type: { type: 'optional', optional_type: { type: 'primitive', primitive_type: 'Int' } },
+    source: {
+      type: 'none'
+    }
+  },
+  {
+    input_name: 'target_workflow_1.bar_string',
+    input_type: {
+      type: 'optional',
+      optional_type: {
+        type: 'primitive',
+        primitive_type: 'String'
+      }
+    },
+    source: {
+      type: 'none'
+    }
+  },
+  {
+    input_name: 'target_workflow_1.not_in_table',
+    input_type: {
+      type: 'optional',
+      optional_type: {
+        type: 'primitive',
+        primitive_type: 'String'
+      }
+    },
+    source: {
+      type: 'none'
+    }
+  }
+]
+
 export const myStructInput = {
   input_name: 'target_workflow_1.foo.myStruct',
   input_type: {
@@ -266,6 +303,25 @@ export const runSetResponseForNewMethod = {
       run_count: 1,
       error_count: 0,
       input_definition: JSON.stringify(runSetInputDefWithSourceNone),
+      output_definition: JSON.stringify(runSetOutputDef)
+    }
+  ]
+}
+
+export const runSetResponseSameInputNames = {
+  run_sets: [
+    {
+      run_set_id: '10000000-0000-0000-0000-000000000001',
+      method_id: '00000000-0000-0000-0000-000000000001',
+      method_version_id: '50000000-0000-0000-0000-000000000006',
+      is_template: true,
+      state: 'COMPLETE',
+      record_type: 'FOO',
+      submission_timestamp: '2022-12-07T17:26:53.153+00:00',
+      last_modified_timestamp: '2022-12-07T17:26:53.153+00:00',
+      run_count: 1,
+      error_count: 0,
+      input_definition: JSON.stringify(runSetInputDefSameInputNames),
       output_definition: JSON.stringify(runSetOutputDef)
     }
   ]
