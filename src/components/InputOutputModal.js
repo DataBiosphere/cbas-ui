@@ -45,18 +45,6 @@ const InputOutputModal = ({ dataTableJson, isInputData, onDismiss }) => {
     }, [
       // we are specifying height here so that for long workflow scripts the Modal doesn't overflow the main screen
       div({ style: { margin: '1rem 0', display: 'flex', alignItems: 'center' } }, [
-        div({ style: { flexBasis: 350 } }, [
-          h(Select, {
-            isClearable: true,
-            isMulti: true,
-            isSearchable: false,
-            placeholder: 'Status',
-            'aria-label': 'Status',
-            value: statusFilter,
-            onChange: data => setStatusFilter(_.map('value', data)),
-            options: ['Succeeded', 'Failed', 'Running', 'Submitted, Awaiting Cloud Quota', 'Unknown']
-          })
-        ]),
         h(AutoSizer, { disableHeight: true }, [
           ({ width }) => h(FlexTable, {
             'aria-label': 'call table',
@@ -66,11 +54,19 @@ const InputOutputModal = ({ dataTableJson, isInputData, onDismiss }) => {
             noContentMessage: 'No Inputs',
             columns: [
               {
-                size: { basis: 100, grow: 0 },
+                size: { basis: 100, grow: 30 },
                 field: 'key',
                 headerRenderer: () => h(Sortable, { sort, field: 'key', onSort: setSort }, ['Key']),
                 cellRenderer: ({ rowIndex }) => {
                   return div({}, dataArray[rowIndex][0])
+                }
+              },
+              {
+                size: { basis: 100, grow: 70 },
+                field: 'value',
+                headerRenderer: () => h(Sortable, { sort, field: 'value', onSort: setSort }, ['Value']),
+                cellRenderer: ({ rowIndex }) => {
+                  return div({}, dataArray[rowIndex][1])
                 }
               }
             ]
