@@ -100,15 +100,14 @@ const InputsTable = props => {
     return WithWarnings({
       baseComponent: h(TextCell,
         { style: Utils.inputTypeStyle(inputTableData[rowIndex].input_type) },
-        _.has(inputTableData[rowIndex].variable, dataTableAttributes)) ? (['Use ', h(Link, {
+        Utils.cond([_.has(inputTableData[rowIndex].variable, dataTableAttributes), () => ['Use ', h(Link, {
           onClick: () => {
-            console.log(`clicked ${inputTableData[rowIndex].variable}`)
-            console.log(inputTableData[rowIndex])
             setConfiguredInputDefinition(
               _.set(`[${inputTableData[rowIndex].configurationIndex}].source`, { type: 'record_lookup', record_attribute: inputTableData[rowIndex].variable }, configuredInputDefinition))
           }
-        }, [inputTableData[rowIndex].variable]), ' from data table?']) :
-        ([isInputOptional(inputTableData[rowIndex].input_type) ? 'Optional' : 'This input is required']),
+        }, [inputTableData[rowIndex].variable]), ' from data table?']],
+        () => [isInputOptional(inputTableData[rowIndex].input_type) ? 'Optional' : 'This input is required'])
+      ),
       warningMessage: missingRequiredInputs.includes(selectedInputName) ? 'This attribute is required' : ''
     })
   }
@@ -127,12 +126,25 @@ const InputsTable = props => {
           setStructBuilderVisible(false)
         }
       }),
+      (_.some(row => _.has(row.variable, dataTableAttributes), inputTableData)) && h(div,
+        { style: { height: 0.08 * height, width, display: 'flex', alignItems: 'center' } },
+        [h(Link,
+          {
+            style: { marginLeft: 'auto' },
+            onClick: () => _.flow(
+              _.filter(row => _.has(row.variable, dataTableAttributes)),
+              _.forEach(row => setConfiguredInputDefinition(_.set(`[${row.configurationIndex}].source`, { type: 'record_lookup', record_attribute: row.variable })))
+            )(inputTableData)
+          },
+          ['Set all from data table']
+        )]
+      ),
       h(FlexTable, {
         'aria-label': 'input-table',
         rowCount: inputTableData.length,
         sort: inputTableSort,
         readOnly: false,
-        height,
+        height: _.some(row => _.has(row.variable, dataTableAttributes), inputTableData) ? 0.92 * height : height,
         width,
         columns: [
           {
