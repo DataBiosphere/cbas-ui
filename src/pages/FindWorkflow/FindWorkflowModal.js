@@ -1,12 +1,13 @@
 import _ from 'lodash/fp'
 import { useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
-import { Clickable, Link } from 'src/components/common'
+import { ButtonPrimary, Clickable, Link } from 'src/components/common'
 import HelpfulLinksBox from 'src/components/HelpfulLinksBox'
 import { centeredSpinner, icon } from 'src/components/icons'
 import ImportGithub from 'src/components/ImportGithub'
 import { submitMethod } from 'src/components/method-common'
 import ModalDrawer from 'src/components/ModalDrawer'
+import { TextCell } from 'src/components/table'
 import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
 import { useCancellation } from 'src/libs/react-utils'
@@ -73,7 +74,8 @@ const FindWorkflowModal = ({ onDismiss }) => {
 
   const subHeadersMap = {
     'browse-suggested-workflows': 'Browse Suggested Workflows',
-    ...(getConfig().isURLEnabled && { 'add-a-workflow-link': 'Add a Workflow Link' })
+    ...(getConfig().isURLEnabled && { 'add-a-workflow-link': 'Add a Workflow Link' }),
+    ...(getConfig().isDockstoreEnabled && { 'go-to-dockstore': h(TextCell, {}, ['Dockstore', icon('export', { style: { marginLeft: '0.5rem' } })]) })
   }
 
   const isSubHeaderActive = subHeader => selectedSubHeader === subHeader
@@ -116,6 +118,7 @@ const FindWorkflowModal = ({ onDismiss }) => {
         ])
       ]),
       isSubHeaderActive('add-a-workflow-link') && h(ImportGithub, { setLoading, signal, onDismiss }),
+      isSubHeaderActive('go-to-dockstore') && div({ style: { marginLeft: '4rem', width: '50%' } }, [h(ButtonPrimary, { style: { width: 225 }, href: getConfig().dockstoreRootUrl }, ['Go to Dockstore'])]),
       div({ style: { marginLeft: '10rem', marginRight: '1.5rem', width: '40%' } }, [h(HelpfulLinksBox)])
     ])
   ])

@@ -6,6 +6,7 @@ import { div, h } from 'react-hyperscript-helpers'
 import selectEvent from 'react-select-event'
 import { MenuTrigger } from 'src/components/PopupTrigger'
 import { Ajax } from 'src/libs/ajax'
+import { mockAbortResponse } from 'src/libs/mock-responses'
 import { SubmissionHistory } from 'src/pages/SubmissionHistory/SubmissionHistory'
 
 // Necessary to mock the AJAX module.
@@ -47,6 +48,15 @@ const runSetData = {
       run_count: 2,
       run_set_id: 'b7234aae-6f43-405e-bb3a-71f924e09825',
       state: 'ERROR'
+    },
+    {
+      error_count: 0,
+      submission_timestamp: '2022-07-10T12:00:00.000+00:00',
+      last_modified_timestamp: '2022-08-11T13:01:01.000+00:00',
+      record_type: 'FOO',
+      run_count: 3,
+      run_set_id: '20000000-0000-0000-0000-200000000002',
+      state: 'RUNNING'
     }
   ]
 }
@@ -131,10 +141,10 @@ describe('SubmissionHistory page', () => {
 
     // Assert
     expect(table).toHaveAttribute('aria-colcount', '6')
-    expect(table).toHaveAttribute('aria-rowcount', '3')
+    expect(table).toHaveAttribute('aria-rowcount', '4')
 
     const rows = within(table).queryAllByRole('row')
-    expect(rows.length).toBe(3)
+    expect(rows.length).toBe(4)
 
     const headers = within(rows[0]).queryAllByRole('columnheader')
     expect(headers.length).toBe(6)
@@ -150,18 +160,27 @@ describe('SubmissionHistory page', () => {
     expect(cellsFromDataRow1.length).toBe(6)
     within(headers[headerPosition['Actions']]).getByText('Actions')
     within(cellsFromDataRow1[headerPosition['Submission']]).getByText('Data used: FOO')
-    within(cellsFromDataRow1[headerPosition['Submission']]).getByText('1 workflows')
-    within(cellsFromDataRow1[headerPosition['Status']]).getByText('Success')
-    within(cellsFromDataRow1[headerPosition['Date Submitted']]).getByText(/Jan 1, 2022/)
-    within(cellsFromDataRow1[headerPosition['Duration']]).getByText('1 day 1 hour 1 minute 1 second')
+    within(cellsFromDataRow1[headerPosition['Submission']]).getByText('3 workflows')
+    within(cellsFromDataRow1[headerPosition['Status']]).getByText('Running')
+    within(cellsFromDataRow1[headerPosition['Date Submitted']]).getByText(/Jul 10, 2022/)
+    within(cellsFromDataRow1[headerPosition['Duration']]).getByText(/10 months 21 days/)
 
     const cellsFromDataRow2 = within(rows[2]).queryAllByRole('cell')
     expect(cellsFromDataRow2.length).toBe(6)
     within(headers[headerPosition['Actions']]).getByText('Actions')
     within(cellsFromDataRow2[headerPosition['Submission']]).getByText('Data used: FOO')
-    within(cellsFromDataRow2[headerPosition['Status']]).getByText('Failed with 1 errors')
-    within(cellsFromDataRow2[headerPosition['Date Submitted']]).getByText(/Jul 10, 2021/)
-    within(cellsFromDataRow2[headerPosition['Duration']]).getByText('1 month 1 day 1 hour 1 minute 1 second')
+    within(cellsFromDataRow2[headerPosition['Submission']]).getByText('1 workflows')
+    within(cellsFromDataRow2[headerPosition['Status']]).getByText('Success')
+    within(cellsFromDataRow2[headerPosition['Date Submitted']]).getByText(/Jan 1, 2022/)
+    within(cellsFromDataRow2[headerPosition['Duration']]).getByText('1 day 1 hour 1 minute 1 second')
+
+    const cellsFromDataRow3 = within(rows[3]).queryAllByRole('cell')
+    expect(cellsFromDataRow3.length).toBe(6)
+    within(headers[headerPosition['Actions']]).getByText('Actions')
+    within(cellsFromDataRow3[headerPosition['Submission']]).getByText('Data used: FOO')
+    within(cellsFromDataRow3[headerPosition['Status']]).getByText('Failed with 1 errors')
+    within(cellsFromDataRow3[headerPosition['Date Submitted']]).getByText(/Jul 10, 2021/)
+    within(cellsFromDataRow3[headerPosition['Duration']]).getByText('1 month 1 day 1 hour 1 minute 1 second')
   })
 
   it('should support canceled and canceling submissions', async () => {
@@ -230,7 +249,7 @@ describe('SubmissionHistory page', () => {
 
     const table = screen.getByRole('table')
     const rows = within(table).queryAllByRole('row')
-    expect(rows.length).toBe(3)
+    expect(rows.length).toBe(4)
 
     const headers = within(rows[0]).queryAllByRole('columnheader')
     expect(headers.length).toBe(6)
@@ -252,7 +271,7 @@ describe('SubmissionHistory page', () => {
     await act(async () => {
       await fireEvent.click(within(headers[headerPosition['Date Submitted']]).getByRole('button'))
     })
-    within(topRowCells(headerPosition['Date Submitted'])).getByText(/Jan 1, 2022/)
+    within(topRowCells(headerPosition['Date Submitted'])).getByText(/Jul 10, 2022/)
 
 
     // Click on "Status" column and check that the top column is correct for:
@@ -266,7 +285,7 @@ describe('SubmissionHistory page', () => {
     await act(async () => {
       await fireEvent.click(within(headers[headerPosition['Status']]).getByRole('button'))
     })
-    within(topRowCells(headerPosition['Status'])).getByText('Failed with 1 errors')
+    within(topRowCells(headerPosition['Status'])).getByText('Running')
 
 
     // Click on "Duration" column and check that the top column is correct for:
@@ -280,7 +299,7 @@ describe('SubmissionHistory page', () => {
     await act(async () => {
       await fireEvent.click(within(headers[headerPosition['Duration']]).getByRole('button'))
     })
-    within(topRowCells(headerPosition['Duration'])).getByText('1 month 1 day 1 hour 1 minute 1 second')
+    within(topRowCells(headerPosition['Duration'])).getByText(/10 months 21 days/)
   })
 
   const simpleRunSetData = {
@@ -361,5 +380,40 @@ describe('SubmissionHistory page', () => {
       await selectEvent.openMenu(actionsMenu)
       expect(actionsMenu).toHaveTextContent('Abort')
     })
+  })
+
+  it('should abort successfully', async () => {
+    const cancelSubmissionFunction = jest.fn(() => Promise.resolve(mockAbortResponse))
+
+    await act(async () => {
+      await render(h(SubmissionHistory))
+    })
+
+    const table = screen.getByRole('table')
+    const rows = within(table).queryAllByRole('row')
+    const headers = within(rows[0]).queryAllByRole('columnheader')
+    expect(headers.length).toBe(6)
+
+    const cellsFromDataRow1 = within(rows[3]).queryAllByRole('cell')
+    const actionsMenu = within(cellsFromDataRow1[0]).getByRole('button')
+
+    await selectEvent.openMenu(actionsMenu)
+    const abortButtons = screen.getAllByText('Abort')
+    const activeAbortButton = abortButtons[0]
+    expect(activeAbortButton).toHaveAttribute('aria-disabled', 'false')
+
+    await Ajax.mockImplementation(() => {
+      return {
+        Cbas: {
+          runSets: {
+            cancel: cancelSubmissionFunction
+          }
+        }
+      }
+    })
+
+    fireEvent.click(activeAbortButton)
+    expect(cancelSubmissionFunction).toHaveBeenCalled()
+    expect(cancelSubmissionFunction).toBeCalledWith('20000000-0000-0000-0000-200000000002')
   })
 })
