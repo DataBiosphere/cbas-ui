@@ -84,3 +84,7 @@ Note: Don't forget to stop the docker container after use. One can run the below
 docker stop <container_id>
 docker rm <container_id>
 ```
+
+### Versioning
+
+The CBAS-UI service follows the Google Cloud API versioning scheme of [semantic versioning](https://semver.org/). For more information, please visit this [document](https://docs.google.com/document/d/1qXNHTijdPn9ApYrznSkTFnxkt0g-o-Uh0SjqQlYd-ZA/edit).
