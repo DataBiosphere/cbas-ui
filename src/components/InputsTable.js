@@ -2,6 +2,7 @@ import _ from 'lodash/fp'
 import { useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
+import { Link } from 'src/components/common'
 import { StructBuilderModal } from 'src/components/StructBuilder'
 import {
   InputSourceSelect,
@@ -96,6 +97,22 @@ const InputsTable = props => {
   }
 
   const sourceNoneWithWarnings = (rowIndex, selectedInputName) => {
+    if (_.has(inputTableData[rowIndex].variable, dataTableAttributes)) {
+      return WithWarnings({
+        baseComponent: h(TextCell,
+          { style: Utils.inputTypeStyle(inputTableData[rowIndex].input_type) },
+          ['Use ', h(Link, {
+            onClick: () => {
+              console.log(`clicked ${inputTableData[rowIndex].variable}`)
+              console.log(inputTableData[rowIndex])
+              setConfiguredInputDefinition(
+                _.set(`[${inputTableData[rowIndex].configurationIndex}].source`, { type: 'record_lookup', record_attribute: inputTableData[rowIndex].variable }, configuredInputDefinition))
+            }
+          }, [inputTableData[rowIndex].variable]), ' from data table?']
+        ),
+        warningMessage: missingRequiredInputs.includes(selectedInputName) ? 'This attribute is required' : ''
+      })
+    }
     return WithWarnings({
       baseComponent: h(TextCell,
         { style: Utils.inputTypeStyle(inputTableData[rowIndex].input_type) },
@@ -152,7 +169,7 @@ const InputsTable = props => {
             }
           },
           {
-            size: { basis: 350, grow: 0 },
+            size: { basis: 300, grow: 0 },
             headerRenderer: () => h(HeaderCell, ['Input sources']),
             cellRenderer: ({ rowIndex }) => {
               return InputSourceSelect({
