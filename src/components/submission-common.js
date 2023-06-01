@@ -213,6 +213,7 @@ export const WithWarnings = props => {
   ])
 }
 
+const unwrapOptional = input => input.type === "optional" ? input.optional_type : input
 
 export const ParameterValueTextInput = props => {
   const {
@@ -268,7 +269,11 @@ export const InputSourceSelect = props => {
     inputType
   } = props
   const isOptional = inputType.type === 'optional'
-  const innerInputType = isOptional ? inputType.optional_type.type : inputType.type
+  const unwrappedType = unwrapOptional(inputType);
+  const innerInputType = unwrappedType.type
+  const isArray = innerInputType === 'array'
+  const unwrappedArrayType = isArray ? unwrapOptional(unwrappedType.array_type) : undefined
+  const simpleInnerArrayType = isArray && unwrappedArrayType.type === "primitive" && _.includes(unwrappedArrayType.primitive_type)(['Boolean', 'String', 'Int'])
   const editorType = innerInputType === 'struct' ? 'object_builder' : 'literal'
 
   return h(Select, {
@@ -295,7 +300,7 @@ export const InputSourceSelect = props => {
     },
     placeholder: 'Select Source',
     options: [
-      inputSourceLabels[editorType],
+      ...!isArray || simpleInnerArrayType ? inputSourceLabels[editorType] : [],
       inputSourceLabels['record_lookup'],
       ...isOptional ? [inputSourceLabels.none] : []
     ],
@@ -347,6 +352,9 @@ const validateRequirements = (inputSource, inputType) => {
       }
 
       return !!inputSource.parameter_value
+    }
+    if (inputSource.type === 'array') {
+
     }
   } else return false
 
