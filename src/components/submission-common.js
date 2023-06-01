@@ -300,7 +300,7 @@ export const InputSourceSelect = props => {
     },
     placeholder: 'Select Source',
     options: [
-      ...!isArray || simpleInnerArrayType ? inputSourceLabels[editorType] : [],
+      ...!isArray || simpleInnerArrayType ? [inputSourceLabels[editorType]] : [],
       inputSourceLabels['record_lookup'],
       ...isOptional ? [inputSourceLabels.none] : []
     ],
@@ -343,6 +343,16 @@ const validateRequirements = (inputSource, inputType) => {
       return _.every(Boolean, fieldsValidated)
     }
     if (inputSource.type === 'literal') {
+
+      if (inputType.type === 'array') {
+        try {
+          const inputArr = JSON.parse(inputSource.parameter_value)
+          return _.map(item => validateRequirements('literal', unwrapOptional(inputType.array_type)))(inputArr)
+        } catch (err) {
+          return false
+        }
+      }
+
       // this condition is specifically added to allow '0' and 'false' as valid values because
       // '!!inputSource.parameter_value' considers '0' and 'false' as empty values
       // Note: '!=' null check also covers if value is undefined
@@ -352,9 +362,6 @@ const validateRequirements = (inputSource, inputType) => {
       }
 
       return !!inputSource.parameter_value
-    }
-    if (inputSource.type === 'array') {
-
     }
   } else return false
 
