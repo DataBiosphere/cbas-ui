@@ -5,6 +5,7 @@ import ReactJson from 'react-json-view'
 import Collapse from 'src/components/Collapse'
 import { ClipboardButton, Link, Navbar } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
+import InputOutputModal from 'src/components/InputOutputModal'
 import {
   collapseCromwellStatus, collapseStatus,
   HeaderSection,
@@ -280,7 +281,12 @@ export const RunDetails = ({ submissionId, workflowId }) => {
           )
         ]
         ),
-        showLog && h(UriViewer, { workflow, onDismiss: () => setShowLog(false) })
+        showLog && h(InputOutputModal, {
+          dataTableJson: workflow.inputs,
+          isInputData: true,
+          onDismiss: () => setShowLog(false)
+        })
+        //showLog && h(UriViewer, { workflow, onDismiss: () => setShowLog(false) })
       ])
     )
   ])
