@@ -125,6 +125,8 @@ beforeEach(() => {
   })
 })
 
+const writeText = jest.fn()
+
 describe('RunDetails - render smoke test', () => {
   const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'offsetHeight')
   const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'offsetWidth')
@@ -132,7 +134,8 @@ describe('RunDetails - render smoke test', () => {
   beforeAll(() => {
     Object.defineProperty(HTMLElement.prototype, 'offsetHeight', { configurable: true, value: 1000 })
     Object.defineProperty(HTMLElement.prototype, 'offsetWidth', { configurable: true, value: 800 })
-    Object.assign(navigator, { clipboard: { writeText: () => {} } })
+    Object.assign(navigator, { clipboard: { writeText } })
+    navigator.clipboard.writeText.mockResolvedValue(undefined)
   })
 
   afterAll(() => {
@@ -168,11 +171,31 @@ describe('RunDetails - render smoke test', () => {
     })
   })
 
-  it('shows the workflow id', async () => {
+  it('shows the troubleshooting box', async () => {
     render(h(RunDetails, runDetailsProps))
     await waitFor(() => {
-      const workflowId = screen.getByText(runDetailsMetadata.id)
+      const troubleshootingBox = screen.getByText('Troubleshooting?')
+      expect(troubleshootingBox).toBeDefined
+      const workflowId = screen.getByText(runDetailsProps.workflowId)
       expect(workflowId).toBeDefined
+      const troubleshootingId = screen.getByText(runDetailsProps.submissionId)
+      expect(troubleshootingId).toBeDefined
+      const executionLog = screen.getByText('Execution Log')
+      expect(executionLog).toBeDefined
+    })
+  })
+
+  it('has functional copy buttons', async () => {
+    render(h(RunDetails, runDetailsProps))
+    console.log(navigator)
+    const user = userEvent.setup()
+    await waitFor(async () => {
+      const workflowIdCopyButton = screen.getByTestId('workflow-clipboard-button')
+      const submissionIdCopyButton = screen.getByTestId('submission-clipboard-button')
+      expect(workflowIdCopyButton).toBeDefined
+      expect(submissionIdCopyButton).toBeDefined
+      await user.click(workflowIdCopyButton)
+      expect(navigator.clipboard.writeText).toHaveBeenCalledWith(runDetailsProps.workflowId)
     })
   })
 
@@ -239,14 +262,6 @@ describe('RunDetails - render smoke test', () => {
       await user.click(viewModalLink)
       const wdlScript = screen.getByText(/Running checksum/)
       expect(wdlScript).toBeDefined
-    })
-  })
-
-  it('shows the execution log button', async () => {
-    render(h(RunDetails, runDetailsProps))
-    await waitFor(() => {
-      const executionLog = screen.getByText('Execution Log')
-      expect(executionLog).toBeDefined
     })
   })
 
