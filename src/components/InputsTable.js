@@ -13,7 +13,6 @@ import {
   WithWarnings
 } from 'src/components/submission-common'
 import { FlexTable, HeaderCell, Sortable, TextCell } from 'src/components/table'
-import TooltipTrigger from 'src/components/TooltipTrigger'
 import * as Utils from 'src/libs/utils'
 import { isInputOptional } from 'src/libs/utils'
 
