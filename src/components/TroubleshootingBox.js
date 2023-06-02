@@ -25,12 +25,12 @@ export const TroubleshootingBox = ({ workflow, submissionId, workflowId }) => {
   }, [
     div({}, [span({ style: { fontSize: 16, fontWeight: 'bold' } }, ['Troubleshooting?'])]),
     div({ 'data-testid': 'workflow-id-container', style: { display: 'flex', justifyContent: 'space-between' } }, [
-      div({}, [span({ style: { fontWeight: 'bold' } }, ['Workflow ID: ']), span({}, [workflowId])]),
-      div({ 'data-testid': 'workflow-clipboard-button' }, [h(ClipboardButton, { text: workflowId, style: { marginLeft: '0.5rem' } })])
+      span({}, [span({ style: { marginRight: '0.5rem', fontWeight: 'bold' } }, ['Workflow ID: ']), span({}, [workflowId])]),
+      span({ 'data-testid': 'workflow-clipboard-button' }, [h(ClipboardButton, { text: workflowId })])
     ]),
-    div({ 'data-testid': 'submission-id-container', style: { display: 'flex', justifyContent: 'space-between' } }, [
-      div({}, [span({ style: { fontWeight: 'bold' } }, ['Submission ID: ']), span({}, [submissionId])]),
-      div({ 'data-testid': 'submission-clipboard-button' }, [h(ClipboardButton, { text: submissionId, style: { marginLeft: '0.5rem' } })])
+    div({ style: { display: 'flex', justifyContent: 'space-between' } }, [
+      span({}, [span({ style: { marginRight: '0.5rem', fontWeight: 'bold' } }, ['Submission ID: ']), span({}, [submissionId])]),
+      span({ 'data-testid': 'submission-clipboard-button' }, [h(ClipboardButton, { text: submissionId })])
     ]),
     div({ 'data-testid': 'log-link-container', style: { display: 'flex', justifyContent: 'left', paddingTop: '3px' } }, [
       h(Link, { onClick: () => { setShowLog(true) } }, [

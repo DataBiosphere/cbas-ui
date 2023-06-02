@@ -225,7 +225,7 @@ export const ClipboardButton = ({ text, onClick, children, ...props }) => {
       e.stopPropagation()
       onClick?.(e)
       await clipboard.writeText(text)
-      //await Utils.delay(1500)
+      await Utils.delay(1500)
     })
   }, [children, icon(copied ? 'check' : 'copy-to-clipboard', !!children && { style: { marginLeft: '0.5rem' } })])
 }

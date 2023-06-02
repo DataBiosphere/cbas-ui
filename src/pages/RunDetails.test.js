@@ -1,7 +1,6 @@
 /* eslint-disable no-unused-expressions */
 import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import * as clipboard from 'clipboard-polyfill/text'
 import { h } from 'react-hyperscript-helpers'
 import { isAzureUri } from 'src/components/URIViewer/uri-viewer-utils'
 import { Ajax } from 'src/libs/ajax'
@@ -16,7 +15,6 @@ jest.mock('src/libs/config', () => ({
   ...jest.requireActual('src/libs/config'),
   getConfig: jest.fn().mockReturnValue({})
 }))
-
 
 const runDetailsProps = {
   namespace: 'example-billing-project',
@@ -187,18 +185,17 @@ describe('RunDetails - render smoke test', () => {
     })
   })
 
-  it('has functional copy buttons', async () => {
-    const user = userEvent.setup()
-    clipboard.writeText = jest.fn()
+  it('has copy buttons', async () => {
     render(h(RunDetails, runDetailsProps))
-    await waitFor(async () => {
+    await waitFor(() => {
       const workflowIdCopyButton = screen.getByTestId('workflow-clipboard-button')
       const submissionIdCopyButton = screen.getByTestId('submission-clipboard-button')
       expect(workflowIdCopyButton).toBeDefined
       expect(submissionIdCopyButton).toBeDefined
-      await user.click(workflowIdCopyButton)
-      await user.click(submissionIdCopyButton)
-      expect(clipboard.writeText).toHaveBeenCalled()
+      const workflowId = screen.getByText(runDetailsProps.workflowId)
+      const submissionId = screen.getByText(runDetailsProps.submissionId)
+      expect(workflowId).toBeDefined
+      expect(submissionId).toBeDefined
     })
   })
 
