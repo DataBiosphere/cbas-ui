@@ -213,7 +213,7 @@ export const WithWarnings = props => {
   ])
 }
 
-const unwrapOptional = input => input.type === "optional" ? input.optional_type : input
+export const unwrapOptional = input => input.type === 'optional' ? input.optional_type : input
 
 export const ParameterValueTextInput = props => {
   const {
@@ -269,11 +269,11 @@ export const InputSourceSelect = props => {
     inputType
   } = props
   const isOptional = inputType.type === 'optional'
-  const unwrappedType = unwrapOptional(inputType);
+  const unwrappedType = unwrapOptional(inputType)
   const innerInputType = unwrappedType.type
   const isArray = innerInputType === 'array'
   const unwrappedArrayType = isArray ? unwrapOptional(unwrappedType.array_type) : undefined
-  const simpleInnerArrayType = isArray && unwrappedArrayType.type === "primitive" && _.includes(unwrappedArrayType.primitive_type)(['Boolean', 'String', 'Int'])
+  const simpleInnerArrayType = isArray && unwrappedArrayType.type === 'primitive' && _.includes(unwrappedArrayType.primitive_type)(['Boolean', 'String', 'Int'])
   const editorType = innerInputType === 'struct' ? 'object_builder' : 'literal'
 
   return h(Select, {
@@ -343,11 +343,10 @@ const validateRequirements = (inputSource, inputType) => {
       return _.every(Boolean, fieldsValidated)
     }
     if (inputSource.type === 'literal') {
-
       if (inputType.type === 'array') {
         try {
           const inputArr = JSON.parse(inputSource.parameter_value)
-          return _.map(item => validateRequirements('literal', unwrapOptional(inputType.array_type)))(inputArr)
+          return _.map(item => validateRequirements({ ...inputSource, parameter_value: item }, unwrapOptional(inputType.array_type)))(inputArr)
         } catch (err) {
           return false
         }
@@ -415,6 +414,15 @@ const validateParameterValueSelect = (inputSource, inputType) => {
 
       if (inputType.type === 'optional' && inputType.optional_type.type === 'primitive') {
         return isPrimitiveTypeInputValid(inputType.optional_type.primitive_type, inputSource.parameter_value)
+      }
+
+      if (unwrapOptional(inputType).type === 'array') {
+        try {
+          return _.every(arrayElement => validateParameterValueSelect({ ...inputSource, parameter_value: arrayElement },
+            unwrapOptional(unwrapOptional(inputType).array_type)))(JSON.parse(inputSource.parameter_value))
+        } catch (e) {
+          return false
+        }
       }
     }
 

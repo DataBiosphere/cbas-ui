@@ -8,7 +8,7 @@ import {
   ParameterValueTextInput,
   parseMethodString,
   RecordLookupSelect,
-  StructBuilderLink,
+  StructBuilderLink, unwrapOptional,
   WithWarnings
 } from 'src/components/submission-common'
 import { FlexTable, HeaderCell, Sortable, TextCell } from 'src/components/table'
@@ -63,6 +63,8 @@ const InputsTable = props => {
   const parameterValueSelectWithWarnings = (rowIndex, selectedInputName) => {
     const warningMessage = Utils.cond(
       [missingRequiredInputs.includes(selectedInputName), () => 'This attribute is required'],
+      [inputsWithInvalidValues.includes(selectedInputName) && unwrapOptional(inputTableData[rowIndex].input_type).type === 'array',
+        () => 'Value is either empty or doesn\'t match expected input type. Array inputs must follow JSON array literal syntax.'],
       [inputsWithInvalidValues.includes(selectedInputName), () => 'Value is either empty or doesn\'t match expected input type'],
       () => ''
     )
