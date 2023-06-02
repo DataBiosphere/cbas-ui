@@ -2,7 +2,6 @@ import _ from 'lodash/fp'
 import { useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
-import { Link } from 'src/components/common'
 import { StructBuilderModal } from 'src/components/StructBuilder'
 import {
   InputSourceSelect,
@@ -12,7 +11,8 @@ import {
   StructBuilderLink,
   WithWarnings
 } from 'src/components/submission-common'
-import { FlexTable, HeaderCell, Sortable, TextCell } from 'src/components/table'
+import { FlexTable, HeaderCell, InputsButtonRow, Sortable, TextCell } from 'src/components/table'
+import { tableButtonRowStyle } from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { isInputOptional } from 'src/libs/utils'
 
@@ -125,16 +125,13 @@ const InputsTable = props => {
           setStructBuilderVisible(false)
         }
       }),
-      (!includeOptionalInputs || _.some(row => row.optional, inputTableData)) && h(div,
-        { style: { height: 0.08 * height, width, display: 'flex', alignItems: 'center' } },
-        [h(Link,
-          {
-            style: { marginRight: 'auto' },
-            onClick: () => setIncludeOptionalInputs(includeOptionalInputs => !includeOptionalInputs)
-          },
-          [includeOptionalInputs ? 'Hide optional inputs' : 'Show optional inputs']
-        )]
-      ),
+      h(InputsButtonRow, {
+        style: tableButtonRowStyle({ width, height }),
+        showRow: !includeOptionalInputs || _.some(row => row.optional, inputTableData),
+        optionalButtonProps: {
+          includeOptionalInputs, setIncludeOptionalInputs
+        }
+      }),
       h(FlexTable, {
         'aria-label': 'input-table',
         rowCount: inputTableData.length,
