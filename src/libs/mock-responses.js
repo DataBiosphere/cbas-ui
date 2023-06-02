@@ -99,11 +99,8 @@ export const runSetInputDefSameInputNames = [
   {
     input_name: 'target_workflow_1.bar_string',
     input_type: {
-      type: 'optional',
-      optional_type: {
-        type: 'primitive',
-        primitive_type: 'String'
-      }
+      type: 'primitive',
+      primitive_type: 'String'
     },
     source: {
       type: 'none'

@@ -1365,10 +1365,11 @@ describe('SubmissionConfig inputs/outputs definitions', () => {
     within(cells2[0]).getByText('target_workflow_1')
     within(cells2[1]).getByText('bar_string')
     within(cells2[2]).getByText('String')
-    within(cells1[3]).getByText('None')
+    within(cells2[3]).getByText('Select Source')
     within(cells2[4]).getByText(/Use /)
     within(cells2[4]).getByText('bar_string')
     within(cells2[4]).getByText(/ from data table?/)
+    within(cells2[4]).getByText('This attribute is required')
 
     within(cells3[0]).getByText('target_workflow_1')
     within(cells3[1]).getByText('not_in_table')
