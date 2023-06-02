@@ -13,6 +13,7 @@ import {
   WithWarnings
 } from 'src/components/submission-common'
 import { FlexTable, HeaderCell, Sortable, TextCell } from 'src/components/table'
+import TooltipTrigger from 'src/components/TooltipTrigger'
 import * as Utils from 'src/libs/utils'
 import { isInputOptional } from 'src/libs/utils'
 
@@ -43,6 +44,10 @@ const InputsTable = props => {
     }),
     _.orderBy([({ [inputTableSort.field]: field }) => _.lowerCase(field)], [inputTableSort.direction])
   )(configuredInputDefinition)
+
+  const inputRowsInDataTable = _.filter(
+    row => _.has(row.variable, dataTableAttributes) && row.source.type === 'none'
+  )(inputTableData)
 
   const recordLookupWithWarnings = (rowIndex, selectedInputName) => {
     const source = _.get(`${inputTableData[rowIndex].configurationIndex}.source`, configuredInputDefinition)
@@ -126,17 +131,17 @@ const InputsTable = props => {
           setStructBuilderVisible(false)
         }
       }),
-      (_.some(row => _.has(row.variable, dataTableAttributes), inputTableData)) && h(div,
+      inputRowsInDataTable.length > 0 && h(div,
         { style: { height: 0.08 * height, width, display: 'flex', alignItems: 'center' } },
         [h(Link,
           {
             style: { marginLeft: 'auto' },
-            onClick: () => _.flow(
-              _.filter(row => _.has(row.variable, dataTableAttributes)),
-              _.forEach(row => setConfiguredInputDefinition(_.set(`[${row.configurationIndex}].source`, { type: 'record_lookup', record_attribute: row.variable })))
-            )(inputTableData)
+            onClick: () => _.forEach(
+              row => setConfiguredInputDefinition(_.set(`[${row.configurationIndex}].source`, { type: 'record_lookup', record_attribute: row.variable }))
+            )(inputRowsInDataTable),
+            tooltip: _.flow(_.map(row => row.variable), _.join(', '))(inputRowsInDataTable)
           },
-          ['Set all from data table']
+          [`Set (${inputRowsInDataTable.length}) from data table`]
         )]
       ),
       h(FlexTable, {

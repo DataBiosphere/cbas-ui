@@ -1352,6 +1352,8 @@ describe('SubmissionConfig inputs/outputs definitions', () => {
     const cells2 = within(rows[2]).queryAllByRole('cell')
     const cells3 = within(rows[3]).queryAllByRole('cell')
 
+    screen.getByText('Set (2) from data table')
+
     within(cells1[0]).getByText('foo')
     within(cells1[1]).getByText('foo_rating')
     within(cells1[2]).getByText('Int')
@@ -1378,6 +1380,8 @@ describe('SubmissionConfig inputs/outputs definitions', () => {
     await act(async () => {
       await fireEvent.click(inputFillButton)
     })
+
+    screen.getByText('Set (1) from data table')
 
     within(cells1[0]).getByText('foo')
     within(cells1[1]).getByText('foo_rating')
@@ -1428,9 +1432,11 @@ describe('SubmissionConfig inputs/outputs definitions', () => {
 
     // fill all from data table
     await act(async () => {
-      const fillAllButton = await screen.findByText('Set all from data table')
-      await userEvent.click(fillAllButton)
+      const fillAllButton = await screen.findByText('Set (2) from data table')
+      await fireEvent.click(fillAllButton)
     })
+
+    expect(screen.queryByText(/Set \([0-9]+\) from data table/)).not.toBeInTheDocument()
 
     within(cells1[0]).getByText('foo')
     within(cells1[1]).getByText('foo_rating')
