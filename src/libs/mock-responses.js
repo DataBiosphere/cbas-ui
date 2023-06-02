@@ -460,3 +460,11 @@ export const mockApps = [
     appType: 'CROMWELL', workspaceId: 'abc-123', appName: `wds-abc-123`, status: 'RUNNING', proxyUrls: { wds: mockWdsProxyUrl }
   }
 ]
+
+export const mockAbortResponse = {
+  run_set_id: '20000000-0000-0000-0000-200000000002',
+  runs: [
+    '30000000-0000-0000-0000-200000000003'
+  ],
+  state: 'CANCELING'
+}
