@@ -263,7 +263,7 @@ const NoContentRow = ({ noContentMessage, noContentRenderer = _.noop, numColumns
 ])
 
 export const InputsButtonRow = ({ showRow = true, optionalButtonProps: { includeOptionalInputs, setIncludeOptionalInputs }, ...props }) => {
-  return showRow && h(div, {...props}, [
+  return showRow && h(div, { ...props }, [
     h(Link,
       {
         style: { marginRight: 'auto' },

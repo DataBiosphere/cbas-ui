@@ -46,17 +46,20 @@ export const StructBuilder = props => {
   const structSourcePath = buildStructSourcePath(structIndexPath)
   const structTypeNamePath = buildStructTypeNamePath(structIndexPath)
 
-  const currentStructType = structTypePath ? _.get(structTypePath, structType) : structType
-  const currentStructFields = _.flow(
-    _.orderBy([({ field_name: name }) => _.lowerCase(name)], ['asc']),
-    _.filter(({ field_type: { type } }) => includeOptionalInputs || type !== 'optional')
-  )(currentStructType.fields)
-  const currentStructSource = structSourcePath ? _.get(structSourcePath, structSource) : structSource
+  const currentStructTypeNoFilter = structTypePath ? _.get(structTypePath, structType) : structType
+  const currentStructSourceNoFilter = structSourcePath ? _.get(structSourcePath, structSource) : structSource
+  const [currentStructTypeFilteredFields, currentStructSourceFilteredFields] = _.flow(
+    _.zip,
+    _.filter(([{ field_type: { type } }, _source]) => includeOptionalInputs || type !== 'optional'),
+    _.unzip
+  )(currentStructTypeNoFilter.fields, currentStructSourceNoFilter.fields)
+  const currentStructType = { ...currentStructTypeNoFilter, fields: currentStructTypeFilteredFields }
+  const currentStructSource = { ...currentStructSourceNoFilter, fields: currentStructSourceFilteredFields }
   const currentStructName = structTypeNamePath ? _.get(structTypeNamePath, structType) : structName
 
   const setCurrentStructSource = structSourcePath ? source => setStructSource(_.set(structSourcePath, source, structSource)) : setStructSource
 
-  const structInputDefinition = _.map(([source, type]) => _.merge(source, type), _.zip(currentStructSource.fields, currentStructFields))
+  const structInputDefinition = _.map(([source, type]) => _.merge(source, type), _.zip(currentStructSource.fields, currentStructType.fields))
   const currentStructBreadcrumbs = buildStructBreadcrumbs(structIndexPath, structType)
 
   const missingExpectedAttributes = _.map(i => i.field_name, inputsMissingRequiredAttributes(structInputDefinition, dataTableAttributes))
@@ -84,14 +87,14 @@ export const StructBuilder = props => {
       return h(div, {}, [
         h(InputsButtonRow, {
           style: tableButtonRowStyle({ width, height }),
-          showRow: !includeOptionalInputs || _.some(row => row.field_type.type === 'optional', currentStructFields),
+          showRow: !includeOptionalInputs || _.some(row => row.field_type.type === 'optional', currentStructType.fields),
           optionalButtonProps: {
             includeOptionalInputs, setIncludeOptionalInputs
           }
         }),
         h(FlexTable, {
           'aria-label': 'struct-table',
-          rowCount: _.size(currentStructFields),
+          rowCount: _.size(currentStructType.fields),
           readOnly: false,
           height: height - breadcrumbsHeight,
           width,
@@ -109,7 +112,7 @@ export const StructBuilder = props => {
               field: 'field',
               headerRenderer: () => h(HeaderCell, ['Variable']),
               cellRenderer: ({ rowIndex }) => {
-                return h(TextCell, { style: Utils.inputTypeStyle(currentStructFields[rowIndex].field_type) }, [currentStructFields[rowIndex].field_name])
+                return h(TextCell, { style: Utils.inputTypeStyle(currentStructType.fields[rowIndex].field_type) }, [currentStructType.fields[rowIndex].field_name])
               }
             },
             {
@@ -117,7 +120,7 @@ export const StructBuilder = props => {
               field: 'type',
               headerRenderer: () => h(HeaderCell, ['Type']),
               cellRenderer: ({ rowIndex }) => {
-                return h(TextCell, { style: Utils.inputTypeStyle(currentStructFields[rowIndex].field_type) }, [Utils.renderTypeText(currentStructFields[rowIndex].field_type)])
+                return h(TextCell, { style: Utils.inputTypeStyle(currentStructType.fields[rowIndex].field_type) }, [Utils.renderTypeText(currentStructType.fields[rowIndex].field_type)])
               }
             },
             {
@@ -167,7 +170,7 @@ export const StructBuilder = props => {
                       return WithWarnings({
                         baseComponent: ParameterValueTextInput({
                           id: `structbuilder-table-attribute-select-${rowIndex}`,
-                          inputType: currentStructFields[rowIndex].field_type,
+                          inputType: currentStructType.fields[rowIndex].field_type,
                           source: innerStructSource,
                           setSource: setInnerStructSource
                         }),
@@ -197,8 +200,8 @@ export const StructBuilder = props => {
                     }],
                   ['none', () => WithWarnings({
                     baseComponent: h(TextCell,
-                      { style: Utils.inputTypeStyle(currentStructFields[rowIndex].field_type) },
-                      [isInputOptional(currentStructFields[rowIndex].field_type) ? 'Optional' : 'This input is required']
+                      { style: Utils.inputTypeStyle(currentStructType.fields[rowIndex].field_type) },
+                      [isInputOptional(currentStructType.fields[rowIndex].field_type) ? 'Optional' : 'This input is required']
                     ),
                     warningMessage: missingRequiredInputs.includes(structInputDefinition[rowIndex].field_name) ? 'This attribute is required' : ''
                   })]
