@@ -21,7 +21,7 @@ import { UriPreview } from './UriPreview'
 export const UriViewer = _.flow(
   withDisplayName('UriViewer')
 )(({ workflow, onDismiss }) => {
-  const uri = workflow.workflowLog
+  const uri = workflow.hasOwnProperty('workflowLog') ? workflow.workflowLog : 'N/A'
   const signal = useCancellation()
   const [metadata, setMetadata] = useState()
   const [loadingError, setLoadingError] = useState()
