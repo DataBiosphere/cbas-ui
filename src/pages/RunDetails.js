@@ -32,6 +32,7 @@ export const generateCallTableData = calls => {
   return taskName.map(taskName => {
     const targetData = calls[taskName]
     const lastCall = cloneDeep(targetData[targetData.length - 1])
+    //helper construct that assigns task name and status to the call object for easy access within the call tabler renderer
     const additionalData = {
       taskName,
       statusObj: collapseCromwellStatus(lastCall.executionStatus, lastCall.backendStatus)
