@@ -6,6 +6,7 @@ import { div, h } from 'react-hyperscript-helpers'
 import selectEvent from 'react-select-event'
 import { MenuTrigger } from 'src/components/PopupTrigger'
 import { Ajax } from 'src/libs/ajax'
+import { mockAbortResponse } from 'src/libs/mock-responses'
 import { SubmissionHistory } from 'src/pages/SubmissionHistory/SubmissionHistory'
 
 // Necessary to mock the AJAX module.
@@ -291,7 +292,7 @@ describe('SubmissionHistory page', () => {
         last_modified_timestamp: '2022-01-02T13:01:01.000+00:00',
         record_type: 'FOO',
         run_count: 1,
-        run_set_id: 'ea001565-1cd6-4e43-b446-932ac1918081',
+        run_set_id: '20000000-0000-0000-0000-200000000002',
         state: 'RUNNING'
       }
     ],
@@ -361,5 +362,52 @@ describe('SubmissionHistory page', () => {
       await selectEvent.openMenu(actionsMenu)
       expect(actionsMenu).toHaveTextContent('Abort')
     })
+  })
+
+  it('should abort successfully', async () => {
+    jest.clearAllMocks()
+    const cancelSubmissionFunction = jest.fn(() => Promise.resolve(mockAbortResponse))
+    const runSetData = simpleRunSetData
+
+    const getRunSetsMethod = jest.fn(() => Promise.resolve(runSetData))
+    Ajax.mockImplementation(() => {
+      return {
+        Cbas: {
+          runSets: {
+            get: getRunSetsMethod
+          }
+        }
+      }
+    })
+
+    await act(async () => {
+      await render(h(SubmissionHistory))
+    })
+
+    const table = screen.getByRole('table')
+    const rows = within(table).queryAllByRole('row')
+    const headers = within(rows[0]).queryAllByRole('columnheader')
+    expect(headers.length).toBe(6)
+
+    const cellsFromDataRow1 = within(rows[1]).queryAllByRole('cell')
+    const actionsMenu = within(cellsFromDataRow1[0]).getByRole('button')
+
+    await selectEvent.openMenu(actionsMenu)
+    const abortButton = screen.getByText('Abort')
+    expect(abortButton).toHaveAttribute('aria-disabled', 'false')
+
+    await Ajax.mockImplementation(() => {
+      return {
+        Cbas: {
+          runSets: {
+            cancel: cancelSubmissionFunction
+          }
+        }
+      }
+    })
+
+    fireEvent.click(abortButton)
+    expect(cancelSubmissionFunction).toHaveBeenCalled()
+    expect(cancelSubmissionFunction).toBeCalledWith('20000000-0000-0000-0000-200000000002')
   })
 })

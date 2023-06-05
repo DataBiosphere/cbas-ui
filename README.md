@@ -2,6 +2,15 @@
 
 Web user interface for Batch Analysis
 
+## Contributing
+
+For compliance reasons, all pull requests **must** be submitted with a Jira ID in the pull request title.
+You should include the Jira ID near the beginning of the title for better readability.
+For example: "[WM-1992] add statement to README.md about including Jira IDs in PR titles" 
+
+If there is more than one relevant ticket, include all of their Jira IDs.
+For example: "WM-1997, WM-2002, WM-2005: Fix for many bugs with the same root cause"
+
 ------------------------
 
 ### Developing
@@ -84,3 +93,7 @@ Note: Don't forget to stop the docker container after use. One can run the below
 docker stop <container_id>
 docker rm <container_id>
 ```
+
+### Versioning
+
+The CBAS-UI service follows the Google Cloud API versioning scheme of [semantic versioning](https://semver.org/). For more information, please visit this [document](https://docs.google.com/document/d/1qXNHTijdPn9ApYrznSkTFnxkt0g-o-Uh0SjqQlYd-ZA/edit).
