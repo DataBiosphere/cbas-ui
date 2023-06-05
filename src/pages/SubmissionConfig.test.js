@@ -6,7 +6,6 @@ import { h } from 'react-hyperscript-helpers'
 import selectEvent from 'react-select-event'
 import { Ajax } from 'src/libs/ajax'
 import { getConfig } from 'src/libs/config'
-import * as Nav from 'src/libs/nav'
 import {
   badRecordTypeRunSetResponse,
   methodsResponse,
@@ -23,7 +22,9 @@ import {
   typesResponseWithoutFooRating,
   undefinedRecordTypeRunSetResponse
 } from 'src/libs/mock-responses.js'
+import * as Nav from 'src/libs/nav'
 import { SubmissionConfig } from 'src/pages/SubmissionConfig'
+
 
 jest.mock('src/libs/nav')
 

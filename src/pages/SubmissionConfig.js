@@ -255,7 +255,7 @@ export const SubmissionConfig = ({ methodId }) => {
           Link,
           {
             onClick: () => Nav.goToPath('root'),
-            style: { display: 'inline-flex', alignItems: 'center', padding: '0.5rem 0 0' },
+            style: { display: 'inline-flex', alignItems: 'center', padding: '0.5rem 0 0' }
           },
           [icon('arrowLeft', { style: { marginRight: '0.5rem' } }), 'Back to workflows']
         ),
