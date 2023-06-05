@@ -352,7 +352,7 @@ const validateRequirements = (inputSource, inputType) => {
     if (inputSource.type === 'literal') {
       if (inputType.type === 'array') {
         try {
-          const inputArr = JSON.parse(inputSource.parameter_value)
+          const inputArr = Array.isArray(inputSource.parameter_value) ? inputSource.parameter_value : JSON.parse(inputSource.parameter_value)
           return _.map(item => validateRequirements({ ...inputSource, parameter_value: item }, unwrapOptional(inputType.array_type)))(inputArr)
         } catch (err) {
           return false
