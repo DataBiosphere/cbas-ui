@@ -104,14 +104,14 @@ describe('RunDetails - render smoke test', () => {
   })
 
   it('shows the workflow timing', async () => {
-    render(h(RunDetails, runDetailsProps));
+    render(h(RunDetails, runDetailsProps))
     await waitFor(() => {
-      const startTime = screen.getByText(makeCompleteDate(runDetailsMetadata.start));
-      expect(startTime).toBeDefined;
-      const endTime = screen.getByText(makeCompleteDate(runDetailsMetadata.end));
-      expect(endTime).toBeDefined;
-    });
-  });
+      const startTime = screen.getByText(makeCompleteDate(runDetailsMetadata.start))
+      expect(startTime).toBeDefined
+      const endTime = screen.getByText(makeCompleteDate(runDetailsMetadata.end))
+      expect(endTime).toBeDefined
+    })
+  })
 
   it('shows the troubleshooting box', async () => {
     render(h(RunDetails, runDetailsProps))
@@ -147,7 +147,7 @@ describe('RunDetails - render smoke test', () => {
     await waitFor(async () => {
       const viewModalLink = screen.getByText('View Workflow Script')
       await user.click(viewModalLink)
-      const wdlScript = screen.getByText(/Retrieve reads from the/);
+      const wdlScript = screen.getByText(/Retrieve reads from the/)
       expect(wdlScript).toBeDefined
     })
   })
