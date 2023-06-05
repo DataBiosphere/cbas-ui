@@ -81,7 +81,7 @@ const WDLViewer = ({ wdl, ...props }) => {
     },
     props),
   [
-    code({ className: 'language-wdl', ref: elem }, [wdl])
+    code({ 'data-testid': 'wdl-code-block', className: 'language-wdl', ref: elem }, [wdl])
   ])
 }
 
