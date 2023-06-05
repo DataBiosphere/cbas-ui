@@ -1,29 +1,24 @@
 
 import { cloneDeep, filter, includes, isEmpty, map } from 'lodash/fp'
 import { Fragment, useCallback, useMemo, useRef, useState } from 'react'
-import { div, h, span } from 'react-hyperscript-helpers'
-import ReactJson from 'react-json-view'
-import Collapse from 'src/components/Collapse'
-import { ClipboardButton, Link, Navbar } from 'src/components/common'
+import { div, h } from 'react-hyperscript-helpers'
+import { Link, Navbar } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
 import {
-  collapseCromwellStatus, collapseStatus,
+  collapseStatus,
   HeaderSection,
-  makeSection, makeStatusLine, statusType,
+  statusType,
   SubmitNewWorkflowButton
 } from 'src/components/job-common'
+import { TroubleshootingBox } from 'src/components/TroubleshootingBox'
 import { UriViewer } from 'src/components/URIViewer/UriViewer'
-import WDLViewer from 'src/components/WDLViewer'
+import { WorkflowInfoBox } from 'src/components/WorkflowInfoBox'
 import { Ajax } from 'src/libs/ajax'
 import { useCancellation, useOnMount } from 'src/libs/react-utils'
 import { elements } from 'src/libs/style'
-import { cond, makeCompleteDate, newTabLinkProps } from 'src/libs/utils'
+import { cond, newTabLinkProps } from 'src/libs/utils'
 import CallTable from 'src/pages/workspaces/workspace/jobHistory/CallTable'
-
-
-const styles = {
-  sectionTableLabel: { fontWeight: 600 }
-}
+import { collapseCromwellStatus } from 'src/pages/workspaces/workspace/jobHistory/JobStatus'
 
 
 // Filter function that only displays rows based on task name search parameters
@@ -126,19 +121,6 @@ export const RunDetails = ({ submissionId, workflowId }) => {
   // TODO maybe display the path to the workflow log file rather than the contents?
   // eslint-disable-next-line
   const { metadataArchiveStatus, calls, end, failures, start, status, workflowLog, workflowRoot, submittedFiles: { workflow: wdl } = {} } = workflow || {}
-  const restructureFailures = failuresArray => {
-    const filtered = filter(({ message }) => !isEmpty(message) && !message.startsWith('Will not start job'), failuresArray)
-    const sizeDiff = failuresArray.length - filtered.length
-    const newMessage = sizeDiff > 0 ? [{
-      message: `${sizeDiff} jobs were queued in Cromwell but never sent to the cloud backend due to failures elsewhere in the workflow`
-    }] : []
-    const simplifiedFailures = [...filtered, ...newMessage]
-
-    return map(({ message, causedBy }) => ({
-      message,
-      ...(!isEmpty(causedBy) ? { causedBy: restructureFailures(causedBy) } : {})
-    }), simplifiedFailures)
-  }
 
   return div({ 'data-testid': 'run-details-container', id: 'run-details-page' }, [
     Navbar('RUN WORKFLOWS WITH CROMWELL'),
@@ -168,104 +150,10 @@ export const RunDetails = ({ submissionId, workflowId }) => {
       ],
       () => h(Fragment, {}, [
         div({ style: { padding: '1rem 2rem 2rem' } }, [header]),
-        div(
-          {
-            style: {
-              id: 'details-colored-container',
-              backgroundColor: 'rgb(222, 226, 232)'
-            }
-          },
-          [
-            div(
-              {
-                id: `details-colored-container-content`,
-                style: {
-                  padding: '1rem 2rem 2rem'
-                }
-              },
-              [
-                div({ 'data-testid': 'workflow-status-container', style: { display: 'flex', justifyContent: 'flex-start' } }, [
-                  makeSection(
-                    'Workflow Status',
-                    [
-                      div({ style: { lineHeight: '24px', marginTop: '0.5rem' } }, [
-                        makeStatusLine(style => collapseStatus(status).icon(style), status)
-                      ])
-                    ],
-                    {}
-                  ),
-                  makeSection('Workflow Timing', [
-                    div({ style: { marginTop: '0.5rem', display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '0.5rem' } }, [
-                      div({ style: styles.sectionTableLabel }, ['Start:']),
-                      div({ 'data-testid': 'workflow-start-time' }, [start ? makeCompleteDate(start) : 'N/A']),
-                      div({ style: styles.sectionTableLabel }, ['End:']),
-                      div({ 'data-testid': 'workflow-end-time' }, [end ? makeCompleteDate(end) : 'N/A'])
-                    ])
-                  ]),
-                  makeSection('Workflow Engine Id', [
-                    div(
-                      {
-                        style: { lineHeight: '24px', marginTop: '0.5rem' }
-                      },
-                      [span({ 'data-testid': 'workflow-engine-id-span' }, [workflowId])]
-                    )
-                  ])
-                ])
-              ]
-            ),
-            makeSection(
-              'Logs',
-              [
-                h(
-                  Link,
-                  {
-                    onClick: () => {
-                      setShowLog(true)
-                      setLogUri(workflow.workflowLog)
-                    },
-                    style: { display: 'flex', marginLeft: '1rem', alignItems: 'center' }
-                  },
-                  [div({ 'data-testid': 'execution-log-container' }, [icon('fileAlt', { size: 18 }), ' Execution log'])]
-                )
-              ],
-              {}
-            ),
-            failures &&
-                h(
-                  Collapse,
-                  {
-                    'data-testid': 'workflow-failures-dropdown',
-                    style: { marginBottom: '1rem' },
-                    initialOpenState: true,
-                    title: div({ style: elements.sectionHeader }, 'Workflow-Level Failures'),
-                    afterTitle: h(ClipboardButton, {
-                      'data-testid': 'clipboard-button-failures',
-                      text: JSON.stringify(failures, null, 2),
-                      style: { marginLeft: '0.5rem' }
-                    })
-                  },
-                  [
-                    h(ReactJson, {
-                      style: { whiteSpace: 'pre-wrap' },
-                      name: false,
-                      collapsed: 4,
-                      enableClipboard: false,
-                      displayDataTypes: false,
-                      displayObjectSize: false,
-                      src: restructureFailures(failures)
-                    })
-                  ]
-                ),
-            wdl &&
-                h(
-                  Collapse,
-                  {
-                    title: div({ 'data-testid': 'workflow-script-dropdown', style: elements.sectionHeader }, ['Submitted workflow script'])
-                  },
-                  [h(WDLViewer, { wdl })]
-                )
-          ]
-        ),
+        div({ 'data-testid': 'details-top-container', style: { display: 'flex', justifyContent: 'space-between', padding: '1rem 2rem 2rem' } }, [
+          h(WorkflowInfoBox, { workflow }, []),
+          h(TroubleshootingBox, { workflow, submissionId, workflowId }, [])
+        ]),
         div(
           {
             'data-testid': 'call-table-container',
