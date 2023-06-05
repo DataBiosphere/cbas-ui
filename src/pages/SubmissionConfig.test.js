@@ -1438,7 +1438,7 @@ describe('SubmissionConfig inputs/outputs definitions', () => {
       await fireEvent.click(fillAllButton)
     })
 
-    expect(screen.queryByText(/Set \([0-9]+\) from data table/)).not.toBeInTheDocument()
+    await screen.findByText('Set (0) from data table')
 
     within(cells1[0]).getByText('foo')
     within(cells1[1]).getByText('foo_rating')
