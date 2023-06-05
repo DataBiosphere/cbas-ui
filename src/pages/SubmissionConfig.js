@@ -14,7 +14,7 @@ import {
   inputsMissingRequiredAttributes,
   inputsWithIncorrectValues,
   requiredInputsWithoutSource,
-  resolveWdsUrl,
+  resolveWdsUrl, unwrapOptional,
   WdsPollInterval
 } from 'src/components/submission-common'
 import { TextCell } from 'src/components/table'
@@ -311,11 +311,11 @@ export const SubmissionConfig = ({ methodId }) => {
           finalStep: h(ButtonPrimary, {
             'aria-label': 'Submit button',
             style: { marginLeft: '1rem' },
-            disabled: _.isEmpty(selectedRecords) || missingRequiredInputs.length || missingExpectedAttributes.length || inputsWithInvalidValues.length,
+            disabled: _.isEmpty(selectedRecords) || missingRequiredInputs.length || missingExpectedAttributes.length || _.filter(input => inputsWithInvalidValues.includes(input.input_name) && unwrapOptional(input.input_type).type !== 'array')(configuredInputDefinition).length,
             tooltip: Utils.cond(
               [_.isEmpty(selectedRecords), () => 'No records selected'],
               [missingRequiredInputs.length || missingExpectedAttributes.length, () => 'One or more inputs have missing values'],
-              [inputsWithInvalidValues.length, () => 'One or more inputs have invalid values'],
+              [_.filter(input => inputsWithInvalidValues.includes(input.input_name) && unwrapOptional(input.input_type).type !== 'array')(configuredInputDefinition).length, () => 'One or more inputs have invalid values'],
               () => ''
             ),
             onClick: () => {
@@ -420,12 +420,14 @@ export const SubmissionConfig = ({ methodId }) => {
         }
       }
 
+      console.log(configuredInputDefinition)
+
       setIsSubmitting(true)
       const runSetObject = await Ajax(signal).Cbas.runSets.post(runSetsPayload)
       notify('success', 'Workflow successfully submitted', { message: 'You may check on the progress of workflow on this page anytime.', timeout: 5000 })
-      Nav.goToPath('submission-details', {
+      /*Nav.goToPath('submission-details', {
         submissionId: runSetObject.run_set_id
-      })
+      })*/
     } catch (error) {
       notify('error', 'Error submitting workflow', { detail: await (error instanceof Response ? error.text() : error) })
     }

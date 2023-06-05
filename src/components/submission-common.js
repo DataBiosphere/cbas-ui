@@ -223,15 +223,29 @@ export const ParameterValueTextInput = props => {
     setSource
   } = props
 
-  const updateSourceValueToExpectedType = (primitiveType, value) => {
-    if (isPrimitiveTypeInputValid(primitiveType, value)) {
-      const updatedValue = convertToPrimitiveType(primitiveType, value)
+  const updateSourceValueToExpectedType = (value) => {
+    const unwrappedType = unwrapOptional(inputType)
+    if (unwrappedType.type === 'primitive' && isPrimitiveTypeInputValid(unwrappedType.primitive_type, value)) {
+      const updatedValue = convertToPrimitiveType(inputType.primitive_type, value)
 
       const newSource = {
         type: source.type,
         parameter_value: updatedValue
       }
       setSource(newSource)
+    } else if (unwrappedType.type === 'array') {
+      try {
+        const innerPrimitiveType = unwrapOptional(unwrappedType.array_type).primitive_type
+        const arrayValue = JSON.parse(value);
+        if (_.every(element => isPrimitiveTypeInputValid(innerPrimitiveType, element))(arrayValue)) {
+          const updatedValue = _.map(element => convertToPrimitiveType(innerPrimitiveType, element))(arrayValue)
+            const newSource = {
+              type: source.type,
+              parameter_value: updatedValue
+            }
+            setSource(newSource)
+        }
+      } catch (e) {}
     }
   }
 
@@ -239,7 +253,7 @@ export const ParameterValueTextInput = props => {
     id,
     'aria-label': 'Enter a value',
     style: { display: 'block', width: '100%' },
-    value: source.parameter_value,
+    value: Array.isArray(source.parameter_value) ? JSON.stringify(source.parameter_value) : source.parameter_value,
     onChange: value => {
       const newSource = {
         type: source.type,
@@ -249,14 +263,7 @@ export const ParameterValueTextInput = props => {
     },
     onBlur: () => {
       if (source.parameter_value) {
-        // for primitive and optional primitive inputs we convert value of these inputs to expected types
-        if (inputType.type === 'primitive') {
-          updateSourceValueToExpectedType(inputType.primitive_type, source.parameter_value)
-        }
-
-        if (inputType.type === 'optional' && inputType.optional_type.type === 'primitive') {
-          updateSourceValueToExpectedType(inputType.optional_type.primitive_type, source.parameter_value)
-        }
+        updateSourceValueToExpectedType(source.parameter_value)
       }
     }
   })
@@ -418,8 +425,12 @@ const validateParameterValueSelect = (inputSource, inputType) => {
 
       if (unwrapOptional(inputType).type === 'array') {
         try {
-          return _.every(arrayElement => validateParameterValueSelect({ ...inputSource, parameter_value: arrayElement },
-            unwrapOptional(unwrapOptional(inputType).array_type)))(JSON.parse(inputSource.parameter_value))
+          let value = inputSource.parameter_value
+          if (!Array.isArray(inputSource.parameter_value)) {
+            value = JSON.parse(inputSource.parameter_value)
+          }
+          return Array.isArray(value) && _.every(arrayElement => validateParameterValueSelect({ ...inputSource, parameter_value: arrayElement },
+            unwrapOptional(unwrapOptional(inputType).array_type)))(value)
         } catch (e) {
           return false
         }

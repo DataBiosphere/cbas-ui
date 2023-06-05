@@ -64,7 +64,8 @@ const InputsTable = props => {
     const warningMessage = Utils.cond(
       [missingRequiredInputs.includes(selectedInputName), () => 'This attribute is required'],
       [inputsWithInvalidValues.includes(selectedInputName) && unwrapOptional(inputTableData[rowIndex].input_type).type === 'array',
-        () => 'Value is either empty or doesn\'t match expected input type. Array inputs must follow JSON array literal syntax.'],
+        () => 'Value is either empty or doesn\'t match expected input type. Array inputs must follow JSON array literal syntax. ' +
+          `This will be submitted as an array with one element: ${JSON.stringify(inputTableData[rowIndex].source.parameter_value)}.`],
       [inputsWithInvalidValues.includes(selectedInputName), () => 'Value is either empty or doesn\'t match expected input type'],
       () => ''
     )
