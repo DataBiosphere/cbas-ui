@@ -3,8 +3,11 @@ import { useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import { Link, Select } from 'src/components/common'
+import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import { FlexTable, Sortable, tableHeight, TooltipCell } from 'src/components/table'
+
+import { isAzureUri } from './URIViewer/uri-viewer-utils'
 
 
 const InputOutputModal = ({ dataTableJson, isInputData, onDismiss }) => {
@@ -30,6 +33,18 @@ const InputOutputModal = ({ dataTableJson, isInputData, onDismiss }) => {
   }
   const [statusFilter, setStatusFilter] = useState([])
   const [sort, setSort] = useState({ field: 'index', direction: 'asc' })
+
+  //Helper function to have a friendly display name for blob files we're displaying to the user.
+  const getFilenameFromAzureBlobPath = blobPath => {
+    const n = blobPath.lastIndexOf('/')
+    return blobPath.substring(n + 1) //If there is no slash, this will return the whole string.
+  }
+
+  const renderBlobLink = blobPath => {
+    const friendlyBlobName = getFilenameFromAzureBlobPath(blobPath)
+    return h(Link, { disabled: !blobPath, href: blobPath, download: friendlyBlobName, style: {} },
+      [friendlyBlobName, icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })])
+  }
 
   const dataArray = Object.keys(testData).map(key => [key, testData[key]])
   console.log(dataArray)
@@ -66,7 +81,7 @@ const InputOutputModal = ({ dataTableJson, isInputData, onDismiss }) => {
                 field: 'value',
                 headerRenderer: () => h(Sortable, { sort, field: 'value', onSort: setSort }, ['Value']),
                 cellRenderer: ({ rowIndex }) => {
-                  return div({}, dataArray[rowIndex][1])
+                  return isAzureUri(dataArray[rowIndex][1]) ? renderBlobLink(dataArray[rowIndex][1]) : div({}, dataArray[rowIndex][1])
                 }
               }
             ]
