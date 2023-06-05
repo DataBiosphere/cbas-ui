@@ -12,7 +12,8 @@ import {
   StructBuilderLink,
   WithWarnings
 } from 'src/components/submission-common'
-import { FlexTable, HeaderCell, Sortable, TextCell } from 'src/components/table'
+import { FlexTable, HeaderCell, InputsButtonRow, Sortable, TextCell } from 'src/components/table'
+import { tableButtonRowStyle } from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { isInputOptional } from 'src/libs/utils'
 
@@ -27,6 +28,7 @@ const InputsTable = props => {
 
   const [structBuilderVisible, setStructBuilderVisible] = useState(false)
   const [structBuilderRow, setStructBuilderRow] = useState(null)
+  const [includeOptionalInputs, setIncludeOptionalInputs] = useState(true)
 
   const dataTableAttributes = _.keyBy('name', selectedDataTable.attributes)
 
@@ -38,10 +40,14 @@ const InputsTable = props => {
         _.set('taskName', call || workflow || ''),
         _.set('variable', variable || ''),
         _.set('inputTypeStr', Utils.renderTypeText(row.input_type)),
-        _.set('configurationIndex', parseInt(index))
+        _.set('configurationIndex', parseInt(index)),
+        _.set('optional', Utils.isInputOptional(row.input_type))
       ])(row)
     }),
-    _.orderBy([({ [inputTableSort.field]: field }) => _.lowerCase(field)], [inputTableSort.direction])
+    _.orderBy([({ variable }) => _.lowerCase(variable)], ['asc']),
+    _.orderBy([({ taskName }) => _.lowerCase(taskName)], ['asc']),
+    _.orderBy([({ [inputTableSort.field]: field }) => _.lowerCase(field)], [inputTableSort.direction]),
+    _.filter(({ optional }) => includeOptionalInputs || !optional)
   )(configuredInputDefinition)
 
   const inputRowsInDataTable = _.filter(
@@ -130,25 +136,22 @@ const InputsTable = props => {
           setStructBuilderVisible(false)
         }
       }),
-      inputRowsInDataTable.length > 0 && h(div,
-        { style: { height: 0.08 * height, width, display: 'flex', alignItems: 'center' } },
-        [h(Link,
-          {
-            style: { marginLeft: 'auto' },
-            onClick: () => _.forEach(
-              row => setConfiguredInputDefinition(_.set(`[${row.configurationIndex}].source`, { type: 'record_lookup', record_attribute: row.variable }))
-            )(inputRowsInDataTable),
-            tooltip: _.flow(_.map(row => row.variable), _.join(', '))(inputRowsInDataTable)
-          },
-          [`Set (${inputRowsInDataTable.length}) from data table`]
-        )]
-      ),
+      h(InputsButtonRow, {
+        style: tableButtonRowStyle({ width, height }),
+        showRow: !includeOptionalInputs || _.some(row => row.optional, inputTableData) || inputRowsInDataTable.length > 0,
+        optionalButtonProps: {
+          includeOptionalInputs, setIncludeOptionalInputs
+        },
+        setFromDataTableButtonProps: {
+          inputRowsInDataTable, setConfiguredInputDefinition
+        }
+      }),
       h(FlexTable, {
         'aria-label': 'input-table',
         rowCount: inputTableData.length,
         sort: inputTableSort,
         readOnly: false,
-        height: _.some(row => _.has(row.variable, dataTableAttributes), inputTableData) ? 0.92 * height : height,
+        height: !includeOptionalInputs || _.some(row => row.optional, inputTableData) || inputRowsInDataTable.length > 0 ? 0.92 * height : height,
         width,
         columns: [
           {

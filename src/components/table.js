@@ -5,7 +5,7 @@ import Draggable from 'react-draggable'
 import { button, div, h, label, option, select } from 'react-hyperscript-helpers'
 import Pagination from 'react-paginating'
 import { defaultCellRangeRenderer, Grid as RVGrid, ScrollSync as RVScrollSync } from 'react-virtualized'
-import { Clickable, IdContainer } from 'src/components/common'
+import { Clickable, IdContainer, Link } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import Interactive from 'src/components/Interactive'
 import TooltipTrigger from 'src/components/TooltipTrigger'
@@ -261,6 +261,31 @@ const NoContentRow = ({ noContentMessage, noContentRenderer = _.noop, numColumns
     noContentMessage || noContentRenderer() || 'Nothing to display'
   ])
 ])
+
+export const InputsButtonRow = ({
+  showRow = true, optionalButtonProps: { includeOptionalInputs, setIncludeOptionalInputs },
+  setFromDataTableButtonProps: { inputRowsInDataTable, setConfiguredInputDefinition } = {}, ...props
+}) => {
+  return showRow && h(div, { ...props }, [
+    h(Link,
+      {
+        style: { marginRight: 'auto' },
+        onClick: () => setIncludeOptionalInputs(includeOptionalInputs => !includeOptionalInputs)
+      },
+      [includeOptionalInputs ? 'Hide optional inputs' : 'Show optional inputs']
+    ),
+    inputRowsInDataTable && h(Link,
+      {
+        style: { marginLeft: 'auto' },
+        onClick: () => _.forEach(
+          row => setConfiguredInputDefinition(_.set(`[${row.configurationIndex}].source`, { type: 'record_lookup', record_attribute: row.variable }))
+        )(inputRowsInDataTable),
+        tooltip: _.flow(_.map(row => row.variable), _.join(', '))(inputRowsInDataTable)
+      },
+      [`Set (${inputRowsInDataTable.length}) from data table`]
+    )
+  ])
+}
 
 export const flexTableDefaultRowHeight = 48
 

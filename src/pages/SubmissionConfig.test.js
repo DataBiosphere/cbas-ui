@@ -838,8 +838,8 @@ describe('Input source and requirements validation', () => {
     // ** ASSERT **
     const table = await screen.findByRole('table')
     const rows = within(table).queryAllByRole('row')
-    const viewStructLink = within(rows[4]).getByText('View Struct')
-    const inputWarningMessageActive = within(rows[4]).queryByText("One of this struct's inputs has an invalid configuration")
+    const viewStructLink = within(rows[2]).getByText('View Struct')
+    const inputWarningMessageActive = within(rows[2]).queryByText("One of this struct's inputs has an invalid configuration")
     expect(inputWarningMessageActive).not.toBeNull()
 
     // ** ACT **
@@ -917,39 +917,40 @@ describe('Input source and requirements validation', () => {
     const table = await screen.findByRole('table')
     const rows = within(table).queryAllByRole('row')
 
+    // inputs sorted according to task name -> variable name
     const firstInputRowCells = within(rows[1]).queryAllByRole('cell')
     within(firstInputRowCells[4]).getByText('This input is required')
 
-    const secondInputRowCells = within(rows[2]).queryAllByRole('cell')
-    within(secondInputRowCells[4]).getByText('Optional')
+    const thirdInputRowCells = within(rows[3]).queryAllByRole('cell')
+    within(thirdInputRowCells[4]).getByText('Optional')
 
     // struct input
-    const thirdInputRowCells = within(rows[3]).queryAllByRole('cell')
-    within(thirdInputRowCells[4]).getByText('This input is required')
+    const secondInputRowCells = within(rows[2]).queryAllByRole('cell')
+    within(secondInputRowCells[4]).getByText('This input is required')
 
     // ** ACT **
     // user sets the source to 'Fetch from data table' for struct input
-    await userEvent.click(within(thirdInputRowCells[3]).getByText('Select Source'))
+    await userEvent.click(within(secondInputRowCells[3]).getByText('Select Source'))
     const selectOption1 = await screen.findByText('Fetch from Data Table')
     await userEvent.click(selectOption1)
 
     // ** ASSERT **
     // check that the warning message for struct input has changed since no attribute has been selected yet
-    within(thirdInputRowCells[4]).getByText('This attribute doesn\'t exist in data table')
+    within(secondInputRowCells[4]).getByText('This attribute doesn\'t exist in data table')
 
     // ** ACT **
     // user sets the source to 'Use Struct Builder' for struct input
-    await userEvent.click(within(thirdInputRowCells[3]).getByText('Fetch from Data Table'))
+    await userEvent.click(within(secondInputRowCells[3]).getByText('Fetch from Data Table'))
     const selectOption2 = await screen.findByText('Use Struct Builder')
     await userEvent.click(selectOption2)
 
     // ** ASSERT **
     // check that the warning message for struct input has changed
-    within(thirdInputRowCells[4]).getByText('One of this struct\'s inputs has an invalid configuration')
+    within(secondInputRowCells[4]).getByText('One of this struct\'s inputs has an invalid configuration')
 
     // ** ACT **
     // click on View struct to open modal
-    const viewStructLink = within(thirdInputRowCells[4]).getByText('View Struct')
+    const viewStructLink = within(secondInputRowCells[4]).getByText('View Struct')
     await fireEvent.click(viewStructLink)
 
     // ** ASSERT **
@@ -975,7 +976,7 @@ describe('Input source and requirements validation', () => {
 
     // ** ASSERT **
     // check that the warning message for struct input still exists as it still has invalid input configurations
-    within(thirdInputRowCells[4]).getByText('One of this struct\'s inputs has an invalid configuration')
+    within(secondInputRowCells[4]).getByText('One of this struct\'s inputs has an invalid configuration')
   })
 
   it('should display warning icon for input with value not matching expected type', async () => {
@@ -1456,6 +1457,115 @@ describe('SubmissionConfig inputs/outputs definitions', () => {
     within(cells3[2]).getByText('String')
     within(cells3[3]).getByText('None')
     within(cells3[4]).getByText('Optional')
+  })
+
+  it('should hide/show optional inputs when respective button is clicked', async () => {
+    const mockRunSetResponse = jest.fn(() => Promise.resolve(runSetResponse))
+    const mockMethodsResponse = jest.fn(() => Promise.resolve(methodsResponse))
+    const mockSearchResponse = jest.fn((_, recordType) => Promise.resolve(searchResponses[recordType]))
+    const mockTypesResponse = jest.fn(() => Promise.resolve(typesResponse))
+
+    await Ajax.mockImplementation(() => {
+      return {
+        Cbas: {
+          runSets: {
+            getForMethod: mockRunSetResponse
+          },
+          methods: {
+            getById: mockMethodsResponse
+          }
+        },
+        Wds: {
+          search: {
+            post: mockSearchResponse
+          },
+          types: {
+            get: mockTypesResponse
+          }
+        }
+      }
+    })
+
+    render(h(SubmissionConfig))
+
+    await waitFor(() => {
+      expect(mockRunSetResponse).toHaveBeenCalledTimes(1)
+      expect(mockTypesResponse).toHaveBeenCalledTimes(1)
+      expect(mockMethodsResponse).toHaveBeenCalledTimes(1)
+      expect(mockSearchResponse).toHaveBeenCalledTimes(1)
+    })
+
+    const button = await screen.findByRole('button', { name: 'Inputs' })
+    await fireEvent.click(button)
+
+    const table = await screen.findByRole('table')
+    const rows = within(table).queryAllByRole('row')
+    expect(rows.length).toBe(4)
+    const cells1 = within(rows[1]).queryAllByRole('cell')
+    const cells2 = within(rows[2]).queryAllByRole('cell')
+    const cells3 = within(rows[3]).queryAllByRole('cell')
+
+    within(cells1[0]).getByText('foo')
+    within(cells1[1]).getByText('foo_rating_workflow_var')
+    within(cells1[2]).getByText('Int')
+    within(cells1[3]).getByText('Fetch from Data Table')
+    within(cells1[4]).getByText('foo_rating')
+
+    within(cells2[0]).getByText('target_workflow_1')
+    within(cells2[1]).getByText('bar_string_workflow_var')
+    within(cells2[2]).getByText('String')
+    within(cells2[3]).getByText('Fetch from Data Table')
+    within(cells2[4]).getByText('bar_string')
+
+    within(cells3[0]).getByText('target_workflow_1')
+    within(cells3[1]).getByText('optional_var')
+    within(cells3[2]).getByText('String')
+    within(cells3[3]).getByText('Type a Value')
+    within(cells3[4]).getByDisplayValue('Hello World')
+
+    // hide optional inputs (defaults to showing optional inputs)
+    const hideButton = await screen.getByText('Hide optional inputs')
+    await act(async () => {
+      await fireEvent.click(hideButton)
+    })
+    await screen.findByText('Show optional inputs')
+
+    within(cells1[0]).getByText('foo')
+    within(cells1[1]).getByText('foo_rating_workflow_var')
+    within(cells1[2]).getByText('Int')
+    within(cells1[3]).getByText('Fetch from Data Table')
+    within(cells1[4]).getByText('foo_rating')
+
+    within(cells2[0]).getByText('target_workflow_1')
+    within(cells2[1]).getByText('bar_string_workflow_var')
+    within(cells2[2]).getByText('String')
+    within(cells2[3]).getByText('Fetch from Data Table')
+    within(cells2[4]).getByText('bar_string')
+
+    // show optional inputs again
+    const showButton = await screen.getByText('Show optional inputs')
+    await act(async () => {
+      await fireEvent.click(showButton)
+    })
+    await screen.findByText('Hide optional inputs')
+
+    within(cells1[0]).getByText('foo')
+    within(cells1[1]).getByText('foo_rating_workflow_var')
+    within(cells1[2]).getByText('Int')
+    within(cells1[3]).getByText('Fetch from Data Table')
+    within(cells1[4]).getByText('foo_rating')
+
+    within(cells2[0]).getByText('target_workflow_1')
+    within(cells2[1]).getByText('bar_string_workflow_var')
+    within(cells2[2]).getByText('String')
+    within(cells2[3]).getByText('Fetch from Data Table')
+    within(cells2[4]).getByText('bar_string')
+
+    within(cells3[0]).getByText('target_workflow_1')
+    within(cells3[1]).getByText('optional_var')
+    within(cells3[2]).getByText('String')
+    within(cells3[3]).getByText('Type a Value')
+    within(cells3[4]).getByDisplayValue('Hello World')
   })
 
   it('should change output table sort order when column headers are clicked', async () => {
