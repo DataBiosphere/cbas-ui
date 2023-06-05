@@ -6,6 +6,7 @@ import { h } from 'react-hyperscript-helpers'
 import selectEvent from 'react-select-event'
 import { Ajax } from 'src/libs/ajax'
 import { getConfig } from 'src/libs/config'
+import * as Nav from 'src/libs/nav'
 import {
   badRecordTypeRunSetResponse,
   methodsResponse,
@@ -24,6 +25,7 @@ import {
 } from 'src/libs/mock-responses.js'
 import { SubmissionConfig } from 'src/pages/SubmissionConfig'
 
+jest.mock('src/libs/nav')
 
 jest.mock('src/libs/ajax')
 
@@ -109,6 +111,16 @@ describe('SubmissionConfig workflow details', () => {
       expect(mockWdlResponse).toHaveBeenCalledTimes(1)
       expect(mockLeoResponse).toHaveBeenCalledTimes(0)
     })
+
+    const backButton = screen.getByText('Back to workflows')
+
+    // ** ACT **
+    // user clicks on back button
+    await act(async () => {
+      await userEvent.click(backButton)
+    })
+
+    expect(Nav.goToPath).toHaveBeenCalledWith('root')
 
     expect(screen.getByText('Workflow Version:')).toBeInTheDocument()
     expect(screen.getByText('1.0')).toBeInTheDocument()
