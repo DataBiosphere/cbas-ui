@@ -11,6 +11,7 @@ import OutputsTable from 'src/components/OutputsTable'
 import RecordsTable from 'src/components/RecordsTable'
 import StepButtons from 'src/components/StepButtons'
 import {
+  convertArrayType,
   inputsMissingRequiredAttributes,
   inputsWithIncorrectValues,
   requiredInputsWithoutSource,
@@ -46,7 +47,7 @@ export const SubmissionConfig = ({ methodId }) => {
   // Options chosen on this page:
   const [selectedRecordType, setSelectedRecordType] = useState()
   const [selectedRecords, setSelectedRecords] = useState({})
-  const [configuredInputDefinition, setConfiguredInputDefinition] = useState()
+  const [configuredInputDefinition, setConfiguredInputDefinition] = useState([])
   const [configuredOutputDefinition, setConfiguredOutputDefinition] = useState()
   const [missingRequiredInputs, setMissingRequiredInputs] = useState([])
   const [missingExpectedAttributes, setMissingExpectedAttributes] = useState([])
@@ -311,11 +312,11 @@ export const SubmissionConfig = ({ methodId }) => {
           finalStep: h(ButtonPrimary, {
             'aria-label': 'Submit button',
             style: { marginLeft: '1rem' },
-            disabled: _.isEmpty(selectedRecords) || missingRequiredInputs.length || missingExpectedAttributes.length || _.filter(input => inputsWithInvalidValues.includes(input.input_name) && unwrapOptional(input.input_type).type !== 'array')(configuredInputDefinition).length,
+            disabled: _.isEmpty(selectedRecords) || missingRequiredInputs.length || missingExpectedAttributes.length || _.filter(input => inputsWithInvalidValues.includes(input.input_name) && (unwrapOptional(input.input_type).type !== 'array' || input.source.parameter_value === ''))(configuredInputDefinition).length,
             tooltip: Utils.cond(
               [_.isEmpty(selectedRecords), () => 'No records selected'],
               [missingRequiredInputs.length || missingExpectedAttributes.length, () => 'One or more inputs have missing values'],
-              [_.filter(input => inputsWithInvalidValues.includes(input.input_name) && unwrapOptional(input.input_type).type !== 'array')(configuredInputDefinition).length, () => 'One or more inputs have invalid values'],
+              [_.filter(input => inputsWithInvalidValues.includes(input.input_name) && (unwrapOptional(input.input_type).type !== 'array' || input.source.parameter_value === ''))(configuredInputDefinition).length, () => 'One or more inputs have invalid values'],
               () => ''
             ),
             onClick: () => {
@@ -412,7 +413,7 @@ export const SubmissionConfig = ({ methodId }) => {
         run_set_name: runSetName,
         run_set_description: runSetDescription,
         method_version_id: selectedMethodVersion.method_version_id,
-        workflow_input_definitions: configuredInputDefinition,
+        workflow_input_definitions: _.map(convertArrayType)(configuredInputDefinition),
         workflow_output_definitions: configuredOutputDefinition,
         wds_records: {
           record_type: selectedRecordType,

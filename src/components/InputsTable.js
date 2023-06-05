@@ -12,8 +12,9 @@ import {
   WithWarnings
 } from 'src/components/submission-common'
 import { FlexTable, HeaderCell, Sortable, TextCell } from 'src/components/table'
+import colors from 'src/libs/colors'
 import * as Utils from 'src/libs/utils'
-import { isInputOptional } from 'src/libs/utils'
+import { isInputOptional, maybeParseJSON } from 'src/libs/utils'
 
 
 const InputsTable = props => {
@@ -63,10 +64,12 @@ const InputsTable = props => {
   const parameterValueSelectWithWarnings = (rowIndex, selectedInputName) => {
     const warningMessage = Utils.cond(
       [missingRequiredInputs.includes(selectedInputName), () => 'This attribute is required'],
+      [inputsWithInvalidValues.includes(selectedInputName) && inputTableData[rowIndex].source.parameter_value === '', () => 'Value is empty'],
       [inputsWithInvalidValues.includes(selectedInputName) && unwrapOptional(inputTableData[rowIndex].input_type).type === 'array',
-        () => 'Value is either empty or doesn\'t match expected input type. Array inputs must follow JSON array literal syntax. ' +
+        () => 'Array inputs must follow JSON array literal syntax.' +
           `This will be submitted as an array with one element: ${JSON.stringify(inputTableData[rowIndex].source.parameter_value)}.`],
-      [inputsWithInvalidValues.includes(selectedInputName), () => 'Value is either empty or doesn\'t match expected input type'],
+      [inputsWithInvalidValues.includes(selectedInputName), () => 'Value doesn\'t match expected input type'],
+      [unwrapOptional(inputTableData[rowIndex].input_type).type === 'array', () => `Detected an ${inputTableData[rowIndex].inputTypeStr} with ${(maybeParseJSON(inputTableData[rowIndex].source.parameter_value) || inputTableData[rowIndex].source.parameter_value).length} value(s).`],
       () => ''
     )
 
@@ -79,7 +82,8 @@ const InputsTable = props => {
           setConfiguredInputDefinition(_.set(`${inputTableData[rowIndex].configurationIndex}.source`, source, configuredInputDefinition))
         }
       }),
-      warningMessage
+      warningMessage,
+      ...!inputsWithInvalidValues.includes(selectedInputName) && !missingRequiredInputs.includes(selectedInputName) && { iconShape: 'info-circle', iconColor: colors.accent() }
     })
   }
 

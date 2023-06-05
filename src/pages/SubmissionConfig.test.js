@@ -1018,7 +1018,7 @@ describe('Input source and requirements validation', () => {
 
     // ** ASSERT **
     // check that the warning message for incorrect value is displayed
-    within(firstInputRowCells[4]).getByText('Value is either empty or doesn\'t match expected input type')
+    within(firstInputRowCells[4]).getByText('Value doesn\'t match expected input type')
 
     // ** ACT **
     // user deletes the extra character

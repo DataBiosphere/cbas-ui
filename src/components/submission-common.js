@@ -200,14 +200,16 @@ export const RecordLookupSelect = props => {
 export const WithWarnings = props => {
   const {
     baseComponent,
-    warningMessage
+    warningMessage,
+    iconShape = 'error-standard',
+    iconColor = colors.warning()
   } = props
 
   return div({ style: { display: 'flex', alignItems: 'center', width: '100%', paddingTop: '0.5rem', paddingBottom: '0.5rem' } }, [
     baseComponent,
     warningMessage && h(TooltipTrigger, { content: warningMessage }, [
-      icon('error-standard', {
-        size: 14, style: { marginLeft: '0.5rem', color: colors.warning(), cursor: 'help' }
+      icon(iconShape, {
+        size: 14, style: { marginLeft: '0.5rem', color: iconColor, cursor: 'help' }
       })
     ])
   ])
@@ -236,8 +238,8 @@ export const ParameterValueTextInput = props => {
     } else if (unwrappedType.type === 'array') {
       try {
         const innerPrimitiveType = unwrapOptional(unwrappedType.array_type).primitive_type
-        const arrayValue = JSON.parse(value)
-        if (_.every(element => isPrimitiveTypeInputValid(innerPrimitiveType, element))(arrayValue)) {
+        const arrayValue = Array.isArray(value) ? value : JSON.parse(value)
+        if (Array.isArray(arrayValue) && _.every(element => isPrimitiveTypeInputValid(innerPrimitiveType, element))(arrayValue)) {
           const updatedValue = _.map(element => convertToPrimitiveType(innerPrimitiveType, element))(arrayValue)
           const newSource = {
             type: source.type,
@@ -409,6 +411,18 @@ export const isPrimitiveTypeInputValid = (primitiveType, value) => {
     [primitiveType === 'Boolean', () => value.toString().toLowerCase() === 'true' || value.toString().toLowerCase() === 'false'],
     () => true
   )
+}
+
+export const convertArrayType = ({ input_type: inputType, source: inputSource, ...input }) => {
+  if (unwrapOptional(inputType).type === 'array' && inputSource.type === 'literal') {
+    let value = inputSource.parameter_value
+    if (!Array.isArray(inputSource.parameter_value)) {
+      value = [value]
+    }
+    return { ...input, input_type: inputType, source: { ...inputSource, parameter_value: value } }
+  } else {
+    return { ...input, input_type: inputType, source: inputSource }
+  }
 }
 
 const validateParameterValueSelect = (inputSource, inputType) => {
