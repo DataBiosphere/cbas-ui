@@ -22,7 +22,7 @@ jest.mock('src/libs/config', () => ({
 const runDetailsProps = {
   namespace: 'example-billing-project',
   name: 'workspace',
-  submissionId: 1,
+  submissionId: '000sdkfjsdfj-dfdsfdsf3-sdfsdjfkj3',
   workflowId: '00001111-2222-3333-aaaa-bbbbccccdddd',
   uri: 'https://coaexternalstorage.blob.core.windows.net/cromwell/user-inputs/inputFile.txt'
 }
@@ -97,21 +97,21 @@ describe('RunDetails - render smoke test', () => {
   it('shows the workflow status', async () => {
     render(h(RunDetails, runDetailsProps))
     await waitFor(() => {
-      const statusContainer = screen.getByTestId('workflow-status-container')
+      const statusContainer = screen.getByTestId('status-container')
       const statusText = within(statusContainer).getByText(runDetailsMetadata.status)
       expect(statusText).toBeDefined
     })
   })
 
   it('shows the workflow timing', async () => {
-    render(h(RunDetails, runDetailsProps))
+    render(h(RunDetails, runDetailsProps));
     await waitFor(() => {
-      const startTime = screen.getByTestId('workflow-start-time')
-      expect(startTime).toBeDefined
-      const endTime = screen.getByTestId('workflow-end-time')
-      expect(endTime).toBeDefined
-    })
-  })
+      const startTime = screen.getByText(makeCompleteDate(runDetailsMetadata.start));
+      expect(startTime).toBeDefined;
+      const endTime = screen.getByText(makeCompleteDate(runDetailsMetadata.end));
+      expect(endTime).toBeDefined;
+    });
+  });
 
   it('shows the troubleshooting box', async () => {
     render(h(RunDetails, runDetailsProps))
@@ -141,27 +141,13 @@ describe('RunDetails - render smoke test', () => {
     })
   })
 
-  it('shows the workflow failures', async () => {
-    jest.spyOn(navigator.clipboard, 'writeText')
-    render(h(RunDetails, runDetailsProps))
-    const user = userEvent.setup()
-    await waitFor(async () => {
-      const collapseTitle = screen.getByTestId('workflow-failures-dropdown')
-      await user.click(collapseTitle)
-      const clipboardButton = screen.getByText('Copy to clipboard')
-      expect(clipboardButton).toBeDefined
-      await user.click(clipboardButton)
-      expect(navigator.clipboard.writeText).toHaveBeenCalled
-    })
-  })
-
   it('shows the wdl text in a modal component', async () => {
     render(h(RunDetails, runDetailsProps))
     const user = userEvent.setup()
     await waitFor(async () => {
       const viewModalLink = screen.getByText('View Workflow Script')
       await user.click(viewModalLink)
-      const wdlScript = screen.getByText(/Running checksum/)
+      const wdlScript = screen.getByText(/Retrieve reads from the/);
       expect(wdlScript).toBeDefined
     })
   })
@@ -278,7 +264,7 @@ describe('RunDetails - render smoke test', () => {
   it('shows the execution log button', async () => {
     render(h(RunDetails, runDetailsProps))
     await waitFor(() => {
-      const executionLog = screen.getByText('Execution log')
+      const executionLog = screen.getByText('Execution Log')
       expect(executionLog).toBeDefined
     })
   })

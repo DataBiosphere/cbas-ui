@@ -1,10 +1,11 @@
 
-import { cloneDeep, filter, includes, isEmpty, map } from 'lodash/fp'
+import { cloneDeep, filter, includes, isEmpty } from 'lodash/fp'
 import { Fragment, useCallback, useMemo, useRef, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { Link, Navbar } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
 import {
+  collapseCromwellStatus,
   collapseStatus,
   HeaderSection,
   statusType,
@@ -18,7 +19,6 @@ import { useCancellation, useOnMount } from 'src/libs/react-utils'
 import { elements } from 'src/libs/style'
 import { cond, newTabLinkProps } from 'src/libs/utils'
 import CallTable from 'src/pages/workspaces/workspace/jobHistory/CallTable'
-import { collapseCromwellStatus } from 'src/pages/workspaces/workspace/jobHistory/JobStatus'
 
 
 // Filter function that only displays rows based on task name search parameters
@@ -95,6 +95,8 @@ export const RunDetails = ({ submissionId, workflowId }) => {
     }
   })
 
+  const metadataArchiveStatus = useMemo(() => workflow?.metadataArchiveStatus, [workflow])
+
   const header = useMemo(() => {
     const breadcrumbPathObjects = [
       {
@@ -113,14 +115,6 @@ export const RunDetails = ({ submissionId, workflowId }) => {
 
     return h(HeaderSection, { breadcrumbPathObjects, button: SubmitNewWorkflowButton, title: 'Workflow Details' })
   }, [workflow, submissionId])
-
-  /*
-   * Page render
-   */
-  // Disabling warning about workflowLog being unused
-  // TODO maybe display the path to the workflow log file rather than the contents?
-  // eslint-disable-next-line
-  const { metadataArchiveStatus, calls, end, failures, start, status, workflowLog, workflowRoot, submittedFiles: { workflow: wdl } = {} } = workflow || {}
 
   return div({ 'data-testid': 'run-details-container', id: 'run-details-page' }, [
     Navbar('RUN WORKFLOWS WITH CROMWELL'),
@@ -152,7 +146,7 @@ export const RunDetails = ({ submissionId, workflowId }) => {
         div({ style: { padding: '1rem 2rem 2rem' } }, [header]),
         div({ 'data-testid': 'details-top-container', style: { display: 'flex', justifyContent: 'space-between', padding: '1rem 2rem 2rem' } }, [
           h(WorkflowInfoBox, { workflow }, []),
-          h(TroubleshootingBox, { workflow, submissionId, workflowId }, [])
+          h(TroubleshootingBox, { logUri: workflow.workflowLog, submissionId, workflowId, showLogModal }, [])
         ]),
         div(
           {
