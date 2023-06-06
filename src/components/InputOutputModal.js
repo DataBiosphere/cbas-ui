@@ -10,10 +10,9 @@ import { isAzureUri } from './URIViewer/uri-viewer-utils'
 
 
 const InputOutputModal = ({ title, jsonData, onDismiss, sasToken }) => {
-  //Helper function to have a friendly display name for blob files we're displaying to the user.
   const getFilenameFromAzureBlobPath = blobPath => {
     const n = blobPath.lastIndexOf('/')
-    return blobPath.substring(n + 1) //If there is no slash, this will return the whole string.
+    return blobPath.substring(n + 1) //If there is no slash, this returns the whole string.
   }
 
   //Link to download the blob file
