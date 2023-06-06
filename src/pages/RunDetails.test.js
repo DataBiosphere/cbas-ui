@@ -261,7 +261,7 @@ describe('RunDetails - render smoke test', () => {
       await user.click(stdout[0])
       const modalTitle = screen.getByText('File Details')
       expect(modalTitle).toBeDefined
-      const errorText = screen.getByText('Error loading data. This file does not exist or you do not have permission to view it.')
+      const errorText = screen.getByText('Log file not found. This may be the result of a task failing to start. Please check relevant docker images and file paths to ensure valid references.')
       expect(errorText).toBeDefined
     })
   })
@@ -279,7 +279,7 @@ describe('RunDetails - render smoke test', () => {
       await user.click(stderr[0])
       const modalTitle = screen.getByText('File Details')
       expect(modalTitle).toBeDefined
-      const errorText = screen.getByText('Error loading data. This file does not exist or you do not have permission to view it.')
+      const errorText = screen.getByText('Log file not found. This may be the result of a task failing to start. Please check relevant docker images and file paths to ensure valid references.')
       expect(errorText).toBeDefined
     })
   })

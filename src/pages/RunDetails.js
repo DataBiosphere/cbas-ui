@@ -49,13 +49,15 @@ export const RunDetails = ({ submissionId, workflowId }) => {
   const [tableData, setTableData] = useState([])
   const [showLog, setShowLog] = useState(false)
   const [logUri, setLogUri] = useState({})
+  const [isStdLog, setIsStdLog] = useState(false)
 
   const signal = useCancellation()
   const stateRefreshTimer = useRef()
 
-  const showLogModal = useCallback(logUri => {
+  const showLogModal = useCallback((logUri, isStdLog = false) => {
     setLogUri(logUri)
     setShowLog(true)
+    setIsStdLog(isStdLog)
   }, [])
   /*
    * Data fetchers
@@ -165,7 +167,7 @@ export const RunDetails = ({ submissionId, workflowId }) => {
             })
           ]
         ),
-        showLog && h(UriViewer, { uri: logUri || '', onDismiss: () => setShowLog(false) })
+        showLog && h(UriViewer, { uri: logUri || '', onDismiss: () => setShowLog(false), isStdLog })
       ])
     )
   ])

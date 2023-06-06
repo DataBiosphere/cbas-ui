@@ -227,10 +227,10 @@ const CallTable = ({ tableData, defaultFailedFilter = false, showLogModal }) => 
                   style: {
                     marginRight: '0.5rem'
                   },
-                  onClick: () => showLogModal(stdout)
+                  onClick: () => showLogModal(stdout, true)
                 }, ['stdout']),
                 h(Link, {
-                  onClick: () => showLogModal(stderr)
+                  onClick: () => showLogModal(stderr, true)
                 }, 'stderr')
               ])
             })

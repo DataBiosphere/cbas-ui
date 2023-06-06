@@ -20,7 +20,7 @@ import { UriPreview } from './UriPreview'
 // eslint-disable-next-line lodash-fp/no-single-composition
 export const UriViewer = _.flow(
   withDisplayName('UriViewer')
-)(({ uri, onDismiss }) => {
+)(({ uri, onDismiss, isStdLog }) => {
   const signal = useCancellation()
   const [metadata, setMetadata] = useState()
   const [loadingError, setLoadingError] = useState(false)
@@ -71,8 +71,10 @@ export const UriViewer = _.flow(
 
 
   const renderFailureMessage = () => {
+    const errorMsg = isStdLog ? 'Log file not found. This may be the result of a task failing to start. Please check relevant docker images and file paths to ensure valid references.' :
+      'Error loading data. This file does not exist or you do not have permission to view it.'
     return h(Fragment, [
-      div({ style: { paddingBottom: '1rem' } }, ['Error loading data. This file does not exist or you do not have permission to view it.'])
+      div({ style: { paddingBottom: '1rem' } }, [errorMsg])
       // below section should be re-enabled later on. Currently if a file is missing it's because Cromwell never fired up a task.
       // A static message should be enough to tackle this scenario for now.
       // h(Collapse, { title: 'Details' }, [
