@@ -3,6 +3,7 @@ import qs from 'qs'
 import { fetchAzureStorage, fetchCbas, fetchCromwell, fetchLeo, fetchOk, fetchWds, fetchWorkspaceManager } from 'src/libs/ajax-fetch'
 import { getConfig } from 'src/libs/config'
 import { parseAzureBlobUri } from 'src/libs/utils'
+import { reconstructToRawUrl } from 'src/components/method-common'
 
 
 const jsonBody = body => ({ body: JSON.stringify(body), headers: { 'Content-Type': 'application/json' } })
@@ -119,7 +120,8 @@ const Wds = signal => ({
 
 const WorkflowScript = signal => ({
   get: async workflowUrl => {
-    const res = await fetchOk(workflowUrl, { signal, method: 'GET' })
+    const workflowUrlRaw = reconstructToRawUrl(workflowUrl)
+    const res = await fetchOk(workflowUrlRaw, { signal, method: 'GET' })
     return res.text()
   }
 })
