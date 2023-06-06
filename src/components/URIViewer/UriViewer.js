@@ -20,8 +20,7 @@ import { UriPreview } from './UriPreview'
 // eslint-disable-next-line lodash-fp/no-single-composition
 export const UriViewer = _.flow(
   withDisplayName('UriViewer')
-)(({ workflow, onDismiss }) => {
-  const uri = workflow.workflowLog
+)(({ uri, onDismiss }) => {
   const signal = useCancellation()
   const [metadata, setMetadata] = useState()
   const [loadingError, setLoadingError] = useState()

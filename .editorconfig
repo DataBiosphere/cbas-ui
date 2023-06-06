@@ -12,6 +12,7 @@ trim_trailing_whitespace = true
 ij_continuation_indent_size = 4
 
 [{*.cjs,*.js}]
+quote_type = single
 max_line_length = 150
 ij_continuation_indent_size = 2
 ij_javascript_align_imports = false
