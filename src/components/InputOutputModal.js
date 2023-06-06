@@ -10,18 +10,24 @@ import { newTabLinkProps } from 'src/libs/utils'
 import { isAzureUri } from './URIViewer/uri-viewer-utils'
 
 
-const InputOutputModal = ({ title, jsonData, onDismiss, sasToken }) => {
-  const getFilenameFromAzureBlobPath = blobPath => {
-    const n = blobPath.lastIndexOf('/')
-    return blobPath.substring(n + 1) //If there is no slash, this returns the whole string.
-  }
+//Only append sas tokens for files in the workspace container. Otherwise, assume they are public and don't append the token.
+//Public files can't be downloaded if a sas token is appended, since sas tokens limit access to your own container + storage account.
+//Exported for  testing.
+export const appendSASTokenIfNecessary = (blobPath, sasToken) => {
+  const shouldAppendSASToken = blobPath.includes(getConfig().workspaceId)
+  return shouldAppendSASToken ? `${blobPath}?${sasToken}` : blobPath
+}
 
+//Whatever is after the last slash is the filename.
+export const getFilenameFromAzureBlobPath = blobPath => {
+  const n = blobPath.lastIndexOf('/')
+  return blobPath.substring(n + 1) //If there is no slash, this returns the whole string.
+}
+
+const InputOutputModal = ({ title, jsonData, onDismiss, sasToken }) => {
   //Link to download the blob file
   const renderBlobLink = blobPath => {
-    //Only append sas tokens for files in the workspace container. Otherwise, assume they are public and don't append the token.
-    //Public files can't be downloaded if a sas token is appended, since sas tokens limit access to your own container + storage account.
-    const shouldAppendSASToken = blobPath.includes(getConfig().workspaceId)
-    const downloadUrl = shouldAppendSASToken ? `${blobPath}?${sasToken}` : blobPath
+    const downloadUrl = appendSASTokenIfNecessary(blobPath, sasToken)
     const fileName = getFilenameFromAzureBlobPath(blobPath)
     return h(Link, {
       disabled: !downloadUrl,
@@ -43,7 +49,8 @@ const InputOutputModal = ({ title, jsonData, onDismiss, sasToken }) => {
       showX: true,
       okButton: 'Done',
       width: 900,
-      height: 500 //specify height to prevent the modal from being too tall
+      height: 500, //specify height to prevent the modal from being too tall
+      'data-testid': 'input-output-modal'
     }, [
       div({ style: { margin: '1rem 0', display: 'flex', alignItems: 'center' } }, [
         h(AutoSizer, { disableHeight: true }, [
