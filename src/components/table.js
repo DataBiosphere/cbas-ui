@@ -266,7 +266,6 @@ export const InputsButtonRow = ({
   showRow = true, optionalButtonProps: { includeOptionalInputs, setIncludeOptionalInputs },
   setFromDataTableButtonProps: { inputRowsInDataTable, setConfiguredInputDefinition } = {}, ...props
 }) => {
-  console.log(inputRowsInDataTable)
   return showRow && h(div, { ...props }, [
     h(Link,
       {
