@@ -4,6 +4,7 @@ import { Link } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import { FlexTable, HeaderCell, tableHeight } from 'src/components/table'
+import { getConfig } from 'src/libs/config'
 import { newTabLinkProps } from 'src/libs/utils'
 
 import { isAzureUri } from './URIViewer/uri-viewer-utils'
@@ -16,10 +17,12 @@ const InputOutputModal = ({ title, jsonData, onDismiss, sasToken }) => {
   }
 
   //Link to download the blob file
-  //TODO: Appending the SAS token to the end of the blob path prevents public blobs from being downloaded, for some reason.
   const renderBlobLink = blobPath => {
+    //Only append sas tokens for files in our own container. Otherwise, assume they are public and don't append the token.
+    //Public files can't be downloaded if a sas token is appended, since sas tokens limit access to your own container + storage account.
+    const shouldAppendSASToken = blobPath.includes(getConfig().containerResourceId)
+    const downloadUrl = shouldAppendSASToken ? `${blobPath}?${sasToken}` : blobPath
     const fileName = getFilenameFromAzureBlobPath(blobPath)
-    const downloadUrl = `${blobPath}?${sasToken}`
     return h(Link, {
       disabled: !downloadUrl,
       href: downloadUrl,
