@@ -2,6 +2,7 @@ import _ from 'lodash/fp'
 import { Fragment, useCallback, useEffect, useRef, useState } from 'react'
 import { a, div, h, h2, span } from 'react-hyperscript-helpers'
 import { ButtonPrimary, Link, Navbar, Select } from 'src/components/common'
+import { errorStyles } from 'src/components/ErrorView'
 import HelpfulLinksBox from 'src/components/HelpfulLinksBox'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { TextArea, TextInput } from 'src/components/input'
@@ -373,12 +374,7 @@ export const SubmissionConfig = ({ methodId }) => {
                 h(TextCell, { style: { marginLeft: '0.5rem' } }, ['Error submitting workflow:'])
               ]),
               div({
-                style: {
-                  padding: '0.5rem', backgroundColor: colors.light(),
-                  whiteSpace: 'pre-wrap', overflowY: 'scroll', overflowWrap: 'break-word',
-                  fontFamily: 'Menlo, monospace',
-                  maxHeight: 160
-                },
+                style: { ...errorStyles.jsonFrame, overflowY: 'scroll', maxHeight: 160 },
                 'aria-label': 'Modal submission error'
               }, [workflowSubmissionError])
             ])
