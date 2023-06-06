@@ -280,7 +280,8 @@ export const InputsButtonRow = ({
         onClick: () => _.forEach(
           row => setConfiguredInputDefinition(_.set(`[${row.configurationIndex}].source`, { type: 'record_lookup', record_attribute: row.variable }))
         )(inputRowsInDataTable),
-        tooltip: _.flow(_.map(row => `${row.taskName}.${row.variable}`), _.join('\n'))(inputRowsInDataTable)
+        tooltip: _.flow(_.map(row => `${row.taskName}.${row.variable}`), _.join('\n'))(inputRowsInDataTable),
+        tooltipSide: 'top'
       },
       [`Set (${inputRowsInDataTable.length}) from data table`]
     )
