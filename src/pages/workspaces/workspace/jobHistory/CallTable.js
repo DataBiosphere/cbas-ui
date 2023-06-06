@@ -226,7 +226,6 @@ const CallTable = ({ tableData, defaultFailedFilter = false, showLogModal, showT
                 style: {
                   display: 'grid',
                   gridTemplateColumns: '1fr 1fr',
-                  justifyContent: 'space-between',
                   gridColumnGap: '0.3em',
                   gridRowGap: '0.3em'
                 }
