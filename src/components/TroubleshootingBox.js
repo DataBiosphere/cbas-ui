@@ -1,14 +1,10 @@
-import { useState } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import { ClipboardButton, Link } from 'src/components/common'
 import { icon } from 'src/components/icons'
-import { UriViewer } from 'src/components/URIViewer/UriViewer'
 import colors from 'src/libs/colors'
 
 
-export const TroubleshootingBox = ({ workflow, submissionId, workflowId }) => {
-  const [showLog, setShowLog] = useState(false)
-
+export const TroubleshootingBox = ({ logUri, submissionId, workflowId, showLogModal }) => {
   //When we merge with Terra UI, we will be able to provide this link from the workspace. For now, leave it out.
   const fileBrowserRoot = null // '/#workspaces/[billing-account]/[workspace-name]/files'
 
@@ -33,14 +29,13 @@ export const TroubleshootingBox = ({ workflow, submissionId, workflowId }) => {
       span({ 'data-testid': 'submission-clipboard-button' }, [h(ClipboardButton, { text: submissionId })])
     ]),
     div({ 'data-testid': 'log-link-container', style: { display: 'flex', justifyContent: 'left', paddingTop: '3px' } }, [
-      h(Link, { onClick: () => { setShowLog(true) } }, [
+      h(Link, { onClick: () => { showLogModal(logUri) } }, [
         div({ 'data-testid': 'workflow-log-link' }, [icon('fileAlt', { size: 18 }), ' Execution Log'], {})
       ]),
       false && h(Link, { href: fileBrowserRoot, target: '_blank', onClick: () => {} }, [
         icon('folder-open', { size: 18 }), ' Execution Directory'
       ])
-    ]),
-    showLog && h(UriViewer, { workflow, onDismiss: () => setShowLog(false) })
+    ])
   ])
 }
 
