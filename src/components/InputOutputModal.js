@@ -18,9 +18,13 @@ const InputOutputModal = ({ title, jsonData, onDismiss, sasToken }) => {
 
   //Link to download the blob file
   const renderBlobLink = blobPath => {
-    //Only append sas tokens for files in our own container. Otherwise, assume they are public and don't append the token.
+    //Only append sas tokens for files in the workspace container. Otherwise, assume they are public and don't append the token.
     //Public files can't be downloaded if a sas token is appended, since sas tokens limit access to your own container + storage account.
-    const shouldAppendSASToken = blobPath.includes(getConfig().containerResourceId)
+    console.log(`Blob Path: ${blobPath}`)
+    console.log(`Sas: ${sasToken}`)
+    console.log(`WorkspaceId: ${getConfig().workspaceId}`)
+    console.log(`ContainerId: ${getConfig().containerResourceId}`)
+    const shouldAppendSASToken = blobPath.includes(getConfig().workspaceId)
     const downloadUrl = shouldAppendSASToken ? `${blobPath}?${sasToken}` : blobPath
     const fileName = getFilenameFromAzureBlobPath(blobPath)
     return h(Link, {
