@@ -17,14 +17,18 @@ const baseToolTip = {
 const styles = {
   tooltip: {
     background: 'black', color: 'white',
-    padding: '0.5rem', borderRadius: 4,
-    whiteSpace: 'break-spaces'
+    borderRadius: 4, whiteSpace: 'break-spaces',
+    maxHeight: '100px', overflow: 'hidden'
+  },
+  tooltipText: {
+    background: 'inherit', padding: '0 0.5rem',
+    margin: '0.5rem 0', overflow: 'auto',
+    maxHeight: 'calc(100px - 1rem)'
   },
   notch: {
     fill: 'black',
     width: 16, height: 16,
-    flexShrink: 0,
-    margin: -4
+    flexShrink: 0
   },
   lightBox: {
     background: 'white',
@@ -67,10 +71,10 @@ const Tooltip = ({ side = 'bottom', type, target: targetId, children, id, delay,
       (target.top + target.bottom) / 2 - position.top
     )
     return Utils.switchCase(finalSide,
-      ['top', () => ({ marginLeft: left - 8, transform: 'rotate(180deg)', marginBottom: 0, marginTop: -4 })],
-      ['bottom', () => ({ marginLeft: left - 8, marginTop: 0, marginBottom: -4 })],
-      ['left', () => ({ marginTop: top - 8, transform: 'rotate(90deg)', marginRight: 0, marginLeft: -4 })],
-      ['right', () => ({ marginTop: top - 8, transform: 'rotate(270deg)', marginLeft: 0, marginRight: -4 })]
+      ['top', () => ({ marginLeft: left - 8, transform: 'rotate(180deg)', marginTop: -5 })],
+      ['bottom', () => ({ marginLeft: left - 8, marginBottom: -5 })],
+      ['left', () => ({ marginTop: top - 8, transform: 'rotate(90deg)', marginLeft: -5 })],
+      ['right', () => ({ marginTop: top - 8, transform: 'rotate(270deg)', marginRight: -5 })]
     )
   }
 
@@ -90,8 +94,7 @@ const Tooltip = ({ side = 'bottom', type, target: targetId, children, id, delay,
       onFocus: () => setOverTooltip(true),
       onBlur: () => setOverTooltip(false)
     }, [
-      div({ style: { overflow: 'auto', maxHeight: '100px', ...styles.tooltip } },
-        children),
+      div({ style: styles.tooltip }, [div({ style: styles.tooltipText }, children)]),
       type !== 'light' && svg({ viewBox: '0 0 2 1', style: { ...styles.notch, ...getNotchRotation() } }, [
         path({ d: 'M0,1l1,-1l1,1Z' })
       ])
@@ -99,7 +102,7 @@ const Tooltip = ({ side = 'bottom', type, target: targetId, children, id, delay,
   ])
 }
 
-const TooltipTrigger = ({ children, content, useTooltipAsLabel, ...props }) => {
+const TooltipTrigger = ({ children, content, useTooltipAsLabel, hoverable = false, ...props }) => {
   const [overTooltip, setOverTooltip] = useState(false)
   const [overTrigger, setOverTrigger] = useState(false)
   const id = useUniqueId()
@@ -139,7 +142,7 @@ const TooltipTrigger = ({ children, content, useTooltipAsLabel, ...props }) => {
         setOverTrigger(false)
       }
     }),
-    (overTooltip || overTrigger) && !!content && h(Tooltip, { target: childId, id: tooltipId, setOverTooltip, ...props }, [content]),
+    (overTrigger || (overTooltip && hoverable)) && !!content && h(Tooltip, { target: childId, id: tooltipId, setOverTooltip, ...props }, [content]),
     !!content && div({ id: descriptionId, style: { display: 'none' } }, [content])
   ])
 }
