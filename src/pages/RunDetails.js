@@ -60,7 +60,6 @@ export const RunDetails = ({ submissionId, workflowId }) => {
 
   const [sasToken, setSasToken] = useState('')
 
-
   const showLogModal = useCallback(logUri => {
     setLogUri(logUri)
     setShowLog(true)
@@ -93,7 +92,6 @@ export const RunDetails = ({ submissionId, workflowId }) => {
       ]
       const excludeKey = []
       const metadata = await Ajax(signal).Cromwell.workflows(workflowId).metadata({ includeKey, excludeKey })
-
       setWorkflow(metadata)
       if (!isEmpty(metadata?.calls)) {
         const formattedTableData = generateCallTableData(metadata.calls)
@@ -104,7 +102,7 @@ export const RunDetails = ({ submissionId, workflowId }) => {
       }
     }
     const fetchSasToken = async () => {
-      const sasToken = await Ajax(signal).AzureStorage.getSasToken()
+      const sasToken = await Ajax(signal).WorkspaceManager.getSASToken()
       setSasToken(sasToken)
     }
     fetchSasToken()

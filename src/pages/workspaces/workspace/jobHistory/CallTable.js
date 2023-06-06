@@ -227,8 +227,8 @@ const CallTable = ({ tableData, defaultFailedFilter = false, showLogModal, showT
                   display: 'grid',
                   gridTemplateColumns: '1fr 1fr',
                   justifyContent: 'space-between',
-                  gridColumnGap: '1em',
-                  gridRowGap: '1em'
+                  gridColumnGap: '0.3em',
+                  gridRowGap: '0.3em'
                 }
               }, [
                 h(Link, {
