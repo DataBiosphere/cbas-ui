@@ -40,9 +40,8 @@ const InputOutputModal = ({ title, jsonData, onDismiss, sasToken }) => {
       showX: true,
       okButton: 'Done',
       width: 900,
-      height: 500
+      height: 500 //specify height to prevent the modal from being too tall
     }, [
-      // we are specifying height here so that for long workflow scripts the Modal doesn't overflow the main screen
       div({ style: { margin: '1rem 0', display: 'flex', alignItems: 'center' } }, [
         h(AutoSizer, { disableHeight: true }, [
           ({ width }) => h(FlexTable, {
