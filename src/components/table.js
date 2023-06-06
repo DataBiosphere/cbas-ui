@@ -266,6 +266,7 @@ export const InputsButtonRow = ({
   showRow = true, optionalButtonProps: { includeOptionalInputs, setIncludeOptionalInputs },
   setFromDataTableButtonProps: { inputRowsInDataTable, setConfiguredInputDefinition } = {}, ...props
 }) => {
+  console.log(inputRowsInDataTable)
   return showRow && h(div, { ...props }, [
     h(Link,
       {
@@ -280,7 +281,7 @@ export const InputsButtonRow = ({
         onClick: () => _.forEach(
           row => setConfiguredInputDefinition(_.set(`[${row.configurationIndex}].source`, { type: 'record_lookup', record_attribute: row.variable }))
         )(inputRowsInDataTable),
-        tooltip: _.flow(_.map(row => row.variable), _.join(', '))(inputRowsInDataTable)
+        tooltip: _.flow(_.map(row => `${row.taskName}.${row.variable}`), _.join('\n'))(inputRowsInDataTable)
       },
       [`Set (${inputRowsInDataTable.length}) from data table`]
     )
