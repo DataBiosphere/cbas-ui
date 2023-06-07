@@ -32,7 +32,7 @@ export const TroubleshootingBox = ({ logUri, submissionId, workflowId, showLogMo
       h(Link, { onClick: () => { showLogModal(logUri) } }, [
         div({ 'data-testid': 'workflow-log-link' }, [icon('fileAlt', { size: 18 }), ' Execution Log'], {})
       ]),
-      false && h(Link, { href: fileBrowserRoot, target: '_blank', onClick: () => {} }, [
+      fileBrowserRoot && h(Link, { href: fileBrowserRoot, target: '_blank', onClick: () => {} }, [
         icon('folder-open', { size: 18 }), ' Execution Directory'
       ])
     ])
