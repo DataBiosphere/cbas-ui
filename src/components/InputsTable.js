@@ -11,8 +11,8 @@ import {
   StructBuilderLink, unwrapOptional,
   WithWarnings
 } from 'src/components/submission-common'
-import colors from 'src/libs/colors'
 import { FlexTable, HeaderCell, InputsButtonRow, Sortable, TextCell } from 'src/components/table'
+import colors from 'src/libs/colors'
 import { tableButtonRowStyle } from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { isInputOptional, maybeParseJSON } from 'src/libs/utils'
@@ -72,7 +72,7 @@ const InputsTable = props => {
       [missingRequiredInputs.includes(selectedInputName), () => 'This attribute is required'],
       [inputsWithInvalidValues.includes(selectedInputName) && inputTableData[rowIndex].source.parameter_value === '', () => 'Value is empty'],
       [inputsWithInvalidValues.includes(selectedInputName) && unwrapOptional(inputTableData[rowIndex].input_type).type === 'array',
-        () => 'Array inputs must follow JSON array literal syntax.' +
+        () => 'Array inputs must follow JSON array literal syntax. ' +
           `This will be submitted as an array with one element: ${JSON.stringify(inputTableData[rowIndex].source.parameter_value)}.`],
       [inputsWithInvalidValues.includes(selectedInputName), () => 'Value doesn\'t match expected input type'],
       [unwrapOptional(inputTableData[rowIndex].input_type).type === 'array', () => `Detected an ${inputTableData[rowIndex].inputTypeStr} with ${(maybeParseJSON(inputTableData[rowIndex].source.parameter_value) || inputTableData[rowIndex].source.parameter_value).length} value(s).`],

@@ -215,6 +215,24 @@ export const myStructInput = {
 
 export const runSetInputDefWithStruct = [...runSetInputDef, myStructInput]
 
+export const runSetInputDefWithArrays = [
+  {
+    input_name: 'target_workflow_1.foo.foo_array',
+    input_type: { type: 'array', array_type: { type: 'primitive', primitive_type: 'Int' } },
+    source: {
+      type: 'literal',
+      parameter_value: []
+    }
+  },
+  {
+    input_name: 'target_workflow_1.bar_array',
+    input_type: { type: 'optional', optional_type: { type: 'array', array_type: { type: 'primitive', primitive_type: 'String' } } },
+    source: {
+      type: 'none'
+    }
+  }
+]
+
 export const runSetOutputDef = [
   {
     output_name: 'target_workflow_1.file_output',
@@ -272,6 +290,25 @@ export const runSetResponseForNewMethod = {
 }
 
 export const runSetResponseWithStruct = _.set('run_sets[0].input_definition', JSON.stringify(runSetInputDefWithStruct), runSetResponse)
+
+export const runSetResponseWithArrays = {
+  run_sets: [
+    {
+      run_set_id: '10000000-0000-0000-0000-000000000001',
+      method_id: '00000000-0000-0000-0000-000000000001',
+      method_version_id: '50000000-0000-0000-0000-000000000006',
+      is_template: true,
+      state: 'COMPLETE',
+      record_type: 'FOO',
+      submission_timestamp: '2022-12-07T17:26:53.153+00:00',
+      last_modified_timestamp: '2022-12-07T17:26:53.153+00:00',
+      run_count: 1,
+      error_count: 0,
+      input_definition: JSON.stringify(runSetInputDefWithArrays),
+      output_definition: JSON.stringify(runSetOutputDef)
+    }
+  ]
+}
 
 export const badRecordTypeRunSetResponse = {
   run_sets: [

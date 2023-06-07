@@ -15,7 +15,7 @@ import {
   runSetInputDefWithStruct,
   runSetOutputDef,
   runSetResponse,
-  runSetResponseForNewMethod,
+  runSetResponseForNewMethod, runSetResponseWithArrays,
   runSetResponseWithStruct,
   searchResponses,
   typesResponse,
@@ -1028,6 +1028,161 @@ describe('Input source and requirements validation', () => {
     // ** ASSERT **
     // check that the warning message for incorrect value is gone
     expect(within(firstInputRowCells[4]).queryByText('Value is either empty or doesn\'t match expected input type')).toBeNull()
+  })
+
+  it('should display tooltips for array literals and convert inputs to array types', async () => {
+    // ** ARRANGE **
+    const mockRunSetResponse = jest.fn(() => Promise.resolve(runSetResponseWithArrays))
+    const mockMethodsResponse = jest.fn(() => Promise.resolve(methodsResponse))
+    const mockSearchResponse = jest.fn((_, recordType) => Promise.resolve(searchResponses[recordType]))
+    const mockTypesResponse = jest.fn(() => Promise.resolve(typesResponse))
+
+    const postRunSetFunction = jest.fn()
+
+    await Ajax.mockImplementation(() => {
+      return {
+        Cbas: {
+          runSets: {
+            post: postRunSetFunction,
+            getForMethod: mockRunSetResponse
+          },
+          methods: {
+            getById: mockMethodsResponse
+          }
+        },
+        Wds: {
+          search: {
+            post: mockSearchResponse
+          },
+          types: {
+            get: mockTypesResponse
+          }
+        }
+      }
+    })
+
+    // ** ACT **
+    render(h(SubmissionConfig))
+
+    // ** ASSERT **
+    await waitFor(() => {
+      expect(mockRunSetResponse).toHaveBeenCalledTimes(1)
+      expect(mockTypesResponse).toHaveBeenCalledTimes(1)
+      expect(mockMethodsResponse).toHaveBeenCalledTimes(1)
+      expect(mockSearchResponse).toHaveBeenCalledTimes(1)
+    })
+
+    // ** ACT **
+    // user selects 'FOO1' record from Data Table
+    const checkboxes = screen.getAllByRole('checkbox')
+    const checkbox = checkboxes[1]
+    fireEvent.click(checkbox)
+
+    const inputButton = await screen.findByRole('button', { name: 'Inputs' })
+
+    // ** ACT **
+    await fireEvent.click(inputButton)
+
+    const table = await screen.findByRole('table')
+    const rows = within(table).queryAllByRole('row')
+
+    const firstInputRowCells = within(rows[1]).queryAllByRole('cell')
+
+    // Value is already set to literal source from previous run
+    await userEvent.click(within(firstInputRowCells[3]).getByText('Type a Value'))
+
+    // ** ASSERT **
+    // check the info message exists for `[]` input
+    within(firstInputRowCells[4]).getByText('Detected an Array[Int] with 0 value(s).')
+
+    // ** ACT **
+    // user types value for the Array[Int] input
+    await userEvent.click(within(firstInputRowCells[4]).getByLabelText('Enter a value'))
+    await userEvent.keyboard('{ArrowLeft}X')
+
+    // ** ASSERT **
+    // check that the warning message for incorrect value is displayed
+    within(firstInputRowCells[4]).getByText('Array inputs must follow JSON array literal syntax. ' +
+      'This will be submitted as an array with one element: "[X]".')
+
+    // ** ACT **
+    // user replaces with new array
+    await userEvent.clear(within(firstInputRowCells[4]).getByLabelText('Enter a value'))
+    expect(within(firstInputRowCells[4]).getByLabelText('Enter a value')).toHaveValue('')
+    await userEvent.type(within(firstInputRowCells[4]).getByLabelText('Enter a value'), '[[1, 2]')
+
+    // ** ASSERT **
+    // check that validation message is updated
+    within(firstInputRowCells[4]).getByText('Detected an Array[Int] with 2 value(s).')
+
+    const secondInputRowCells = within(rows[2]).queryAllByRole('cell')
+
+    // Value is not yet set
+    await userEvent.click(within(secondInputRowCells[3]).getByText('None'))
+    const selectOption = await within(screen.getByRole('listbox')).findByText('Type a Value')
+    await userEvent.click(selectOption)
+
+    // ** ASSERT **
+    // check the warning message exists for empty input
+    within(secondInputRowCells[4]).getByText('Value is empty')
+
+    // ** ACT **
+    // user types value for the Array[String] input
+    await userEvent.click(within(secondInputRowCells[4]).getByLabelText('Enter a value'))
+    await userEvent.keyboard('not an array')
+
+    // ** ASSERT **
+    // check that the warning message for incorrect value is displayed
+    within(secondInputRowCells[4]).getByText('Array inputs must follow JSON array literal syntax. ' +
+      'This will be submitted as an array with one element: "not an array".')
+
+    // ** ACT **
+    // user clicks on Submit
+    const button = screen.getByLabelText('Submit button')
+    fireEvent.click(button)
+
+    // ** ASSERT **
+    // Launch modal should be displayed
+    await screen.getByText('Send submission')
+    const modalSubmitButton = await screen.getByLabelText('Launch Submission')
+
+    // ** ACT **
+    // user click on Submit button
+    fireEvent.click(modalSubmitButton)
+
+    // ** ASSERT **
+    // assert POST /run_sets endpoint was called with expected parameters
+    expect(postRunSetFunction).toHaveBeenCalled()
+    expect(postRunSetFunction).toBeCalledWith(
+      expect.objectContaining({
+        method_version_id: runSetResponse.run_sets[0].method_version_id,
+        workflow_input_definitions: [
+          {
+            input_name: 'target_workflow_1.foo.foo_array',
+            input_type: { type: 'array', array_type: { type: 'primitive', primitive_type: 'Int' } },
+            source: {
+              type: 'literal',
+              parameter_value: [1, 2]
+            }
+          },
+          {
+            input_name: 'target_workflow_1.bar_array',
+            input_type: { type: 'optional', optional_type: { type: 'array', array_type: { type: 'primitive', primitive_type: 'String' } } },
+            source: {
+              type: 'literal',
+              parameter_value: ['not an array']
+            }
+          }
+        ],
+        workflow_output_definitions: runSetOutputDef,
+        wds_records: {
+          record_type: 'FOO',
+          record_ids: [
+            'FOO1'
+          ]
+        }
+      })
+    )
   })
 })
 

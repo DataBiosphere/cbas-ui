@@ -352,15 +352,6 @@ const validateRequirements = (inputSource, inputType) => {
       return _.every(Boolean, fieldsValidated)
     }
     if (inputSource.type === 'literal') {
-      if (inputType.type === 'array') {
-        try {
-          const inputArr = Array.isArray(inputSource.parameter_value) ? inputSource.parameter_value : JSON.parse(inputSource.parameter_value)
-          return _.map(item => validateRequirements({ ...inputSource, parameter_value: item }, unwrapOptional(inputType.array_type)))(inputArr)
-        } catch (err) {
-          return false
-        }
-      }
-
       // this condition is specifically added to allow '0' and 'false' as valid values because
       // '!!inputSource.parameter_value' considers '0' and 'false' as empty values
       // Note: '!=' null check also covers if value is undefined
