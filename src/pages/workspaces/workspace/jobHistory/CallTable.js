@@ -231,15 +231,19 @@ const CallTable = ({ tableData, defaultFailedFilter = false, showLogModal, showT
                 }
               }, [
                 h(Link, {
+                  'data-testid': 'inputs-modal-link',
                   onClick: () => showTaskDataModal('Inputs', inputs)
                 }, ['Inputs']),
                 h(Link, {
+                  'data-testid': 'outputs-modal-link',
                   onClick: () => showTaskDataModal('Outputs', outputs)
                 }, ['Outputs']),
                 h(Link, {
+                  'data-testid': 'stdout-modal-link',
                   onClick: () => showLogModal(stdout)
                 }, ['stdout']),
                 h(Link, {
+                  'data-testid': 'stderr-modal-link',
                   onClick: () => showLogModal(stderr)
                 }, 'stderr')
               ])

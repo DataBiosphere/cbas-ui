@@ -64,7 +64,7 @@ const InputOutputModal = ({ title, jsonData, onDismiss, sasToken }) => {
               {
                 size: { basis: 100, grow: 30 },
                 field: 'key',
-                headerRenderer: () => h(HeaderCell, {}, ['Key']),
+                headerRenderer: () => h(HeaderCell, { 'data-testid': 'inputoutput-key-header' }, ['Key']),
                 cellRenderer: ({ rowIndex }) => {
                   return div({}, dataArray[rowIndex][0])
                 }
@@ -72,7 +72,7 @@ const InputOutputModal = ({ title, jsonData, onDismiss, sasToken }) => {
               {
                 size: { basis: 100, grow: 70 },
                 field: 'value',
-                headerRenderer: () => h(HeaderCell, {}, ['Value']),
+                headerRenderer: () => h(HeaderCell, { 'data-testid': 'inputoutput-value-header' }, ['Value']),
                 cellRenderer: ({ rowIndex }) => {
                   return isAzureUri(dataArray[rowIndex][1]) ? renderBlobLink(dataArray[rowIndex][1]) : div({}, dataArray[rowIndex][1])
                 }

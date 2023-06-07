@@ -179,13 +179,13 @@ describe('RunDetails - render smoke test', () => {
         const row = taskRows[index]
         const taskCell = within(row).getByText(taskName)
         expect(taskCell).toBeDefined
-        const stdout = within(row).getByText('stdout')
+        const stdout = within(row).getByTestId('stdout-modal-link')
         expect(stdout).toBeDefined
-        const stderr = within(row).getByText('stderr')
+        const stderr = within(row).getByTestId('stderr-modal-link')
         expect(stderr).toBeDefined
-        const inputs = within(row).getByText('Inputs')
+        const inputs = within(row).getByTestId('inputs-modal-link')
         expect(inputs).toBeDefined
-        const outputs = within(row).getByText('Outputs')
+        const outputs = within(row).getByTestId('outputs-modal-link')
         expect(outputs).toBeDefined
         //Following checks are looking for the taget text on the cell and on the tooltip elements
         const statusObj = collapseCromwellStatus(executionStatus, backendStatus)
@@ -338,11 +338,11 @@ describe('RunDetails - render smoke test', () => {
     await waitFor(async () => {
       const table = screen.getByTestId('call-table-container')
       expect(table).toBeDefined
-      const inputs = within(table).queryAllByText('Inputs')
+      const inputs = within(table).queryAllByTestId('inputs-modal-link')
       await user.click(inputs[0])
-      const keyHeader = screen.getByText('Key')
+      const keyHeader = screen.getByTestId('inputoutput-key-header')
       expect(keyHeader).toBeDefined
-      const valueHeader = screen.getByText('Value')
+      const valueHeader = screen.getByTestId('inputoutput-value-header')
       expect(valueHeader.toBeDefined)
       const firstRowKey = screen.getByText('docker')
       expect(firstRowKey).toBeDefined
@@ -357,12 +357,12 @@ describe('RunDetails - render smoke test', () => {
     await waitFor(async () => {
       const table = screen.getByTestId('call-table-container')
       expect(table).toBeDefined
-      const inputs = within(table).queryAllByText('Outputs')
-      await user.click(inputs[0])
+      const outputs = within(table).queryAllByTestId('outputs-modal-link')
+      await user.click(outputs[0])
       //There is no output data in this test case, but the modal still open.
-      const keyHeader = screen.getByText('Key')
+      const keyHeader = screen.getByTestId('inputoutput-key-header')
       expect(keyHeader).toBeDefined
-      const valueHeader = screen.getByText('Value')
+      const valueHeader = screen.getByTestId('inputoutput-value-header')
       expect(valueHeader.toBeDefined)
     })
   })
