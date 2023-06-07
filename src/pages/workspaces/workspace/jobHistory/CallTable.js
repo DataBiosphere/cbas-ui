@@ -240,11 +240,11 @@ const CallTable = ({ tableData, defaultFailedFilter = false, showLogModal, showT
                 }, ['Outputs']),
                 h(Link, {
                   'data-testid': 'stdout-modal-link',
-                  onClick: () => showLogModal(stdout)
+                  onClick: () => showLogModal(stdout, true)
                 }, ['stdout']),
                 h(Link, {
                   'data-testid': 'stderr-modal-link',
-                  onClick: () => showLogModal(stderr)
+                  onClick: () => showLogModal(stderr, true)
                 }, 'stderr')
               ])
             })

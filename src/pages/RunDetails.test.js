@@ -254,6 +254,42 @@ describe('RunDetails - render smoke test', () => {
     })
   })
 
+  it('shows a static error message on UriViewer if stdout cannot be retrieved', async () => {
+    const altMockObj = cloneDeep(mockObj)
+    altMockObj.AzureStorage.getTextFileFromBlobStorage = () => Promise.reject('Mock error')
+    Ajax.mockImplementation(() => altMockObj)
+    render(h(RunDetails, runDetailsProps))
+    const user = userEvent.setup()
+    await waitFor(async () => {
+      const table = screen.getByTestId('call-table-container')
+      expect(table).toBeDefined
+      const stdout = within(table).queryAllByText('stdout')
+      await user.click(stdout[0])
+      const modalTitle = screen.getByText('File Details')
+      expect(modalTitle).toBeDefined
+      const errorText = screen.getByText('Log file not found. This may be the result of a task failing to start. Please check relevant docker images and file paths to ensure valid references.')
+      expect(errorText).toBeDefined
+    })
+  })
+
+  it('shows a static error message on UriViewer if stderr cannot be retrieved', async () => {
+    const altMockObj = cloneDeep(mockObj)
+    altMockObj.AzureStorage.getTextFileFromBlobStorage = () => Promise.reject('Mock error')
+    Ajax.mockImplementation(() => altMockObj)
+    render(h(RunDetails, runDetailsProps))
+    const user = userEvent.setup()
+    await waitFor(async () => {
+      const table = screen.getByTestId('call-table-container')
+      expect(table).toBeDefined
+      const stderr = within(table).queryAllByText('stderr')
+      await user.click(stderr[0])
+      const modalTitle = screen.getByText('File Details')
+      expect(modalTitle).toBeDefined
+      const errorText = screen.getByText('Log file not found. This may be the result of a task failing to start. Please check relevant docker images and file paths to ensure valid references.')
+      expect(errorText).toBeDefined
+    })
+  })
+
   it('opens the uri viewer modal when stderr is clicked', async () => {
     render(h(RunDetails, runDetailsProps))
     const user = userEvent.setup()

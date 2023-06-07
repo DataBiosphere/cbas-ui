@@ -50,6 +50,7 @@ export const RunDetails = ({ submissionId, workflowId }) => {
   const [tableData, setTableData] = useState([])
   const [showLog, setShowLog] = useState(false)
   const [logUri, setLogUri] = useState({})
+  const [isStdLog, setIsStdLog] = useState(false)
 
   const [taskDataTitle, setTaskDataTitle] = useState('')
   const [taskDataJson, setTaskDataJson] = useState({})
@@ -59,10 +60,10 @@ export const RunDetails = ({ submissionId, workflowId }) => {
   const stateRefreshTimer = useRef()
 
   const [sasToken, setSasToken] = useState('')
-
-  const showLogModal = useCallback(logUri => {
+  const showLogModal = useCallback((logUri, isStdLog = false) => {
     setLogUri(logUri)
     setShowLog(true)
+    setIsStdLog(isStdLog)
   }, [])
 
   const showTaskDataModal = useCallback((taskDataTitle, taskJson) => {
@@ -70,6 +71,7 @@ export const RunDetails = ({ submissionId, workflowId }) => {
     setTaskDataJson(taskJson)
     setShowTaskData(true)
   }, [])
+
   /*
    * Data fetchers
    */
@@ -182,7 +184,7 @@ export const RunDetails = ({ submissionId, workflowId }) => {
             })
           ]
         ),
-        showLog && h(UriViewer, { uri: logUri || '', onDismiss: () => setShowLog(false) }),
+        showLog && h(UriViewer, { uri: logUri || '', onDismiss: () => setShowLog(false), isStdLog }),
         showTaskData && h(InputOutputModal, { title: taskDataTitle, jsonData: taskDataJson, onDismiss: () => setShowTaskData(false), sasToken }, [])
       ])
     )

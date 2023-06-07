@@ -152,6 +152,12 @@ const AzureStorage = signal => ({
     const sasToken = await WorkspaceManager(signal).getSASToken()
     const url = `${blobFilepath}?${sasToken}`
     const res = await fetchAzureStorage(url, _.mergeAll([{ signal, method: 'GET' }]))
+    // Terra-UI and CBAS-UI use the Fetch API which treats any network response that returns as a resolved promise
+    // This is in contrast to other packages (ex: Axios) which treat any network response with a status code of 4xx or 5xx as a rejected promise
+    // Since the modal hinges on the file being returned, we'll treat any non-200 response as an error
+    if (res.status !== 200) {
+      throw new Error('Failed to fetch file from Azure Blob Storage')
+    }
     const textContent = await res.text()
     const blobDetails = parseAzureBlobUri(blobFilepath)
     const ret =
