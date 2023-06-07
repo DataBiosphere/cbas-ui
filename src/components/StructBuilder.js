@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import { useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
-import { Link } from 'src/components/common'
+import { ButtonPrimary, Link } from 'src/components/common'
 import Modal from 'src/components/Modal'
 import {
   inputsMissingRequiredAttributes,
@@ -37,10 +37,11 @@ export const StructBuilder = props => {
     structType,
     structSource,
     setStructSource,
-    dataTableAttributes
+    dataTableAttributes,
+    structIndexPath,
+    setStructIndexPath
   } = props
 
-  const [structIndexPath, setStructIndexPath] = useState([])
   const [includeOptionalInputs, setIncludeOptionalInputs] = useState(true)
   const structTypePath = buildStructTypePath(structIndexPath)
   const structSourcePath = buildStructSourcePath(structIndexPath)
@@ -96,7 +97,7 @@ export const StructBuilder = props => {
           'aria-label': 'struct-table',
           rowCount: _.size(currentStructType.fields),
           readOnly: false,
-          height: height - breadcrumbsHeight,
+          height: ((!includeOptionalInputs || _.some(row => row.field_type.type === 'optional', currentStructType.fields)) ? height * 0.92 : height) - breadcrumbsHeight,
           width,
           columns: [
             {
@@ -216,16 +217,18 @@ export const StructBuilder = props => {
 }
 
 export const StructBuilderModal = ({ onDismiss, ...props }) => {
+  const [structIndexPath, setStructIndexPath] = useState([])
+
   return h(Modal,
     {
       title: 'Struct Builder',
       onDismiss,
       showCancel: false,
       showX: true,
-      okButton: 'Done',
+      okButton: h(ButtonPrimary, { onClick: structIndexPath.length === 0 ? onDismiss : () => setStructIndexPath(_.initial(structIndexPath)) }, 'Done'),
       width: '90%'
     }, [
-      h(StructBuilder, { ...props }, [])
+      h(StructBuilder, { structIndexPath, setStructIndexPath, ...props }, [])
     ]
   )
 }
