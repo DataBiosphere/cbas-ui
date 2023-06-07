@@ -3,7 +3,7 @@ import '@testing-library/jest-dom'
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { h } from 'react-hyperscript-helpers'
-import { buildStructBreadcrumbs, StructBuilder } from 'src/components/StructBuilder'
+import { buildStructBreadcrumbs, StructBuilder, StructBuilderModal } from 'src/components/StructBuilder'
 
 
 describe('unit tests', () => {
@@ -104,11 +104,14 @@ describe('Configuration tests', () => {
   it('when an input source is selected, and the source field is empty, adopt the name found in the corresponding type specification', async () => {
     // ** ARRANGE **
     const setStructSource = jest.fn()
+    const setStructIndexPath = jest.fn()
 
     // ** ACT **
     render(h(StructBuilder, {
       structType,
       setStructSource,
+      setStructIndexPath,
+      structIndexPath: [],
       structName: 'myStruct',
       structSource: {
         type: 'object_builder',
@@ -143,23 +146,115 @@ describe('Configuration tests', () => {
         }
       }]
     })
+    expect(setStructIndexPath).not.toHaveBeenCalled()
   })
 
-  it('when an input source is selected, and the source field has no name property, adopt the name found in the corresponding type specification', async () => {
-    // ** ARRANGE **
+  it('when an input source is selected, and the source field has no name property, adopt the name found in the corresponding type specification',
+    async () => {
+      // ** ARRANGE **
+      const setStructSource = jest.fn()
+      const setStructIndexPath = jest.fn()
+
+      // ** ACT **
+      render(h(StructBuilder, {
+        structType,
+        setStructSource,
+        setStructIndexPath,
+        structIndexPath: [],
+        structName: 'myStruct',
+        structSource: {
+          type: 'object_builder',
+          fields: [{
+            source: {
+              parameter_value: '',
+              type: 'literal'
+            }
+          }]
+        },
+        dataTableAttributes: {}
+      }))
+
+      // ** ASSERT **
+      const structTable = await screen.getByLabelText('struct-table')
+      const structRows = within(structTable).queryAllByRole('row')
+      expect(structRows.length).toBe(2)
+      expect(setStructSource).toHaveBeenCalledTimes(0)
+
+      const structCells = within(structRows[1]).queryAllByRole('cell')
+      await userEvent.click(within(structCells[3]).getByText('Type a Value'))
+      const selectOption = await screen.findByText(`Fetch from Data Table`)
+      await userEvent.click(selectOption)
+
+      // upon selecting the source type of a previously empty source specification,
+      // the struct builder source should adopt the `name` field given by the input type specification
+      expect(setStructSource).toHaveBeenCalledTimes(1)
+      expect(setStructSource).toHaveBeenCalledWith({
+        type: 'object_builder',
+        fields: [{
+          name: 'pet_age',
+          source: {
+            record_attribute: '',
+            type: 'record_lookup'
+          }
+        }]
+      })
+      expect(setStructIndexPath).not.toHaveBeenCalled()
+    })
+
+  it('Clicking done moves up a level on inner structs and dismisses modal on outermost struct', async () => {
     const setStructSource = jest.fn()
+    const onDismiss = jest.fn()
 
     // ** ACT **
-    render(h(StructBuilder, {
-      structType,
+    render(h(StructBuilderModal, {
+      structType: {
+        type: 'struct',
+        name: 'Pet',
+        fields: [
+          {
+            field_name: 'pet_description',
+            field_type: {
+              name: 'pet_description',
+              type: 'struct',
+              fields: [{
+                field_name: 'pet_num_legs',
+                field_type: {
+                  type: 'primitive',
+                  primitive_type: 'Int'
+                }
+              }, {
+                field_name: 'pet_has_tail',
+                field_type: {
+                  type: 'primitive',
+                  primitive_type: 'Boolean'
+                }
+              }]
+            }
+          },
+          {
+            field_name: 'pet_age',
+            field_type: { type: 'primitive', primitive_type: 'Int' }
+          }
+        ]
+      },
       setStructSource,
+      onDismiss,
       structName: 'myStruct',
       structSource: {
         type: 'object_builder',
         fields: [{
           source: {
-            parameter_value: '',
-            type: 'literal'
+            type: 'object_builder',
+            fields: [{
+              type: 'literal',
+              parameter_value: 'foo'
+            }, {
+              type: 'none'
+            }]
+          }
+        }, {
+          source: {
+            type: 'none'
           }
         }]
       },
@@ -169,26 +264,43 @@ describe('Configuration tests', () => {
     // ** ASSERT **
     const structTable = await screen.getByLabelText('struct-table')
     const structRows = within(structTable).queryAllByRole('row')
-    expect(structRows.length).toBe(2)
-    expect(setStructSource).toHaveBeenCalledTimes(0)
+    expect(structRows.length).toBe(3)
+    within(structRows[1]).getByText('pet_description')
+    within(structRows[2]).getByText('pet_age')
 
     const structCells = within(structRows[1]).queryAllByRole('cell')
-    await userEvent.click(within(structCells[3]).getByText('Type a Value'))
-    const selectOption = await screen.findByText(`Fetch from Data Table`)
-    await userEvent.click(selectOption)
+    within(structCells[3]).getByText('Use Struct Builder')
 
-    // upon selecting the source type of a previously empty source specification,
-    // the struct builder source should adopt the `name` field given by the input type specification
-    expect(setStructSource).toHaveBeenCalledTimes(1)
-    expect(setStructSource).toHaveBeenCalledWith({
-      type: 'object_builder',
-      fields: [{
-        name: 'pet_age',
-        source: {
-          record_attribute: '',
-          type: 'record_lookup'
-        }
-      }]
-    })
+    // ** ACT **
+    // go into inner struct
+    await userEvent.click(within(structCells[4]).getByText('View Struct'))
+
+    // ** ASSERT **
+    // should be in inner struct now
+    const innerStructTable = await screen.getByLabelText('struct-table')
+    const innerStructRows = within(innerStructTable).queryAllByRole('row')
+    expect(innerStructRows.length).toBe(3)
+    within(innerStructRows[1]).getByText('pet_num_legs')
+    within(innerStructRows[2]).getByText('pet_has_tail')
+
+    // ** ACT **
+    // go back up a level by clicking 'Done'
+    const innerDoneButton = await screen.getByText('Done')
+    await userEvent.click(innerDoneButton)
+
+    // ** ASSERT **
+    // onDismiss hasn't been called, back to outer struct
+    expect(onDismiss).not.toHaveBeenCalled()
+    const outerStructTable = await screen.getByLabelText('struct-table')
+    const outerStructRows = within(outerStructTable).queryAllByRole('row')
+    expect(outerStructRows.length).toBe(3)
+    within(outerStructRows[1]).getByText('pet_description')
+    within(outerStructRows[2]).getByText('pet_age')
+
+    // ** ACT **
+    // exit modal by clicking 'Done'
+    const outerDoneButton = await screen.getByText('Done')
+    await userEvent.click(outerDoneButton)
+    expect(onDismiss).toHaveBeenCalled()
   })
 })

@@ -1913,6 +1913,8 @@ describe('SubmissionConfig submitting a run set', () => {
 
     // ** ACT **
     // Exit the modal and submit
+    const innerStructModalDoneButton = await screen.getByText('Done')
+    fireEvent.click(innerStructModalDoneButton)
     const modalDoneButton = await screen.getByText('Done')
     fireEvent.click(modalDoneButton)
     await screen.findByRole('table') // there should be only one table again
