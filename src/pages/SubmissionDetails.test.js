@@ -175,7 +175,7 @@ describe('Submission Details page', () => {
     const cellsFromDataRow1 = within(rows[1]).queryAllByRole('cell')
     expect(cellsFromDataRow1.length).toBe(3)
     within(cellsFromDataRow1[0]).getByText('FOO2')
-    within(cellsFromDataRow1[1]).getByText('Failed with error(s)')
+    within(cellsFromDataRow1[1]).getByText('Failed')
     within(cellsFromDataRow1[2]).getByText('52 minutes 10 seconds')
 
     const cellsFromDataRow2 = within(rows[2]).queryAllByRole('cell')
@@ -267,7 +267,7 @@ describe('Submission Details page', () => {
     const cellsFromDataRow2 = within(rows[2]).queryAllByRole('cell')
     expect(cellsFromDataRow2.length).toBe(3)
     within(cellsFromDataRow2[0]).getByText('FOO2')
-    within(cellsFromDataRow2[1]).getByText('Failed with error(s)')
+    within(cellsFromDataRow2[1]).getByText('Failed')
     within(cellsFromDataRow2[2]).getByText('52 minutes 10 seconds')
 
     // Act - click on sort button on Duration column to sort by descending order
@@ -280,7 +280,7 @@ describe('Submission Details page', () => {
     const cellsFromUpdatedDataRow1 = within(rows[1]).queryAllByRole('cell')
     expect(cellsFromUpdatedDataRow1.length).toBe(3)
     within(cellsFromUpdatedDataRow1[0]).getByText('FOO2')
-    within(cellsFromUpdatedDataRow1[1]).getByText('Failed with error(s)')
+    within(cellsFromUpdatedDataRow1[1]).getByText('Failed')
     within(cellsFromUpdatedDataRow1[2]).getByText('52 minutes 10 seconds')
 
     const cellsFromUpdatedDataRow2 = within(rows[2]).queryAllByRole('cell')
@@ -389,7 +389,7 @@ describe('Submission Details page', () => {
     const cellsFromDataRow1 = within(rows[1]).queryAllByRole('cell')
     expect(cellsFromDataRow1.length).toBe(3)
     within(cellsFromDataRow1[0]).getByText('FOO2')
-    within(cellsFromDataRow1[1]).getByText('Failed with error(s)')
+    within(cellsFromDataRow1[1]).getByText('Failed')
     within(cellsFromDataRow1[2]).getByText('52 minutes 10 seconds')
   })
 

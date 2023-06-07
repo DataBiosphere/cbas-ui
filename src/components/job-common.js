@@ -10,7 +10,7 @@ import * as Style from 'src/libs/style'
 import { ButtonOutline, Link } from './common'
 
 
-const iconSize = 24
+const iconSize = 18
 export const addCountSuffix = (label, count = undefined) => {
   return label + (count === undefined ? '' : `: ${count}`)
 }
@@ -23,7 +23,7 @@ export const statusType = {
   },
   failed: {
     id: 'failed', // Must match variable name for collection unpacking.
-    label: () => 'Failed with error(s)',
+    label: () => 'Failed',
     icon: style => icon('warning-standard', { size: iconSize, style: { color: colors.danger(), ...style } })
   },
   paused: {
