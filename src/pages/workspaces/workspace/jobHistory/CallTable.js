@@ -76,7 +76,7 @@ const SearchBar = ({ filterFn }) => {
 }
 
 ////////CALL TABLE///////////////////////
-const CallTable = ({ tableData, defaultFailedFilter = false, showLogModal }) => {
+const CallTable = ({ tableData, defaultFailedFilter = false, showLogModal, showTaskDataModal }) => {
   const [sort, setSort] = useState({ field: 'index', direction: 'asc' })
   const [statusFilter, setStatusFilter] = useState([])
   const [filteredCallObjects, setFilteredCallObjects] = useState([])
@@ -221,15 +221,29 @@ const CallTable = ({ tableData, defaultFailedFilter = false, showLogModal }) => 
             field: 'logs',
             headerRenderer: () => h(HeaderCell, { fontWeight: 500 }, ['Logs']),
             cellRenderer: (({ rowIndex }) => {
-              const { stdout, stderr } = filteredCallObjects[rowIndex]
-              return div({ style: { display: 'flex', justifyContent: 'flex-start' } }, [
+              const { stdout, stderr, inputs, outputs } = filteredCallObjects[rowIndex]
+              return div({
+                style: {
+                  display: 'grid',
+                  gridTemplateColumns: '1fr 1fr',
+                  gridColumnGap: '0.3em',
+                  gridRowGap: '0.3em'
+                }
+              }, [
                 h(Link, {
-                  style: {
-                    marginRight: '0.5rem'
-                  },
+                  'data-testid': 'inputs-modal-link',
+                  onClick: () => showTaskDataModal('Inputs', inputs)
+                }, ['Inputs']),
+                h(Link, {
+                  'data-testid': 'outputs-modal-link',
+                  onClick: () => showTaskDataModal('Outputs', outputs)
+                }, ['Outputs']),
+                h(Link, {
+                  'data-testid': 'stdout-modal-link',
                   onClick: () => showLogModal(stdout, true)
                 }, ['stdout']),
                 h(Link, {
+                  'data-testid': 'stderr-modal-link',
                   onClick: () => showLogModal(stderr, true)
                 }, 'stderr')
               ])

@@ -4,6 +4,7 @@ import { Fragment, useCallback, useMemo, useRef, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { Link, Navbar } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
+import InputOutputModal from 'src/components/InputOutputModal'
 import {
   collapseCromwellStatus,
   collapseStatus,
@@ -51,14 +52,26 @@ export const RunDetails = ({ submissionId, workflowId }) => {
   const [logUri, setLogUri] = useState({})
   const [isStdLog, setIsStdLog] = useState(false)
 
+  const [taskDataTitle, setTaskDataTitle] = useState('')
+  const [taskDataJson, setTaskDataJson] = useState({})
+  const [showTaskData, setShowTaskData] = useState(false)
+
   const signal = useCancellation()
   const stateRefreshTimer = useRef()
 
+  const [sasToken, setSasToken] = useState('')
   const showLogModal = useCallback((logUri, isStdLog = false) => {
     setLogUri(logUri)
     setShowLog(true)
     setIsStdLog(isStdLog)
   }, [])
+
+  const showTaskDataModal = useCallback((taskDataTitle, taskJson) => {
+    setTaskDataTitle(taskDataTitle)
+    setTaskDataJson(taskJson)
+    setShowTaskData(true)
+  }, [])
+
   /*
    * Data fetchers
    */
@@ -81,7 +94,6 @@ export const RunDetails = ({ submissionId, workflowId }) => {
       ]
       const excludeKey = []
       const metadata = await Ajax(signal).Cromwell.workflows(workflowId).metadata({ includeKey, excludeKey })
-
       setWorkflow(metadata)
       if (!isEmpty(metadata?.calls)) {
         const formattedTableData = generateCallTableData(metadata.calls)
@@ -91,7 +103,11 @@ export const RunDetails = ({ submissionId, workflowId }) => {
         }
       }
     }
-
+    const fetchSasToken = async () => {
+      const sasToken = await Ajax(signal).WorkspaceManager.getSASToken()
+      setSasToken(sasToken)
+    }
+    fetchSasToken()
     loadWorkflow()
     return () => {
       clearTimeout(stateRefreshTimer.current)
@@ -163,11 +179,13 @@ export const RunDetails = ({ submissionId, workflowId }) => {
               defaultFailedFilter: workflow?.status.toLocaleLowerCase().includes('failed'),
               isRendered: !isEmpty(tableData),
               showLogModal,
+              showTaskDataModal,
               tableData
             })
           ]
         ),
-        showLog && h(UriViewer, { uri: logUri || '', onDismiss: () => setShowLog(false), isStdLog })
+        showLog && h(UriViewer, { uri: logUri || '', onDismiss: () => setShowLog(false), isStdLog }),
+        showTaskData && h(InputOutputModal, { title: taskDataTitle, jsonData: taskDataJson, onDismiss: () => setShowTaskData(false), sasToken }, [])
       ])
     )
   ])

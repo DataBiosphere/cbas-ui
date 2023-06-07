@@ -3,9 +3,11 @@ import { fireEvent, render, screen, waitFor, within } from '@testing-library/rea
 import userEvent from '@testing-library/user-event'
 import { cloneDeep } from 'lodash/fp'
 import { h } from 'react-hyperscript-helpers'
+import { appendSASTokenIfNecessary, getFilenameFromAzureBlobPath } from 'src/components/InputOutputModal'
 import { collapseCromwellStatus } from 'src/components/job-common'
 import { isAzureUri } from 'src/components/URIViewer/uri-viewer-utils'
 import { Ajax } from 'src/libs/ajax'
+import * as configStore from 'src/libs/config'
 import { makeCompleteDate } from 'src/libs/utils'
 
 import { metadata as runDetailsMetadata } from '../fixtures/test-workflow'
@@ -177,10 +179,14 @@ describe('RunDetails - render smoke test', () => {
         const row = taskRows[index]
         const taskCell = within(row).getByText(taskName)
         expect(taskCell).toBeDefined
-        const stdout = within(row).getByText('stdout')
+        const stdout = within(row).getByTestId('stdout-modal-link')
         expect(stdout).toBeDefined
-        const stderr = within(row).getByText('stderr')
+        const stderr = within(row).getByTestId('stderr-modal-link')
         expect(stderr).toBeDefined
+        const inputs = within(row).getByTestId('inputs-modal-link')
+        expect(inputs).toBeDefined
+        const outputs = within(row).getByTestId('outputs-modal-link')
+        expect(outputs).toBeDefined
         //Following checks are looking for the taget text on the cell and on the tooltip elements
         const statusObj = collapseCromwellStatus(executionStatus, backendStatus)
         const status = within(row).queryAllByText(statusObj.label())
@@ -361,4 +367,62 @@ describe('RunDetails - render smoke test', () => {
       expect(updatedElement[0].textContent).toEqual(taskName)
     })
   })
+
+  it('opens the input/output modal when Inputs is clicked', async () => {
+    render(h(RunDetails, runDetailsProps))
+    const user = userEvent.setup()
+    await waitFor(async () => {
+      const table = screen.getByTestId('call-table-container')
+      expect(table).toBeDefined
+      const inputs = within(table).queryAllByTestId('inputs-modal-link')
+      await user.click(inputs[0])
+      const keyHeader = screen.getByTestId('inputoutput-key-header')
+      expect(keyHeader).toBeDefined
+      const valueHeader = screen.getByTestId('inputoutput-value-header')
+      expect(valueHeader.toBeDefined)
+      const firstRowKey = screen.getByText('docker')
+      expect(firstRowKey).toBeDefined
+      const firstRowValue = screen.getByText('quay.io/broadinstitute/ncbi-tools:2.10.7.10')
+      expect(firstRowValue.toBeDefined)
+    })
+  })
+
+  it('opens the input/output modal when Outputs is clicked', async () => {
+    render(h(RunDetails, runDetailsProps))
+    const user = userEvent.setup()
+    await waitFor(async () => {
+      const table = screen.getByTestId('call-table-container')
+      expect(table).toBeDefined
+      const outputs = within(table).queryAllByTestId('outputs-modal-link')
+      await user.click(outputs[0])
+      //There is no output data in this test case, but the modal still open.
+      const keyHeader = screen.getByTestId('inputoutput-key-header')
+      expect(keyHeader).toBeDefined
+      const valueHeader = screen.getByTestId('inputoutput-value-header')
+      expect(valueHeader.toBeDefined)
+    })
+  })
+
+  it('input/output modal file functions work as expected', () => {
+    const mockWorkspaceId = 'd4564046-bbba-495c-afec-14f7d3a8283a'
+    jest.spyOn(configStore, 'getConfig').mockReturnValue({ workspaceId: mockWorkspaceId })
+    const publicURI = 'https://lze033433beed5b4a6a47de6.blob.core.windows.net/sc-e3ac5af2-dc4f-42cc-9111-a6f37acfe21a/ref-sarscov2-NC_045512.2.fasta'
+    const privateURI = 'https://lz43a8a3d21540dfd25f5ace.blob.core.windows.net/sc-d4564046-bbba-495c-afec-14f7d3a8283a/workspace-services/cbas/terra-app-566e92a0-e55e-4250-b4c1-d0925dd03916/assemble_refbased/43d15a0d-848b-46e3-a1da-02b37caaa761/call-align_to_ref/shard-0/execution/stdout'
+    const mockSAS = 'mockSAS'
+
+    expect(privateURI.includes(mockWorkspaceId)).toBeTruthy //sanity check that the test is set up properly
+
+    //Should be the last thing after the slash
+    const publicFilename = getFilenameFromAzureBlobPath(publicURI)
+    const privateFilename = getFilenameFromAzureBlobPath(privateURI)
+    expect(publicFilename).toEqual('ref-sarscov2-NC_045512.2.fasta')
+    expect(privateFilename).toEqual('stdout')
+
+    //Should only append SAS if it is a private URI
+    const appendedPublic = appendSASTokenIfNecessary(publicURI, mockSAS)
+    const appendedPrivate = appendSASTokenIfNecessary(privateURI, mockSAS)
+    expect(appendedPublic).toEqual(publicURI)
+    expect(appendedPrivate).toEqual(`${privateURI}?${mockSAS}`)
+  })
 })
+
