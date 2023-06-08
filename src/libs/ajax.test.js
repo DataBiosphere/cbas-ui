@@ -315,4 +315,46 @@ describe('Ajax tests', () => {
       expect(response.runs.length).toEqual(1)
     })
   })
+
+  it('should successfully POST a method', async () => {
+    const expectedResponse = {
+      run_set_id: fromProviderState('${run_set_id}', '00000000-0000-0000-0000-000000000000'), // eslint-disable-line no-template-curly-in-string
+      method_id: fromProviderState('${method_id}', '00000000-0000-0000-0000-000000000000'), // eslint-disable-line no-template-curly-in-string
+    }
+
+    const payload = {
+      method_name: "scATAC-imported-4",
+      method_source: "GitHub",
+      method_version: "imported-version-4",
+      method_url: "https://github.com/broadinstitute/warp/blob/develop/pipelines/skylab/scATAC/scATAC.wdl"
+    }
+    const body = JSON.stringify(payload)
+    const headers = { 'Content-Type': 'application/json' }
+
+    await cbasPact.addInteraction({
+      states: [
+        { description: "ready to fetch myMethodVersion with UUID 90000000-0000-0000-0000-000000000009" },
+        { description: "cromwell initialized"}
+      ],
+      uponReceiving: 'a POST request to import a method',
+      withRequest: { method: 'POST', path: '/api/batch/v1/methods', body, headers },
+      willRespondWith: { status: 200, body: expectedResponse }
+    })
+
+    await cbasPact.executeTest(async mockService => {
+      // ARRANGE
+      const signal = 'fakeSignal'
+      fetchCbas.mockImplementation(async path => await fetch(
+        `${mockService.url}/api/batch/v1/${path}`, { method: 'POST', body, headers }))
+
+      // ACT
+      const response = await Ajax(signal).Cbas.methods.post(payload)
+
+      // ASSERT
+      expect(response).toBeDefined()
+      expect(fetchCbas).toBeCalledTimes(1)
+      expect(fetchCbas).toBeCalledWith('methods', {method: 'POST', signal, body, headers})
+    })
+
+  })
 })

@@ -27,6 +27,7 @@ import { useCancellation, useOnMount } from 'src/libs/react-utils'
 import { maybeParseJSON } from 'src/libs/utils'
 import * as Utils from 'src/libs/utils'
 import ViewWorkflowScriptModal from 'src/pages/ViewWorkflowScriptModal'
+import { reconstructToRawUrl } from 'src/components/method-common'
 
 
 export const SubmissionConfig = ({ methodId }) => {
@@ -221,7 +222,8 @@ export const SubmissionConfig = ({ methodId }) => {
   useEffect(() => {
     async function getWorkflowScript() {
       try {
-        const script = await Ajax(signal).WorkflowScript.get(selectedMethodVersion.url)
+        const workflowUrlRaw = reconstructToRawUrl(selectedMethodVersion.url)
+        const script = await Ajax(signal).WorkflowScript.get(workflowUrlRaw)
         setWorkflowScript(script)
       } catch (error) {
         notify('error', 'Error loading workflow script', { detail: await (error instanceof Response ? error.text() : error) })
