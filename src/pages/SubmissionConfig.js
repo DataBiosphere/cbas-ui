@@ -6,6 +6,7 @@ import HelpfulLinksBox from 'src/components/HelpfulLinksBox'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { TextArea, TextInput } from 'src/components/input'
 import InputsTable from 'src/components/InputsTable'
+import { reconstructToRawUrl } from 'src/components/method-common'
 import Modal from 'src/components/Modal'
 import OutputsTable from 'src/components/OutputsTable'
 import RecordsTable from 'src/components/RecordsTable'
@@ -27,7 +28,6 @@ import { useCancellation, useOnMount } from 'src/libs/react-utils'
 import { maybeParseJSON } from 'src/libs/utils'
 import * as Utils from 'src/libs/utils'
 import ViewWorkflowScriptModal from 'src/pages/ViewWorkflowScriptModal'
-import { reconstructToRawUrl } from 'src/components/method-common'
 
 
 export const SubmissionConfig = ({ methodId }) => {

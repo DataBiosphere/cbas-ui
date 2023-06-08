@@ -50,7 +50,7 @@ describe('Add a Workflow Link', () => {
     })
 
     const githubLink = 'https://github.com/broadinstitute/cromwell/blob/develop/wdl/transforms/draft3/src/test/cases/simple_task.wdl'
-    
+
     // ** ACT **
     render(h(ImportGithub, { setLoading: jest.fn(), signal: jest.fn(), onDismiss: jest.fn() }))
 
