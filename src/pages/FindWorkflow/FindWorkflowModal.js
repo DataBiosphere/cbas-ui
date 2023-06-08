@@ -58,7 +58,7 @@ const suggestedWorkflowsList = [
   },
   {
     method_name: 'ExomeGermlineSingleSample',
-    method_description: 'Processes germline exome/targeted sequencing data',
+    method_description: 'Processes germline exome/targeted sequencing data.',
     method_source: 'GitHub',
     method_version: 'ExomeGermlineSingleSample_v3.1.9',
     method_url: 'https://raw.githubusercontent.com/broadinstitute/warp/ExomeGermlineSingleSample_v3.1.9/pipelines/broad/dna_seq/germline/single_sample/exome/ExomeGermlineSingleSample.wdl'
