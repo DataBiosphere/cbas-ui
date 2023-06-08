@@ -2,6 +2,7 @@ import _ from 'lodash/fp'
 import { Fragment, useCallback, useEffect, useRef, useState } from 'react'
 import { a, div, h, h2, span } from 'react-hyperscript-helpers'
 import { ButtonPrimary, Link, Navbar, Select } from 'src/components/common'
+import { errorStyles } from 'src/components/ErrorView'
 import HelpfulLinksBox from 'src/components/HelpfulLinksBox'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { TextArea, TextInput } from 'src/components/input'
@@ -57,6 +58,7 @@ export const SubmissionConfig = ({ methodId }) => {
   const [runSetName, setRunSetName] = useState('')
   const [runSetDescription, setRunSetDescription] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [workflowSubmissionError, setWorkflowSubmissionError] = useState()
 
   // TODO: this should probably be moved to a scope more local to the data selector
   const [recordsTableSort, setRecordsTableSort] = useState({ field: 'id', direction: 'asc' })
@@ -335,7 +337,12 @@ export const SubmissionConfig = ({ methodId }) => {
         displayLaunchModal && h(Modal, {
           title: 'Send submission',
           width: 600,
-          onDismiss: () => { if (!isSubmitting) { setDisplayLaunchModal(false) } },
+          onDismiss: () => {
+            if (!isSubmitting) {
+              setDisplayLaunchModal(false)
+              setWorkflowSubmissionError(undefined)
+            }
+          },
           showCancel: !isSubmitting,
           okButton:
             h(ButtonPrimary, {
@@ -368,7 +375,17 @@ export const SubmissionConfig = ({ methodId }) => {
           ]),
           div({ style: { lineHeight: 2.0, marginTop: '1.5rem' } }, [
             div([h(TextCell, ['This will launch ', span({ style: { fontWeight: 'bold' } }, [_.keys(selectedRecords).length]), ' workflow(s).'])]),
-            h(TextCell, { style: { marginTop: '1rem' } }, ['Running workflows will generate cloud compute charges.'])
+            h(TextCell, { style: { marginTop: '1rem' } }, ['Running workflows will generate cloud compute charges.']),
+            workflowSubmissionError && div([
+              div({ style: { display: 'flex', alignItems: 'center', marginTop: '1rem' } }, [
+                icon('warning-standard', { size: 16, style: { color: colors.danger() } }),
+                h(TextCell, { style: { marginLeft: '0.5rem' } }, ['Error submitting workflow:'])
+              ]),
+              div({
+                style: { ...errorStyles.jsonFrame, overflowY: 'scroll', maxHeight: 160 },
+                'aria-label': 'Modal submission error'
+              }, [workflowSubmissionError])
+            ])
           ])
         ]),
         viewWorkflowScriptModal && h(ViewWorkflowScriptModal, { workflowScript, onDismiss: () => setViewWorkflowScriptModal(false) })
@@ -435,7 +452,8 @@ export const SubmissionConfig = ({ methodId }) => {
         submissionId: runSetObject.run_set_id
       })
     } catch (error) {
-      notify('error', 'Error submitting workflow', { detail: await (error instanceof Response ? error.text() : error) })
+      setIsSubmitting(false)
+      setWorkflowSubmissionError(JSON.stringify(error instanceof Response ? (await error.json()) : error, null, 2))
     }
   }
 

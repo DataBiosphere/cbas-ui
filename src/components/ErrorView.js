@@ -6,7 +6,7 @@ import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 
 
-const styles = {
+export const errorStyles = {
   htmlFrame: {
     width: '100%',
     border: Style.standardLine, borderRadius: 3,
@@ -28,13 +28,13 @@ const ErrorView = ({ error }) => {
         const json = Utils.maybeParseJSON(error)
         return Utils.cond(
           [error[0] === '<', () => {
-            return iframe({ style: styles.htmlFrame, srcDoc: error, sandbox: '' })
+            return iframe({ style: errorStyles.htmlFrame, srcDoc: error, sandbox: '' })
           }],
           [json !== undefined, () => {
             return h(Fragment, [
               json.message && div({ style: { marginBottom: '1rem' } }, [json.message]),
               div({ style: { fontWeight: 600, marginBottom: '0.5rem' } }, ['Full error:']),
-              div({ style: styles.jsonFrame }, [JSON.stringify(json, null, 2)])
+              div({ style: errorStyles.jsonFrame }, [JSON.stringify(json, null, 2)])
             ])
           }],
           () => error
