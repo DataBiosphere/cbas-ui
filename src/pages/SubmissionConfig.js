@@ -251,6 +251,14 @@ export const SubmissionConfig = ({ methodId }) => {
   const renderSummary = () => {
     return div({ style: { marginLeft: '2em', marginTop: '1rem', display: 'flex', justifyContent: 'space-between' } }, [
       div([
+        h(
+          Link,
+          {
+            onClick: () => Nav.goToPath('root'),
+            style: { display: 'inline-flex', alignItems: 'center', padding: '0.5rem 0 0' }
+          },
+          [icon('arrowLeft', { style: { marginRight: '0.5rem' } }), 'Back to workflows']
+        ),
         div([
           h2([method ? `Submission Configuration for ${method.name}` : 'loading'])
         ]),

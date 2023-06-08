@@ -22,8 +22,11 @@ import {
   typesResponseWithoutFooRating,
   undefinedRecordTypeRunSetResponse
 } from 'src/libs/mock-responses.js'
+import * as Nav from 'src/libs/nav'
 import { SubmissionConfig } from 'src/pages/SubmissionConfig'
 
+
+jest.mock('src/libs/nav')
 
 jest.mock('src/libs/ajax')
 
@@ -130,6 +133,66 @@ describe('SubmissionConfig workflow details', () => {
     // verify that modal was rendered on screen
     expect(screen.getByRole('dialog')).toBeInTheDocument()
     expect(screen.getByText('Workflow Script')).toBeInTheDocument()
+  })
+
+  it('should render a back to workflows button', async () => {
+    // ** ARRANGE **
+    const mockRunSetResponse = jest.fn(() => Promise.resolve(runSetResponse))
+    const mockMethodsResponse = jest.fn(() => Promise.resolve(methodsResponse))
+    const mockSearchResponse = jest.fn((_, recordType) => Promise.resolve(searchResponses[recordType]))
+    const mockTypesResponse = jest.fn(() => Promise.resolve(typesResponse))
+    const mockWdlResponse = jest.fn(() => Promise.resolve('mock wdl response'))
+    const mockLeoResponse = jest.fn(() => Promise.resolve(mockApps))
+
+    Ajax.mockImplementation(() => {
+      return {
+        Cbas: {
+          runSets: {
+            getForMethod: mockRunSetResponse
+          },
+          methods: {
+            getById: mockMethodsResponse
+          }
+        },
+        Wds: {
+          search: {
+            post: mockSearchResponse
+          },
+          types: {
+            get: mockTypesResponse
+          }
+        },
+        WorkflowScript: {
+          get: mockWdlResponse
+        },
+        Leonardo: {
+          listAppsV2: mockLeoResponse
+        }
+      }
+    })
+
+    // ** ACT **
+    render(h(SubmissionConfig))
+
+    // ** ASSERT **
+    await waitFor(() => {
+      expect(mockRunSetResponse).toHaveBeenCalledTimes(1)
+      expect(mockTypesResponse).toHaveBeenCalledTimes(1)
+      expect(mockMethodsResponse).toHaveBeenCalledTimes(1)
+      expect(mockSearchResponse).toHaveBeenCalledTimes(1)
+      expect(mockWdlResponse).toHaveBeenCalledTimes(1)
+      expect(mockLeoResponse).toHaveBeenCalledTimes(0)
+    })
+
+    const backButton = screen.getByText('Back to workflows')
+
+    // ** ACT **
+    // user clicks on back button
+    await act(async () => {
+      await userEvent.click(backButton)
+    })
+
+    expect(Nav.goToPath).toHaveBeenCalledWith('root')
   })
 })
 
