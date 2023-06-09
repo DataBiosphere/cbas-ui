@@ -222,7 +222,7 @@ export const SubmissionConfig = ({ methodId }) => {
   useEffect(() => {
     async function getWorkflowScript() {
       try {
-        const workflowUrlRaw = reconstructToRawUrl(selectedMethodVersion.url)
+        const workflowUrlRaw = await reconstructToRawUrl(selectedMethodVersion.url, selectedMethodVersion.name, method.source)
         const script = await Ajax(signal).WorkflowScript.get(workflowUrlRaw)
         setWorkflowScript(script)
       } catch (error) {
@@ -233,7 +233,7 @@ export const SubmissionConfig = ({ methodId }) => {
     if (selectedMethodVersion != null) {
       getWorkflowScript()
     }
-  }, [signal, selectedMethodVersion])
+  }, [signal, selectedMethodVersion, method])
 
   useEffect(() => {
     // Start polling if we're missing WDS proxy url and stop polling when we have it
