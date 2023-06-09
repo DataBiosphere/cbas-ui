@@ -262,7 +262,8 @@ export const ParameterValueTextInput = props => {
     [unwrapOptional(inputType).type === 'array', () => Utils.switchCase(unwrapOptional(unwrapOptional(inputType).array_type).primitive_type,
       ['Int', () => '[1, 2, 3]'],
       ['Float', () => '[1.5, 2.0, 5]'],
-      ['String', () => '["value1", "value2", "value3"]']
+      ['String', () => '["value1", "value2", "value3"]'],
+      ['Boolean', () => '[true, false, true]']
     )],
     () => undefined
   )
@@ -357,12 +358,13 @@ const validateRequiredHasSource = (inputSource, inputType) => {
       return { type: 'error', message: 'This attribute is required' }
     }
     if (inputSource.type === 'object_builder') {
-      if (_.isEmpty(inputSource.fields)) {
-        return { type: 'error', message: 'This attribute is required' }
-      }
+      const sourceFieldsFilled = _.flow(
+        _.toPairs,
+        _.map(([idx, _field]) => inputSource.fields[idx] || { source: { type: 'none' } })
+      )(inputType.fields)
 
       const fieldsValidated = _.map(
-        field => validateRequiredHasSource(field.source, field.field_type), _.merge(inputSource.fields, inputType.fields))
+        field => validateRequiredHasSource(field.source, field.field_type) === true, _.merge(sourceFieldsFilled, inputType.fields))
       return _.every(Boolean, fieldsValidated) || { type: 'error', message: 'This struct is missing a required input' }
     }
     if (inputSource.type === 'literal') {
@@ -390,7 +392,7 @@ const validateRecordLookup = (source, recordAttributes) => {
     }
     if (source.type === 'object_builder') {
       if (source.fields) {
-        const fieldsValidated = _.map(field => field && validateRecordLookup(field.source, recordAttributes), source.fields)
+        const fieldsValidated = _.map(field => field && validateRecordLookup(field.source, recordAttributes) === true, source.fields)
         return _.every(Boolean, fieldsValidated) || { type: 'error', message: 'One of this struct\'s inputs has an invalid configuration' }
       } else return { type: 'error', message: 'One of this struct\'s inputs has an invalid configuration' }
     }
@@ -428,7 +430,11 @@ export const convertArrayType = ({ input_type: inputType, source: inputSource, .
     value = _.map(element => convertToPrimitiveType(unwrapOptional(inputType).primitive_type, element))(value)
     return { ...input, input_type: inputType, source: { ...inputSource, parameter_value: value } }
   } else if (unwrapOptional(inputType).type === 'struct' && inputSource.type === 'object_builder') {
-    return { ...input, input_type: inputType, source: { ...inputSource, fields: _.map(field => ({ name: field.name, source: convertArrayType({ input_type: field.type, source: field.source }).source }))(_.merge(inputSource.fields, unwrapOptional(inputType).fields)) } }
+    return { ...input, input_type: inputType, source: {
+      ...inputSource, fields: _.map(field => ({
+          name: field.name, source: convertArrayType({ input_type: field.field_type, source: field.source }).source
+      }))(_.merge(inputSource.fields, unwrapOptional(inputType).fields))
+    } }
   } else {
     return { ...input, input_type: inputType, source: inputSource }
   }

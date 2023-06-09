@@ -801,7 +801,7 @@ describe('Input source and requirements validation', () => {
     // but there will be a warning message next to it
 
     within(cellsFoo[4]).getByText('foo_rating')
-    const warningMessageActive = within(cellsFoo[4]).queryByText("This attribute doesn't exist in data table")
+    const warningMessageActive = within(cellsFoo[4]).queryByText("This attribute doesn't exist in the data table")
     expect(warningMessageActive).not.toBeNull()
 
     // ** ACT **
@@ -812,7 +812,7 @@ describe('Input source and requirements validation', () => {
 
     // ** ASSERT **
     within(cellsFoo[4]).getByText('rating_for_foo')
-    const warningMessageInactive = within(cellsFoo[4]).queryByText("This attribute doesn't exist in data table")
+    const warningMessageInactive = within(cellsFoo[4]).queryByText("This attribute doesn't exist in the data table")
     expect(warningMessageInactive).toBeNull() // once user has selected an attribute, warning message should disappear
   })
 
@@ -879,7 +879,7 @@ describe('Input source and requirements validation', () => {
 
     // ** ASSERT **
     within(innerStructCells[4]).getByText('rating_for_foo')
-    const innerStructWarningMessageInactive = within(innerStructCells[4]).queryByText("This attribute doesn't exist in data table")
+    const innerStructWarningMessageInactive = within(innerStructCells[4]).queryByText("This attribute doesn't exist in the data table")
     expect(innerStructWarningMessageInactive).toBeNull() // once user has selected an attribute, warning message should disappear
   })
 
@@ -906,7 +906,7 @@ describe('Input source and requirements validation', () => {
 
     // ** ASSERT **
     // check that tooltip indicating missing required fields is present for Submit button
-    screen.getByText('One or more inputs have missing values')
+    screen.getByText('One or more inputs have missing/invalid values')
 
     // ** ACT **
     const button = await screen.findByRole('button', { name: 'Inputs' })
@@ -935,8 +935,8 @@ describe('Input source and requirements validation', () => {
     await userEvent.click(selectOption1)
 
     // ** ASSERT **
-    // check that the warning message for struct input has changed since no attribute has been selected yet
-    within(secondInputRowCells[4]).getByText('This attribute doesn\'t exist in data table')
+    // check that the warning message for struct input hasn't changed since no attribute has been selected yet
+    within(secondInputRowCells[4]).getByText('This attribute is required')
 
     // ** ACT **
     // user sets the source to 'Use Struct Builder' for struct input
@@ -946,7 +946,7 @@ describe('Input source and requirements validation', () => {
 
     // ** ASSERT **
     // check that the warning message for struct input has changed
-    within(secondInputRowCells[4]).getByText('One of this struct\'s inputs has an invalid configuration')
+    within(secondInputRowCells[4]).getByText('This struct is missing a required input')
 
     // ** ACT **
     // click on View struct to open modal
@@ -976,7 +976,7 @@ describe('Input source and requirements validation', () => {
 
     // ** ASSERT **
     // check that the warning message for struct input still exists as it still has invalid input configurations
-    within(secondInputRowCells[4]).getByText('One of this struct\'s inputs has an invalid configuration')
+    within(secondInputRowCells[4]).getByText('This struct is missing a required input')
   })
 
   it('should display warning icon for input with value not matching expected type', async () => {
@@ -1011,7 +1011,7 @@ describe('Input source and requirements validation', () => {
 
     // ** ASSERT **
     // check that the warning message for input exists
-    within(firstInputRowCells[4]).getByText('This attribute is required')
+    within(firstInputRowCells[4]).getByText('Value is empty')
 
     // ** ACT **
     // user types value for the Int input
@@ -1027,7 +1027,7 @@ describe('Input source and requirements validation', () => {
 
     // ** ASSERT **
     // check that the warning message for incorrect value is gone
-    expect(within(firstInputRowCells[4]).queryByText('Value is either empty or doesn\'t match expected input type')).toBeNull()
+    expect(within(firstInputRowCells[4]).queryByText(/Value is empty|Value doesn't match expected input type/)).toBeNull()
   })
 
   it('should display tooltips for array literals and convert inputs to array types', async () => {
@@ -1093,7 +1093,7 @@ describe('Input source and requirements validation', () => {
 
     // ** ASSERT **
     // check the info message exists for `[]` input
-    within(firstInputRowCells[4]).getByText('Detected an Array[Int] with 0 value(s).')
+    within(firstInputRowCells[4]).getByText('Successfully detected an array with 0 element(s).')
 
     // ** ACT **
     // user types value for the Array[Int] input
@@ -1102,8 +1102,8 @@ describe('Input source and requirements validation', () => {
 
     // ** ASSERT **
     // check that the warning message for incorrect value is displayed
-    within(firstInputRowCells[4]).getByText('Array inputs must follow JSON array literal syntax. ' +
-      'This will be submitted as an array with one element: "[X]".')
+    within(firstInputRowCells[4]).getByText('Array inputs should follow JSON array literal syntax. ' +
+      'This input cannot be parsed')
 
     // ** ACT **
     // user replaces with new array
@@ -1113,7 +1113,7 @@ describe('Input source and requirements validation', () => {
 
     // ** ASSERT **
     // check that validation message is updated
-    within(firstInputRowCells[4]).getByText('Detected an Array[Int] with 2 value(s).')
+    within(firstInputRowCells[4]).getByText('Successfully detected an array with 2 element(s).')
 
     const secondInputRowCells = within(rows[2]).queryAllByRole('cell')
 
@@ -1124,7 +1124,8 @@ describe('Input source and requirements validation', () => {
 
     // ** ASSERT **
     // check the warning message exists for empty input
-    within(secondInputRowCells[4]).getByText('Value is empty')
+    within(secondInputRowCells[4]).getByText('Array inputs should follow JSON array literal syntax. ' +
+      'This input is empty. To submit an empty array, enter []')
 
     // ** ACT **
     // user types value for the Array[String] input
@@ -1133,8 +1134,8 @@ describe('Input source and requirements validation', () => {
 
     // ** ASSERT **
     // check that the warning message for incorrect value is displayed
-    within(secondInputRowCells[4]).getByText('Array inputs must follow JSON array literal syntax. ' +
-      'This will be submitted as an array with one element: "not an array".')
+    within(secondInputRowCells[4]).getByText('Array inputs should follow JSON array literal syntax. ' +
+      'This will be submitted as an array with one value: "not an array"')
 
     // ** ACT **
     // user clicks on Submit
