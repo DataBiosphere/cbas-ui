@@ -308,28 +308,28 @@ describe('validateInputs', () => {
     const inputsWithArraysDefinition = [
       // int arrays (float similar enough that not worried about specifics)
       arrayInput('validInt', 'Int', [1, 2, 3]), // success
-      arrayInput('validIntString', 'Int', ["1", 2, 3]), // success
-      arrayInput('validIntStringArray', 'Int', "[1, 2, 3]"), // success
-      arrayInput('validIntStringSingleton', 'Int', "1"), // info
+      arrayInput('validIntString', 'Int', ['1', 2, 3]), // success
+      arrayInput('validIntStringArray', 'Int', '[1, 2, 3]'), // success
+      arrayInput('validIntStringSingleton', 'Int', '1'), // info
       arrayInput('validIntSingleton', 'Int', 1), // info
       arrayInput('invalidIntEmpty', 'Int', ''), // error
       arrayInput('invalidIntFloat', 'Int', [1, 2.5, 3]), // error
-      arrayInput('invalidIntString', 'Int', [1, "a", 3]), // error
+      arrayInput('invalidIntString', 'Int', [1, 'a', 3]), // error
 
       // boolean arrays
       arrayInput('validBoolean', 'Boolean', [true, false, true]), // success
-      arrayInput('validBooleanString', 'Boolean', ["true", false, true]), // success
-      arrayInput('validBooleanStringArray', 'Boolean', "[true, false, true]"), // success
-      arrayInput('validBooleanStringSingleton', 'Boolean', "true"), // info
+      arrayInput('validBooleanString', 'Boolean', ['true', false, true]), // success
+      arrayInput('validBooleanStringArray', 'Boolean', '[true, false, true]'), // success
+      arrayInput('validBooleanStringSingleton', 'Boolean', 'true'), // info
       arrayInput('validBooleanSingleton', 'Boolean', true), // info
       arrayInput('invalidBooleanEmpty', 'Boolean', ''), // error
       arrayInput('invalidBooleanInt', 'Boolean', [true, 2, false]), // error
-      arrayInput('invalidBooleanString', 'Boolean', [true, "a", false]), // error
+      arrayInput('invalidBooleanString', 'Boolean', [true, 'a', false]), // error
 
       // string arrays
-      arrayInput('validString', 'String', ["a", "b", "c"]), // success
+      arrayInput('validString', 'String', ['a', 'b', 'c']), // success
       arrayInput('validStringArray', 'String', '["a", "b", "c"]'), // success
-      arrayInput('validStringSingleton', 'String', "foo"), // info
+      arrayInput('validStringSingleton', 'String', 'foo'), // info
       arrayInput('invalidStringEmpty', 'String', '') // error
     ]
 

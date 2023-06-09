@@ -430,11 +430,13 @@ export const convertArrayType = ({ input_type: inputType, source: inputSource, .
     value = _.map(element => convertToPrimitiveType(unwrapOptional(inputType).primitive_type, element))(value)
     return { ...input, input_type: inputType, source: { ...inputSource, parameter_value: value } }
   } else if (unwrapOptional(inputType).type === 'struct' && inputSource.type === 'object_builder') {
-    return { ...input, input_type: inputType, source: {
-      ...inputSource, fields: _.map(field => ({
+    return {
+      ...input, input_type: inputType, source: {
+        ...inputSource, fields: _.map(field => ({
           name: field.name, source: convertArrayType({ input_type: field.field_type, source: field.source }).source
-      }))(_.merge(inputSource.fields, unwrapOptional(inputType).fields))
-    } }
+        }))(_.merge(inputSource.fields, unwrapOptional(inputType).fields))
+      }
+    }
   } else {
     return { ...input, input_type: inputType, source: inputSource }
   }
