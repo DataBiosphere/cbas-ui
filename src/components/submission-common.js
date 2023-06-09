@@ -257,6 +257,16 @@ export const ParameterValueTextInput = props => {
     }
   }
 
+  const placeholder = Utils.cond(
+    [unwrapOptional(inputType).type === 'primitive' && unwrapOptional(inputType).primitive_type === 'String', () => '(Empty string)'],
+    [unwrapOptional(inputType).type === 'array', () => Utils.switchCase(unwrapOptional(unwrapOptional(inputType).array_type).primitive_type,
+      ['Int', () => '[1, 2, 3]'],
+      ['Float', () => '[1.5, 2.0, 5]'],
+      ['String', () => '["value1", "value2", "value3"]']
+    )],
+    () => undefined
+  )
+
   return h(TextInput, {
     id,
     'aria-label': 'Enter a value',
@@ -270,7 +280,8 @@ export const ParameterValueTextInput = props => {
         }
         setSource(newSource)
       }
-    }
+    },
+    placeholder
   })
 }
 
@@ -436,6 +447,9 @@ const validateLiteralInput = (inputSource, inputType) => {
 
       if (unwrapOptional(inputType).type === 'array') {
         let value = inputSource.parameter_value
+        if (value === '') {
+          return { type: 'error', message: 'Array inputs should follow JSON array literal syntax. This input is empty. To submit an empty array, enter []' }
+        }
         if (!Array.isArray(inputSource.parameter_value)) {
           try {
             value = JSON.parse(inputSource.parameter_value)
