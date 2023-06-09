@@ -218,6 +218,7 @@ export const StructBuilder = props => {
 
 export const StructBuilderModal = ({ onDismiss, ...props }) => {
   const [structIndexPath, setStructIndexPath] = useState([])
+  const topLevel = structIndexPath.length === 0
 
   return h(Modal,
     {
@@ -225,7 +226,7 @@ export const StructBuilderModal = ({ onDismiss, ...props }) => {
       onDismiss,
       showCancel: false,
       showX: true,
-      okButton: h(ButtonPrimary, { onClick: structIndexPath.length === 0 ? onDismiss : () => setStructIndexPath(_.initial(structIndexPath)) }, 'Done'),
+      okButton: h(ButtonPrimary, { onClick: topLevel ? onDismiss : () => setStructIndexPath(_.initial(structIndexPath)) }, topLevel ? 'Done' : 'Back'),
       width: '90%'
     }, [
       h(StructBuilder, { structIndexPath, setStructIndexPath, ...props }, [])

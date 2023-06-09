@@ -284,8 +284,8 @@ describe('Configuration tests', () => {
     within(innerStructRows[2]).getByText('pet_has_tail')
 
     // ** ACT **
-    // go back up a level by clicking 'Done'
-    const innerDoneButton = await screen.getByText('Done')
+    // go back up a level by clicking 'Back'
+    const innerDoneButton = await screen.getByText('Back')
     await userEvent.click(innerDoneButton)
 
     // ** ASSERT **
