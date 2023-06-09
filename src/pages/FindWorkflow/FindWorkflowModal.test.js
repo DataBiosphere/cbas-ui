@@ -39,6 +39,8 @@ describe('FindWorkflowModal', () => {
     expect(screen.getByText('Optimus')).toBeInTheDocument()
     expect(screen.getByText('MultiSampleSmartSeq2SingleNucleus')).toBeInTheDocument()
     expect(screen.getByText('scATAC')).toBeInTheDocument()
+    expect(screen.getByText('WholeGenomeGermlineSingleSample')).toBeInTheDocument()
+    expect(screen.getByText('ExomeGermlineSingleSample')).toBeInTheDocument()
   })
 
   it('should call POST /methods endpoint with expected parameters', async () => {
@@ -72,8 +74,8 @@ describe('FindWorkflowModal', () => {
         method_name: 'Optimus',
         method_description: 'The optimus 3 pipeline processes 10x genomics sequencing data based on the v2 chemistry. It corrects cell barcodes and UMIs, aligns reads, marks duplicates, and returns data as alignments in BAM format and as counts in sparse matrix exchange format.',
         method_source: 'GitHub',
-        method_version: 'Optimus_v5.5.0',
-        method_url: 'https://raw.githubusercontent.com/broadinstitute/warp/develop/pipelines/skylab/optimus/Optimus.wdl'
+        method_version: 'Optimus_v5.7.2',
+        method_url: 'https://raw.githubusercontent.com/broadinstitute/warp/Optimus_v5.7.2/pipelines/skylab/optimus/Optimus.wdl'
       })
   })
 
