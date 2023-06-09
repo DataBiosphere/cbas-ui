@@ -12,10 +12,8 @@ import RecordsTable from 'src/components/RecordsTable'
 import StepButtons from 'src/components/StepButtons'
 import {
   convertArrayType,
-  inputsMissingRequiredAttributes,
-  inputsWithIncorrectValues,
-  requiredInputsWithoutSource,
-  resolveWdsUrl, unwrapOptional,
+  resolveWdsUrl,
+  validateInputs,
   WdsPollInterval
 } from 'src/components/submission-common'
 import { TextCell } from 'src/components/table'
@@ -49,9 +47,7 @@ export const SubmissionConfig = ({ methodId }) => {
   const [selectedRecords, setSelectedRecords] = useState({})
   const [configuredInputDefinition, setConfiguredInputDefinition] = useState([])
   const [configuredOutputDefinition, setConfiguredOutputDefinition] = useState()
-  const [missingRequiredInputs, setMissingRequiredInputs] = useState([])
-  const [missingExpectedAttributes, setMissingExpectedAttributes] = useState([])
-  const [inputsWithInvalidValues, setInputsWithInvalidValues] = useState([])
+  const [inputsWithMessages, setInputsWithMessages] = useState([])
   const [viewWorkflowScriptModal, setViewWorkflowScriptModal] = useState(false)
 
   // TODO: These should probably be moved to the modal:
@@ -191,19 +187,9 @@ export const SubmissionConfig = ({ methodId }) => {
       const selectedDataTable = _.keyBy('name', recordTypes)[records[0].type]
       const dataTableAttributes = _.keyBy('name', selectedDataTable.attributes)
 
-      const newMissingExpectedAttributes = _.map(
-        i => i.input_name,
-        inputsMissingRequiredAttributes(configuredInputDefinition, dataTableAttributes))
+      const newInputsWithMessages = validateInputs(configuredInputDefinition, dataTableAttributes)
 
-      const newMissingRequiredInputs = _.map(
-        i => i.input_name,
-        requiredInputsWithoutSource(configuredInputDefinition))
-
-      const newInputsWithIncorrectValues = _.map(i => i.input_name, inputsWithIncorrectValues(configuredInputDefinition))
-
-      setMissingExpectedAttributes(newMissingExpectedAttributes)
-      setMissingRequiredInputs(newMissingRequiredInputs)
-      setInputsWithInvalidValues(newInputsWithIncorrectValues)
+      setInputsWithMessages(newInputsWithMessages)
     }
   }, [records, recordTypes, configuredInputDefinition])
 
@@ -304,7 +290,7 @@ export const SubmissionConfig = ({ methodId }) => {
         h(StepButtons, {
           tabs: [
             { key: 'select-data', title: 'Select Data', isValid: true },
-            { key: 'inputs', title: 'Inputs', isValid: !missingRequiredInputs.length && !missingExpectedAttributes.length && !inputsWithInvalidValues.length },
+            { key: 'inputs', title: 'Inputs', isValid: _.filter(message => message.type === 'error')(inputsWithMessages).length === 0 },
             { key: 'outputs', title: 'Outputs', isValid: true }
           ],
           activeTab: activeTab.key || 'select-data',
@@ -312,11 +298,10 @@ export const SubmissionConfig = ({ methodId }) => {
           finalStep: h(ButtonPrimary, {
             'aria-label': 'Submit button',
             style: { marginLeft: '1rem' },
-            disabled: _.isEmpty(selectedRecords) || missingRequiredInputs.length || missingExpectedAttributes.length || _.filter(input => inputsWithInvalidValues.includes(input.input_name) && (unwrapOptional(input.input_type).type !== 'array' || input.source.parameter_value === ''))(configuredInputDefinition).length,
+            disabled: _.isEmpty(selectedRecords) || _.filter(message => message.type === 'error')(inputsWithMessages).length > 0,
             tooltip: Utils.cond(
               [_.isEmpty(selectedRecords), () => 'No records selected'],
-              [missingRequiredInputs.length || missingExpectedAttributes.length, () => 'One or more inputs have missing values'],
-              [_.filter(input => inputsWithInvalidValues.includes(input.input_name) && (unwrapOptional(input.input_type).type !== 'array' || input.source.parameter_value === ''))(configuredInputDefinition).length, () => 'One or more inputs have invalid values'],
+              [_.filter(message => message.type === 'error')(inputsWithMessages).length > 0, () => 'One or more inputs have missing/invalid values'],
               () => ''
             ),
             onClick: () => {
@@ -386,9 +371,7 @@ export const SubmissionConfig = ({ methodId }) => {
       selectedDataTable: _.keyBy('name', recordTypes)[selectedRecordType],
       configuredInputDefinition, setConfiguredInputDefinition,
       inputTableSort, setInputTableSort,
-      missingExpectedAttributes,
-      missingRequiredInputs,
-      inputsWithInvalidValues
+      inputsWithMessages
     }) : 'No data table rows available or input definition is not configured...'
   }
 
