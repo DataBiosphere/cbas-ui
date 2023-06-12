@@ -1353,23 +1353,23 @@ describe('SubmissionConfig inputs/outputs definitions', () => {
     const cells2 = within(rows[2]).queryAllByRole('cell')
     const cells3 = within(rows[3]).queryAllByRole('cell')
 
-    screen.getByText('Set (2) from data table')
+    screen.getByText('Autofill (2) from data table')
 
     within(cells1[0]).getByText('foo')
     within(cells1[1]).getByText('foo_rating')
     within(cells1[2]).getByText('Int')
     within(cells1[3]).getByText('None')
-    within(cells1[4]).getByText(/Use /)
+    within(cells1[4]).getByText(/Autofill /)
     const inputFillButton = within(cells1[4]).getByText('foo_rating')
-    within(cells1[4]).getByText(/ from data table?/)
+    within(cells1[4]).getByText(/ from data table/)
 
     within(cells2[0]).getByText('target_workflow_1')
     within(cells2[1]).getByText('bar_string')
     within(cells2[2]).getByText('String')
     within(cells2[3]).getByText('Select Source')
-    within(cells2[4]).getByText(/Use /)
+    within(cells2[4]).getByText(/Autofill /)
     within(cells2[4]).getByText('bar_string')
-    within(cells2[4]).getByText(/ from data table?/)
+    within(cells2[4]).getByText(/ from data table/)
     within(cells2[4]).getByText('This attribute is required')
 
     within(cells3[0]).getByText('target_workflow_1')
@@ -1383,7 +1383,7 @@ describe('SubmissionConfig inputs/outputs definitions', () => {
       await fireEvent.click(inputFillButton)
     })
 
-    screen.getByText('Set (1) from data table')
+    screen.getByText('Autofill (1) from data table')
 
     within(cells1[0]).getByText('foo')
     within(cells1[1]).getByText('foo_rating')
@@ -1394,9 +1394,9 @@ describe('SubmissionConfig inputs/outputs definitions', () => {
     within(cells2[0]).getByText('target_workflow_1')
     within(cells2[1]).getByText('bar_string')
     within(cells2[2]).getByText('String')
-    within(cells2[4]).getByText(/Use /)
+    within(cells2[4]).getByText(/Autofill /)
     within(cells2[4]).getByText('bar_string')
-    within(cells2[4]).getByText(/ from data table?/)
+    within(cells2[4]).getByText(/ from data table/)
 
     within(cells3[0]).getByText('target_workflow_1')
     within(cells3[1]).getByText('not_in_table')
@@ -1415,16 +1415,16 @@ describe('SubmissionConfig inputs/outputs definitions', () => {
     within(cells1[1]).getByText('foo_rating')
     within(cells1[2]).getByText('Int')
     within(cells1[3]).getByText('None')
-    within(cells1[4]).getByText(/Use /)
+    within(cells1[4]).getByText(/Autofill /)
     within(cells1[4]).getByText('foo_rating')
-    within(cells1[4]).getByText(/ from data table?/)
+    within(cells1[4]).getByText(/ from data table/)
 
     within(cells2[0]).getByText('target_workflow_1')
     within(cells2[1]).getByText('bar_string')
     within(cells2[2]).getByText('String')
-    within(cells2[4]).getByText(/Use /)
+    within(cells2[4]).getByText(/Autofill /)
     within(cells2[4]).getByText('bar_string')
-    within(cells2[4]).getByText(/ from data table?/)
+    within(cells2[4]).getByText(/ from data table/)
 
     within(cells3[0]).getByText('target_workflow_1')
     within(cells3[1]).getByText('not_in_table')
@@ -1434,11 +1434,11 @@ describe('SubmissionConfig inputs/outputs definitions', () => {
 
     // fill all from data table
     await act(async () => {
-      const fillAllButton = await screen.findByText('Set (2) from data table')
+      const fillAllButton = await screen.findByText('Autofill (2) from data table')
       await fireEvent.click(fillAllButton)
     })
 
-    await screen.findByText('Set (0) from data table')
+    await screen.findByText('Autofill (0) from data table')
 
     within(cells1[0]).getByText('foo')
     within(cells1[1]).getByText('foo_rating')
