@@ -1,6 +1,8 @@
 import _ from 'lodash/fp'
-import { h } from 'react-hyperscript-helpers'
+import { Fragment } from 'react'
+import { div, h } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
+import { Link } from 'src/components/common'
 import { TextInput } from 'src/components/input'
 import { parseMethodString } from 'src/components/submission-common'
 import { FlexTable, HeaderCell, Sortable, TextCell } from 'src/components/table'
@@ -26,6 +28,10 @@ const OutputsTable = props => {
     }),
     _.orderBy([({ [outputTableSort.field]: field }) => _.lowerCase(field)], [outputTableSort.direction])
   )(configuredOutputDefinition)
+
+  const setDefaultOutputs = () => {
+    setConfiguredOutputDefinition(_.map(output => _.set('destination', { type: 'record_update', record_attribute: _.last(output.output_name.split('.')) })(output))(configuredOutputDefinition))
+  }
 
   return h(AutoSizer, [({ width, height }) => {
     return h(FlexTable, {
@@ -61,7 +67,10 @@ const OutputsTable = props => {
           }
         },
         {
-          headerRenderer: () => h(HeaderCell, ['Attribute']),
+          headerRenderer: () => h(Fragment, [
+            h(HeaderCell, ['Attribute']),
+            h(Fragment, [div({ style: { whiteSpace: 'pre' } }, ['  |  ']), h(Link, { onClick: setDefaultOutputs }, ['Use defaults'])])
+          ]),
           cellRenderer: ({ rowIndex }) => {
             const outputValue = configurationIndex => {
               const destType = _.get('destination.type', configuredOutputDefinition[configurationIndex])
