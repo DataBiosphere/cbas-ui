@@ -8,6 +8,7 @@ import { defaultCellRangeRenderer, Grid as RVGrid, ScrollSync as RVScrollSync } 
 import { Clickable, IdContainer, Link } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import Interactive from 'src/components/Interactive'
+import { InfoBox } from 'src/components/PopupTrigger'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import colors from 'src/libs/colors'
 import { forwardRefWithName, useLabelAssert, useOnMount } from 'src/libs/react-utils'
@@ -274,18 +275,18 @@ export const InputsButtonRow = ({
       },
       [includeOptionalInputs ? 'Hide optional inputs' : 'Show optional inputs']
     ),
-    inputRowsInDataTable && h(Link,
+    inputRowsInDataTable && div({}, [h(Link,
       {
-        style: { marginLeft: 'auto' },
+        style: { marginLeft: 'auto', marginRight: '0.5rem' },
         onClick: () => _.forEach(
           row => setConfiguredInputDefinition(_.set(`[${row.configurationIndex}].source`, { type: 'record_lookup', record_attribute: row.variable }))
-        )(inputRowsInDataTable),
-        tooltip: `Inputs that can be auto-filled:\n${_.flow(_.map(row => `${row.taskName}.${row.variable}`), _.join('\n'))(inputRowsInDataTable)}`,
-        tooltipSide: 'top',
-        tooltipHoverable: true
+        )(inputRowsInDataTable)
       },
       [`Set (${inputRowsInDataTable.length}) from data table`]
-    )
+    ),
+    h(InfoBox, {
+      side: 'top'
+    }, [div({ style: { maxHeight: 105, overflow: 'auto' } }, [`Inputs that can be auto-filled:\n${_.flow(_.map(row => `${row.taskName}.${row.variable}`), _.join('\n'))(inputRowsInDataTable)}`])])])
   ])
 }
 

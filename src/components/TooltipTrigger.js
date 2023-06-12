@@ -10,25 +10,22 @@ import * as Utils from 'src/libs/utils'
 
 
 const baseToolTip = {
-  position: 'fixed', top: 0, left: 0,
-  maxWidth: 400, display: 'flex'
+  position: 'fixed', top: 0, left: 0, pointerEvents: 'none',
+  maxWidth: 400, borderRadius: 4
 }
 
 const styles = {
   tooltip: {
     background: 'black', color: 'white',
-    borderRadius: 4, whiteSpace: 'break-spaces',
-    maxHeight: '100px', overflow: 'hidden'
-  },
-  tooltipText: {
-    background: 'inherit', padding: '0 0.5rem',
-    margin: '0.5rem 0', overflow: 'auto',
-    maxHeight: 'calc(100px - 1rem)'
+    padding: '0.5rem',
+    ...baseToolTip
   },
   notch: {
     fill: 'black',
-    width: 16, height: 16,
-    flexShrink: 0
+    position: 'absolute',
+    width: 16, height: 8,
+    marginLeft: -8, marginRight: -8, marginTop: -8,
+    transformOrigin: 'bottom'
   },
   lightBox: {
     background: 'white',
@@ -38,7 +35,7 @@ const styles = {
   }
 }
 
-const Tooltip = ({ side = 'bottom', type, target: targetId, children, id, delay, setOverTooltip }) => {
+const Tooltip = ({ side = 'bottom', type, target: targetId, children, id, delay }) => {
   const [shouldRender, setShouldRender] = useState(!delay)
   const renderTimeout = useRef()
   const elementRef = useRef()
@@ -51,19 +48,10 @@ const Tooltip = ({ side = 'bottom', type, target: targetId, children, id, delay,
     }
   })
 
-  const gap = type === 'light' ? 5 : 0
+  const gap = type === 'light' ? 5 : 10
   const { side: finalSide, position } = computePopupPosition({ side, target, element, viewport, gap })
 
-  const getFlexOrder = () => {
-    return Utils.switchCase(finalSide,
-      ['top', () => ({ flexDirection: 'column' })],
-      ['bottom', () => ({ flexDirection: 'column-reverse' })],
-      ['left', () => ({ flexDirection: 'row' })],
-      ['right', () => ({ flexDirection: 'row-reverse' })]
-    )
-  }
-
-  const getNotchRotation = () => {
+  const getNotchPosition = () => {
     const left = _.clamp(12, element.width - 12,
       (target.left + target.right) / 2 - position.left
     )
@@ -71,10 +59,10 @@ const Tooltip = ({ side = 'bottom', type, target: targetId, children, id, delay,
       (target.top + target.bottom) / 2 - position.top
     )
     return Utils.switchCase(finalSide,
-      ['top', () => ({ marginLeft: left - 8, transform: 'rotate(180deg)', marginTop: -5 })],
-      ['bottom', () => ({ marginLeft: left - 8, marginBottom: -5 })],
-      ['left', () => ({ marginTop: top - 8, transform: 'rotate(90deg)', marginLeft: -5 })],
-      ['right', () => ({ marginTop: top - 8, transform: 'rotate(270deg)', marginRight: -5 })]
+      ['top', () => ({ bottom: 0, left, transform: 'rotate(180deg)' })],
+      ['bottom', () => ({ top: 0, left })],
+      ['left', () => ({ right: 0, top, transform: 'rotate(90deg)' })],
+      ['right', () => ({ left: 0, top, transform: 'rotate(270deg)' })]
     )
   }
 
@@ -86,25 +74,19 @@ const Tooltip = ({ side = 'bottom', type, target: targetId, children, id, delay,
         display: shouldRender ? undefined : 'none',
         transform: `translate(${position.left}px, ${position.top}px)`,
         visibility: !viewport.width ? 'hidden' : undefined,
-        ...(type === 'light') ? styles.lightBox : baseToolTip,
-        ...getFlexOrder()
-      },
-      onMouseEnter: () => setOverTooltip(true),
-      onMouseLeave: () => setOverTooltip(false),
-      onFocus: () => setOverTooltip(true),
-      onBlur: () => setOverTooltip(false)
+        ...(type === 'light') ? styles.lightBox : styles.tooltip
+      }
     }, [
-      div({ style: styles.tooltip }, [div({ style: styles.tooltipText }, children)]),
-      type !== 'light' && svg({ viewBox: '0 0 2 1', style: { ...styles.notch, ...getNotchRotation() } }, [
+      children,
+      type !== 'light' && svg({ viewBox: '0 0 2 1', style: { ...getNotchPosition(), ...styles.notch } }, [
         path({ d: 'M0,1l1,-1l1,1Z' })
       ])
     ])
   ])
 }
 
-const TooltipTrigger = ({ children, content, useTooltipAsLabel, hoverable = false, ...props }) => {
-  const [overTooltip, setOverTooltip] = useState(false)
-  const [overTrigger, setOverTrigger] = useState(false)
+const TooltipTrigger = ({ children, content, useTooltipAsLabel, ...props }) => {
+  const [open, setOpen] = useState(false)
   const id = useUniqueId()
   const tooltipId = useUniqueId()
   const descriptionId = useUniqueId()
@@ -127,22 +109,22 @@ const TooltipTrigger = ({ children, content, useTooltipAsLabel, hoverable = fals
       'aria-describedby': !!content && !useAsLabel ? descriptionId : undefined,
       onMouseEnter: (...args) => {
         child.props.onMouseEnter && child.props.onMouseEnter(...args)
-        setOverTrigger(true)
+        setOpen(true)
       },
       onMouseLeave: (...args) => {
         child.props.onMouseLeave && child.props.onMouseLeave(...args)
-        setOverTrigger(false)
+        setOpen(false)
       },
       onFocus: (...args) => {
         child.props.onFocus && child.props.onFocus(...args)
-        setOverTrigger(true)
+        setOpen(true)
       },
       onBlur: (...args) => {
         child.props.onBlur && child.props.onBlur(...args)
-        setOverTrigger(false)
+        setOpen(false)
       }
     }),
-    (overTrigger || (overTooltip && hoverable)) && !!content && h(Tooltip, { target: childId, id: tooltipId, setOverTooltip, ...props }, [content]),
+    open && !!content && h(Tooltip, { target: childId, id: tooltipId, ...props }, [content]),
     !!content && div({ id: descriptionId, style: { display: 'none' } }, [content])
   ])
 }

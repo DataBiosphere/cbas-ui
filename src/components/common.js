@@ -56,7 +56,7 @@ const styles = {
   }
 }
 
-export const Clickable = forwardRefWithName('Clickable', ({ href, as = (!!href ? 'a' : 'div'), disabled, tooltip, tooltipSide, tooltipDelay, useTooltipAsLabel, tooltipHoverable, onClick, children, ...props }, ref) => {
+export const Clickable = forwardRefWithName('Clickable', ({ href, as = (!!href ? 'a' : 'div'), disabled, tooltip, tooltipSide, tooltipDelay, useTooltipAsLabel, onClick, children, ...props }, ref) => {
   const child = h(Interactive, {
     'aria-disabled': !!disabled,
     as, disabled, ref,
@@ -84,7 +84,7 @@ export const Clickable = forwardRefWithName('Clickable', ({ href, as = (!!href ?
   }
 
   if (tooltip) {
-    return h(TooltipTrigger, { content: tooltip, side: tooltipSide, delay: tooltipDelay, useTooltipAsLabel: useAsLabel, hoverable: tooltipHoverable }, [child])
+    return h(TooltipTrigger, { content: tooltip, side: tooltipSide, delay: tooltipDelay, useTooltipAsLabel: useAsLabel }, [child])
   } else {
     return child
   }
