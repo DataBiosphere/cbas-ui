@@ -240,20 +240,6 @@ export const ParameterValueTextInput = props => {
       }
       setSource(newSource)
       return true
-    } else if (unwrappedType.type === 'array') {
-      try {
-        const innerPrimitiveType = unwrapOptional(unwrappedType.array_type).primitive_type
-        const arrayValue = Array.isArray(value) ? value : JSON.parse(value)
-        if (Array.isArray(arrayValue) && _.every(element => isPrimitiveTypeInputValid(innerPrimitiveType, element))(arrayValue)) {
-          const updatedValue = _.map(element => convertToPrimitiveType(innerPrimitiveType, element))(arrayValue)
-          const newSource = {
-            type: source.type,
-            parameter_value: updatedValue
-          }
-          setSource(newSource)
-          return true
-        }
-      } catch (e) {}
     }
   }
 
@@ -423,9 +409,13 @@ export const isPrimitiveTypeInputValid = (primitiveType, value) => {
 
 export const convertArrayType = ({ input_type: inputType, source: inputSource, ...input }) => {
   if (unwrapOptional(inputType).type === 'array' && inputSource.type === 'literal') {
-    let value = inputSource.parameter_value
-    if (!Array.isArray(inputSource.parameter_value)) {
-      value = [value]
+    let value = inputSource.parameter_value;
+    if (!Array.isArray(value)) {
+      try {
+        value = JSON.parse(inputSource.parameter_value);
+      } catch (e) {
+        value = [value]
+      }
     }
     value = _.map(element => convertToPrimitiveType(unwrapOptional(inputType).primitive_type, element))(value)
     return { ...input, input_type: inputType, source: { ...inputSource, parameter_value: value } }
