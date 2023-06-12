@@ -282,7 +282,7 @@ export const InputsButtonRow = ({
           row => setConfiguredInputDefinition(_.set(`[${row.configurationIndex}].source`, { type: 'record_lookup', record_attribute: row.variable }))
         )(inputRowsInDataTable)
       },
-      [`Set (${inputRowsInDataTable.length}) from data table`]
+      [`Autofill (${inputRowsInDataTable.length}) from data table`]
     ),
     h(InfoBox, {
       side: 'top'

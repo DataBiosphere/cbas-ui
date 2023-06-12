@@ -110,12 +110,15 @@ const InputsTable = props => {
     return WithWarnings({
       baseComponent: h(TextCell,
         { style: Utils.inputTypeStyle(inputTableData[rowIndex].input_type) },
-        Utils.cond([_.has(inputTableData[rowIndex].variable, dataTableAttributes), () => ['Use ', h(Link, {
+        Utils.cond([_.has(inputTableData[rowIndex].variable, dataTableAttributes), () => [h('span', { style: { fontStyle: 'normal' } }, ['💡']), ' Autofill ', h(Link, {
+          style: {
+            textDecoration: 'underline'
+          },
           onClick: () => {
             setConfiguredInputDefinition(
               _.set(`[${inputTableData[rowIndex].configurationIndex}].source`, { type: 'record_lookup', record_attribute: inputTableData[rowIndex].variable }, configuredInputDefinition))
           }
-        }, [inputTableData[rowIndex].variable]), ' from data table?']],
+        }, [inputTableData[rowIndex].variable]), ' from data table']],
         () => [isInputOptional(inputTableData[rowIndex].input_type) ? 'Optional' : 'This input is required'])
       ),
       warningMessage: missingRequiredInputs.includes(selectedInputName) ? 'This attribute is required' : ''
