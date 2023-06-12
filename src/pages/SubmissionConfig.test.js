@@ -13,7 +13,7 @@ import {
   myStructInput,
   runSetInputDef,
   runSetInputDefWithStruct,
-  runSetOutputDef,
+  runSetOutputDef, runSetOutputDefWithDefaults,
   runSetResponse,
   runSetResponseForNewMethod,
   runSetResponseWithStruct,
@@ -1566,6 +1566,79 @@ describe('SubmissionConfig inputs/outputs definitions', () => {
     within(cells2[3]).getByDisplayValue('target_workflow_1_file_output')
   })
 
+  it('should set output variable names when set defaults button is clicked', async () => {
+    const mockRunSetResponse = jest.fn(() => Promise.resolve(runSetResponse))
+    const mockMethodsResponse = jest.fn(() => Promise.resolve(methodsResponse))
+    const mockSearchResponse = jest.fn((_, recordType) => Promise.resolve(searchResponses[recordType]))
+    const mockTypesResponse = jest.fn(() => Promise.resolve(typesResponse))
+
+    await Ajax.mockImplementation(() => {
+      return {
+        Cbas: {
+          runSets: {
+            getForMethod: mockRunSetResponse
+          },
+          methods: {
+            getById: mockMethodsResponse
+          }
+        },
+        Wds: {
+          search: {
+            post: mockSearchResponse
+          },
+          types: {
+            get: mockTypesResponse
+          }
+        }
+      }
+    })
+
+    render(h(SubmissionConfig))
+
+    await waitFor(() => {
+      expect(mockRunSetResponse).toHaveBeenCalledTimes(1)
+      expect(mockTypesResponse).toHaveBeenCalledTimes(1)
+      expect(mockMethodsResponse).toHaveBeenCalledTimes(1)
+      expect(mockSearchResponse).toHaveBeenCalledTimes(1)
+    })
+
+    const button = await screen.findByRole('button', { name: 'Outputs' })
+    await fireEvent.click(button)
+
+    const table = await screen.findByRole('table')
+    const rows = within(table).queryAllByRole('row')
+    const headers = within(rows[0]).queryAllByRole('columnheader')
+    const cells1 = within(rows[1]).queryAllByRole('cell')
+    const cells2 = within(rows[2]).queryAllByRole('cell')
+
+    // prepopulated values
+    within(cells1[0]).getByText('target_workflow_1')
+    within(cells1[1]).getByText('file_output')
+    within(cells1[2]).getByText('File')
+    within(cells1[3]).getByDisplayValue('target_workflow_1_file_output')
+
+    within(cells2[0]).getByText('target_workflow_1')
+    within(cells2[1]).getByText('unused_output')
+    within(cells2[2]).getByText('String')
+    within(cells2[3]).getByDisplayValue('')
+
+    // set defaults
+    await act(async () => {
+      await fireEvent.click(within(headers[3]).getByRole('button'))
+    })
+
+    // default values set
+    within(cells1[0]).getByText('target_workflow_1')
+    within(cells1[1]).getByText('file_output')
+    within(cells1[2]).getByText('File')
+    within(cells1[3]).getByDisplayValue('file_output')
+
+    within(cells2[0]).getByText('target_workflow_1')
+    within(cells2[1]).getByText('unused_output')
+    within(cells2[2]).getByText('String')
+    within(cells2[3]).getByDisplayValue('unused_output')
+  })
+
   it('should display struct builder modal when "view struct builder" link is clicked', async () => {
     // ** ARRANGE **
     const mockRunSetResponse = jest.fn(() => Promise.resolve(runSetResponseWithStruct))
@@ -2154,6 +2227,102 @@ describe('SubmissionConfig submitting a run set', () => {
           }
         ],
         workflow_output_definitions: runSetOutputDef,
+        wds_records: {
+          record_type: 'FOO',
+          record_ids: [
+            'FOO1'
+          ]
+        }
+      })
+    )
+  })
+
+  it('should call POST /run_sets endpoint with expected parameters after outputs are set to default', async () => {
+    // ** ARRANGE **
+    const mockRunSetResponse = jest.fn(() => Promise.resolve(runSetResponse))
+    const mockMethodsResponse = jest.fn(() => Promise.resolve(methodsResponse))
+    const mockSearchResponse = jest.fn(() => Promise.resolve(searchResponses['FOO']))
+    const mockTypesResponse = jest.fn(() => Promise.resolve(typesResponse))
+
+    const postRunSetFunction = jest.fn()
+
+    await Ajax.mockImplementation(() => {
+      return {
+        Cbas: {
+          runSets: {
+            post: postRunSetFunction,
+            getForMethod: mockRunSetResponse
+          },
+          methods: {
+            getById: mockMethodsResponse
+          }
+        },
+        Wds: {
+          search: {
+            post: mockSearchResponse
+          },
+          types: {
+            get: mockTypesResponse
+          }
+        }
+      }
+    })
+
+    // ** ACT **
+    render(h(SubmissionConfig))
+
+    // ** ASSERT **
+    await waitFor(() => {
+      expect(mockRunSetResponse).toHaveBeenCalledTimes(1)
+      expect(mockTypesResponse).toHaveBeenCalledTimes(1)
+      expect(mockSearchResponse).toHaveBeenCalledTimes(1)
+      expect(mockMethodsResponse).toHaveBeenCalledTimes(1)
+    })
+
+    // ** ACT **
+    // user selects 'FOO1' record from Data Table
+    const checkboxes = screen.getAllByRole('checkbox')
+    const checkbox = checkboxes[1]
+    fireEvent.click(checkbox)
+
+    // ** ASSERT **
+    // verify that the record was indeed selected
+    expect(checkbox).toHaveAttribute('aria-checked', 'true')
+
+    const outputButton = await screen.findByRole('button', { name: 'Outputs' })
+    await fireEvent.click(outputButton)
+
+    const table = await screen.findByRole('table')
+    const rows = within(table).queryAllByRole('row')
+    const headers = within(rows[0]).queryAllByRole('columnheader')
+
+    // set defaults
+    await act(async () => {
+      await fireEvent.click(within(headers[3]).getByRole('button'))
+    })
+
+    // ** ACT **
+    // user clicks on Submit (inputs and outputs should be rendered based on previous submission)
+    const button = screen.getByLabelText('Submit button')
+    fireEvent.click(button)
+
+    // ** ASSERT **
+    // Launch modal should be displayed
+    await screen.getByText('Send submission')
+    const modalSubmitButton = await screen.getByLabelText('Launch Submission')
+
+    // ** ACT **
+    // user click on Submit button
+    fireEvent.click(modalSubmitButton)
+
+    // ** ASSERT **
+    // assert POST /run_sets endpoint was called with expected parameters and input 'optional_var' has correct definition for source 'None'
+    expect(postRunSetFunction).toHaveBeenCalled()
+    expect(postRunSetFunction).toBeCalledWith(
+      expect.objectContaining({
+        method_version_id: runSetResponse.run_sets[0].method_version_id,
+        workflow_input_definitions: runSetInputDef,
+        workflow_output_definitions: runSetOutputDefWithDefaults,
         wds_records: {
           record_type: 'FOO',
           record_ids: [
