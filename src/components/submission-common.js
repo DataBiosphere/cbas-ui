@@ -417,7 +417,7 @@ export const convertArrayType = ({ input_type: inputType, source: inputSource, .
         value = [value]
       }
     }
-    value = _.map(element => convertToPrimitiveType(unwrapOptional(inputType).primitive_type, element))(value)
+    value = _.map(element => convertToPrimitiveType(unwrapOptional(unwrapOptional(inputType).array_type).primitive_type, element))(value)
     return { ...input, input_type: inputType, source: { ...inputSource, parameter_value: value } }
   } else if (unwrapOptional(inputType).type === 'struct' && inputSource.type === 'object_builder') {
     return {
