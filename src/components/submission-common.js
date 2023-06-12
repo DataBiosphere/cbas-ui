@@ -409,10 +409,10 @@ export const isPrimitiveTypeInputValid = (primitiveType, value) => {
 
 export const convertArrayType = ({ input_type: inputType, source: inputSource, ...input }) => {
   if (unwrapOptional(inputType).type === 'array' && inputSource.type === 'literal') {
-    let value = inputSource.parameter_value;
+    let value = inputSource.parameter_value
     if (!Array.isArray(value)) {
       try {
-        value = JSON.parse(inputSource.parameter_value);
+        value = JSON.parse(inputSource.parameter_value)
       } catch (e) {
         value = [value]
       }
