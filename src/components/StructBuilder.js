@@ -71,12 +71,16 @@ export const StructBuilder = props => {
       ])(row)
     }),
     _.orderBy([({ field_name: name }) => _.lowerCase(name)], ['asc']),
-    _.filter(({ optional }) => includeOptionalInputs || !optional)
+    _.filter(_.overEvery([
+      ({ optional }) => includeOptionalInputs || !optional,
+      ({ field_name: name }) => name.includes(searchFilter)
+    ]))
   )(structInputDefinition)
 
   const breadcrumbsHeight = 35
-  return h(div, { 'aria-label': 'struct-breadcrumbs', style: { height: 500 } }, [
+  return h(div, { style: { height: 500 } }, [
     h(div, {
+      'aria-label': 'struct-breadcrumbs',
       style: {
         height: breadcrumbsHeight,
         fontSize: 15,
