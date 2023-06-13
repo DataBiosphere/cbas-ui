@@ -8,6 +8,7 @@ import { defaultCellRangeRenderer, Grid as RVGrid, ScrollSync as RVScrollSync } 
 import { Clickable, IdContainer, Link } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import Interactive from 'src/components/Interactive'
+import { InfoBox } from 'src/components/PopupTrigger'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import colors from 'src/libs/colors'
 import { forwardRefWithName, useLabelAssert, useOnMount } from 'src/libs/react-utils'
@@ -262,7 +263,10 @@ const NoContentRow = ({ noContentMessage, noContentRenderer = _.noop, numColumns
   ])
 ])
 
-export const InputsButtonRow = ({ showRow = true, optionalButtonProps: { includeOptionalInputs, setIncludeOptionalInputs }, ...props }) => {
+export const InputsButtonRow = ({
+  showRow = true, optionalButtonProps: { includeOptionalInputs, setIncludeOptionalInputs },
+  setFromDataTableButtonProps: { inputRowsInDataTable, setConfiguredInputDefinition } = {}, ...props
+}) => {
   return showRow && h(div, { ...props }, [
     h(Link,
       {
@@ -270,7 +274,19 @@ export const InputsButtonRow = ({ showRow = true, optionalButtonProps: { include
         onClick: () => setIncludeOptionalInputs(includeOptionalInputs => !includeOptionalInputs)
       },
       [includeOptionalInputs ? 'Hide optional inputs' : 'Show optional inputs']
-    )
+    ),
+    inputRowsInDataTable && div({}, [h(Link,
+      {
+        style: { marginLeft: 'auto', marginRight: '0.5rem' },
+        onClick: () => _.forEach(
+          row => setConfiguredInputDefinition(_.set(`[${row.configurationIndex}].source`, { type: 'record_lookup', record_attribute: row.variable }))
+        )(inputRowsInDataTable)
+      },
+      [`Autofill (${inputRowsInDataTable.length}) from data table`]
+    ),
+    h(InfoBox, {
+      side: 'top'
+    }, [div({ style: { maxHeight: 105, overflow: 'auto' } }, [`Inputs that can be auto-filled:\n${_.flow(_.map(row => `${row.taskName}.${row.variable}`), _.join('\n'))(inputRowsInDataTable)}`])])])
   ])
 }
 

@@ -50,7 +50,7 @@ describe('Add a Workflow Link', () => {
     })
 
     const githubLink = 'https://github.com/broadinstitute/cromwell/blob/develop/wdl/transforms/draft3/src/test/cases/simple_task.wdl'
-    const rawGithubLink = 'https://raw.githubusercontent.com/broadinstitute/cromwell/develop/wdl/transforms/draft3/src/test/cases/simple_task.wdl'
+
     // ** ACT **
     render(h(ImportGithub, { setLoading: jest.fn(), signal: jest.fn(), onDismiss: jest.fn() }))
 
@@ -78,7 +78,7 @@ describe('Add a Workflow Link', () => {
           method_description: undefined,
           method_source: 'GitHub',
           method_version: 'v.01',
-          method_url: rawGithubLink
+          method_url: githubLink
         })
     })
     jest.clearAllMocks()

@@ -20,16 +20,17 @@ import { UriPreview } from './UriPreview'
 // eslint-disable-next-line lodash-fp/no-single-composition
 export const UriViewer = _.flow(
   withDisplayName('UriViewer')
-)(({ uri, onDismiss }) => {
+)(({ uri, onDismiss, isStdLog }) => {
   const signal = useCancellation()
   const [metadata, setMetadata] = useState()
-  const [loadingError, setLoadingError] = useState()
+  const [loadingError, setLoadingError] = useState(false)
 
   const loadMetadata = async () => {
     try {
       if (isAzureUri(uri)) {
         const azureMetadata = await Ajax(signal).AzureStorage.getTextFileFromBlobStorage(uri)
         setMetadata(azureMetadata)
+        setLoadingError(false)
       } else if (isGsUri(uri)) {
         /* TODO: Uncomment on merge with Terra UI
         const [bucket, name] = parseGsUri(uri)
@@ -60,7 +61,7 @@ export const UriViewer = _.flow(
         setMetadata(googleMetadata)
       }
     } catch (e) {
-      setLoadingError(await e.json())
+      setLoadingError(true)
     }
   }
 
@@ -69,14 +70,19 @@ export const UriViewer = _.flow(
   })
 
 
-  const renderFailureMessage = loadingError => {
+  const renderFailureMessage = () => {
+    const errorMsg = isStdLog ? 'Log file not found. This may be the result of a task failing to start. Please check relevant docker images and file paths to ensure valid references.' :
+      'Error loading data. This file does not exist or you do not have permission to view it.'
     return h(Fragment, [
-      div({ style: { paddingBottom: '1rem' } }, ['Error loading data. This file does not exist or you do not have permission to view it.']),
-      h(Collapse, { title: 'Details' }, [
-        div({ style: { marginTop: '0.5rem', whiteSpace: 'pre-wrap', fontFamily: 'monospace', overflowWrap: 'break-word' } }, [
-          JSON.stringify(loadingError, null, 2)
-        ])
-      ])
+      div({ style: { paddingBottom: '1rem' } }, [errorMsg])
+      // below section should be re-enabled later on. Currently if a file is missing it's because Cromwell never fired up a task.
+      // A static message should be enough to tackle this scenario for now.
+      // h(Collapse, { title: 'Details' }, [
+      //   div({ style: { marginTop: '0.5rem', whiteSpace: 'pre-wrap', fontFamily: 'monospace', overflowWrap: 'break-word' } }, [
+      //     // JSON.stringify(loadingError, null, 2)
+      //     'This is an error message'
+      //   ])
+      // ])
     ])
   }
 
@@ -173,9 +179,9 @@ export const UriViewer = _.flow(
     },
     [
       Utils.cond(
-        [loadingError, () => renderFailureMessage(loadingError)],
+        [loadingError, () => renderFailureMessage()],
         [
-          metadata,
+          !loadingError && !_.isEmpty(metadata),
           () => h(Fragment, [
             els.cell([
               els.label('Filename'),

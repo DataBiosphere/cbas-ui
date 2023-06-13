@@ -15,15 +15,21 @@ import {
   runSetInputDefWithStruct,
   runSetOutputDef,
   runSetResponse,
-  runSetResponseForNewMethod, runSetResponseWithArrays,
+  runSetResponseForNewMethod, 
+  runSetResponseForNewMethod, 
+  runSetResponseWithArrays, 
+  runSetResponseSameInputNames,
   runSetResponseWithStruct,
   searchResponses,
   typesResponse,
   typesResponseWithoutFooRating,
   undefinedRecordTypeRunSetResponse
 } from 'src/libs/mock-responses.js'
+import * as Nav from 'src/libs/nav'
 import { SubmissionConfig } from 'src/pages/SubmissionConfig'
 
+
+jest.mock('src/libs/nav')
 
 jest.mock('src/libs/ajax')
 
@@ -130,6 +136,66 @@ describe('SubmissionConfig workflow details', () => {
     // verify that modal was rendered on screen
     expect(screen.getByRole('dialog')).toBeInTheDocument()
     expect(screen.getByText('Workflow Script')).toBeInTheDocument()
+  })
+
+  it('should render a back to workflows button', async () => {
+    // ** ARRANGE **
+    const mockRunSetResponse = jest.fn(() => Promise.resolve(runSetResponse))
+    const mockMethodsResponse = jest.fn(() => Promise.resolve(methodsResponse))
+    const mockSearchResponse = jest.fn((_, recordType) => Promise.resolve(searchResponses[recordType]))
+    const mockTypesResponse = jest.fn(() => Promise.resolve(typesResponse))
+    const mockWdlResponse = jest.fn(() => Promise.resolve('mock wdl response'))
+    const mockLeoResponse = jest.fn(() => Promise.resolve(mockApps))
+
+    Ajax.mockImplementation(() => {
+      return {
+        Cbas: {
+          runSets: {
+            getForMethod: mockRunSetResponse
+          },
+          methods: {
+            getById: mockMethodsResponse
+          }
+        },
+        Wds: {
+          search: {
+            post: mockSearchResponse
+          },
+          types: {
+            get: mockTypesResponse
+          }
+        },
+        WorkflowScript: {
+          get: mockWdlResponse
+        },
+        Leonardo: {
+          listAppsV2: mockLeoResponse
+        }
+      }
+    })
+
+    // ** ACT **
+    render(h(SubmissionConfig))
+
+    // ** ASSERT **
+    await waitFor(() => {
+      expect(mockRunSetResponse).toHaveBeenCalledTimes(1)
+      expect(mockTypesResponse).toHaveBeenCalledTimes(1)
+      expect(mockMethodsResponse).toHaveBeenCalledTimes(1)
+      expect(mockSearchResponse).toHaveBeenCalledTimes(1)
+      expect(mockWdlResponse).toHaveBeenCalledTimes(1)
+      expect(mockLeoResponse).toHaveBeenCalledTimes(0)
+    })
+
+    const backButton = screen.getByText('Back to workflows')
+
+    // ** ACT **
+    // user clicks on back button
+    await act(async () => {
+      await userEvent.click(backButton)
+    })
+
+    expect(Nav.goToPath).toHaveBeenCalledWith('root')
   })
 })
 
@@ -1464,6 +1530,157 @@ describe('SubmissionConfig inputs/outputs definitions', () => {
     within(cells3[4]).getByText('bar_string')
   })
 
+  it('should populate fields from data table on click', async () => {
+    const mockRunSetResponse = jest.fn(() => Promise.resolve(runSetResponseSameInputNames))
+    const mockMethodsResponse = jest.fn(() => Promise.resolve(methodsResponse))
+    const mockSearchResponse = jest.fn((_, recordType) => Promise.resolve(searchResponses[recordType]))
+    const mockTypesResponse = jest.fn(() => Promise.resolve(typesResponse))
+
+    await Ajax.mockImplementation(() => {
+      return {
+        Cbas: {
+          runSets: {
+            getForMethod: mockRunSetResponse
+          },
+          methods: {
+            getById: mockMethodsResponse
+          }
+        },
+        Wds: {
+          search: {
+            post: mockSearchResponse
+          },
+          types: {
+            get: mockTypesResponse
+          }
+        }
+      }
+    })
+
+    render(h(SubmissionConfig))
+
+    await waitFor(() => {
+      expect(mockRunSetResponse).toHaveBeenCalledTimes(1)
+      expect(mockTypesResponse).toHaveBeenCalledTimes(1)
+      expect(mockMethodsResponse).toHaveBeenCalledTimes(1)
+      expect(mockSearchResponse).toHaveBeenCalledTimes(1)
+    })
+
+    const button = await screen.findByRole('button', { name: 'Inputs' })
+    await fireEvent.click(button)
+
+    const table = await screen.findByRole('table')
+    const rows = within(table).queryAllByRole('row')
+    const cells1 = within(rows[1]).queryAllByRole('cell')
+    const cells2 = within(rows[2]).queryAllByRole('cell')
+    const cells3 = within(rows[3]).queryAllByRole('cell')
+
+    screen.getByText('Autofill (2) from data table')
+
+    within(cells1[0]).getByText('foo')
+    within(cells1[1]).getByText('foo_rating')
+    within(cells1[2]).getByText('Int')
+    within(cells1[3]).getByText('None')
+    within(cells1[4]).getByText(/Autofill /)
+    const inputFillButton = within(cells1[4]).getByText('foo_rating')
+    within(cells1[4]).getByText(/ from data table/)
+
+    within(cells2[0]).getByText('target_workflow_1')
+    within(cells2[1]).getByText('bar_string')
+    within(cells2[2]).getByText('String')
+    within(cells2[3]).getByText('Select Source')
+    within(cells2[4]).getByText(/Autofill /)
+    within(cells2[4]).getByText('bar_string')
+    within(cells2[4]).getByText(/ from data table/)
+    within(cells2[4]).getByText('This attribute is required')
+
+    within(cells3[0]).getByText('target_workflow_1')
+    within(cells3[1]).getByText('not_in_table')
+    within(cells3[2]).getByText('String')
+    within(cells3[3]).getByText('None')
+    within(cells3[4]).getByText('Optional')
+
+    // fill single input from click
+    await act(async () => {
+      await fireEvent.click(inputFillButton)
+    })
+
+    screen.getByText('Autofill (1) from data table')
+
+    within(cells1[0]).getByText('foo')
+    within(cells1[1]).getByText('foo_rating')
+    within(cells1[2]).getByText('Int')
+    const selectSourceDropdown = within(cells1[3]).getByText('Fetch from Data Table')
+    within(cells1[4]).getByText('foo_rating')
+
+    within(cells2[0]).getByText('target_workflow_1')
+    within(cells2[1]).getByText('bar_string')
+    within(cells2[2]).getByText('String')
+    within(cells2[4]).getByText(/Autofill /)
+    within(cells2[4]).getByText('bar_string')
+    within(cells2[4]).getByText(/ from data table/)
+
+    within(cells3[0]).getByText('target_workflow_1')
+    within(cells3[1]).getByText('not_in_table')
+    within(cells3[2]).getByText('String')
+    within(cells3[3]).getByText('None')
+    within(cells3[4]).getByText('Optional')
+
+    // reset input
+    await act(async () => {
+      await userEvent.click(selectSourceDropdown)
+      const selectOptionNone = within(screen.getByRole('listbox')).getByText('None')
+      await userEvent.click(selectOptionNone)
+    })
+
+    within(cells1[0]).getByText('foo')
+    within(cells1[1]).getByText('foo_rating')
+    within(cells1[2]).getByText('Int')
+    within(cells1[3]).getByText('None')
+    within(cells1[4]).getByText(/Autofill /)
+    within(cells1[4]).getByText('foo_rating')
+    within(cells1[4]).getByText(/ from data table/)
+
+    within(cells2[0]).getByText('target_workflow_1')
+    within(cells2[1]).getByText('bar_string')
+    within(cells2[2]).getByText('String')
+    within(cells2[4]).getByText(/Autofill /)
+    within(cells2[4]).getByText('bar_string')
+    within(cells2[4]).getByText(/ from data table/)
+
+    within(cells3[0]).getByText('target_workflow_1')
+    within(cells3[1]).getByText('not_in_table')
+    within(cells3[2]).getByText('String')
+    within(cells3[3]).getByText('None')
+    within(cells3[4]).getByText('Optional')
+
+    // fill all from data table
+    await act(async () => {
+      const fillAllButton = await screen.findByText('Autofill (2) from data table')
+      await fireEvent.click(fillAllButton)
+    })
+
+    await screen.findByText('Autofill (0) from data table')
+
+    within(cells1[0]).getByText('foo')
+    within(cells1[1]).getByText('foo_rating')
+    within(cells1[2]).getByText('Int')
+    within(cells1[3]).getByText('Fetch from Data Table')
+    within(cells1[4]).getByText('foo_rating')
+
+    within(cells2[0]).getByText('target_workflow_1')
+    within(cells2[1]).getByText('bar_string')
+    within(cells2[2]).getByText('String')
+    within(cells2[3]).getByText('Fetch from Data Table')
+    within(cells2[4]).getByText('bar_string')
+
+    within(cells3[0]).getByText('target_workflow_1')
+    within(cells3[1]).getByText('not_in_table')
+    within(cells3[2]).getByText('String')
+    within(cells3[3]).getByText('None')
+    within(cells3[4]).getByText('Optional')
+  })
+
   it('should hide/show optional inputs when respective button is clicked', async () => {
     const mockRunSetResponse = jest.fn(() => Promise.resolve(runSetResponse))
     const mockMethodsResponse = jest.fn(() => Promise.resolve(methodsResponse))
@@ -1849,6 +2066,95 @@ describe('SubmissionConfig submitting a run set', () => {
     )
   })
 
+  it('error message should display on workflow launch fail, and not on success', async () => {
+    // ** ARRANGE **
+    const mockRunSetResponse = jest.fn(() => Promise.resolve(runSetResponse))
+    const mockMethodsResponse = jest.fn(() => Promise.resolve(methodsResponse))
+    const mockSearchResponse = jest.fn(() => Promise.resolve(searchResponses['FOO']))
+    const mockTypesResponse = jest.fn(() => Promise.resolve(typesResponse))
+
+    const postRunSetSuccessResponse = { run_set_id: '00000000-0000-0000-000000000000' }
+    const postRunSetErrorResponse = { errors: 'Sample Error Message' }
+
+    const postRunSetFunction = jest.fn()
+    postRunSetFunction.mockRejectedValueOnce(postRunSetErrorResponse).mockResolvedValueOnce(postRunSetSuccessResponse)
+
+    await Ajax.mockImplementation(() => {
+      return {
+        Cbas: {
+          runSets: {
+            post: postRunSetFunction,
+            getForMethod: mockRunSetResponse
+          },
+          methods: {
+            getById: mockMethodsResponse
+          }
+        },
+        Wds: {
+          search: {
+            post: mockSearchResponse
+          },
+          types: {
+            get: mockTypesResponse
+          }
+        }
+      }
+    })
+
+    // ** ACT **
+    render(h(SubmissionConfig))
+
+    // ** ASSERT **
+    await waitFor(() => {
+      expect(mockRunSetResponse).toHaveBeenCalledTimes(1)
+      expect(mockTypesResponse).toHaveBeenCalledTimes(1)
+      expect(mockSearchResponse).toHaveBeenCalledTimes(1)
+      expect(mockMethodsResponse).toHaveBeenCalledTimes(1)
+    })
+
+    // ** ACT **
+    // user selects 'FOO1' record from Data Table
+    const checkboxes = screen.getAllByRole('checkbox')
+    const checkbox = checkboxes[1]
+    fireEvent.click(checkbox)
+
+    // ** ASSERT **
+    // verify that the record was indeed selected
+    expect(checkbox).toHaveAttribute('aria-checked', 'true')
+
+    // ** ACT **
+    // user clicks on Submit (inputs and outputs should be rendered based on previous submission)
+    const button = screen.getByLabelText('Submit button')
+    fireEvent.click(button)
+
+    // ** ASSERT **
+    // Launch modal should be displayed
+    await screen.getByText('Send submission')
+    const modalSubmitButton = await screen.getByLabelText('Launch Submission')
+
+    // ** ACT **
+    // user click on Submit button
+    fireEvent.click(modalSubmitButton)
+
+    // ** ASSERT **
+    // assert error message on first submit
+    await waitFor(async () => await expect(postRunSetFunction).toHaveReturned())
+    screen.getByLabelText('Modal submission error')
+    screen.getByText(postRunSetErrorResponse.errors, { exact: false })
+
+    // ** ACT **
+    // user click on Submit button again
+    fireEvent.click(modalSubmitButton)
+
+    // ** ASSERT **
+    // assert success on second submit
+    await waitFor(async () => await expect(postRunSetFunction).toHaveReturned())
+    expect(Nav.goToPath).toHaveBeenCalled()
+    expect(Nav.goToPath).toHaveBeenCalledWith('submission-details', {
+      submissionId: postRunSetSuccessResponse.run_set_id
+    })
+  })
+
   it('should call POST /run_sets endpoint with expected parameters after an optional input is set to None', async () => {
     // ** ARRANGE **
     const mockRunSetResponse = jest.fn(() => Promise.resolve(runSetResponse))
@@ -2069,6 +2375,8 @@ describe('SubmissionConfig submitting a run set', () => {
 
     // ** ACT **
     // Exit the modal and submit
+    const innerStructModalDoneButton = await screen.getByText('Back')
+    fireEvent.click(innerStructModalDoneButton)
     const modalDoneButton = await screen.getByText('Done')
     fireEvent.click(modalDoneButton)
     await screen.findByRole('table') // there should be only one table again

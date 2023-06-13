@@ -32,36 +32,36 @@ const suggestedWorkflowsList = [
     method_name: 'Optimus',
     method_description: 'The optimus 3 pipeline processes 10x genomics sequencing data based on the v2 chemistry. It corrects cell barcodes and UMIs, aligns reads, marks duplicates, and returns data as alignments in BAM format and as counts in sparse matrix exchange format.',
     method_source: 'GitHub',
-    method_version: 'Optimus_v5.5.0',
-    method_url: 'https://raw.githubusercontent.com/broadinstitute/warp/develop/pipelines/skylab/optimus/Optimus.wdl'
+    method_version: 'Optimus_v5.7.2',
+    method_url: 'https://raw.githubusercontent.com/broadinstitute/warp/Optimus_v5.7.2/pipelines/skylab/optimus/Optimus.wdl'
   },
   {
     method_name: 'MultiSampleSmartSeq2SingleNucleus',
-    method_description: 'The MultiSampleSmartSeq2SingleNucleus pipeline runs multiple snSS2 samples in a single pipeline invocation',
+    method_description: 'The MultiSampleSmartSeq2SingleNucleus pipeline runs multiple snSS2 samples in a single pipeline invocation.',
     method_source: 'GitHub',
-    method_version: 'MultiSampleSmartSeq2SingleNuclei_v1.2.14',
-    method_url: 'https://raw.githubusercontent.com/broadinstitute/warp/develop/pipelines/skylab/smartseq2_single_nucleus_multisample/MultiSampleSmartSeq2SingleNucleus.wdl'
+    method_version: 'MultiSampleSmartSeq2SingleNucleus_v1.2.18',
+    method_url: 'https://raw.githubusercontent.com/broadinstitute/warp/MultiSampleSmartSeq2SingleNucleus_v1.2.18/pipelines/skylab/smartseq2_single_nucleus_multisample/MultiSampleSmartSeq2SingleNucleus.wdl'
   },
   {
     method_name: 'scATAC',
     method_description: 'Processing of single-cell ATAC-seq data with the scATAC pipeline.',
     method_source: 'GitHub',
-    method_version: 'scATAC 1.2.0',
-    method_url: 'https://raw.githubusercontent.com/broadinstitute/warp/develop/pipelines/skylab/scATAC/scATAC.wdl'
+    method_version: 'scATAC_v1.3.1',
+    method_url: 'https://raw.githubusercontent.com/broadinstitute/warp/scATAC_v1.3.1/pipelines/skylab/scATAC/scATAC.wdl'
   },
   {
     method_name: 'WholeGenomeGermlineSingleSample',
     method_description: 'Processes germline whole genome sequencing data.',
     method_source: 'GitHub',
-    method_version: 'WholeGenomeGermlineSingleSample_v3.1.6',
-    method_url: 'https://raw.githubusercontent.com/broadinstitute/warp/WholeGenomeGermlineSingleSample_v3.1.6/pipelines/broad/dna_seq/germline/single_sample/wgs/WholeGenomeGermlineSingleSample.wdl'
+    method_version: 'WholeGenomeGermlineSingleSample_v3.1.10',
+    method_url: 'https://raw.githubusercontent.com/broadinstitute/warp/WholeGenomeGermlineSingleSample_v3.1.10/pipelines/broad/dna_seq/germline/single_sample/wgs/WholeGenomeGermlineSingleSample.wdl'
   },
   {
     method_name: 'ExomeGermlineSingleSample',
-    method_description: 'Processes germline exome/targeted sequencing data',
+    method_description: 'Processes germline exome/targeted sequencing data.',
     method_source: 'GitHub',
-    method_version: 'ExomeGermlineSingleSample_v3.0.0',
-    method_url: 'https://raw.githubusercontent.com/broadinstitute/warp/ExomeGermlineSingleSample_v3.0.0/pipelines/broad/dna_seq/germline/single_sample/exome/ExomeGermlineSingleSample.wdl'
+    method_version: 'ExomeGermlineSingleSample_v3.1.9',
+    method_url: 'https://raw.githubusercontent.com/broadinstitute/warp/ExomeGermlineSingleSample_v3.1.9/pipelines/broad/dna_seq/germline/single_sample/exome/ExomeGermlineSingleSample.wdl'
   }
 ]
 
