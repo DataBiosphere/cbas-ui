@@ -7,7 +7,7 @@ import HelpfulLinksBox from 'src/components/HelpfulLinksBox'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { TextArea, TextInput } from 'src/components/input'
 import InputsTable from 'src/components/InputsTable'
-import { reconstructToRawUrl } from 'src/components/method-common'
+import { convertToRawUrl } from 'src/components/method-common'
 import Modal from 'src/components/Modal'
 import OutputsTable from 'src/components/OutputsTable'
 import RecordsTable from 'src/components/RecordsTable'
@@ -224,7 +224,7 @@ export const SubmissionConfig = ({ methodId }) => {
   useEffect(() => {
     async function getWorkflowScript() {
       try {
-        const workflowUrlRaw = reconstructToRawUrl(selectedMethodVersion.url)
+        const workflowUrlRaw = await convertToRawUrl(selectedMethodVersion.url, selectedMethodVersion.name, method.source)
         const script = await Ajax(signal).WorkflowScript.get(workflowUrlRaw)
         setWorkflowScript(script)
       } catch (error) {
@@ -235,7 +235,7 @@ export const SubmissionConfig = ({ methodId }) => {
     if (selectedMethodVersion != null) {
       getWorkflowScript()
     }
-  }, [signal, selectedMethodVersion])
+  }, [signal, selectedMethodVersion, method])
 
   useEffect(() => {
     // Start polling if we're missing WDS proxy url and stop polling when we have it

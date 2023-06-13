@@ -1,7 +1,13 @@
 import { Ajax } from 'src/libs/ajax'
 import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
+import * as Utils from 'src/libs/utils'
 
+
+const MethodSource = Object.freeze({
+  GitHub: 'GitHub',
+  Dockstore: 'Dockstore'
+})
 
 export const submitMethod = async (signal, onDismiss, method) => {
   try {
@@ -24,18 +30,20 @@ export const submitMethod = async (signal, onDismiss, method) => {
   }
 }
 
-export const reconstructToRawUrl = (url, onDismiss) => {
-  // mapping of searchValues (key) and their replaceValue (value)
-  const mapObj = {
-    github: 'raw.githubusercontent',
-    'blob/': ''
-  }
-  try {
-    url = url.replace(/\b(?:github|blob\/)\b/gi, matched => mapObj[matched])
-  } catch (error) {
-    notify('error', 'Error creating new method', { detail: (error instanceof Response ? error.text() : error) })
-    onDismiss()
-  }
-
-  return url
+export const convertToRawUrl = (methodPath, methodVersion, methodSource) => {
+  return Utils.cond(
+    // 3 Covid-19 workflows have 'Github' as source hence we check for that here to maintain backwards compatibility
+    [methodSource === MethodSource.GitHub || methodSource === 'Github', () => {
+      // mapping of searchValues (key) and their replaceValue (value)
+      const mapObj = {
+        github: 'raw.githubusercontent',
+        'blob/': ''
+      }
+      return methodPath.replace(/\b(?:github|blob\/)\b/gi, matched => mapObj[matched])
+    }],
+    [methodSource === MethodSource.Dockstore, async () => await Ajax().Dockstore.getWorkflowSourceUrl(methodPath, methodVersion)],
+    () => {
+      throw new Error(`Unknown method source '${methodSource}'. Currently supported method sources are [${MethodSource.GitHub}, ${MethodSource.Dockstore}].`)
+    }
+  )
 }
