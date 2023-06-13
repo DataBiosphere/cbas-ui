@@ -913,7 +913,7 @@ describe('Input source and requirements validation', () => {
     const structRows = within(structTable).queryAllByRole('row')
     expect(structRows.length).toBe(6)
 
-    const structCells = within(structRows[5]).queryAllByRole('cell')
+    const structCells = within(structRows[2]).queryAllByRole('cell')
     within(structCells[1]).getByText('myInnerStruct')
     const viewMyInnerStructLink = within(structCells[4]).getByText('View Struct')
     const structWarningMessageActive = within(structCells[4]).queryByText("One of this struct's inputs has an invalid configuration")
@@ -1022,10 +1022,10 @@ describe('Input source and requirements validation', () => {
     expect(innerStructRows.length).toBe(3)
 
     // check that warnings appear next to empty required inputs inside struct modal
-    const innerStructRow1Cells = within(innerStructRows[1]).queryAllByRole('cell')
+    const innerStructRow1Cells = within(innerStructRows[2]).queryAllByRole('cell')
     within(innerStructRow1Cells[4]).getByText('This input is required')
 
-    const innerStructRow2Cells = within(innerStructRows[2]).queryAllByRole('cell')
+    const innerStructRow2Cells = within(innerStructRows[1]).queryAllByRole('cell')
     within(innerStructRow2Cells[4]).getByText('Optional')
 
     // ** ACT **
@@ -1780,7 +1780,7 @@ describe('SubmissionConfig inputs/outputs definitions', () => {
     within(headers[3]).getByText('Input sources')
     within(headers[4]).getByText('Attribute')
 
-    const structCells = within(structRows[5]).queryAllByRole('cell')
+    const structCells = within(structRows[2]).queryAllByRole('cell')
     within(structCells[1]).getByText('myInnerStruct')
     const viewMyInnerStructLink = within(structCells[4]).getByText('View Struct')
 
@@ -2188,7 +2188,7 @@ describe('SubmissionConfig submitting a run set', () => {
 
     // ** ACT **
     // Update the top-level struct field myPrimitive
-    const myPrimitiveRowCells = within(structRows[1]).queryAllByRole('cell')
+    const myPrimitiveRowCells = within(structRows[5]).queryAllByRole('cell')
     within(myPrimitiveRowCells[1]).getByText('myPrimitive')
     const myPrimitiveInput = within(myPrimitiveRowCells[4]).getByDisplayValue('Fiesty')
     await fireEvent.change(myPrimitiveInput, { target: { value: 'Docile' } })
@@ -2196,7 +2196,7 @@ describe('SubmissionConfig submitting a run set', () => {
 
     // ** ACT **
     // Navigate the struct builder to myInnerStruct
-    const myInnerStructRowCells = within(structRows[5]).queryAllByRole('cell')
+    const myInnerStructRowCells = within(structRows[2]).queryAllByRole('cell')
     within(myInnerStructRowCells[1]).getByText('myInnerStruct')
     const viewMyInnerStructLink = within(myInnerStructRowCells[4]).getByText('View Struct')
     await fireEvent.click(viewMyInnerStructLink)

@@ -265,10 +265,10 @@ describe('Configuration tests', () => {
     const structTable = await screen.getByLabelText('struct-table')
     const structRows = within(structTable).queryAllByRole('row')
     expect(structRows.length).toBe(3)
-    within(structRows[1]).getByText('pet_description')
-    within(structRows[2]).getByText('pet_age')
+    within(structRows[1]).getByText('pet_age')
+    within(structRows[2]).getByText('pet_description')
 
-    const structCells = within(structRows[1]).queryAllByRole('cell')
+    const structCells = within(structRows[2]).queryAllByRole('cell')
     within(structCells[3]).getByText('Use Struct Builder')
 
     // ** ACT **
@@ -280,8 +280,8 @@ describe('Configuration tests', () => {
     const innerStructTable = await screen.getByLabelText('struct-table')
     const innerStructRows = within(innerStructTable).queryAllByRole('row')
     expect(innerStructRows.length).toBe(3)
-    within(innerStructRows[1]).getByText('pet_num_legs')
-    within(innerStructRows[2]).getByText('pet_has_tail')
+    within(innerStructRows[1]).getByText('pet_has_tail')
+    within(innerStructRows[2]).getByText('pet_num_legs')
 
     // ** ACT **
     // go back up a level by clicking 'Back'
@@ -294,8 +294,8 @@ describe('Configuration tests', () => {
     const outerStructTable = await screen.getByLabelText('struct-table')
     const outerStructRows = within(outerStructTable).queryAllByRole('row')
     expect(outerStructRows.length).toBe(3)
-    within(outerStructRows[1]).getByText('pet_description')
-    within(outerStructRows[2]).getByText('pet_age')
+    within(outerStructRows[1]).getByText('pet_age')
+    within(outerStructRows[2]).getByText('pet_description')
 
     // ** ACT **
     // exit modal by clicking 'Done'
