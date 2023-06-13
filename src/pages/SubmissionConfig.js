@@ -7,6 +7,7 @@ import HelpfulLinksBox from 'src/components/HelpfulLinksBox'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { TextArea, TextInput } from 'src/components/input'
 import InputsTable from 'src/components/InputsTable'
+import { reconstructToRawUrl } from 'src/components/method-common'
 import Modal from 'src/components/Modal'
 import OutputsTable from 'src/components/OutputsTable'
 import RecordsTable from 'src/components/RecordsTable'
@@ -223,7 +224,8 @@ export const SubmissionConfig = ({ methodId }) => {
   useEffect(() => {
     async function getWorkflowScript() {
       try {
-        const script = await Ajax(signal).WorkflowScript.get(selectedMethodVersion.url)
+        const workflowUrlRaw = reconstructToRawUrl(selectedMethodVersion.url)
+        const script = await Ajax(signal).WorkflowScript.get(workflowUrlRaw)
         setWorkflowScript(script)
       } catch (error) {
         notify('error', 'Error loading workflow script', { detail: await (error instanceof Response ? error.text() : error) })

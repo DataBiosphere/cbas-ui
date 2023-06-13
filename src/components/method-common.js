@@ -5,14 +5,12 @@ import { notify } from 'src/libs/notifications'
 
 export const submitMethod = async (signal, onDismiss, method) => {
   try {
-    const rawGithubUrl = reconstructToRawUrl(method.method_url, onDismiss)
-
     const methodPayload = {
       method_name: method.method_name,
       method_description: method.method_description,
       method_source: method.method_source,
       method_version: method.method_version,
-      method_url: rawGithubUrl
+      method_url: method.method_url
     }
 
     const methodObject = await Ajax(signal).Cbas.methods.post(methodPayload)
