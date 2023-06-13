@@ -2,6 +2,7 @@ import _ from 'lodash/fp'
 import { useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
+import { Link } from 'src/components/common'
 import { StructBuilderModal } from 'src/components/StructBuilder'
 import {
   InputSourceSelect,
@@ -48,6 +49,10 @@ const InputsTable = props => {
     _.orderBy([({ [inputTableSort.field]: field }) => _.lowerCase(field)], [inputTableSort.direction]),
     _.filter(({ optional }) => includeOptionalInputs || !optional)
   )(configuredInputDefinition)
+
+  const inputRowsInDataTable = _.filter(
+    row => _.has(row.variable, dataTableAttributes) && row.source.type === 'none'
+  )(inputTableData)
 
   const recordLookupWithWarnings = (rowIndex, selectedInputName) => {
     const source = _.get(`${inputTableData[rowIndex].configurationIndex}.source`, configuredInputDefinition)
@@ -105,7 +110,16 @@ const InputsTable = props => {
     return WithWarnings({
       baseComponent: h(TextCell,
         { style: Utils.inputTypeStyle(inputTableData[rowIndex].input_type) },
-        [isInputOptional(inputTableData[rowIndex].input_type) ? 'Optional' : 'This input is required']
+        Utils.cond([_.has(inputTableData[rowIndex].variable, dataTableAttributes), () => ['Autofill ', h(Link, {
+          style: {
+            textDecoration: 'underline'
+          },
+          onClick: () => {
+            setConfiguredInputDefinition(
+              _.set(`[${inputTableData[rowIndex].configurationIndex}].source`, { type: 'record_lookup', record_attribute: inputTableData[rowIndex].variable }, configuredInputDefinition))
+          }
+        }, [inputTableData[rowIndex].variable]), ' from data table']],
+        () => [isInputOptional(inputTableData[rowIndex].input_type) ? 'Optional' : 'This input is required'])
       ),
       warningMessage: missingRequiredInputs.includes(selectedInputName) ? 'This attribute is required' : ''
     })
@@ -127,9 +141,12 @@ const InputsTable = props => {
       }),
       h(InputsButtonRow, {
         style: tableButtonRowStyle({ width, height }),
-        showRow: !includeOptionalInputs || _.some(row => row.optional, inputTableData),
+        showRow: !includeOptionalInputs || _.some(row => row.optional, inputTableData) || inputRowsInDataTable.length > 0,
         optionalButtonProps: {
           includeOptionalInputs, setIncludeOptionalInputs
+        },
+        setFromDataTableButtonProps: {
+          inputRowsInDataTable, setConfiguredInputDefinition
         }
       }),
       h(FlexTable, {
@@ -137,7 +154,7 @@ const InputsTable = props => {
         rowCount: inputTableData.length,
         sort: inputTableSort,
         readOnly: false,
-        height: (!includeOptionalInputs || _.some(row => row.optional, inputTableData)) ? 0.92 * height : height,
+        height: !includeOptionalInputs || _.some(row => row.optional, inputTableData) || inputRowsInDataTable.length > 0 ? 0.92 * height : height,
         width,
         columns: [
           {
@@ -165,7 +182,7 @@ const InputsTable = props => {
             }
           },
           {
-            size: { basis: 350, grow: 0 },
+            size: { basis: 300, grow: 0 },
             headerRenderer: () => h(HeaderCell, ['Input sources']),
             cellRenderer: ({ rowIndex }) => {
               return InputSourceSelect({
