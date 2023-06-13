@@ -1,10 +1,10 @@
 import _ from 'lodash/fp'
-import { Fragment } from 'react'
+import { Fragment, useState } from 'react'
 import { div, h, input } from 'react-hyperscript-helpers'
 import TextAreaAutosize from 'react-textarea-autosize'
 import { icon } from 'src/components/icons'
 import colors from 'src/libs/colors'
-import { forwardRefWithName, useLabelAssert } from 'src/libs/react-utils'
+import { forwardRefWithName, useGetter, useInstance, useLabelAssert } from 'src/libs/react-utils'
 
 
 const styles = {
@@ -51,6 +51,28 @@ export const TextArea = forwardRefWithName('TextArea', ({ onChange, autosize = f
     onChange: onChange ? (e => onChange(nativeOnChange ? e : e.target.value)) : undefined
   }, props))
 })
+
+export const withDebouncedChange = WrappedComponent => {
+  const Wrapper = ({ onChange, value, debounceMs = 250, ...props }) => {
+    const [internalValue, setInternalValue] = useState()
+    const getInternalValue = useGetter(internalValue)
+    const getOnChange = useGetter(onChange)
+    const updateParent = useInstance(() => _.debounce(debounceMs, () => {
+      getOnChange()(getInternalValue())
+      setInternalValue(undefined)
+    })
+    )
+    return h(WrappedComponent, {
+      value: internalValue !== undefined ? internalValue : value,
+      onChange: v => {
+        setInternalValue(v)
+        updateParent()
+      },
+      ...props
+    })
+  }
+  return Wrapper
+}
 
 export const TextInput = forwardRefWithName('TextInput', ({ onChange, nativeOnChange = false, ...props }, ref) => {
   useLabelAssert('TextInput', { ...props, allowId: true })
@@ -107,3 +129,27 @@ const createValidatedInput = ({ inputProps, width, error }, ref) => {
     }, [error])
   ])
 }
+
+export const SearchInput = ({ value, onChange, ...props }) => {
+  return h(
+    TextInput,
+    _.merge(
+      {
+        type: 'search',
+        spellCheck: false,
+        style: { WebkitAppearance: 'none', borderColor: colors.dark(0.55) },
+        value,
+        onChange,
+        onKeyDown: e => {
+          if (e.key === 'Escape' && value !== '') {
+            e.stopPropagation()
+            onChange('')
+          }
+        }
+      },
+      props
+    )
+  )
+}
+
+export const DelayedSearchInput = withDebouncedChange(SearchInput)

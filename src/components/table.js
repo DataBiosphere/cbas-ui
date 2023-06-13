@@ -7,11 +7,13 @@ import Pagination from 'react-paginating'
 import { defaultCellRangeRenderer, Grid as RVGrid, ScrollSync as RVScrollSync } from 'react-virtualized'
 import { Clickable, IdContainer, Link } from 'src/components/common'
 import { icon } from 'src/components/icons'
+import { DelayedSearchInput } from 'src/components/input'
 import Interactive from 'src/components/Interactive'
 import { InfoBox } from 'src/components/PopupTrigger'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import colors from 'src/libs/colors'
 import { forwardRefWithName, useLabelAssert, useOnMount } from 'src/libs/react-utils'
+import { tableButtonRowStyle } from 'src/libs/style'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 
@@ -264,10 +266,11 @@ const NoContentRow = ({ noContentMessage, noContentRenderer = _.noop, numColumns
 ])
 
 export const InputsButtonRow = ({
-  showRow = true, optionalButtonProps: { includeOptionalInputs, setIncludeOptionalInputs },
-  setFromDataTableButtonProps: { inputRowsInDataTable, setConfiguredInputDefinition } = {}, ...props
+  optionalButtonProps: { includeOptionalInputs, setIncludeOptionalInputs },
+  setFromDataTableButtonProps: { inputRowsInDataTable, setConfiguredInputDefinition } = {},
+  searchProps: { searchFilter, setSearchFilter }, ...props
 }) => {
-  return showRow && h(div, { ...props }, [
+  return h(div, { style: tableButtonRowStyle, ...props }, [
     h(Link,
       {
         style: { marginRight: 'auto' },
@@ -286,7 +289,8 @@ export const InputsButtonRow = ({
     ),
     h(InfoBox, {
       side: 'top'
-    }, [div({ style: { maxHeight: 105, overflow: 'auto' } }, [`Inputs that can be auto-filled:\n${_.flow(_.map(row => `${row.taskName}.${row.variable}`), _.join('\n'))(inputRowsInDataTable)}`])])])
+    }, [div({ style: { maxHeight: 105, overflow: 'auto' } }, [`Inputs that can be auto-filled:\n${_.flow(_.map(row => `${row.taskName}.${row.variable}`), _.join('\n'))(inputRowsInDataTable)}`])])]),
+    h(DelayedSearchInput, { style: { marginLeft: '1rem', width: 200 }, value: searchFilter, onChange: setSearchFilter, 'aria-label': 'Search inputs', placeholder: 'SEARCH INPUTS' })
   ])
 }
 

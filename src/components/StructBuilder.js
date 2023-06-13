@@ -14,7 +14,6 @@ import {
   WithWarnings
 } from 'src/components/submission-common'
 import { FlexTable, HeaderCell, InputsButtonRow, TextCell } from 'src/components/table'
-import { tableButtonRowStyle } from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { isInputOptional } from 'src/libs/utils'
 
@@ -43,6 +42,8 @@ export const StructBuilder = props => {
   } = props
 
   const [includeOptionalInputs, setIncludeOptionalInputs] = useState(true)
+  const [searchFilter, setSearchFilter] = useState('')
+
   const structTypePath = buildStructTypePath(structIndexPath)
   const structSourcePath = buildStructSourcePath(structIndexPath)
   const structTypeNamePath = buildStructTypeNamePath(structIndexPath)
@@ -84,15 +85,16 @@ export const StructBuilder = props => {
         currentStructName
       ])
     ]),
+    h(InputsButtonRow, {
+      optionalButtonProps: {
+        includeOptionalInputs, setIncludeOptionalInputs
+      },
+      searchProps: {
+        searchFilter, setSearchFilter
+      }
+    }),
     h(AutoSizer, [({ width, height }) => {
       return h(div, {}, [
-        h(InputsButtonRow, {
-          style: tableButtonRowStyle({ width, height }),
-          showRow: !includeOptionalInputs || _.some(row => row.field_type.type === 'optional', currentStructType.fields),
-          optionalButtonProps: {
-            includeOptionalInputs, setIncludeOptionalInputs
-          }
-        }),
         h(FlexTable, {
           'aria-label': 'struct-table',
           rowCount: _.size(currentStructType.fields),

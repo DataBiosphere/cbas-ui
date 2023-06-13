@@ -13,7 +13,6 @@ import {
   WithWarnings
 } from 'src/components/submission-common'
 import { FlexTable, HeaderCell, InputsButtonRow, Sortable, TextCell } from 'src/components/table'
-import { tableButtonRowStyle } from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { isInputOptional } from 'src/libs/utils'
 
@@ -29,6 +28,7 @@ const InputsTable = props => {
   const [structBuilderVisible, setStructBuilderVisible] = useState(false)
   const [structBuilderRow, setStructBuilderRow] = useState(null)
   const [includeOptionalInputs, setIncludeOptionalInputs] = useState(true)
+  const [searchFilter, setSearchFilter] = useState('')
 
   const dataTableAttributes = _.keyBy('name', selectedDataTable.attributes)
 
@@ -47,7 +47,10 @@ const InputsTable = props => {
     _.orderBy([({ variable }) => _.lowerCase(variable)], ['asc']),
     _.orderBy([({ taskName }) => _.lowerCase(taskName)], ['asc']),
     _.orderBy([({ [inputTableSort.field]: field }) => _.lowerCase(field)], [inputTableSort.direction]),
-    _.filter(({ optional }) => includeOptionalInputs || !optional)
+    _.filter(_.overEvery([
+      ({ optional }) => includeOptionalInputs || !optional,
+      ({ taskName, variable }) => taskName.includes(searchFilter) || variable.includes(searchFilter)
+    ]))
   )(configuredInputDefinition)
 
   const inputRowsInDataTable = _.filter(
@@ -125,91 +128,94 @@ const InputsTable = props => {
     })
   }
 
-  return h(AutoSizer, [({ width, height }) => {
-    return h(div, {}, [
-      structBuilderVisible && h(StructBuilderModal, {
-        structName: _.get('variable', inputTableData[structBuilderRow]),
-        structType: _.get('input_type', inputTableData[structBuilderRow]),
-        structSource: _.get('source', inputTableData[structBuilderRow]),
-        setStructSource: source => setConfiguredInputDefinition(
-          _.set(`${inputTableData[structBuilderRow].configurationIndex}.source`, source, configuredInputDefinition)
-        ),
-        dataTableAttributes,
-        onDismiss: () => {
-          setStructBuilderVisible(false)
-        }
-      }),
-      h(InputsButtonRow, {
-        style: tableButtonRowStyle({ width, height }),
-        showRow: !includeOptionalInputs || _.some(row => row.optional, inputTableData) || inputRowsInDataTable.length > 0,
-        optionalButtonProps: {
-          includeOptionalInputs, setIncludeOptionalInputs
-        },
-        setFromDataTableButtonProps: {
-          inputRowsInDataTable, setConfiguredInputDefinition
-        }
-      }),
-      h(FlexTable, {
-        'aria-label': 'input-table',
-        rowCount: inputTableData.length,
-        sort: inputTableSort,
-        readOnly: false,
-        height: !includeOptionalInputs || _.some(row => row.optional, inputTableData) || inputRowsInDataTable.length > 0 ? 0.92 * height : height,
-        width,
-        columns: [
-          {
-            size: { basis: 250, grow: 0 },
-            field: 'taskName',
-            headerRenderer: () => h(Sortable, { sort: inputTableSort, field: 'taskName', onSort: setInputTableSort }, [h(HeaderCell, ['Task name'])]),
-            cellRenderer: ({ rowIndex }) => {
-              return h(TextCell, { style: { fontWeight: 500 } }, [inputTableData[rowIndex].taskName])
-            }
-          },
-          {
-            size: { basis: 360, grow: 0 },
-            field: 'variable',
-            headerRenderer: () => h(Sortable, { sort: inputTableSort, field: 'variable', onSort: setInputTableSort }, [h(HeaderCell, ['Variable'])]),
-            cellRenderer: ({ rowIndex }) => {
-              return h(TextCell, { style: Utils.inputTypeStyle(inputTableData[rowIndex].input_type) }, [inputTableData[rowIndex].variable])
-            }
-          },
-          {
-            size: { basis: 160, grow: 0 },
-            field: 'inputTypeStr',
-            headerRenderer: () => h(HeaderCell, ['Type']),
-            cellRenderer: ({ rowIndex }) => {
-              return h(TextCell, { style: Utils.inputTypeStyle(inputTableData[rowIndex].input_type) }, [inputTableData[rowIndex].inputTypeStr])
-            }
-          },
-          {
-            size: { basis: 300, grow: 0 },
-            headerRenderer: () => h(HeaderCell, ['Input sources']),
-            cellRenderer: ({ rowIndex }) => {
-              return InputSourceSelect({
-                source: _.get('source', inputTableData[rowIndex]),
-                inputType: _.get('input_type', inputTableData[rowIndex]),
-                setSource: source => setConfiguredInputDefinition(
-                  _.set(`[${inputTableData[rowIndex].configurationIndex}].source`, source, configuredInputDefinition))
-              })
-            }
-          },
-          {
-            headerRenderer: () => h(HeaderCell, ['Attribute']),
-            cellRenderer: ({ rowIndex }) => {
-              const source = _.get(`${rowIndex}.source`, inputTableData)
-              const inputName = _.get(`${rowIndex}.input_name`, inputTableData)
-              return Utils.switchCase(source.type || 'none',
-                ['record_lookup', () => recordLookupWithWarnings(rowIndex, inputName)],
-                ['literal', () => parameterValueSelectWithWarnings(rowIndex, inputName)],
-                ['object_builder', () => structBuilderLinkWithWarnings(rowIndex, inputName)],
-                ['none', () => sourceNoneWithWarnings(rowIndex, inputName)]
-              )
-            }
+  return h(div, { style: { height: 'calc(100% - 3rem)' } }, [
+    h(InputsButtonRow, {
+      optionalButtonProps: {
+        includeOptionalInputs, setIncludeOptionalInputs
+      },
+      setFromDataTableButtonProps: {
+        inputRowsInDataTable, setConfiguredInputDefinition
+      },
+      searchProps: {
+        searchFilter, setSearchFilter
+      }
+    }),
+    h(AutoSizer, [({ width, height }) => {
+      return h(div, {}, [
+        structBuilderVisible && h(StructBuilderModal, {
+          structName: _.get('variable', inputTableData[structBuilderRow]),
+          structType: _.get('input_type', inputTableData[structBuilderRow]),
+          structSource: _.get('source', inputTableData[structBuilderRow]),
+          setStructSource: source => setConfiguredInputDefinition(
+            _.set(`${inputTableData[structBuilderRow].configurationIndex}.source`, source, configuredInputDefinition)
+          ),
+          dataTableAttributes,
+          onDismiss: () => {
+            setStructBuilderVisible(false)
           }
-        ]
-      })
-    ])
-  }])
+        }),
+        h(FlexTable, {
+          'aria-label': 'input-table',
+          rowCount: inputTableData.length,
+          sort: inputTableSort,
+          readOnly: false,
+          height,
+          width,
+          columns: [
+            {
+              size: { basis: 250, grow: 0 },
+              field: 'taskName',
+              headerRenderer: () => h(Sortable, { sort: inputTableSort, field: 'taskName', onSort: setInputTableSort }, [h(HeaderCell, ['Task name'])]),
+              cellRenderer: ({ rowIndex }) => {
+                return h(TextCell, { style: { fontWeight: 500 } }, [inputTableData[rowIndex].taskName])
+              }
+            },
+            {
+              size: { basis: 360, grow: 0 },
+              field: 'variable',
+              headerRenderer: () => h(Sortable, { sort: inputTableSort, field: 'variable', onSort: setInputTableSort }, [h(HeaderCell, ['Variable'])]),
+              cellRenderer: ({ rowIndex }) => {
+                return h(TextCell, { style: Utils.inputTypeStyle(inputTableData[rowIndex].input_type) }, [inputTableData[rowIndex].variable])
+              }
+            },
+            {
+              size: { basis: 160, grow: 0 },
+              field: 'inputTypeStr',
+              headerRenderer: () => h(HeaderCell, ['Type']),
+              cellRenderer: ({ rowIndex }) => {
+                return h(TextCell, { style: Utils.inputTypeStyle(inputTableData[rowIndex].input_type) }, [inputTableData[rowIndex].inputTypeStr])
+              }
+            },
+            {
+              size: { basis: 300, grow: 0 },
+              headerRenderer: () => h(HeaderCell, ['Input sources']),
+              cellRenderer: ({ rowIndex }) => {
+                return InputSourceSelect({
+                  source: _.get('source', inputTableData[rowIndex]),
+                  inputType: _.get('input_type', inputTableData[rowIndex]),
+                  setSource: source => setConfiguredInputDefinition(
+                    _.set(`[${inputTableData[rowIndex].configurationIndex}].source`, source, configuredInputDefinition))
+                })
+              }
+            },
+            {
+              headerRenderer: () => h(HeaderCell, ['Attribute']),
+              cellRenderer: ({ rowIndex }) => {
+                const source = _.get(`${rowIndex}.source`, inputTableData)
+                const inputName = _.get(`${rowIndex}.input_name`, inputTableData)
+                return Utils.switchCase(source.type || 'none',
+                  ['record_lookup', () => recordLookupWithWarnings(rowIndex, inputName)],
+                  ['literal', () => parameterValueSelectWithWarnings(rowIndex, inputName)],
+                  ['object_builder', () => structBuilderLinkWithWarnings(rowIndex, inputName)],
+                  ['none', () => sourceNoneWithWarnings(rowIndex, inputName)]
+                )
+              }
+            }
+          ]
+        })
+      ])
+    }])
+  ])
 }
 
 export default InputsTable
