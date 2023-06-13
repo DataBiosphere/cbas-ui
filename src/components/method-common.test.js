@@ -13,6 +13,7 @@ jest.mock('src/libs/ajax')
 
 describe('convertToRawUrl', () => {
   const nonDockstoreValidTestCases = [
+    // "GitHub" as source
     {
       methodPath: 'https://raw.githubusercontent.com/broadinstitute/cromwell/develop/wdl/transforms/draft3/src/test/cases/simple_task.wdl',
       methodVersion: 'develop',
@@ -24,6 +25,19 @@ describe('convertToRawUrl', () => {
       methodVersion: 'develop',
       methodSource: 'GitHub',
       expectedRawUrl: 'https://raw.githubusercontent.com/broadinstitute/cromwell/develop/wdl/transforms/draft3/src/test/cases/simple_task.wdl'
+    },
+    // "Github" as source
+    {
+      methodPath: 'https://raw.githubusercontent.com/broadinstitute/cromwell/develop/wdl/transforms/draft3/src/test/cases/simple_task.wdl',
+      methodVersion: 'develop',
+      methodSource: 'Github',
+      expectedRawUrl: 'https://raw.githubusercontent.com/broadinstitute/cromwell/develop/wdl/transforms/draft3/src/test/cases/simple_task.wdl'
+    },
+    {
+      methodPath: 'https://github.com/broadinstitute/cromwell/blob/develop/wdl/transforms/draft3/src/test/cases/simple_task.wdl',
+      methodVersion: 'develop',
+      methodSource: 'Github',
+      expectedRawUrl: 'https://raw.githubusercontent.com/broadinstitute/cromwell/develop/wdl/transforms/draft3/src/test/cases/simple_task.wdl'
     }
   ]
 
@@ -33,14 +47,12 @@ describe('convertToRawUrl', () => {
 
 
   it('should call Dockstore to retrive raw URL', async () => {
-    const mockDockstoreResponse = 'https://raw.githubusercontent.com/broadinstitute/viral-pipelines/master/pipes/WDL/workflows/fetch_sra_to_bam.wdl'
-
     const methodPath = 'github.com/broadinstitute/viral-pipelines/fetch_sra_to_bam'
     const methodVersion = 'master'
     const methodSource = 'Dockstore'
-    const expectedRawUrl = 'https://raw.githubusercontent.com/broadinstitute/viral-pipelines/master/pipes/WDL/workflows/fetch_sra_to_bam.wdl'
+    const rawUrl = 'https://raw.githubusercontent.com/broadinstitute/viral-pipelines/master/pipes/WDL/workflows/fetch_sra_to_bam.wdl'
 
-    const mockDockstoreWfSourceMethod = jest.fn(() => Promise.resolve(mockDockstoreResponse))
+    const mockDockstoreWfSourceMethod = jest.fn(() => Promise.resolve(rawUrl))
 
     Ajax.mockImplementation(() => {
       return {
@@ -54,7 +66,7 @@ describe('convertToRawUrl', () => {
 
     expect(mockDockstoreWfSourceMethod).toBeCalledTimes(1)
     expect(mockDockstoreWfSourceMethod).toHaveBeenCalledWith(methodPath, methodVersion)
-    expect(actualUrl).toBe(expectedRawUrl)
+    expect(actualUrl).toBe(rawUrl)
   })
 
   it('should throw error for unknown method source', () => {
