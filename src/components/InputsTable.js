@@ -15,7 +15,6 @@ import {
 import { FlexTable, HeaderCell, InputsButtonRow, Sortable, TextCell } from 'src/components/table'
 import { tableButtonRowStyle } from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import { isInputOptional } from 'src/libs/utils'
 
 
 const InputsTable = props => {
@@ -49,7 +48,7 @@ const InputsTable = props => {
     _.orderBy([({ [inputTableSort.field]: field }) => _.lowerCase(field)], [inputTableSort.direction]),
     _.filter(({ optional }) => includeOptionalInputs || !optional)
   )(configuredInputDefinition)
-  
+
   const inputRowsInDataTable = _.filter(
     row => _.has(row.variable, dataTableAttributes) && row.source.type === 'none'
   )(inputTableData)
@@ -101,7 +100,7 @@ const InputsTable = props => {
             _.set(`[${inputTableData[rowIndex].configurationIndex}].source`, { type: 'record_lookup', record_attribute: inputTableData[rowIndex].variable }, configuredInputDefinition))
         }
       }, [inputTableData[rowIndex].variable]), ' from data table']],
-      () => [inputTableData[rowIndex].optional) ? 'Optional' : 'This input is required'])
+      () => [inputTableData[rowIndex].optional ? 'Optional' : 'This input is required'])
     )
   }
 
