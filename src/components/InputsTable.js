@@ -110,7 +110,7 @@ const InputsTable = props => {
     return WithWarnings({
       baseComponent: h(TextCell,
         { style: Utils.inputTypeStyle(inputTableData[rowIndex].input_type) },
-        Utils.cond([_.has(inputTableData[rowIndex].variable, dataTableAttributes), () => [h('span', { style: { fontStyle: 'normal' } }, ['💡']), ' Autofill ', h(Link, {
+        Utils.cond([_.has(inputTableData[rowIndex].variable, dataTableAttributes), () => ['Autofill ', h(Link, {
           style: {
             textDecoration: 'underline'
           },
