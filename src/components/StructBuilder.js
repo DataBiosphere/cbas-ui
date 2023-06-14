@@ -43,6 +43,13 @@ export const StructBuilder = props => {
 
   const [includeOptionalInputs, setIncludeOptionalInputs] = useState(true)
   const [searchFilter, setSearchFilter] = useState('')
+  const [prevStructIndex, setPrevStructIndex] = useState(structIndexPath)
+
+  if (structIndexPath !== prevStructIndex) {
+    setSearchFilter('')
+    setIncludeOptionalInputs(true)
+    setPrevStructIndex(structIndexPath)
+  }
 
   const structTypePath = buildStructTypePath(structIndexPath)
   const structSourcePath = buildStructSourcePath(structIndexPath)
@@ -208,7 +215,9 @@ export const StructBuilder = props => {
 
                       return WithWarnings({
                         baseComponent: StructBuilderLink({
-                          onClick: () => setStructIndexPath([...structIndexPath, inputTableData[rowIndex].configurationIndex])
+                          onClick: () => {
+                            setStructIndexPath([...structIndexPath, inputTableData[rowIndex].configurationIndex])
+                          }
                         }),
                         warningMessage
                       })
