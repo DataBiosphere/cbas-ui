@@ -4,6 +4,7 @@ import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { h } from 'react-hyperscript-helpers'
 import { buildStructBreadcrumbs, StructBuilder, StructBuilderModal } from 'src/components/StructBuilder'
+import { delay } from 'src/libs/utils'
 
 
 describe('unit tests', () => {
@@ -201,63 +202,67 @@ describe('Configuration tests', () => {
       expect(setStructIndexPath).not.toHaveBeenCalled()
     })
 
+  const complexStructType = {
+    type: 'struct',
+    name: 'Pet',
+    fields: [
+      {
+        field_name: 'pet_description',
+        field_type: {
+          name: 'pet_description',
+          type: 'struct',
+          fields: [{
+            field_name: 'pet_num_legs',
+            field_type: {
+              type: 'primitive',
+              primitive_type: 'Int'
+            }
+          }, {
+            field_name: 'pet_has_tail',
+            field_type: {
+              type: 'primitive',
+              primitive_type: 'Boolean'
+            }
+          }]
+        }
+      },
+      {
+        field_name: 'pet_age',
+        field_type: { type: 'primitive', primitive_type: 'Int' }
+      }
+    ]
+  }
+  const complexStructSource = {
+    type: 'object_builder',
+    fields: [{
+      source: {
+        type: 'object_builder',
+        fields: [{
+          type: 'literal',
+          parameter_value: 'foo'
+        }, {
+          type: 'none'
+        }]
+      }
+    }, {
+      source: {
+        type: 'none'
+      }
+    }]
+  }
+
+
   it('Clicking done moves up a level on inner structs and dismisses modal on outermost struct', async () => {
     const setStructSource = jest.fn()
     const onDismiss = jest.fn()
 
     // ** ACT **
     render(h(StructBuilderModal, {
-      structType: {
-        type: 'struct',
-        name: 'Pet',
-        fields: [
-          {
-            field_name: 'pet_description',
-            field_type: {
-              name: 'pet_description',
-              type: 'struct',
-              fields: [{
-                field_name: 'pet_num_legs',
-                field_type: {
-                  type: 'primitive',
-                  primitive_type: 'Int'
-                }
-              }, {
-                field_name: 'pet_has_tail',
-                field_type: {
-                  type: 'primitive',
-                  primitive_type: 'Boolean'
-                }
-              }]
-            }
-          },
-          {
-            field_name: 'pet_age',
-            field_type: { type: 'primitive', primitive_type: 'Int' }
-          }
-        ]
-      },
+      structType: complexStructType,
       setStructSource,
       onDismiss,
       structName: 'myStruct',
-      structSource: {
-        type: 'object_builder',
-        fields: [{
-          source: {
-            type: 'object_builder',
-            fields: [{
-              type: 'literal',
-              parameter_value: 'foo'
-            }, {
-              type: 'none'
-            }]
-          }
-        }, {
-          source: {
-            type: 'none'
-          }
-        }]
-      },
+      structSource: complexStructSource,
       dataTableAttributes: {}
     }))
 
@@ -302,5 +307,47 @@ describe('Configuration tests', () => {
     const outerDoneButton = await screen.getByText('Done')
     await userEvent.click(outerDoneButton)
     expect(onDismiss).toHaveBeenCalled()
+  })
+
+  it('Searching in a struct filters the struct fields', async () => {
+    // ** ARRANGE **
+    const setStructSource = jest.fn()
+    const setStructIndexPath = jest.fn()
+
+    // ** ACT **
+    render(h(StructBuilder, {
+      structType: complexStructType,
+      setStructSource,
+      setStructIndexPath,
+      structIndexPath: [],
+      structName: 'myStruct',
+      structSource: complexStructSource,
+      dataTableAttributes: {}
+    }))
+
+    // ** ASSERT **
+    const structTable = await screen.getByLabelText('struct-table')
+    const structRows = within(structTable).queryAllByRole('row')
+    expect(structRows.length).toBe(3)
+    within(structRows[1]).getByText('pet_age')
+    within(structRows[2]).getByText('pet_description')
+
+    const searchInput = await screen.getByLabelText('Search inputs')
+    await userEvent.type(searchInput, 'pet_a')
+    expect(searchInput).toHaveValue('pet_a')
+    await delay(300) // debounced search
+
+    const filteredStructRows = within(structTable).queryAllByRole('row')
+    expect(filteredStructRows.length).toBe(2)
+    within(filteredStructRows[1]).getByText('pet_age')
+
+    await userEvent.type(searchInput, '{backspace}')
+    expect(searchInput).toHaveValue('pet_')
+    await delay(300) // debounced search
+
+    const allFilteredStructRows = within(structTable).queryAllByRole('row')
+    expect(allFilteredStructRows.length).toBe(3)
+    within(allFilteredStructRows[1]).getByText('pet_age')
+    within(allFilteredStructRows[2]).getByText('pet_description')
   })
 })

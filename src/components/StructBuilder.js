@@ -85,7 +85,7 @@ export const StructBuilder = props => {
   )(structInputDefinition)
 
   const breadcrumbsHeight = 35
-  return h(div, { style: { height: 500 } }, [
+  return h(div, { style: { height: 500 }, role: 'struct-builder' }, [
     h(div, {
       'aria-label': 'struct-breadcrumbs',
       style: {
