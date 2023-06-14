@@ -6,5 +6,5 @@
   "workspaceManagerRoot" : "",
   "workspaceId" : "",
   "containerResourceId" : "",
-  "dockstoreRootUrl" :  "https://staging.dockstore.org"
+  "dockstoreRootUrl" : "https://staging.dockstore.org/"
 }

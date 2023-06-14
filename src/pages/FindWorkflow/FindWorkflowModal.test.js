@@ -20,7 +20,7 @@ describe('FindWorkflowModal', () => {
   beforeEach(() => {
     getConfig.mockReturnValue({ isDockstoreEnabled: false })
     getConfig.mockReturnValue({ isURLEnabled: false })
-    getConfig.mockReturnValue(({ dockstoreRootUrl: 'https://staging.dockstore.org' }))
+    getConfig.mockReturnValue(({ dockstoreRootUrl: 'https://staging.dockstore.org/' }))
   })
   it('should render FindWorkflowModal with 5 hardcoded Method cards', () => {
     // ** ACT **
