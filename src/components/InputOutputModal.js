@@ -20,7 +20,6 @@ export const appendSASTokenIfNecessary = (blobPath, sasToken) => {
 }
 
 //Whatever is after the last slash is the filename.
-//If there is no slash, the entire string will be returned.
 export const getFilenameFromAzureBlobPath = blobPath => {
   return _.isString(blobPath) ? blobPath.substring(blobPath.lastIndexOf('/') + 1) : ''
 }
@@ -32,6 +31,7 @@ const InputOutputModal = ({ title, jsonData, onDismiss, sasToken }) => {
     const fileName = getFilenameFromAzureBlobPath(blobPath)
     return h(Link, {
       disabled: !downloadUrl,
+      isRendered: !_.isEmpty(fileName),
       href: downloadUrl,
       download: fileName,
       style: {},
