@@ -35,6 +35,9 @@ jobs:
         id: git-sha
         run: |
           CONSUMER_VERSION=${{ github.event.pull_request.head.sha }}
+          if [ ! "${CONSUMER_VERSION}" ]; then
+            CONSUMER_VERSION="main";
+          fi
           echo "repo-branch=${CONSUMER_VERSION}" >> $GITHUB_OUTPUT
           echo $CONSUMER_VERSION
 
