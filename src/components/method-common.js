@@ -32,7 +32,7 @@ export const submitMethod = async (signal, onDismiss, method) => {
 
 export const convertToRawUrl = (methodPath, methodVersion, methodSource) => {
   return Utils.cond(
-    // 3 Covid-19 workflows have 'Github' as source hence we check for that here to maintain backwards compatibility
+    // the case-insensitive check is to maintain backwards compatibility as 3 Covid-19 workflows have 'Github' as source
     [methodSource.toLowerCase() === MethodSource.GitHub.toLowerCase(), () => {
       // mapping of searchValues (key) and their replaceValue (value)
       const mapObj = {
