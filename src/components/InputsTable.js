@@ -49,7 +49,7 @@ const InputsTable = props => {
     _.orderBy([({ [inputTableSort.field]: field }) => _.lowerCase(field)], [inputTableSort.direction]),
     _.filter(_.overEvery([
       ({ optional }) => includeOptionalInputs || !optional,
-      ({ taskName, variable }) => taskName.includes(searchFilter) || variable.includes(searchFilter)
+      ({ taskName, variable }) => _.lowerCase(taskName).includes(_.lowerCase(searchFilter)) || _.lowerCase(variable).includes(_.lowerCase(searchFilter))
     ]))
   )(configuredInputDefinition)
 

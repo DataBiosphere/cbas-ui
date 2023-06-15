@@ -80,7 +80,7 @@ export const StructBuilder = props => {
     _.orderBy([({ field_name: name }) => _.lowerCase(name)], ['asc']),
     _.filter(_.overEvery([
       ({ optional }) => includeOptionalInputs || !optional,
-      ({ field_name: name }) => name.includes(searchFilter)
+      ({ field_name: name }) => _.lowerCase(name).includes(_.lowerCase(searchFilter))
     ]))
   )(structInputDefinition)
 
