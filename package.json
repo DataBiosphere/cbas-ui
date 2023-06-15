@@ -1,6 +1,6 @@
 {
   "name": "composite-batch-analysis-service-ui",
-  "version": "0.0.137",
+  "version": "0.0.138",
   "private": true,
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^1.2.36",
