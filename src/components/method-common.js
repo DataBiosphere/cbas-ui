@@ -33,7 +33,7 @@ export const submitMethod = async (signal, onDismiss, method) => {
 export const convertToRawUrl = (methodPath, methodVersion, methodSource) => {
   return Utils.cond(
     // 3 Covid-19 workflows have 'Github' as source hence we check for that here to maintain backwards compatibility
-    [methodSource === MethodSource.GitHub || methodSource === 'Github', () => {
+    [methodSource.toLowerCase() === MethodSource.GitHub.toLowerCase(), () => {
       // mapping of searchValues (key) and their replaceValue (value)
       const mapObj = {
         github: 'raw.githubusercontent',
@@ -41,7 +41,7 @@ export const convertToRawUrl = (methodPath, methodVersion, methodSource) => {
       }
       return methodPath.replace(/\b(?:github|blob\/)\b/gi, matched => mapObj[matched])
     }],
-    [methodSource === MethodSource.Dockstore, async () => await Ajax().Dockstore.getWorkflowSourceUrl(methodPath, methodVersion)],
+    [methodSource.toLowerCase() === MethodSource.Dockstore.toLowerCase(), async () => await Ajax().Dockstore.getWorkflowSourceUrl(methodPath, methodVersion)],
     () => {
       throw new Error(`Unknown method source '${methodSource}'. Currently supported method sources are [${MethodSource.GitHub}, ${MethodSource.Dockstore}].`)
     }
