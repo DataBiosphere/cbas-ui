@@ -21,10 +21,10 @@ const InputsTable = props => {
   const {
     selectedDataTable,
     configuredInputDefinition, setConfiguredInputDefinition,
-    inputTableSort, setInputTableSort,
     missingRequiredInputs, missingExpectedAttributes, inputsWithInvalidValues
   } = props
 
+  const [inputTableSort, setInputTableSort] = useState({ field: '', direction: 'asc' })
   const [structBuilderVisible, setStructBuilderVisible] = useState(false)
   const [structBuilderRow, setStructBuilderRow] = useState(null)
   const [includeOptionalInputs, setIncludeOptionalInputs] = useState(true)
