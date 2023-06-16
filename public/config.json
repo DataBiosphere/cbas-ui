@@ -6,5 +6,5 @@
   "workspaceManagerRoot" : "",
   "workspaceId" : "",
   "containerResourceId" : "",
-  "dockstoreRootUrl" :  "https://staging.dockstore.org/search?descriptorType=WDL&entryType=workflows&searchMode=files"
+  "dockstoreRootUrl" : "https://staging.dockstore.org/"
 }

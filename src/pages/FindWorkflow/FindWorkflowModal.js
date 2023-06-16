@@ -118,7 +118,7 @@ const FindWorkflowModal = ({ onDismiss }) => {
         ])
       ]),
       isSubHeaderActive('add-a-workflow-link') && h(ImportGithub, { setLoading, signal, onDismiss }),
-      isSubHeaderActive('go-to-dockstore') && div({ style: { marginLeft: '4rem', width: '50%' } }, [h(ButtonPrimary, { style: { width: 225 }, href: getConfig().dockstoreRootUrl }, ['Go to Dockstore'])]),
+      isSubHeaderActive('go-to-dockstore') && div({ style: { marginLeft: '4rem', width: '50%' } }, [h(ButtonPrimary, { style: { width: 225 }, href: `${getConfig().dockstoreRootUrl}search?_type=workflow&descriptorType=WDL&searchMode=files` }, ['Go to Dockstore'])]),
       div({ style: { marginLeft: '10rem', marginRight: '1.5rem', width: '40%' } }, [h(HelpfulLinksBox)])
     ])
   ])
