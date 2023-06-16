@@ -1,6 +1,15 @@
 import _ from 'lodash/fp'
 import qs from 'qs'
-import { fetchAzureStorage, fetchCbas, fetchCromwell, fetchLeo, fetchOk, fetchWds, fetchWorkspaceManager } from 'src/libs/ajax-fetch'
+import {
+  fetchAzureStorage,
+  fetchCbas,
+  fetchCromwell,
+  fetchDockstore,
+  fetchLeo,
+  fetchOk,
+  fetchWds,
+  fetchWorkspaceManager
+} from 'src/libs/ajax-fetch'
 import { getConfig } from 'src/libs/config'
 import { parseAzureBlobUri } from 'src/libs/utils'
 
@@ -177,6 +186,16 @@ const AzureStorage = signal => ({
   }
 })
 
+const Dockstore = signal => ({
+  getWorkflowSourceUrl: async (path, version) => {
+    // %23 = '#', %2F = '/'
+    const workflowVersionsPath = `api/ga4gh/v1/tools/%23workflow%2F${encodeURIComponent(path)}/versions`
+    const wdlPath = `${workflowVersionsPath}/${encodeURIComponent(version)}/WDL/descriptor`
+    const { url } = await fetchDockstore(wdlPath, { signal }).then(res => res.json())
+    return url
+  }
+})
+
 export const Ajax = signal => {
   return {
     Cbas: Cbas(signal),
@@ -185,6 +204,7 @@ export const Ajax = signal => {
     WorkflowScript: WorkflowScript(signal),
     Leonardo: Leonardo(signal),
     WorkspaceManager: WorkspaceManager(signal),
-    AzureStorage: AzureStorage(signal)
+    AzureStorage: AzureStorage(signal),
+    Dockstore: Dockstore(signal)
   }
 }
