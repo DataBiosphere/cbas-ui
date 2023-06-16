@@ -904,7 +904,7 @@ describe('Input source and requirements validation', () => {
     const table = await screen.findByRole('table')
     const rows = within(table).queryAllByRole('row')
     const viewStructLink = within(rows[2]).getByText('View Struct')
-    const inputWarningMessageActive = within(rows[2]).queryByText("One of this struct's inputs has an invalid configuration")
+    const inputWarningMessageActive = within(rows[2]).queryByText('This struct is missing a required input')
     expect(inputWarningMessageActive).not.toBeNull()
 
     // ** ACT **
@@ -918,7 +918,7 @@ describe('Input source and requirements validation', () => {
     const structCells = within(structRows[2]).queryAllByRole('cell')
     within(structCells[1]).getByText('myInnerStruct')
     const viewMyInnerStructLink = within(structCells[4]).getByText('View Struct')
-    const structWarningMessageActive = within(structCells[4]).getByText("One of this struct's inputs has an invalid configuration")
+    const structWarningMessageActive = within(structCells[4]).getByText('This struct is missing a required input')
     expect(structWarningMessageActive).not.toBeNull()
 
     // ** ACT **
@@ -2367,7 +2367,12 @@ describe('SubmissionConfig submitting a run set', () => {
     // Update the struct within myInnerStruct
     const myInnermostPrimitiveRowCells = within(myInnerStructRows[1]).queryAllByRole('cell')
     within(myInnermostPrimitiveRowCells[1]).getByText('myInnermostPrimitive')
-    const myInnermostPrimitiveInput = within(myInnermostPrimitiveRowCells[4]).getByDisplayValue('foo')
+    await act(async () => {
+      await userEvent.click(within(myInnermostPrimitiveRowCells[3]).getByText('Select Source'))
+      const selectOption = await within(screen.getByRole('listbox')).findByText('Type a Value')
+      await userEvent.click(selectOption)
+    })
+    const myInnermostPrimitiveInput = within(myInnermostPrimitiveRowCells[4]).getByLabelText('Enter a value')
     await fireEvent.change(myInnermostPrimitiveInput, { target: { value: 'bar' } })
     within(myInnermostPrimitiveRowCells[4]).getByDisplayValue('bar')
 

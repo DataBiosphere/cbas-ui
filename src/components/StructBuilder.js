@@ -151,12 +151,14 @@ export const StructBuilder = props => {
             {
               headerRenderer: () => h(HeaderCell, ['Attribute']),
               cellRenderer: ({ rowIndex }) => {
+                // rowIndex is the index of this input in the currently displayed table
+                // configurationIndex is the index of this input the struct input definition
                 const configurationIndex = inputTableData[rowIndex].configurationIndex
                 const typeNamePath = buildStructTypeNamePath([configurationIndex])
                 const sourcePath = buildStructSourcePath([configurationIndex])
                 const sourceNamePath = buildStructSourceNamePath([configurationIndex])
                 const innerStructSource = _.get(sourcePath, currentStructSource)
-                const inputName = structInputDefinition[rowIndex].field_name
+                const inputName = inputTableData[rowIndex].field_name
                 const setInnerStructSource = source => {
                   const newSource = _.flow([
                     _.set(sourceNamePath, _.get(sourceNamePath, currentStructSource) || _.get(typeNamePath, currentStructType)),
