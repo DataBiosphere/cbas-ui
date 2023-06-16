@@ -49,8 +49,10 @@ export const SubmissionConfig = ({ methodId }) => {
   const [selectedRecords, setSelectedRecords] = useState({})
   const [configuredInputDefinition, setConfiguredInputDefinition] = useState([])
   const [configuredOutputDefinition, setConfiguredOutputDefinition] = useState()
-  const [inputsWithMessages, setInputsWithMessages] = useState([])
+  const [inputValidations, setInputValidations] = useState([])
   const [viewWorkflowScriptModal, setViewWorkflowScriptModal] = useState(false)
+
+  const errorMessageCount = _.filter(message => message.type === 'error')(inputValidations).length
 
   // TODO: These should probably be moved to the modal:
   const [runSetName, setRunSetName] = useState('')
@@ -190,9 +192,9 @@ export const SubmissionConfig = ({ methodId }) => {
       const selectedDataTable = _.keyBy('name', recordTypes)[records[0].type]
       const dataTableAttributes = _.keyBy('name', selectedDataTable.attributes)
 
-      const newInputsWithMessages = validateInputs(configuredInputDefinition, dataTableAttributes)
+      const newInputValidations = validateInputs(configuredInputDefinition, dataTableAttributes)
 
-      setInputsWithMessages(newInputsWithMessages)
+      setInputValidations(newInputValidations)
     }
   }, [records, recordTypes, configuredInputDefinition])
 
@@ -302,7 +304,7 @@ export const SubmissionConfig = ({ methodId }) => {
         h(StepButtons, {
           tabs: [
             { key: 'select-data', title: 'Select Data', isValid: true },
-            { key: 'inputs', title: 'Inputs', isValid: _.filter(message => message.type === 'error')(inputsWithMessages).length === 0 },
+            { key: 'inputs', title: 'Inputs', isValid: errorMessageCount === 0 },
             { key: 'outputs', title: 'Outputs', isValid: true }
           ],
           activeTab: activeTab.key || 'select-data',
@@ -310,10 +312,10 @@ export const SubmissionConfig = ({ methodId }) => {
           finalStep: h(ButtonPrimary, {
             'aria-label': 'Submit button',
             style: { marginLeft: '1rem' },
-            disabled: _.isEmpty(selectedRecords) || _.filter(message => message.type === 'error')(inputsWithMessages).length > 0,
+            disabled: _.isEmpty(selectedRecords) || errorMessageCount > 0,
             tooltip: Utils.cond(
               [_.isEmpty(selectedRecords), () => 'No records selected'],
-              [_.filter(message => message.type === 'error')(inputsWithMessages).length > 0, () => 'One or more inputs have missing/invalid values'],
+              [errorMessageCount > 0, () => `${errorMessageCount} input(s) have missing/invalid values`],
               () => ''
             ),
             onClick: () => {
@@ -398,7 +400,7 @@ export const SubmissionConfig = ({ methodId }) => {
       selectedDataTable: _.keyBy('name', recordTypes)[selectedRecordType],
       configuredInputDefinition, setConfiguredInputDefinition,
       inputTableSort, setInputTableSort,
-      inputsWithMessages
+      inputValidations
     }) : 'No data table rows available or input definition is not configured...'
   }
 

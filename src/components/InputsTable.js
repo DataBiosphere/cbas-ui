@@ -22,7 +22,7 @@ const InputsTable = props => {
     selectedDataTable,
     configuredInputDefinition, setConfiguredInputDefinition,
     inputTableSort, setInputTableSort,
-    inputsWithMessages
+    inputValidations
   } = props
 
   const [structBuilderVisible, setStructBuilderVisible] = useState(false)
@@ -184,7 +184,7 @@ const InputsTable = props => {
                   ['object_builder', () => structBuilderLink(rowIndex)],
                   ['none', () => sourceNone(rowIndex)]
                 ),
-                message: _.find(message => message.name === inputName)(inputsWithMessages)
+                message: _.find(message => message.name === inputName)(inputValidations)
               })
             }
           }

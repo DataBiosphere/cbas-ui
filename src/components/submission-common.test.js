@@ -197,10 +197,12 @@ describe('validateInputs', () => {
     const sourceNoneInt = _.set('source', { type: 'none' }, intInput('123'))
     const sourceNoneFloat = _.set('source', { type: 'none' }, floatInput('123'))
 
-    const invalidInputs = validateInputs([sourceNoneInt, sourceNoneFloat], emptyDataTableAttributes)
-    expect(invalidInputs.length).toBe(1)
-    expect(invalidInputs).toEqual(expect.arrayContaining([expect.objectContaining({ name: sourceNoneInt.input_name, type: 'error' })]))
-    expect(invalidInputs).not.toEqual(expect.arrayContaining([expect.objectContaining({ name: sourceNoneFloat.input_name, type: 'error' })]))
+    const validatedInputs = validateInputs([sourceNoneInt, sourceNoneFloat], emptyDataTableAttributes)
+    expect(validatedInputs.length).toBe(2)
+    expect(validatedInputs).toEqual(expect.arrayContaining([
+      expect.objectContaining({ name: sourceNoneInt.input_name, type: 'error' }),
+      { name: sourceNoneFloat.input_name, type: 'none' }
+    ]))
   })
 
   it('should return list of inputs with incorrect values', () => {
@@ -225,10 +227,13 @@ describe('validateInputs', () => {
       }
     ]
 
-    const invalidInputs = validateInputs(inputsWithIncorrectValuesDefinition, emptyDataTableAttributes)
-    expect(invalidInputs.length).toBe(2)
-    expect(invalidInputs).toEqual(expect.arrayContaining([expect.objectContaining({ name: invalidIntInput.input_name, type: 'error' })]))
-    expect(invalidInputs).toEqual(expect.arrayContaining([expect.objectContaining({ name: invalidFloatInput.input_name, type: 'error' })]))
+    const validatedInputs = validateInputs(inputsWithIncorrectValuesDefinition, emptyDataTableAttributes)
+    expect(validatedInputs.length).toBe(3)
+    expect(validatedInputs).toEqual(expect.arrayContaining([
+      expect.objectContaining({ name: invalidIntInput.input_name, type: 'error' }),
+      expect.objectContaining({ name: invalidFloatInput.input_name, type: 'error' }),
+      { name: 'test_workflow.foo_boolean', type: 'none' }
+    ]))
   })
 
   it('should return empty list for input definition with correct input values', () => {
@@ -237,8 +242,12 @@ describe('validateInputs', () => {
       floatInput(23.32)
     ]
 
-    const invalidInputs = validateInputs(inputsWithCorrectValuesDefinition, emptyDataTableAttributes)
-    expect(invalidInputs.length).toBe(0)
+    const validatedInputs = validateInputs(inputsWithCorrectValuesDefinition, emptyDataTableAttributes)
+    expect(validatedInputs.length).toBe(2)
+    expect(validatedInputs).toEqual(expect.arrayContaining([
+      { name: intInput().input_name, type: 'none' },
+      { name: floatInput().input_name, type: 'none' }
+    ]))
   })
 
   it('should consider 0 and false as valid value', () => {
@@ -281,7 +290,9 @@ describe('validateInputs', () => {
       validBooleanInput
     ]
 
-    expect(validateInputs(inputs, emptyDataTableAttributes).length).toBe(0)
+    const validatedInputs = validateInputs(inputs, emptyDataTableAttributes)
+    expect(validatedInputs.length).toBe(3)
+    expect(validatedInputs).toEqual(expect.arrayContaining(_.map(input => ({ name: input.input_name, type: 'none' }))(inputs)))
   })
 
   const arrayInput = (name, arrayType, value) => {
@@ -334,9 +345,10 @@ describe('validateInputs', () => {
     ]
 
     const inputMessages = validateInputs(inputsWithArraysDefinition, emptyDataTableAttributes)
-    const errorInputs = _.flow(_.filter(message => message.type === 'error'), _.map(message => message.name))(inputMessages)
-    const infoInputs = _.flow(_.filter(message => message.type === 'info'), _.map(message => message.name))(inputMessages)
-    const successInputs = _.flow(_.filter(message => message.type === 'success'), _.map(message => message.name))(inputMessages)
+    const { error: errorInputs, info: infoInputs, success: successInputs } = _.flow(
+      _.groupBy('type'),
+      _.mapValues(_.map(message => message.name))
+    )(inputMessages)
 
     expect(inputMessages.length).toBe(inputsWithArraysDefinition.length)
     expect(errorInputs.length).toBe(7)

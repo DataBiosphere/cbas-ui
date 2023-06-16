@@ -971,7 +971,7 @@ describe('Input source and requirements validation', () => {
 
     // ** ASSERT **
     // check that tooltip indicating missing required fields is present for Submit button
-    screen.getByText('One or more inputs have missing/invalid values')
+    screen.getByText('2 input(s) have missing/invalid values')
 
     // ** ACT **
     const button = await screen.findByRole('button', { name: 'Inputs' })

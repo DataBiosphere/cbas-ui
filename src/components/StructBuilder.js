@@ -62,7 +62,7 @@ export const StructBuilder = props => {
   const structInputDefinition = _.map(([source, type]) => _.merge(source, type), _.zip(currentStructSource.fields, currentStructType.fields))
   const currentStructBreadcrumbs = buildStructBreadcrumbs(structIndexPath, structType)
 
-  const inputsWithMessages = validateInputs(structInputDefinition, dataTableAttributes)
+  const inputValidations = validateInputs(structInputDefinition, dataTableAttributes)
 
   const breadcrumbsHeight = 35
   return h(div, { 'aria-label': 'struct-breadcrumbs', style: { height: 500 } }, [
@@ -181,7 +181,7 @@ export const StructBuilder = props => {
                       [isInputOptional(currentStructType.fields[rowIndex].field_type) ? 'Optional' : 'This input is required']
                     )]
                   ),
-                  message: _.find(message => message.name === inputName)(inputsWithMessages)
+                  message: _.find(validation => validation.name === inputName)(inputValidations)
                 })
               }
             }

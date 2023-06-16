@@ -203,15 +203,16 @@ export const WithWarnings = props => {
     message
   } = props
 
-  const [iconShape, iconColor] = message ? Utils.switchCase(message.type,
+  const [iconShape, iconColor] = Utils.switchCase(message.type,
     ['error', () => ['error-standard', colors.warning()]],
     ['info', () => ['info-circle', colors.accent()]],
-    ['success', () => ['success-standard', colors.success()]]
-  ) : [undefined, undefined]
+    ['success', () => ['success-standard', colors.success()]],
+    ['none', () => [undefined, undefined]]
+  )
 
   return div({ style: { display: 'flex', alignItems: 'center', width: '100%', paddingTop: '0.5rem', paddingBottom: '0.5rem' } }, [
     baseComponent,
-    message && h(TooltipTrigger, { content: message.message }, [
+    message.type !== 'none' && h(TooltipTrigger, { content: message.message }, [
       icon(iconShape, {
         size: 14, style: { marginLeft: '0.5rem', color: iconColor, cursor: 'help' }
       })
@@ -249,9 +250,10 @@ export const ParameterValueTextInput = props => {
       ['Int', () => '[1, 2, 3]'],
       ['Float', () => '[1.5, 2.0, 5]'],
       ['String', () => '["value1", "value2", "value3"]'],
-      ['Boolean', () => '[true, false, true]']
+      ['Boolean', () => '[true, false, true]'],
+      ['File', () => '["file1", "file2", "file3"]']
     )],
-    () => undefined
+    () => '' // no placeholder for other types
   )
 
   return h(TextInput, {
@@ -283,7 +285,7 @@ export const InputSourceSelect = props => {
   const innerInputType = unwrappedType.type
   const isArray = innerInputType === 'array'
   const unwrappedArrayType = isArray ? unwrapOptional(unwrappedType.array_type) : undefined
-  const simpleInnerArrayType = isArray && unwrappedArrayType.type === 'primitive' && _.includes(unwrappedArrayType.primitive_type)(['Boolean', 'String', 'Int'])
+  const simpleInnerArrayType = isArray && unwrappedArrayType.type === 'primitive'
   const editorType = innerInputType === 'struct' ? 'object_builder' : 'literal'
 
   return h(Select, {
@@ -501,13 +503,13 @@ const validateInput = (input, dataTableAttributes) => {
     return validLiteralInput
   }
   // otherwise no errors!
-  return undefined
+  return { type: 'none' }
 }
 
 export const validateInputs = (inputDefinition, dataTableAttributes) => _.flow(
   _.map(input => {
     const inputMessage = validateInput(input, dataTableAttributes)
-    return inputMessage && { name: input.input_name || input.field_name, ...inputMessage }
+    return { name: input.input_name || input.field_name, ...inputMessage }
   }),
   _.compact
 )(inputDefinition)
