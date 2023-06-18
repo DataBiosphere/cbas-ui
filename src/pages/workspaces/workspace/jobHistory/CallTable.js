@@ -76,10 +76,12 @@ const SearchBar = ({ filterFn }) => {
 }
 
 ////////CALL TABLE///////////////////////
-const CallTable = ({ tableData, defaultFailedFilter = false, showLogModal, showTaskDataModal }) => {
+const CallTable = ({ tableData, defaultFailedFilter = false, showLogModal, showTaskDataModal, loadWorkflow, enableExplorer = false, workflowName }) => {
   const [sort, setSort] = useState({ field: 'index', direction: 'asc' })
   const [statusFilter, setStatusFilter] = useState([])
   const [filteredCallObjects, setFilteredCallObjects] = useState([])
+  //NOTE: workflowPath is used to load the workflow in the explorer, implement after the table update is confirmed to be working
+  const [workflowPath, setWorkflowPath] = useState([workflowName])
 
   useEffect(() => {
     if (defaultFailedFilter) {
@@ -111,6 +113,7 @@ const CallTable = ({ tableData, defaultFailedFilter = false, showLogModal, showT
 
   return div([
     label({
+      isRendered: !enableExplorer,
       style: {
         fontWeight: 700
       }
@@ -126,7 +129,7 @@ const CallTable = ({ tableData, defaultFailedFilter = false, showLogModal, showT
           flexGrow: 2
         }
       }, [
-        div({ 'data-testid': 'status-dropdown-filter', style: { flexBasis: 250, marginRight: '20px' } }, [
+        div({ 'data-testid': 'status-dropdown-filter', style: { flexBasis: 250, marginRight: '20px' }, isRendered: !enableExplorer }, [
           h(Select, {
             isClearable: true,
             isMulti: true,
@@ -221,32 +224,62 @@ const CallTable = ({ tableData, defaultFailedFilter = false, showLogModal, showT
             field: 'logs',
             headerRenderer: () => h(HeaderCell, { fontWeight: 500 }, ['Logs']),
             cellRenderer: (({ rowIndex }) => {
-              const { stdout, stderr, inputs, outputs } = filteredCallObjects[rowIndex]
-              return div({
-                style: {
-                  display: 'grid',
-                  gridTemplateColumns: '1fr 1fr',
-                  gridColumnGap: '0.3em',
-                  gridRowGap: '0.3em'
-                }
-              }, [
-                h(Link, {
-                  'data-testid': 'inputs-modal-link',
-                  onClick: () => showTaskDataModal('Inputs', inputs)
-                }, ['Inputs']),
-                h(Link, {
-                  'data-testid': 'outputs-modal-link',
-                  onClick: () => showTaskDataModal('Outputs', outputs)
-                }, ['Outputs']),
-                h(Link, {
-                  'data-testid': 'stdout-modal-link',
-                  onClick: () => showLogModal(stdout, true)
-                }, ['stdout']),
-                h(Link, {
-                  'data-testid': 'stderr-modal-link',
-                  onClick: () => showLogModal(stderr, true)
-                }, 'stderr')
-              ])
+              const { stdout, stderr, inputs, outputs, subWorkflowId } = filteredCallObjects[rowIndex]
+              const style =
+                enableExplorer && !_.isEmpty(subWorkflowId) ?
+                  {
+                    display: 'flex',
+                    justifyContent: 'flex-start'
+                  } :
+                  {
+                    display: 'grid',
+                    gridTemplateColumns: '1fr 1fr',
+                    gridColumnGap: '0.3em',
+                    gridRowGap: '0.3em'
+                  }
+              const linkTemplate = enableExplorer && !_.isEmpty(subWorkflowId) ?
+                [h(Link, {
+                  'data-testid': `view-subworkflow-${subWorkflowId}-link`,
+                  onClick: () => {
+                    //NOTE: defined callback function to execute breadcrumb update here and pass it into loadWorkflow
+                    loadWorkflow(subWorkflowId)
+                  }
+                }, ['View subworkflow'])] :
+                _.isEmpty(subWorkflowId) && [
+                  h(
+                    Link,
+                    {
+                      'data-testid': 'inputs-modal-link',
+                      onClick: () => showTaskDataModal('Inputs', inputs)
+                    },
+                    ['Inputs']
+                  ),
+                  h(
+                    Link,
+                    {
+                      'data-testid': 'outputs-modal-link',
+                      onClick: () => showTaskDataModal('Outputs', outputs)
+                    },
+                    ['Outputs']
+                  ),
+                  h(
+                    Link,
+                    {
+                      'data-testid': 'stdout-modal-link',
+                      onClick: () => showLogModal(stdout, true)
+                    },
+                    ['stdout']
+                  ),
+                  h(
+                    Link,
+                    {
+                      'data-testid': 'stderr-modal-link',
+                      onClick: () => showLogModal(stderr, true)
+                    },
+                    'stderr'
+                  )
+                ]
+              return div({ style }, linkTemplate)
             })
           }
         ]
