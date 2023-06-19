@@ -78,9 +78,10 @@ const SearchBar = ({ filterFn }) => {
 ///////WORKFLOW BREADCRUMB SUB-COMPONENT///////////////////////
 const WorkflowBreadcrumb = ({ workflowPath, loadWorkflow, updateWorkflowPath }) => {
   const workflowPathRender = workflowPath.map((workflow, index) => {
+    const { id, workflowName } = workflow
     const isLast = index === workflowPath.length - 1
-    return span({ key: `${workflow}-breadcrumb`, style: { marginRight: '5px' } }, [
-      isLast ? span([`${workflow}`]) : span({ style: { cursor: 'pointer' }, onClick: () => loadWorkflow(workflowPath.slice(0, index + 1), updateWorkflowPath) }, [`${workflow}`]),
+    return span({ key: `${id}-breadcrumb`, style: { marginRight: '5px' } }, [
+      isLast ? span([workflowName]) : h(Link, { style: { cursor: 'pointer' }, onClick: () => loadWorkflow(id, updateWorkflowPath) }, [workflowName]),
       !isLast && span(' > ')
     ])
   })
@@ -88,13 +89,12 @@ const WorkflowBreadcrumb = ({ workflowPath, loadWorkflow, updateWorkflowPath }) 
 }
 
 ////////CALL TABLE///////////////////////
-const CallTable = ({ tableData, defaultFailedFilter = false, showLogModal, showTaskDataModal, loadWorkflow, enableExplorer = false, initWorkflow }) => {
-  const {id, workflowName} = initWorkflow
+const CallTable = ({ tableData, defaultFailedFilter = false, showLogModal, showTaskDataModal, loadWorkflow, enableExplorer = false, workflowName, workflowId }) => {
   const [sort, setSort] = useState({ field: 'index', direction: 'asc' })
   const [statusFilter, setStatusFilter] = useState([])
   const [filteredCallObjects, setFilteredCallObjects] = useState([])
   //NOTE: workflowPath is used to load the workflow in the explorer, implement after the table update is confirmed to be working
-  const [workflowPath, setWorkflowPath] = useState([{id, workflowName}])
+  const [workflowPath, setWorkflowPath] = useState([{id: workflowId, workflowName}])
 
   useEffect(() => {
     if (defaultFailedFilter) {
@@ -126,7 +126,7 @@ const CallTable = ({ tableData, defaultFailedFilter = false, showLogModal, showT
 
   const updateWorkflowPath = useCallback((id, workflowName) => {
     const currentIndex = workflowPath.findIndex(workflow => workflow.id === id)
-    if(!_.isEmpty(currentIndex)) {
+    if(currentIndex !== -1) {
       setWorkflowPath(workflowPath.slice(0, currentIndex + 1))
     } else {
       setWorkflowPath([...workflowPath, { id, workflowName }])
