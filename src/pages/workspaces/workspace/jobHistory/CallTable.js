@@ -177,7 +177,7 @@ const CallTable = ({ tableData, defaultFailedFilter = false, showLogModal, showT
         h(SearchBar, { filterFn })
       ])
     ]),
-    h(WorkflowBreadcrumb, { workflowPath, loadWorkflow, updateWorkflowPath }),
+    h(WorkflowBreadcrumb, { isRendered: enableExplorer, workflowPath, loadWorkflow, updateWorkflowPath }),
     h(AutoSizer, { disableHeight: true }, [
       ({ width }) => h(FlexTable, {
         'aria-label': 'call table',
