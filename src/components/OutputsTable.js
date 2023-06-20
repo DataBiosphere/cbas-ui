@@ -73,7 +73,7 @@ const OutputsTable = props => {
             h(HeaderCell, { style: { overflow: 'visible' } }, ['Attribute']),
             h(Fragment, [div({ style: { whiteSpace: 'pre' } }, ['  |  ']), WithWarnings({
               baseComponent: h(Link, { onClick: setDefaultOutputs }, [`Autofill (${nonDefaultOutputs.length}) outputs`]),
-              warningMessage: _.some(output => output.destination.type === 'record_update')(nonDefaultOutputs) ? 'This will overwrite existing output names' : ''
+              message: _.some(output => output.destination.type === 'record_update')(nonDefaultOutputs) ? { type: 'error', message: 'This will overwrite existing output names' } : { type: 'none' }
             })])
           ]),
           cellRenderer: ({ rowIndex }) => {
