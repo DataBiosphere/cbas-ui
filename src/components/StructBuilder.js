@@ -8,7 +8,7 @@ import {
   InputSourceSelect,
   ParameterValueTextInput,
   RecordLookupSelect,
-  StructBuilderLink,
+  StructBuilderLink, typeMatch,
   validateInputs,
   WithWarnings
 } from 'src/components/submission-common'
@@ -170,7 +170,7 @@ export const StructBuilder = props => {
                       () => h(RecordLookupSelect, {
                         source: innerStructSource,
                         setSource: setInnerStructSource,
-                        dataTableAttributes
+                        dataTableAttributes: _.pickBy(wdsType => typeMatch(currentStructType.fields[rowIndex].field_type, wdsType.datatype))(dataTableAttributes)
                       })],
                     ['object_builder',
                       () => h(StructBuilderLink, {

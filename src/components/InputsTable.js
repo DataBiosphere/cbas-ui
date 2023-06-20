@@ -9,7 +9,7 @@ import {
   ParameterValueTextInput,
   parseMethodString,
   RecordLookupSelect,
-  StructBuilderLink,
+  StructBuilderLink, typeMatch,
   WithWarnings
 } from 'src/components/submission-common'
 import { FlexTable, HeaderCell, InputsButtonRow, Sortable, TextCell } from 'src/components/table'
@@ -54,6 +54,7 @@ const InputsTable = props => {
   )(inputTableData)
 
   const recordLookup = rowIndex => {
+    const type = _.get(`${inputTableData[rowIndex].configurationIndex}.input_type`, configuredInputDefinition)
     const source = _.get(`${inputTableData[rowIndex].configurationIndex}.source`, configuredInputDefinition)
     const setSource = source => {
       setConfiguredInputDefinition(
@@ -63,7 +64,7 @@ const InputsTable = props => {
     return h(RecordLookupSelect, {
       source,
       setSource,
-      dataTableAttributes
+      dataTableAttributes: _.pickBy(wdsType => typeMatch(type, wdsType.datatype))(dataTableAttributes)
     })
   }
 
