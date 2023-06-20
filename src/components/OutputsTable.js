@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import { Fragment } from 'react'
+import { Fragment, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import { Link } from 'src/components/common'
@@ -11,9 +11,10 @@ import * as Utils from 'src/libs/utils'
 
 const OutputsTable = props => {
   const {
-    configuredOutputDefinition, setConfiguredOutputDefinition,
-    outputTableSort, setOutputTableSort
+    configuredOutputDefinition, setConfiguredOutputDefinition
   } = props
+
+  const [outputTableSort, setOutputTableSort] = useState({ field: '', direction: 'asc' })
 
   const outputTableData = _.flow(
     _.entries,
