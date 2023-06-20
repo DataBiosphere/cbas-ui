@@ -4,7 +4,7 @@ import { div, h } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import { Link } from 'src/components/common'
 import { TextInput } from 'src/components/input'
-import { parseMethodString } from 'src/components/submission-common'
+import { parseMethodString, WithWarnings } from 'src/components/submission-common'
 import { FlexTable, HeaderCell, Sortable, TextCell } from 'src/components/table'
 import * as Utils from 'src/libs/utils'
 
@@ -30,6 +30,7 @@ const OutputsTable = props => {
     _.orderBy([({ [outputTableSort.field]: field }) => _.lowerCase(field)], [outputTableSort.direction])
   )(configuredOutputDefinition)
 
+  const nonDefaultOutputs = _.filter(output => output.destination.type === 'none' || (output.destination.type === 'record_update' && output.destination.record_attribute !== _.last(output.output_name.split('.'))))(configuredOutputDefinition)
   const setDefaultOutputs = () => {
     setConfiguredOutputDefinition(_.map(output => _.set('destination', { type: 'record_update', record_attribute: _.last(output.output_name.split('.')) })(output))(configuredOutputDefinition))
   }
@@ -69,8 +70,11 @@ const OutputsTable = props => {
         },
         {
           headerRenderer: () => h(Fragment, [
-            h(HeaderCell, ['Attribute']),
-            h(Fragment, [div({ style: { whiteSpace: 'pre' } }, ['  |  ']), h(Link, { onClick: setDefaultOutputs }, ['Use defaults'])])
+            h(HeaderCell, { style: { overflow: 'visible' } }, ['Attribute']),
+            h(Fragment, [div({ style: { whiteSpace: 'pre' } }, ['  |  ']), WithWarnings({
+              baseComponent: h(Link, { onClick: setDefaultOutputs }, [`Autofill (${nonDefaultOutputs.length}) outputs`]),
+              warningMessage: _.some(output => output.destination.type === 'record_update')(nonDefaultOutputs) ? 'This will overwrite existing output names' : ''
+            })])
           ]),
           cellRenderer: ({ rowIndex }) => {
             const outputValue = configurationIndex => {
