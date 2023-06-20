@@ -17,8 +17,8 @@ describe('RecordsTable', () => {
         foo_float: 12.34,
         foo_date: '2023-06-16',
         foo_file: 'https://datasettoaexample.blob.core.windows.net/dataset/abc.genome.fa',
-        foo_array_of_string: ["this","is","a","string","array"],
-        foo_array_of_files: ["https://datasettoaexample.blob.core.windows.net/dataset/abc.fastq.gz","https://datasettoaexample.blob.core.windows.net/dataset/xyz.fastq.gz"],
+        foo_array_of_string: ['this', 'is', 'a', 'string', 'array'],
+        foo_array_of_files: ['https://datasettoaexample.blob.core.windows.net/dataset/abc.fastq.gz', 'https://datasettoaexample.blob.core.windows.net/dataset/xyz.fastq.gz'],
         foo_struct: { foo_tries: 3, agg_foo_tries: 3, nested_foo_struct: { foo_rating: 4.5, bar_rating: 2.4 } }
       }
     }
