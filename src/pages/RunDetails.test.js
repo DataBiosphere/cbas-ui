@@ -129,10 +129,14 @@ describe('RunDetails - render smoke test', () => {
   it('shows the workflow timing', async () => {
     render(h(RunDetails, runDetailsProps))
     await waitFor(() => {
-      const startTime = screen.getByTestId('workflow-start')
+      const startTime = screen.getByTestId('workflow-start-container')
       expect(startTime).toBeDefined
-      const endTime = screen.getByTestId('workflow-end')
+      const endTime = screen.getByTestId('workflow-end-container')
       expect(endTime).toBeDefined
+      const formattedStart = makeCompleteDate(runDetailsMetadata.start)
+      const formattedEnd = makeCompleteDate(runDetailsMetadata.end)
+      expect(startTime.textContent).toContain(formattedStart)
+      expect(endTime.textContent).toContain(formattedEnd)
     })
   })
 
