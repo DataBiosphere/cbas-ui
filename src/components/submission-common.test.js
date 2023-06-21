@@ -4,7 +4,7 @@ import {
   getDuration, isPrimitiveTypeInputValid,
   isRunInTerminalState,
   isRunSetInTerminalState,
-  resolveWdsUrl,
+  resolveWdsUrl, typeMatch,
   validateInputs
 } from 'src/components/submission-common'
 import { getConfig } from 'src/libs/config'
@@ -361,3 +361,55 @@ describe('validateInputs', () => {
   })
 })
 
+describe('typeMatch', () => {
+  const optional = type => ({ type: 'optional', optional_type: type })
+  const primitive = primitiveType => ({ type: 'primitive', primitive_type: primitiveType })
+  const array = arrayType => ({ type: 'array', array_type: arrayType })
+  const arrayWDS = wdsType => `ARRAY_OF_${wdsType}`
+
+  const [cbasTypes, wdsTypes, shouldMatch] = _.unzip([
+    ['Int', 'NUMBER', true],
+    ['Int', 'BOOLEAN', false],
+    ['Int', 'STRING', false],
+    ['Float', 'NUMBER', true],
+    ['Float', 'BOOLEAN', false],
+    ['Float', 'STRING', false],
+    ['Boolean', 'NUMBER', false],
+    ['Boolean', 'BOOLEAN', true],
+    ['Boolean', 'STRING', false],
+    ['String', 'NUMBER', true],
+    ['String', 'BOOLEAN', true],
+    ['String', 'STRING', true],
+    ['File', 'NUMBER', true],
+    ['File', 'BOOLEAN', true],
+    ['File', 'STRING', true]
+  ])
+  const primitiveTypes = _.map(primitive)(cbasTypes)
+  const optionalPrimitiveTypes = _.map(optional)(primitiveTypes)
+  const arrayPrimitiveTypes = _.map(array)(primitiveTypes)
+
+  it('Optional type disregarded when type matching between CBAS and WDS', () => {
+    const primitiveTypesMatched = _.map(([cbas, wds]) => typeMatch(cbas, wds))(_.zip(primitiveTypes, wdsTypes))
+    const optionalTypesMatched = _.map(([cbas, wds]) => typeMatch(cbas, wds))(_.zip(optionalPrimitiveTypes, wdsTypes))
+    expect(primitiveTypesMatched).toStrictEqual(optionalTypesMatched)
+  })
+
+  it('Primitive type matching between CBAS and WDS', () => {
+    const primitiveTypesMatched = _.map(([cbas, wds]) => typeMatch(cbas, wds))(_.zip(primitiveTypes, wdsTypes))
+    expect(primitiveTypesMatched).toStrictEqual(shouldMatch)
+  })
+
+  it('Array type matching between CBAS and WDS', () => {
+    // if CBAS expects array but WDS does not provide, it's no good
+    const arrayCbasTypesMismatched = _.map(([cbas, wds]) => typeMatch(cbas, wds))(_.zip(arrayPrimitiveTypes, wdsTypes))
+    expect(arrayCbasTypesMismatched).not.toContain(true)
+
+    // if CBAS expects a string but WDS provides arrays... we can convert that to a string
+    const openToArrays = _.map(type => type === 'String' || type === 'File')(cbasTypes)
+    const arrayWdsTypesMismatched = _.map(([cbas, wds]) => typeMatch(cbas, arrayWDS(wds)))(_.zip(primitiveTypes, wdsTypes))
+    expect(arrayWdsTypesMismatched).toStrictEqual(openToArrays)
+
+    const arrayTypesMatched = _.map(([cbas, wds]) => typeMatch(cbas, arrayWDS(wds)))(_.zip(arrayPrimitiveTypes, wdsTypes))
+    expect(arrayTypesMatched).toStrictEqual(shouldMatch)
+  })
+})

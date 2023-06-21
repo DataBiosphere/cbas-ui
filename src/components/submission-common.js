@@ -374,12 +374,17 @@ const validateRequiredHasSource = (inputSource, inputType) => {
 }
 
 export const typeMatch = (cbasType, wdsType) => {
-  return Utils.switchCase(unwrapOptional(cbasType).primitive_type,
-    ['Int', () => wdsType === 'NUMBER'],
-    ['Float', () => wdsType === 'NUMBER'],
-    ['Boolean', () => wdsType === 'BOOLEAN'],
-    [Utils.DEFAULT, () => true]
-  )
+  const unwrappedCbasType = unwrapOptional(cbasType)
+  if (unwrappedCbasType.type === 'primitive') {
+    return Utils.switchCase(unwrappedCbasType.primitive_type,
+      ['Int', () => wdsType === 'NUMBER'],
+      ['Float', () => wdsType === 'NUMBER'],
+      ['Boolean', () => wdsType === 'BOOLEAN'],
+      [Utils.DEFAULT, () => true]
+    )
+  } else if (unwrappedCbasType.type === 'array') {
+    return _.startsWith('ARRAY_OF_')(wdsType) && typeMatch(unwrappedCbasType.array_type, _.replace('ARRAY_OF_', '')(wdsType))
+  } else return true
 }
 
 const validateRecordLookup = (inputSource, inputType, recordAttributes) => {
