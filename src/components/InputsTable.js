@@ -50,7 +50,7 @@ const InputsTable = props => {
   )(configuredInputDefinition)
 
   const inputRowsInDataTable = _.filter(
-    row => _.has(row.variable, dataTableAttributes) && row.source.type === 'none'
+    row => _.has(row.variable, dataTableAttributes) && row.source.type === 'none' && typeMatch(row.input_type, _.get(`${row.variable}.datatype`, dataTableAttributes))
   )(inputTableData)
 
   const recordLookup = rowIndex => {
@@ -92,7 +92,7 @@ const InputsTable = props => {
   const sourceNone = rowIndex => {
     return h(TextCell,
       { style: Utils.inputTypeStyle(inputTableData[rowIndex].input_type) },
-      Utils.cond([_.has(inputTableData[rowIndex].variable, dataTableAttributes), () => ['Autofill ', h(Link, {
+      Utils.cond([_.some(input => input.variable === inputTableData[rowIndex].variable)(inputRowsInDataTable), () => ['Autofill ', h(Link, {
         style: {
           textDecoration: 'underline'
         },
