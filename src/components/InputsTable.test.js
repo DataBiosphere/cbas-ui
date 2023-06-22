@@ -2,6 +2,7 @@ import '@testing-library/jest-dom'
 
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import _ from 'lodash/fp'
 import { h } from 'react-hyperscript-helpers'
 import InputsTable from 'src/components/InputsTable'
 import { runSetInputDef, typesResponse } from 'src/libs/mock-responses'
@@ -20,16 +21,14 @@ describe('Input table filters', () => {
 
   it('Searching filters the displayed rows', async () => {
     const selectedDataTable = typesResponse[0]
-    let configuredInputDefinition = runSetInputDef
-    const setConfiguredInputDefinition = jest.fn(newConfiguredInputDefinition => { configuredInputDefinition = newConfiguredInputDefinition })
-    const missingRequiredInputs = []
-    const missingExpectedAttributes = []
-    const inputsWithInvalidValues = []
+    const configuredInputDefinition = runSetInputDef
+    const setConfiguredInputDefinition = jest.fn()
+    const inputValidations = _.map(({ input_name: name }) => ({ name, type: 'none' }))(runSetInputDef)
 
     render(h(InputsTable, {
       selectedDataTable,
       configuredInputDefinition, setConfiguredInputDefinition,
-      missingRequiredInputs, missingExpectedAttributes, inputsWithInvalidValues
+      inputValidations
     }))
 
     const table = await screen.findByRole('table')
