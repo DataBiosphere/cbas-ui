@@ -14,14 +14,13 @@ import {
 } from 'src/components/submission-common'
 import { FlexTable, HeaderCell, InputsButtonRow, Sortable, TextCell } from 'src/components/table'
 import * as Utils from 'src/libs/utils'
-import { isInputOptional } from 'src/libs/utils'
 
 
 const InputsTable = props => {
   const {
     selectedDataTable,
     configuredInputDefinition, setConfiguredInputDefinition,
-    missingRequiredInputs, missingExpectedAttributes, inputsWithInvalidValues
+    inputValidations
   } = props
 
   const [inputTableSort, setInputTableSort] = useState({ field: '', direction: 'asc' })
@@ -57,75 +56,55 @@ const InputsTable = props => {
     row => _.has(row.variable, dataTableAttributes) && row.source.type === 'none'
   )(inputTableData)
 
-  const recordLookupWithWarnings = (rowIndex, selectedInputName) => {
+  const recordLookup = rowIndex => {
     const source = _.get(`${inputTableData[rowIndex].configurationIndex}.source`, configuredInputDefinition)
     const setSource = source => {
       setConfiguredInputDefinition(
         _.set(`${inputTableData[rowIndex].configurationIndex}.source`, source, configuredInputDefinition))
     }
 
-    return WithWarnings({
-      baseComponent: RecordLookupSelect({
-        source,
-        setSource,
-        dataTableAttributes
-      }),
-      warningMessage: missingExpectedAttributes.includes(selectedInputName) ? 'This attribute doesn\'t exist in data table' : ''
+    return h(RecordLookupSelect, {
+      source,
+      setSource,
+      dataTableAttributes
     })
   }
 
-  const parameterValueSelectWithWarnings = (rowIndex, selectedInputName) => {
-    const warningMessage = Utils.cond(
-      [missingRequiredInputs.includes(selectedInputName), () => 'This attribute is required'],
-      [inputsWithInvalidValues.includes(selectedInputName), () => 'Value is either empty or doesn\'t match expected input type'],
-      () => ''
-    )
-
-    return WithWarnings({
-      baseComponent: ParameterValueTextInput({
-        id: `input-table-value-select-${rowIndex}`,
-        inputType: _.get('input_type', inputTableData[rowIndex]),
-        source: _.get(`${inputTableData[rowIndex].configurationIndex}.source`, configuredInputDefinition),
-        setSource: source => {
-          setConfiguredInputDefinition(_.set(`${inputTableData[rowIndex].configurationIndex}.source`, source, configuredInputDefinition))
-        }
-      }),
-      warningMessage
+  const parameterValueSelect = rowIndex => {
+    return h(ParameterValueTextInput, {
+      id: `input-table-value-select-${rowIndex}`,
+      inputType: _.get('input_type', inputTableData[rowIndex]),
+      source: _.get(`${inputTableData[rowIndex].configurationIndex}.source`, configuredInputDefinition),
+      setSource: source => {
+        setConfiguredInputDefinition(_.set(`${inputTableData[rowIndex].configurationIndex}.source`, source, configuredInputDefinition))
+      }
     })
   }
 
-  const structBuilderLinkWithWarnings = (rowIndex, selectedInputName) => {
-    const warningMessage = missingRequiredInputs.includes(selectedInputName) || missingExpectedAttributes.includes(selectedInputName) || inputsWithInvalidValues.includes(selectedInputName) ? 'One of this struct\'s inputs has an invalid configuration' : ''
+  const structBuilderLink = rowIndex => {
+    return h(StructBuilderLink, {
+      structBuilderVisible,
+      onClick: () => {
+        setStructBuilderVisible(true)
+        setStructBuilderRow(rowIndex)
+      }
+    })
+  }
 
-    return WithWarnings({
-      baseComponent: h(StructBuilderLink, {
-        structBuilderVisible,
+  const sourceNone = rowIndex => {
+    return h(TextCell,
+      { style: Utils.inputTypeStyle(inputTableData[rowIndex].input_type) },
+      Utils.cond([_.has(inputTableData[rowIndex].variable, dataTableAttributes), () => ['Autofill ', h(Link, {
+        style: {
+          textDecoration: 'underline'
+        },
         onClick: () => {
-          setStructBuilderVisible(true)
-          setStructBuilderRow(rowIndex)
+          setConfiguredInputDefinition(
+            _.set(`[${inputTableData[rowIndex].configurationIndex}].source`, { type: 'record_lookup', record_attribute: inputTableData[rowIndex].variable }, configuredInputDefinition))
         }
-      }),
-      warningMessage
-    })
-  }
-
-  const sourceNoneWithWarnings = (rowIndex, selectedInputName) => {
-    return WithWarnings({
-      baseComponent: h(TextCell,
-        { style: Utils.inputTypeStyle(inputTableData[rowIndex].input_type) },
-        Utils.cond([_.has(inputTableData[rowIndex].variable, dataTableAttributes), () => ['Autofill ', h(Link, {
-          style: {
-            textDecoration: 'underline'
-          },
-          onClick: () => {
-            setConfiguredInputDefinition(
-              _.set(`[${inputTableData[rowIndex].configurationIndex}].source`, { type: 'record_lookup', record_attribute: inputTableData[rowIndex].variable }, configuredInputDefinition))
-          }
-        }, [inputTableData[rowIndex].variable]), ' from data table']],
-        () => [isInputOptional(inputTableData[rowIndex].input_type) ? 'Optional' : 'This input is required'])
-      ),
-      warningMessage: missingRequiredInputs.includes(selectedInputName) ? 'This attribute is required' : ''
-    })
+      }, [inputTableData[rowIndex].variable]), ' from data table']],
+      () => [inputTableData[rowIndex].optional ? 'Optional' : 'This input is required'])
+    )
   }
 
   return h(div, { style: { height: 'calc(100% - 3rem)' } }, [
@@ -159,7 +138,7 @@ const InputsTable = props => {
           rowCount: inputTableData.length,
           sort: inputTableSort,
           readOnly: false,
-          height,
+          height: !includeOptionalInputs || _.some(row => row.optional, inputTableData) || inputRowsInDataTable.length > 0 ? 0.92 * height : height,
           width,
           columns: [
             {
@@ -203,12 +182,15 @@ const InputsTable = props => {
               cellRenderer: ({ rowIndex }) => {
                 const source = _.get(`${rowIndex}.source`, inputTableData)
                 const inputName = _.get(`${rowIndex}.input_name`, inputTableData)
-                return Utils.switchCase(source.type || 'none',
-                  ['record_lookup', () => recordLookupWithWarnings(rowIndex, inputName)],
-                  ['literal', () => parameterValueSelectWithWarnings(rowIndex, inputName)],
-                  ['object_builder', () => structBuilderLinkWithWarnings(rowIndex, inputName)],
-                  ['none', () => sourceNoneWithWarnings(rowIndex, inputName)]
-                )
+                return h(WithWarnings, {
+                  baseComponent: Utils.switchCase(source.type || 'none',
+                    ['record_lookup', () => recordLookup(rowIndex)],
+                    ['literal', () => parameterValueSelect(rowIndex)],
+                    ['object_builder', () => structBuilderLink(rowIndex)],
+                    ['none', () => sourceNone(rowIndex)]
+                  ),
+                  message: _.find(message => message.name === inputName)(inputValidations)
+                })
               }
             }
           ]

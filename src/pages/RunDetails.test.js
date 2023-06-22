@@ -417,6 +417,8 @@ describe('RunDetails - render smoke test', () => {
     const privateFilename = getFilenameFromAzureBlobPath(privateURI)
     expect(publicFilename).toEqual('ref-sarscov2-NC_045512.2.fasta')
     expect(privateFilename).toEqual('stdout')
+    expect(getFilenameFromAzureBlobPath('')).toEqual('')
+    expect(getFilenameFromAzureBlobPath(undefined)).toEqual('')
 
     //Should only append SAS if it is a private URI
     const appendedPublic = appendSASTokenIfNecessary(publicURI, mockSAS)

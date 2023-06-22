@@ -13,9 +13,11 @@ import {
   myStructInput,
   runSetInputDef,
   runSetInputDefWithStruct,
-  runSetOutputDef,
+  runSetOutputDef, runSetOutputDefWithDefaults,
   runSetResponse,
-  runSetResponseForNewMethod, runSetResponseSameInputNames,
+  runSetResponseForNewMethod,
+  runSetResponseSameInputNames,
+  runSetResponseWithArrays,
   runSetResponseWithStruct,
   searchResponses,
   typesResponse,
@@ -864,7 +866,7 @@ describe('Input source and requirements validation', () => {
     // but there will be a warning message next to it
 
     within(cellsFoo[4]).getByText('foo_rating')
-    const warningMessageActive = within(cellsFoo[4]).queryByText("This attribute doesn't exist in data table")
+    const warningMessageActive = within(cellsFoo[4]).queryByText("This attribute doesn't exist in the data table")
     expect(warningMessageActive).not.toBeNull()
 
     // ** ACT **
@@ -875,7 +877,7 @@ describe('Input source and requirements validation', () => {
 
     // ** ASSERT **
     within(cellsFoo[4]).getByText('rating_for_foo')
-    const warningMessageInactive = within(cellsFoo[4]).queryByText("This attribute doesn't exist in data table")
+    const warningMessageInactive = within(cellsFoo[4]).queryByText("This attribute doesn't exist in the data table")
     expect(warningMessageInactive).toBeNull() // once user has selected an attribute, warning message should disappear
   })
 
@@ -902,7 +904,7 @@ describe('Input source and requirements validation', () => {
     const table = await screen.findByRole('table')
     const rows = within(table).queryAllByRole('row')
     const viewStructLink = within(rows[2]).getByText('View Struct')
-    const inputWarningMessageActive = within(rows[2]).queryByText("One of this struct's inputs has an invalid configuration")
+    const inputWarningMessageActive = within(rows[2]).queryByText('This struct is missing a required input')
     expect(inputWarningMessageActive).not.toBeNull()
 
     // ** ACT **
@@ -916,7 +918,7 @@ describe('Input source and requirements validation', () => {
     const structCells = within(structRows[2]).queryAllByRole('cell')
     within(structCells[1]).getByText('myInnerStruct')
     const viewMyInnerStructLink = within(structCells[4]).getByText('View Struct')
-    const structWarningMessageActive = within(structCells[4]).queryByText("One of this struct's inputs has an invalid configuration")
+    const structWarningMessageActive = within(structCells[4]).getByText('This struct is missing a required input')
     expect(structWarningMessageActive).not.toBeNull()
 
     // ** ACT **
@@ -942,7 +944,7 @@ describe('Input source and requirements validation', () => {
 
     // ** ASSERT **
     within(innerStructCells[4]).getByText('rating_for_foo')
-    const innerStructWarningMessageInactive = within(innerStructCells[4]).queryByText("This attribute doesn't exist in data table")
+    const innerStructWarningMessageInactive = within(innerStructCells[4]).queryByText("This attribute doesn't exist in the data table")
     expect(innerStructWarningMessageInactive).toBeNull() // once user has selected an attribute, warning message should disappear
   })
 
@@ -969,7 +971,7 @@ describe('Input source and requirements validation', () => {
 
     // ** ASSERT **
     // check that tooltip indicating missing required fields is present for Submit button
-    screen.getByText('One or more inputs have missing values')
+    screen.getByText('2 input(s) have missing/invalid values')
 
     // ** ACT **
     const button = await screen.findByRole('button', { name: 'Inputs' })
@@ -998,8 +1000,8 @@ describe('Input source and requirements validation', () => {
     await userEvent.click(selectOption1)
 
     // ** ASSERT **
-    // check that the warning message for struct input has changed since no attribute has been selected yet
-    within(secondInputRowCells[4]).getByText('This attribute doesn\'t exist in data table')
+    // check that the warning message for struct input hasn't changed since no attribute has been selected yet
+    within(secondInputRowCells[4]).getByText('This attribute is required')
 
     // ** ACT **
     // user sets the source to 'Use Struct Builder' for struct input
@@ -1009,7 +1011,7 @@ describe('Input source and requirements validation', () => {
 
     // ** ASSERT **
     // check that the warning message for struct input has changed
-    within(secondInputRowCells[4]).getByText('One of this struct\'s inputs has an invalid configuration')
+    within(secondInputRowCells[4]).getByText('This struct is missing a required input')
 
     // ** ACT **
     // click on View struct to open modal
@@ -1039,7 +1041,7 @@ describe('Input source and requirements validation', () => {
 
     // ** ASSERT **
     // check that the warning message for struct input still exists as it still has invalid input configurations
-    within(secondInputRowCells[4]).getByText('One of this struct\'s inputs has an invalid configuration')
+    within(secondInputRowCells[4]).getByText('This struct is missing a required input')
   })
 
   it('should display warning icon for input with value not matching expected type', async () => {
@@ -1074,7 +1076,7 @@ describe('Input source and requirements validation', () => {
 
     // ** ASSERT **
     // check that the warning message for input exists
-    within(firstInputRowCells[4]).getByText('This attribute is required')
+    within(firstInputRowCells[4]).getByText('Value is empty')
 
     // ** ACT **
     // user types value for the Int input
@@ -1082,7 +1084,7 @@ describe('Input source and requirements validation', () => {
 
     // ** ASSERT **
     // check that the warning message for incorrect value is displayed
-    within(firstInputRowCells[4]).getByText('Value is either empty or doesn\'t match expected input type')
+    within(firstInputRowCells[4]).getByText('Value doesn\'t match expected input type')
 
     // ** ACT **
     // user deletes the extra character
@@ -1090,7 +1092,163 @@ describe('Input source and requirements validation', () => {
 
     // ** ASSERT **
     // check that the warning message for incorrect value is gone
-    expect(within(firstInputRowCells[4]).queryByText('Value is either empty or doesn\'t match expected input type')).toBeNull()
+    expect(within(firstInputRowCells[4]).queryByText(/Value is empty|Value doesn't match expected input type/)).toBeNull()
+  })
+
+  it('should display tooltips for array literals and convert inputs to array types', async () => {
+    // ** ARRANGE **
+    const mockRunSetResponse = jest.fn(() => Promise.resolve(runSetResponseWithArrays))
+    const mockMethodsResponse = jest.fn(() => Promise.resolve(methodsResponse))
+    const mockSearchResponse = jest.fn((_, recordType) => Promise.resolve(searchResponses[recordType]))
+    const mockTypesResponse = jest.fn(() => Promise.resolve(typesResponse))
+
+    const postRunSetFunction = jest.fn()
+
+    await Ajax.mockImplementation(() => {
+      return {
+        Cbas: {
+          runSets: {
+            post: postRunSetFunction,
+            getForMethod: mockRunSetResponse
+          },
+          methods: {
+            getById: mockMethodsResponse
+          }
+        },
+        Wds: {
+          search: {
+            post: mockSearchResponse
+          },
+          types: {
+            get: mockTypesResponse
+          }
+        }
+      }
+    })
+
+    // ** ACT **
+    render(h(SubmissionConfig))
+
+    // ** ASSERT **
+    await waitFor(() => {
+      expect(mockRunSetResponse).toHaveBeenCalledTimes(1)
+      expect(mockTypesResponse).toHaveBeenCalledTimes(1)
+      expect(mockMethodsResponse).toHaveBeenCalledTimes(1)
+      expect(mockSearchResponse).toHaveBeenCalledTimes(1)
+    })
+
+    // ** ACT **
+    // user selects 'FOO1' record from Data Table
+    const checkboxes = screen.getAllByRole('checkbox')
+    const checkbox = checkboxes[1]
+    fireEvent.click(checkbox)
+
+    const inputButton = await screen.findByRole('button', { name: 'Inputs' })
+
+    // ** ACT **
+    await fireEvent.click(inputButton)
+
+    const table = await screen.findByRole('table')
+    const rows = within(table).queryAllByRole('row')
+
+    const firstInputRowCells = within(rows[1]).queryAllByRole('cell')
+
+    // Value is already set to literal source from previous run
+    await userEvent.click(within(firstInputRowCells[3]).getByText('Type a Value'))
+
+    // ** ASSERT **
+    // check the info message exists for `[]` input
+    within(firstInputRowCells[4]).getByText('Successfully detected an array with 0 element(s).')
+
+    // ** ACT **
+    // user types value for the Array[Int] input
+    await userEvent.click(within(firstInputRowCells[4]).getByLabelText('Enter a value'))
+    await userEvent.keyboard('{ArrowLeft}X')
+
+    // ** ASSERT **
+    // check that the warning message for incorrect value is displayed
+    within(firstInputRowCells[4]).getByText('Array inputs should follow JSON array literal syntax. ' +
+      'This input cannot be parsed')
+
+    // ** ACT **
+    // user replaces with new array
+    await userEvent.clear(within(firstInputRowCells[4]).getByLabelText('Enter a value'))
+    expect(within(firstInputRowCells[4]).getByLabelText('Enter a value')).toHaveValue('')
+    await userEvent.type(within(firstInputRowCells[4]).getByLabelText('Enter a value'), '[[1, 2]')
+
+    // ** ASSERT **
+    // check that validation message is updated
+    within(firstInputRowCells[4]).getByText('Successfully detected an array with 2 element(s).')
+
+    const secondInputRowCells = within(rows[2]).queryAllByRole('cell')
+
+    // Value is not yet set
+    await userEvent.click(within(secondInputRowCells[3]).getByText('None'))
+    const selectOption = await within(screen.getByRole('listbox')).findByText('Type a Value')
+    await userEvent.click(selectOption)
+
+    // ** ASSERT **
+    // check the warning message exists for empty input
+    within(secondInputRowCells[4]).getByText('Array inputs should follow JSON array literal syntax. ' +
+      'This input is empty. To submit an empty array, enter []')
+
+    // ** ACT **
+    // user types value for the Array[String] input
+    await userEvent.click(within(secondInputRowCells[4]).getByLabelText('Enter a value'))
+    await userEvent.keyboard('not an array')
+
+    // ** ASSERT **
+    // check that the warning message for incorrect value is displayed
+    within(secondInputRowCells[4]).getByText('Array inputs should follow JSON array literal syntax. ' +
+      'This will be submitted as an array with one value: "not an array"')
+
+    // ** ACT **
+    // user clicks on Submit
+    const button = screen.getByLabelText('Submit button')
+    fireEvent.click(button)
+
+    // ** ASSERT **
+    // Launch modal should be displayed
+    await screen.getByText('Send submission')
+    const modalSubmitButton = await screen.getByLabelText('Launch Submission')
+
+    // ** ACT **
+    // user click on Submit button
+    fireEvent.click(modalSubmitButton)
+
+    // ** ASSERT **
+    // assert POST /run_sets endpoint was called with expected parameters
+    expect(postRunSetFunction).toHaveBeenCalled()
+    expect(postRunSetFunction).toBeCalledWith(
+      expect.objectContaining({
+        method_version_id: runSetResponse.run_sets[0].method_version_id,
+        workflow_input_definitions: [
+          {
+            input_name: 'target_workflow_1.foo.foo_array',
+            input_type: { type: 'array', array_type: { type: 'primitive', primitive_type: 'Int' } },
+            source: {
+              type: 'literal',
+              parameter_value: [1, 2]
+            }
+          },
+          {
+            input_name: 'target_workflow_1.bar_array',
+            input_type: { type: 'optional', optional_type: { type: 'array', array_type: { type: 'primitive', primitive_type: 'String' } } },
+            source: {
+              type: 'literal',
+              parameter_value: ['not an array']
+            }
+          }
+        ],
+        workflow_output_definitions: runSetOutputDef,
+        wds_records: {
+          record_type: 'FOO',
+          record_ids: [
+            'FOO1'
+          ]
+        }
+      })
+    )
   })
 })
 
@@ -2209,7 +2367,12 @@ describe('SubmissionConfig submitting a run set', () => {
     // Update the struct within myInnerStruct
     const myInnermostPrimitiveRowCells = within(myInnerStructRows[1]).queryAllByRole('cell')
     within(myInnermostPrimitiveRowCells[1]).getByText('myInnermostPrimitive')
-    const myInnermostPrimitiveInput = within(myInnermostPrimitiveRowCells[4]).getByDisplayValue('foo')
+    await act(async () => {
+      await userEvent.click(within(myInnermostPrimitiveRowCells[3]).getByText('Select Source'))
+      const selectOption = await within(screen.getByRole('listbox')).findByText('Type a Value')
+      await userEvent.click(selectOption)
+    })
+    const myInnermostPrimitiveInput = within(myInnermostPrimitiveRowCells[4]).getByLabelText('Enter a value')
     await fireEvent.change(myInnermostPrimitiveInput, { target: { value: 'bar' } })
     within(myInnermostPrimitiveRowCells[4]).getByDisplayValue('bar')
 
@@ -2305,6 +2468,102 @@ describe('SubmissionConfig submitting a run set', () => {
           }
         ],
         workflow_output_definitions: runSetOutputDef,
+        wds_records: {
+          record_type: 'FOO',
+          record_ids: [
+            'FOO1'
+          ]
+        }
+      })
+    )
+  })
+
+  it('should call POST /run_sets endpoint with expected parameters after outputs are set to default', async () => {
+    // ** ARRANGE **
+    const mockRunSetResponse = jest.fn(() => Promise.resolve(runSetResponse))
+    const mockMethodsResponse = jest.fn(() => Promise.resolve(methodsResponse))
+    const mockSearchResponse = jest.fn(() => Promise.resolve(searchResponses['FOO']))
+    const mockTypesResponse = jest.fn(() => Promise.resolve(typesResponse))
+
+    const postRunSetFunction = jest.fn()
+
+    await Ajax.mockImplementation(() => {
+      return {
+        Cbas: {
+          runSets: {
+            post: postRunSetFunction,
+            getForMethod: mockRunSetResponse
+          },
+          methods: {
+            getById: mockMethodsResponse
+          }
+        },
+        Wds: {
+          search: {
+            post: mockSearchResponse
+          },
+          types: {
+            get: mockTypesResponse
+          }
+        }
+      }
+    })
+
+    // ** ACT **
+    render(h(SubmissionConfig))
+
+    // ** ASSERT **
+    await waitFor(() => {
+      expect(mockRunSetResponse).toHaveBeenCalledTimes(1)
+      expect(mockTypesResponse).toHaveBeenCalledTimes(1)
+      expect(mockSearchResponse).toHaveBeenCalledTimes(1)
+      expect(mockMethodsResponse).toHaveBeenCalledTimes(1)
+    })
+
+    // ** ACT **
+    // user selects 'FOO1' record from Data Table
+    const checkboxes = screen.getAllByRole('checkbox')
+    const checkbox = checkboxes[1]
+    fireEvent.click(checkbox)
+
+    // ** ASSERT **
+    // verify that the record was indeed selected
+    expect(checkbox).toHaveAttribute('aria-checked', 'true')
+
+    const outputButton = await screen.findByRole('button', { name: 'Outputs' })
+    await fireEvent.click(outputButton)
+
+    const table = await screen.findByRole('table')
+    const rows = within(table).queryAllByRole('row')
+    const headers = within(rows[0]).queryAllByRole('columnheader')
+
+    // set defaults
+    await act(async () => {
+      await fireEvent.click(within(headers[3]).getByRole('button'))
+    })
+
+    // ** ACT **
+    // user clicks on Submit (inputs and outputs should be rendered based on previous submission)
+    const button = screen.getByLabelText('Submit button')
+    fireEvent.click(button)
+
+    // ** ASSERT **
+    // Launch modal should be displayed
+    await screen.getByText('Send submission')
+    const modalSubmitButton = await screen.getByLabelText('Launch Submission')
+
+    // ** ACT **
+    // user click on Submit button
+    fireEvent.click(modalSubmitButton)
+
+    // ** ASSERT **
+    // assert POST /run_sets endpoint was called with expected parameters and input 'optional_var' has correct definition for source 'None'
+    expect(postRunSetFunction).toHaveBeenCalled()
+    expect(postRunSetFunction).toBeCalledWith(
+      expect.objectContaining({
+        method_version_id: runSetResponse.run_sets[0].method_version_id,
+        workflow_input_definitions: runSetInputDef,
+        workflow_output_definitions: runSetOutputDefWithDefaults,
         wds_records: {
           record_type: 'FOO',
           record_ids: [

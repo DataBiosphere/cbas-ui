@@ -7,16 +7,15 @@ import HelpfulLinksBox from 'src/components/HelpfulLinksBox'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { TextArea, TextInput } from 'src/components/input'
 import InputsTable from 'src/components/InputsTable'
-import { reconstructToRawUrl } from 'src/components/method-common'
+import { convertToRawUrl } from 'src/components/method-common'
 import Modal from 'src/components/Modal'
 import OutputsTable from 'src/components/OutputsTable'
 import RecordsTable from 'src/components/RecordsTable'
 import StepButtons from 'src/components/StepButtons'
 import {
-  inputsMissingRequiredAttributes,
-  inputsWithIncorrectValues,
-  requiredInputsWithoutSource,
+  convertArrayType,
   resolveWdsUrl,
+  validateInputs,
   WdsPollInterval
 } from 'src/components/submission-common'
 import { TextCell } from 'src/components/table'
@@ -48,12 +47,12 @@ export const SubmissionConfig = ({ methodId }) => {
   // Options chosen on this page:
   const [selectedRecordType, setSelectedRecordType] = useState()
   const [selectedRecords, setSelectedRecords] = useState({})
-  const [configuredInputDefinition, setConfiguredInputDefinition] = useState()
+  const [configuredInputDefinition, setConfiguredInputDefinition] = useState([])
   const [configuredOutputDefinition, setConfiguredOutputDefinition] = useState()
-  const [missingRequiredInputs, setMissingRequiredInputs] = useState([])
-  const [missingExpectedAttributes, setMissingExpectedAttributes] = useState([])
-  const [inputsWithInvalidValues, setInputsWithInvalidValues] = useState([])
+  const [inputValidations, setInputValidations] = useState([])
   const [viewWorkflowScriptModal, setViewWorkflowScriptModal] = useState(false)
+
+  const errorMessageCount = _.filter(message => message.type === 'error')(inputValidations).length
 
   // TODO: These should probably be moved to the modal:
   const [runSetName, setRunSetName] = useState('')
@@ -63,7 +62,6 @@ export const SubmissionConfig = ({ methodId }) => {
 
   // TODO: this should probably be moved to a scope more local to the data selector
   const [recordsTableSort, setRecordsTableSort] = useState({ field: 'id', direction: 'asc' })
-  const [outputTableSort, setOutputTableSort] = useState({ field: '', direction: 'asc' })
 
   const [displayLaunchModal, setDisplayLaunchModal] = useState(false)
   const [noRecordTypeData, setNoRecordTypeData] = useState(null)
@@ -192,19 +190,9 @@ export const SubmissionConfig = ({ methodId }) => {
       const selectedDataTable = _.keyBy('name', recordTypes)[records[0].type]
       const dataTableAttributes = _.keyBy('name', selectedDataTable.attributes)
 
-      const newMissingExpectedAttributes = _.map(
-        i => i.input_name,
-        inputsMissingRequiredAttributes(configuredInputDefinition, dataTableAttributes))
+      const newInputValidations = validateInputs(configuredInputDefinition, dataTableAttributes)
 
-      const newMissingRequiredInputs = _.map(
-        i => i.input_name,
-        requiredInputsWithoutSource(configuredInputDefinition))
-
-      const newInputsWithIncorrectValues = _.map(i => i.input_name, inputsWithIncorrectValues(configuredInputDefinition))
-
-      setMissingExpectedAttributes(newMissingExpectedAttributes)
-      setMissingRequiredInputs(newMissingRequiredInputs)
-      setInputsWithInvalidValues(newInputsWithIncorrectValues)
+      setInputValidations(newInputValidations)
     }
   }, [records, recordTypes, configuredInputDefinition])
 
@@ -223,7 +211,7 @@ export const SubmissionConfig = ({ methodId }) => {
   useEffect(() => {
     async function getWorkflowScript() {
       try {
-        const workflowUrlRaw = reconstructToRawUrl(selectedMethodVersion.url)
+        const workflowUrlRaw = await convertToRawUrl(selectedMethodVersion.url, selectedMethodVersion.name, method.source)
         const script = await Ajax(signal).WorkflowScript.get(workflowUrlRaw)
         setWorkflowScript(script)
       } catch (error) {
@@ -234,7 +222,7 @@ export const SubmissionConfig = ({ methodId }) => {
     if (selectedMethodVersion != null) {
       getWorkflowScript()
     }
-  }, [signal, selectedMethodVersion])
+  }, [signal, selectedMethodVersion, method])
 
   useEffect(() => {
     // Start polling if we're missing WDS proxy url and stop polling when we have it
@@ -314,7 +302,7 @@ export const SubmissionConfig = ({ methodId }) => {
         h(StepButtons, {
           tabs: [
             { key: 'select-data', title: 'Select Data', isValid: true },
-            { key: 'inputs', title: 'Inputs', isValid: !missingRequiredInputs.length && !missingExpectedAttributes.length && !inputsWithInvalidValues.length },
+            { key: 'inputs', title: 'Inputs', isValid: errorMessageCount === 0 },
             { key: 'outputs', title: 'Outputs', isValid: true }
           ],
           activeTab: activeTab.key || 'select-data',
@@ -322,11 +310,10 @@ export const SubmissionConfig = ({ methodId }) => {
           finalStep: h(ButtonPrimary, {
             'aria-label': 'Submit button',
             style: { marginLeft: '1rem' },
-            disabled: _.isEmpty(selectedRecords) || missingRequiredInputs.length || missingExpectedAttributes.length || inputsWithInvalidValues.length,
+            disabled: _.isEmpty(selectedRecords) || errorMessageCount > 0,
             tooltip: Utils.cond(
               [_.isEmpty(selectedRecords), () => 'No records selected'],
-              [missingRequiredInputs.length || missingExpectedAttributes.length, () => 'One or more inputs have missing values'],
-              [inputsWithInvalidValues.length, () => 'One or more inputs have invalid values'],
+              [errorMessageCount > 0, () => `${errorMessageCount} input(s) have missing/invalid values`],
               () => ''
             ),
             onClick: () => {
@@ -410,17 +397,14 @@ export const SubmissionConfig = ({ methodId }) => {
     return configuredInputDefinition && recordTypes && records.length ? h(InputsTable, {
       selectedDataTable: _.keyBy('name', recordTypes)[selectedRecordType],
       configuredInputDefinition, setConfiguredInputDefinition,
-      missingExpectedAttributes,
-      missingRequiredInputs,
-      inputsWithInvalidValues
+      inputValidations
     }) : 'No data table rows available or input definition is not configured...'
   }
 
   const renderOutputs = () => {
     return configuredOutputDefinition ? h(OutputsTable, {
       selectedDataTable: _.keyBy('name', recordTypes)[selectedRecordType],
-      configuredOutputDefinition, setConfiguredOutputDefinition,
-      outputTableSort, setOutputTableSort
+      configuredOutputDefinition, setConfiguredOutputDefinition
     }) : 'No previous run set data...'
   }
 
@@ -437,7 +421,7 @@ export const SubmissionConfig = ({ methodId }) => {
         run_set_name: runSetName,
         run_set_description: runSetDescription,
         method_version_id: selectedMethodVersion.method_version_id,
-        workflow_input_definitions: configuredInputDefinition,
+        workflow_input_definitions: _.map(convertArrayType)(configuredInputDefinition),
         workflow_output_definitions: configuredOutputDefinition,
         wds_records: {
           record_type: selectedRecordType,

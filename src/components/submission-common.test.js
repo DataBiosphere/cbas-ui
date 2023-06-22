@@ -1,9 +1,11 @@
+import _ from 'lodash/fp'
 import {
   convertToPrimitiveType,
-  getDuration, inputsWithIncorrectValues, isPrimitiveTypeInputValid,
+  getDuration, isPrimitiveTypeInputValid,
   isRunInTerminalState,
-  isRunSetInTerminalState, requiredInputsWithoutSource,
-  resolveWdsUrl
+  isRunSetInTerminalState,
+  resolveWdsUrl,
+  validateInputs
 } from 'src/components/submission-common'
 import { getConfig } from 'src/libs/config'
 
@@ -157,7 +159,9 @@ describe('isPrimitiveTypeInputValid', () => {
   })
 })
 
-describe('inputsWithIncorrectValues', () => {
+describe('validateInputs', () => {
+  const emptyDataTableAttributes = {}
+
   const intInput = value => {
     return {
       input_name: 'test_workflow.foo_int',
@@ -189,6 +193,18 @@ describe('inputsWithIncorrectValues', () => {
     }
   }
 
+  it('should return list of required inputs with source none', () => {
+    const sourceNoneInt = _.set('source', { type: 'none' }, intInput('123'))
+    const sourceNoneFloat = _.set('source', { type: 'none' }, floatInput('123'))
+
+    const validatedInputs = validateInputs([sourceNoneInt, sourceNoneFloat], emptyDataTableAttributes)
+    expect(validatedInputs.length).toBe(2)
+    expect(validatedInputs).toEqual(expect.arrayContaining([
+      expect.objectContaining({ name: sourceNoneInt.input_name, type: 'error' }),
+      { name: sourceNoneFloat.input_name, type: 'none' }
+    ]))
+  })
+
   it('should return list of inputs with incorrect values', () => {
     const invalidIntInput = intInput('123x')
     const invalidFloatInput = floatInput('wrong_value')
@@ -211,10 +227,13 @@ describe('inputsWithIncorrectValues', () => {
       }
     ]
 
-    const invalidInputs = inputsWithIncorrectValues(inputsWithIncorrectValuesDefinition)
-    expect(invalidInputs.length).toBe(2)
-    expect(invalidInputs).toContain(invalidIntInput)
-    expect(invalidInputs).toContain(invalidFloatInput)
+    const validatedInputs = validateInputs(inputsWithIncorrectValuesDefinition, emptyDataTableAttributes)
+    expect(validatedInputs.length).toBe(3)
+    expect(validatedInputs).toEqual(expect.arrayContaining([
+      expect.objectContaining({ name: invalidIntInput.input_name, type: 'error' }),
+      expect.objectContaining({ name: invalidFloatInput.input_name, type: 'error' }),
+      { name: 'test_workflow.foo_boolean', type: 'none' }
+    ]))
   })
 
   it('should return empty list for input definition with correct input values', () => {
@@ -223,12 +242,14 @@ describe('inputsWithIncorrectValues', () => {
       floatInput(23.32)
     ]
 
-    const invalidInputs = inputsWithIncorrectValues(inputsWithCorrectValuesDefinition)
-    expect(invalidInputs.length).toBe(0)
+    const validatedInputs = validateInputs(inputsWithCorrectValuesDefinition, emptyDataTableAttributes)
+    expect(validatedInputs.length).toBe(2)
+    expect(validatedInputs).toEqual(expect.arrayContaining([
+      { name: intInput().input_name, type: 'none' },
+      { name: floatInput().input_name, type: 'none' }
+    ]))
   })
-})
 
-describe('requiredInputsWithoutSource', () => {
   it('should consider 0 and false as valid value', () => {
     const validIntInput = {
       input_name: 'test_workflow.foo_int',
@@ -269,6 +290,74 @@ describe('requiredInputsWithoutSource', () => {
       validBooleanInput
     ]
 
-    expect(requiredInputsWithoutSource(inputs).length).toBe(0)
+    const validatedInputs = validateInputs(inputs, emptyDataTableAttributes)
+    expect(validatedInputs.length).toBe(3)
+    expect(validatedInputs).toEqual(expect.arrayContaining(_.map(input => ({ name: input.input_name, type: 'none' }))(inputs)))
+  })
+
+  const arrayInput = (name, arrayType, value) => {
+    return {
+      input_name: name,
+      input_type: {
+        type: 'optional',
+        optional_type: {
+          type: 'array',
+          array_type: {
+            type: 'primitive',
+            primitive_type: arrayType
+          }
+        }
+      },
+      source: {
+        type: 'literal',
+        parameter_value: value
+      }
+    }
+  }
+
+  it('should validate array literals', () => {
+    const inputsWithArraysDefinition = [
+      // int arrays (float similar enough that not worried about specifics)
+      arrayInput('validInt', 'Int', [1, 2, 3]), // success
+      arrayInput('validIntString', 'Int', ['1', 2, 3]), // success
+      arrayInput('validIntStringArray', 'Int', '[1, 2, 3]'), // success
+      arrayInput('validIntStringSingleton', 'Int', '1'), // info
+      arrayInput('validIntSingleton', 'Int', 1), // info
+      arrayInput('invalidIntEmpty', 'Int', ''), // error
+      arrayInput('invalidIntFloat', 'Int', [1, 2.5, 3]), // error
+      arrayInput('invalidIntString', 'Int', [1, 'a', 3]), // error
+
+      // boolean arrays
+      arrayInput('validBoolean', 'Boolean', [true, false, true]), // success
+      arrayInput('validBooleanString', 'Boolean', ['true', false, true]), // success
+      arrayInput('validBooleanStringArray', 'Boolean', '[true, false, true]'), // success
+      arrayInput('validBooleanStringSingleton', 'Boolean', 'true'), // info
+      arrayInput('validBooleanSingleton', 'Boolean', true), // info
+      arrayInput('invalidBooleanEmpty', 'Boolean', ''), // error
+      arrayInput('invalidBooleanInt', 'Boolean', [true, 2, false]), // error
+      arrayInput('invalidBooleanString', 'Boolean', [true, 'a', false]), // error
+
+      // string arrays
+      arrayInput('validString', 'String', ['a', 'b', 'c']), // success
+      arrayInput('validStringArray', 'String', '["a", "b", "c"]'), // success
+      arrayInput('validStringSingleton', 'String', 'foo'), // info
+      arrayInput('invalidStringEmpty', 'String', '') // error
+    ]
+
+    const inputMessages = validateInputs(inputsWithArraysDefinition, emptyDataTableAttributes)
+    const { error: errorInputs, info: infoInputs, success: successInputs } = _.flow(
+      _.groupBy('type'),
+      _.mapValues(_.map(message => message.name))
+    )(inputMessages)
+
+    expect(inputMessages.length).toBe(inputsWithArraysDefinition.length)
+    expect(errorInputs.length).toBe(7)
+    expect(infoInputs.length).toBe(5)
+    expect(successInputs.length).toBe(8)
+
+    expect(errorInputs).toEqual(expect.arrayContaining(['invalidIntEmpty', 'invalidIntFloat', 'invalidIntString', 'invalidBooleanEmpty', 'invalidBooleanInt', 'invalidBooleanString', 'invalidStringEmpty']))
+    expect(infoInputs).toEqual(expect.arrayContaining(['validIntStringSingleton', 'validIntSingleton', 'validBooleanStringSingleton', 'validBooleanSingleton', 'validStringSingleton']))
+    expect(successInputs).toEqual(expect.arrayContaining(['validInt', 'validIntString', 'validIntStringArray', 'validBoolean', 'validBooleanString', 'validBooleanStringArray', 'validString', 'validStringArray']))
   })
 })
+

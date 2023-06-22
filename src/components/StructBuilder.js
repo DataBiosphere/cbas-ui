@@ -5,17 +5,15 @@ import { AutoSizer } from 'react-virtualized'
 import { ButtonPrimary, Link } from 'src/components/common'
 import Modal from 'src/components/Modal'
 import {
-  inputsMissingRequiredAttributes,
-  InputSourceSelect, inputsWithIncorrectValues,
+  InputSourceSelect,
   ParameterValueTextInput,
   RecordLookupSelect,
-  requiredInputsWithoutSource,
   StructBuilderLink,
+  validateInputs,
   WithWarnings
 } from 'src/components/submission-common'
 import { FlexTable, HeaderCell, InputsButtonRow, TextCell } from 'src/components/table'
 import * as Utils from 'src/libs/utils'
-import { isInputOptional } from 'src/libs/utils'
 
 
 const buildStructTypePath = indexPath => _.join('.', _.map(row => `fields.${row}.field_type`, indexPath))
@@ -64,9 +62,7 @@ export const StructBuilder = props => {
   const structInputDefinition = _.map(([source, type]) => _.merge(source, type), _.zip(currentStructSource.fields, currentStructType.fields))
   const currentStructBreadcrumbs = buildStructBreadcrumbs(structIndexPath, structType)
 
-  const missingExpectedAttributes = _.map(i => i.field_name, inputsMissingRequiredAttributes(structInputDefinition, dataTableAttributes))
-  const missingRequiredInputs = _.map(i => i.field_name, requiredInputsWithoutSource(structInputDefinition))
-  const inputsWithInvalidValues = _.map(i => i.field_name, inputsWithIncorrectValues(structInputDefinition))
+  const inputValidations = validateInputs(structInputDefinition, dataTableAttributes)
 
   const inputTableData = _.flow(
     _.entries,
@@ -168,11 +164,14 @@ export const StructBuilder = props => {
             {
               headerRenderer: () => h(HeaderCell, ['Attribute']),
               cellRenderer: ({ rowIndex }) => {
+                // rowIndex is the index of this input in the currently displayed table
+                // configurationIndex is the index of this input the struct input definition
                 const configurationIndex = inputTableData[rowIndex].configurationIndex
                 const typeNamePath = buildStructTypeNamePath([configurationIndex])
                 const sourcePath = buildStructSourcePath([configurationIndex])
                 const sourceNamePath = buildStructSourceNamePath([configurationIndex])
                 const innerStructSource = _.get(sourcePath, currentStructSource)
+                const inputName = inputTableData[rowIndex].field_name
                 const setInnerStructSource = source => {
                   const newSource = _.flow([
                     _.set(sourceNamePath, _.get(sourceNamePath, currentStructSource) || _.get(typeNamePath, currentStructType)),
@@ -180,56 +179,32 @@ export const StructBuilder = props => {
                   ])(currentStructSource)
                   setCurrentStructSource(newSource)
                 }
-                return Utils.switchCase(innerStructSource ? innerStructSource.type : 'none',
-                  ['literal',
-                    () => {
-                      const selectedInputName = inputTableData[rowIndex].field_name
-                      const warningMessage = Utils.cond(
-                        [missingRequiredInputs.includes(selectedInputName), () => 'This attribute is required'],
-                        [inputsWithInvalidValues.includes(selectedInputName), () => 'Value is either empty or doesn\'t match expected input type'],
-                        () => ''
-                      )
-                      return WithWarnings({
-                        baseComponent: ParameterValueTextInput({
-                          id: `structbuilder-table-attribute-select-${rowIndex}`,
-                          inputType: inputTableData[rowIndex].field_type,
-                          source: innerStructSource,
-                          setSource: setInnerStructSource
-                        }),
-                        warningMessage
-                      })
-                    }],
-                  ['record_lookup',
-                    () => WithWarnings({
-                      baseComponent: RecordLookupSelect({
+                return h(WithWarnings, {
+                  baseComponent: Utils.switchCase(innerStructSource ? innerStructSource.type : 'none',
+                    ['literal',
+                      () => h(ParameterValueTextInput, {
+                        id: `structbuilder-table-attribute-select-${rowIndex}`,
+                        inputType: inputTableData[rowIndex].field_type,
+                        source: innerStructSource,
+                        setSource: setInnerStructSource
+                      })],
+                    ['record_lookup',
+                      () => h(RecordLookupSelect, {
                         source: innerStructSource,
                         setSource: setInnerStructSource,
                         dataTableAttributes
-                      }),
-                      warningMessage: missingExpectedAttributes.includes(inputTableData[rowIndex].field_name) ? 'This attribute doesn\'t exist in the data table' : ''
-                    })],
-                  ['object_builder',
-                    () => {
-                      const selectedInputName = inputTableData[rowIndex].field_name
-                      const warningMessage = missingRequiredInputs.includes(selectedInputName) || missingExpectedAttributes.includes(selectedInputName) || inputsWithInvalidValues.includes(selectedInputName) ? 'One of this struct\'s inputs has an invalid configuration' : ''
-
-                      return WithWarnings({
-                        baseComponent: StructBuilderLink({
-                          onClick: () => {
-                            setStructIndexPath([...structIndexPath, inputTableData[rowIndex].configurationIndex])
-                          }
-                        }),
-                        warningMessage
-                      })
-                    }],
-                  ['none', () => WithWarnings({
-                    baseComponent: h(TextCell,
+                      })],
+                    ['object_builder',
+                      () => h(StructBuilderLink, {
+                        onClick: () => setStructIndexPath([...structIndexPath, configurationIndex])
+                      })],
+                    ['none', () => h(TextCell,
                       { style: Utils.inputTypeStyle(inputTableData[rowIndex].field_type) },
-                      [isInputOptional(inputTableData[rowIndex].field_type) ? 'Optional' : 'This input is required']
-                    ),
-                    warningMessage: missingRequiredInputs.includes(inputTableData[rowIndex].field_name) ? 'This attribute is required' : ''
-                  })]
-                )
+                      [inputTableData[rowIndex].optional ? 'Optional' : 'This input is required']
+                    )]
+                  ),
+                  message: _.find(validation => validation.name === inputName)(inputValidations)
+                })
               }
             }
           ]

@@ -1,3 +1,4 @@
+import _ from 'lodash/fp'
 import { div, h } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import { Link } from 'src/components/common'
@@ -20,8 +21,7 @@ export const appendSASTokenIfNecessary = (blobPath, sasToken) => {
 
 //Whatever is after the last slash is the filename.
 export const getFilenameFromAzureBlobPath = blobPath => {
-  const n = blobPath.lastIndexOf('/')
-  return blobPath.substring(n + 1) //If there is no slash, this returns the whole string.
+  return _.isString(blobPath) ? blobPath.substring(blobPath.lastIndexOf('/') + 1) : ''
 }
 
 const InputOutputModal = ({ title, jsonData, onDismiss, sasToken }) => {
@@ -31,6 +31,7 @@ const InputOutputModal = ({ title, jsonData, onDismiss, sasToken }) => {
     const fileName = getFilenameFromAzureBlobPath(blobPath)
     return h(Link, {
       disabled: !downloadUrl,
+      isRendered: !_.isEmpty(fileName),
       href: downloadUrl,
       download: fileName,
       style: {},

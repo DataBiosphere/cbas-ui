@@ -20,7 +20,7 @@ describe('FindWorkflowModal', () => {
   beforeEach(() => {
     getConfig.mockReturnValue({ isDockstoreEnabled: false })
     getConfig.mockReturnValue({ isURLEnabled: false })
-    getConfig.mockReturnValue(({ dockstoreRootUrl: 'https://staging.dockstore.org/search?descriptorType=WDL&entryType=workflows&searchMode=files' }))
+    getConfig.mockReturnValue(({ dockstoreRootUrl: 'https://staging.dockstore.org/' }))
   })
   it('should render FindWorkflowModal with 5 hardcoded Method cards', () => {
     // ** ACT **
@@ -89,6 +89,6 @@ describe('FindWorkflowModal', () => {
     fireEvent.click(dockstoreSubHeader)
 
     const dockstoreButton = screen.getByText('Go to Dockstore')
-    expect(dockstoreButton).toHaveAttribute('href', 'https://staging.dockstore.org/search?descriptorType=WDL&entryType=workflows&searchMode=files')
+    expect(dockstoreButton).toHaveAttribute('href', 'https://staging.dockstore.org/search?_type=workflow&descriptorType=WDL&searchMode=files')
   })
 })
