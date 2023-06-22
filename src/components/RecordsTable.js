@@ -52,6 +52,12 @@ const RecordsTable = props => {
     )
   )(records)
 
+  const renderCellData = data => {
+    if (_.isObject(data) || _.isBoolean(data)) {
+      return JSON.stringify(data)
+    } else return data
+  }
+
   return h(AutoSizer, [({ width, height }) => {
     return h(GridTable, {
       'aria-label': `${selectedDataTable.name} data table`,
@@ -108,7 +114,7 @@ const RecordsTable = props => {
             ])
           },
           cellRenderer: ({ rowIndex }) => {
-            return h(TextCell, {}, [_.get('id', recordsTableData[rowIndex])])
+            return h(TextCell, {}, [renderCellData(_.get('id', recordsTableData[rowIndex]))])
           }
         },
         ..._.map(({ name: attributeName }) => {
@@ -134,7 +140,7 @@ const RecordsTable = props => {
             ]),
             cellRenderer: ({ rowIndex }) => {
               return h(TextCell, {}, [
-                _.get(attributeName, recordsTableData[rowIndex])
+                renderCellData(_.get(attributeName, recordsTableData[rowIndex]))
               ])
             }
           }

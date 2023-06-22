@@ -13,7 +13,7 @@ import {
   myStructInput,
   runSetInputDef,
   runSetInputDefWithStruct,
-  runSetOutputDef,
+  runSetOutputDef, runSetOutputDefWithDefaults,
   runSetResponse,
   runSetResponseForNewMethod,
   runSetResponseSameInputNames,
@@ -904,7 +904,7 @@ describe('Input source and requirements validation', () => {
     const table = await screen.findByRole('table')
     const rows = within(table).queryAllByRole('row')
     const viewStructLink = within(rows[2]).getByText('View Struct')
-    const inputWarningMessageActive = within(rows[2]).queryByText("One of this struct's inputs has an invalid configuration")
+    const inputWarningMessageActive = within(rows[2]).queryByText('This struct is missing a required input')
     expect(inputWarningMessageActive).not.toBeNull()
 
     // ** ACT **
@@ -915,10 +915,10 @@ describe('Input source and requirements validation', () => {
     const structRows = within(structTable).queryAllByRole('row')
     expect(structRows.length).toBe(6)
 
-    const structCells = within(structRows[5]).queryAllByRole('cell')
+    const structCells = within(structRows[2]).queryAllByRole('cell')
     within(structCells[1]).getByText('myInnerStruct')
     const viewMyInnerStructLink = within(structCells[4]).getByText('View Struct')
-    const structWarningMessageActive = within(structCells[4]).queryByText("One of this struct's inputs has an invalid configuration")
+    const structWarningMessageActive = within(structCells[4]).getByText('This struct is missing a required input')
     expect(structWarningMessageActive).not.toBeNull()
 
     // ** ACT **
@@ -1024,10 +1024,10 @@ describe('Input source and requirements validation', () => {
     expect(innerStructRows.length).toBe(3)
 
     // check that warnings appear next to empty required inputs inside struct modal
-    const innerStructRow1Cells = within(innerStructRows[1]).queryAllByRole('cell')
+    const innerStructRow1Cells = within(innerStructRows[2]).queryAllByRole('cell')
     within(innerStructRow1Cells[4]).getByText('This input is required')
 
-    const innerStructRow2Cells = within(innerStructRows[2]).queryAllByRole('cell')
+    const innerStructRow2Cells = within(innerStructRows[1]).queryAllByRole('cell')
     within(innerStructRow2Cells[4]).getByText('Optional')
 
     // ** ACT **
@@ -1938,7 +1938,7 @@ describe('SubmissionConfig inputs/outputs definitions', () => {
     within(headers[3]).getByText('Input sources')
     within(headers[4]).getByText('Attribute')
 
-    const structCells = within(structRows[5]).queryAllByRole('cell')
+    const structCells = within(structRows[2]).queryAllByRole('cell')
     within(structCells[1]).getByText('myInnerStruct')
     const viewMyInnerStructLink = within(structCells[4]).getByText('View Struct')
 
@@ -2346,7 +2346,7 @@ describe('SubmissionConfig submitting a run set', () => {
 
     // ** ACT **
     // Update the top-level struct field myPrimitive
-    const myPrimitiveRowCells = within(structRows[1]).queryAllByRole('cell')
+    const myPrimitiveRowCells = within(structRows[5]).queryAllByRole('cell')
     within(myPrimitiveRowCells[1]).getByText('myPrimitive')
     const myPrimitiveInput = within(myPrimitiveRowCells[4]).getByDisplayValue('Fiesty')
     await fireEvent.change(myPrimitiveInput, { target: { value: 'Docile' } })
@@ -2354,7 +2354,7 @@ describe('SubmissionConfig submitting a run set', () => {
 
     // ** ACT **
     // Navigate the struct builder to myInnerStruct
-    const myInnerStructRowCells = within(structRows[5]).queryAllByRole('cell')
+    const myInnerStructRowCells = within(structRows[2]).queryAllByRole('cell')
     within(myInnerStructRowCells[1]).getByText('myInnerStruct')
     const viewMyInnerStructLink = within(myInnerStructRowCells[4]).getByText('View Struct')
     await fireEvent.click(viewMyInnerStructLink)
@@ -2367,7 +2367,12 @@ describe('SubmissionConfig submitting a run set', () => {
     // Update the struct within myInnerStruct
     const myInnermostPrimitiveRowCells = within(myInnerStructRows[1]).queryAllByRole('cell')
     within(myInnermostPrimitiveRowCells[1]).getByText('myInnermostPrimitive')
-    const myInnermostPrimitiveInput = within(myInnermostPrimitiveRowCells[4]).getByDisplayValue('foo')
+    await act(async () => {
+      await userEvent.click(within(myInnermostPrimitiveRowCells[3]).getByText('Select Source'))
+      const selectOption = await within(screen.getByRole('listbox')).findByText('Type a Value')
+      await userEvent.click(selectOption)
+    })
+    const myInnermostPrimitiveInput = within(myInnermostPrimitiveRowCells[4]).getByLabelText('Enter a value')
     await fireEvent.change(myInnermostPrimitiveInput, { target: { value: 'bar' } })
     within(myInnermostPrimitiveRowCells[4]).getByDisplayValue('bar')
 
@@ -2463,6 +2468,102 @@ describe('SubmissionConfig submitting a run set', () => {
           }
         ],
         workflow_output_definitions: runSetOutputDef,
+        wds_records: {
+          record_type: 'FOO',
+          record_ids: [
+            'FOO1'
+          ]
+        }
+      })
+    )
+  })
+
+  it('should call POST /run_sets endpoint with expected parameters after outputs are set to default', async () => {
+    // ** ARRANGE **
+    const mockRunSetResponse = jest.fn(() => Promise.resolve(runSetResponse))
+    const mockMethodsResponse = jest.fn(() => Promise.resolve(methodsResponse))
+    const mockSearchResponse = jest.fn(() => Promise.resolve(searchResponses['FOO']))
+    const mockTypesResponse = jest.fn(() => Promise.resolve(typesResponse))
+
+    const postRunSetFunction = jest.fn()
+
+    await Ajax.mockImplementation(() => {
+      return {
+        Cbas: {
+          runSets: {
+            post: postRunSetFunction,
+            getForMethod: mockRunSetResponse
+          },
+          methods: {
+            getById: mockMethodsResponse
+          }
+        },
+        Wds: {
+          search: {
+            post: mockSearchResponse
+          },
+          types: {
+            get: mockTypesResponse
+          }
+        }
+      }
+    })
+
+    // ** ACT **
+    render(h(SubmissionConfig))
+
+    // ** ASSERT **
+    await waitFor(() => {
+      expect(mockRunSetResponse).toHaveBeenCalledTimes(1)
+      expect(mockTypesResponse).toHaveBeenCalledTimes(1)
+      expect(mockSearchResponse).toHaveBeenCalledTimes(1)
+      expect(mockMethodsResponse).toHaveBeenCalledTimes(1)
+    })
+
+    // ** ACT **
+    // user selects 'FOO1' record from Data Table
+    const checkboxes = screen.getAllByRole('checkbox')
+    const checkbox = checkboxes[1]
+    fireEvent.click(checkbox)
+
+    // ** ASSERT **
+    // verify that the record was indeed selected
+    expect(checkbox).toHaveAttribute('aria-checked', 'true')
+
+    const outputButton = await screen.findByRole('button', { name: 'Outputs' })
+    await fireEvent.click(outputButton)
+
+    const table = await screen.findByRole('table')
+    const rows = within(table).queryAllByRole('row')
+    const headers = within(rows[0]).queryAllByRole('columnheader')
+
+    // set defaults
+    await act(async () => {
+      await fireEvent.click(within(headers[3]).getByRole('button'))
+    })
+
+    // ** ACT **
+    // user clicks on Submit (inputs and outputs should be rendered based on previous submission)
+    const button = screen.getByLabelText('Submit button')
+    fireEvent.click(button)
+
+    // ** ASSERT **
+    // Launch modal should be displayed
+    await screen.getByText('Send submission')
+    const modalSubmitButton = await screen.getByLabelText('Launch Submission')
+
+    // ** ACT **
+    // user click on Submit button
+    fireEvent.click(modalSubmitButton)
+
+    // ** ASSERT **
+    // assert POST /run_sets endpoint was called with expected parameters and input 'optional_var' has correct definition for source 'None'
+    expect(postRunSetFunction).toHaveBeenCalled()
+    expect(postRunSetFunction).toBeCalledWith(
+      expect.objectContaining({
+        method_version_id: runSetResponse.run_sets[0].method_version_id,
+        workflow_input_definitions: runSetInputDef,
+        workflow_output_definitions: runSetOutputDefWithDefaults,
         wds_records: {
           record_type: 'FOO',
           record_ids: [

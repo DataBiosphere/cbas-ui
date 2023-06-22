@@ -229,8 +229,7 @@ export const myStructInput = {
             {
               name: 'myInnermostPrimitive',
               source: {
-                type: 'literal',
-                parameter_value: 'foo'
+                type: 'none'
               }
             },
             {
@@ -281,6 +280,25 @@ export const runSetOutputDef = [
     output_type: { type: 'primitive', primitive_type: 'String' },
     destination: {
       type: 'none'
+    }
+  }
+]
+
+export const runSetOutputDefWithDefaults = [
+  {
+    output_name: 'target_workflow_1.file_output',
+    output_type: { type: 'primitive', primitive_type: 'File' },
+    destination: {
+      type: 'record_update',
+      record_attribute: 'file_output'
+    }
+  },
+  {
+    output_name: 'target_workflow_1.unused_output',
+    output_type: { type: 'primitive', primitive_type: 'String' },
+    destination: {
+      type: 'record_update',
+      record_attribute: 'unused_output'
     }
   }
 ]
