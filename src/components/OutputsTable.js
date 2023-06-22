@@ -1,17 +1,20 @@
 import _ from 'lodash/fp'
-import { h } from 'react-hyperscript-helpers'
+import { Fragment, useState } from 'react'
+import { div, h } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
+import { Link } from 'src/components/common'
 import { TextInput } from 'src/components/input'
-import { parseMethodString } from 'src/components/submission-common'
+import { parseMethodString, WithWarnings } from 'src/components/submission-common'
 import { FlexTable, HeaderCell, Sortable, TextCell } from 'src/components/table'
 import * as Utils from 'src/libs/utils'
 
 
 const OutputsTable = props => {
   const {
-    configuredOutputDefinition, setConfiguredOutputDefinition,
-    outputTableSort, setOutputTableSort
+    configuredOutputDefinition, setConfiguredOutputDefinition
   } = props
+
+  const [outputTableSort, setOutputTableSort] = useState({ field: '', direction: 'asc' })
 
   const outputTableData = _.flow(
     _.entries,
@@ -26,6 +29,11 @@ const OutputsTable = props => {
     }),
     _.orderBy([({ [outputTableSort.field]: field }) => _.lowerCase(field)], [outputTableSort.direction])
   )(configuredOutputDefinition)
+
+  const nonDefaultOutputs = _.filter(output => output.destination.type === 'none' || (output.destination.type === 'record_update' && output.destination.record_attribute !== _.last(output.output_name.split('.'))))(configuredOutputDefinition)
+  const setDefaultOutputs = () => {
+    setConfiguredOutputDefinition(_.map(output => _.set('destination', { type: 'record_update', record_attribute: _.last(output.output_name.split('.')) })(output))(configuredOutputDefinition))
+  }
 
   return h(AutoSizer, [({ width, height }) => {
     return h(FlexTable, {
@@ -61,7 +69,13 @@ const OutputsTable = props => {
           }
         },
         {
-          headerRenderer: () => h(HeaderCell, ['Attribute']),
+          headerRenderer: () => h(Fragment, [
+            h(HeaderCell, { style: { overflow: 'visible' } }, ['Attribute']),
+            h(Fragment, [div({ style: { whiteSpace: 'pre' } }, ['  |  ']), WithWarnings({
+              baseComponent: h(Link, { onClick: setDefaultOutputs }, [`Autofill (${nonDefaultOutputs.length}) outputs`]),
+              message: _.some(output => output.destination.type === 'record_update')(nonDefaultOutputs) ? { type: 'error', message: 'This will overwrite existing output names' } : { type: 'none' }
+            })])
+          ]),
           cellRenderer: ({ rowIndex }) => {
             const outputValue = configurationIndex => {
               const destType = _.get('destination.type', configuredOutputDefinition[configurationIndex])
