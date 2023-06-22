@@ -229,8 +229,7 @@ export const myStructInput = {
             {
               name: 'myInnermostPrimitive',
               source: {
-                type: 'literal',
-                parameter_value: 'foo'
+                type: 'none'
               }
             },
             {
