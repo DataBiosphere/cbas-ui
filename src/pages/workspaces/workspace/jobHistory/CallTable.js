@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { div, h, input, label, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import { Link, Select } from 'src/components/common'
@@ -75,11 +75,26 @@ const SearchBar = ({ filterFn }) => {
   )
 }
 
+///////WORKFLOW BREADCRUMB SUB-COMPONENT///////////////////////
+const WorkflowBreadcrumb = ({ workflowPath, loadWorkflow, updateWorkflowPath }) => {
+  const workflowPathRender = workflowPath.map((workflow, index) => {
+    const { id, workflowName } = workflow
+    const isLast = index === workflowPath.length - 1
+    return span({ key: `${id}-breadcrumb`, style: { marginRight: '5px' } }, [
+      isLast ? span([workflowName]) : h(Link, { style: { cursor: 'pointer' }, onClick: () => loadWorkflow(id, updateWorkflowPath) }, [workflowName]),
+      !isLast && span(' > ')
+    ])
+  })
+  return div({ 'data-testid': 'workflow-path', style: { marginBottom: '10px' } }, [workflowPathRender])
+}
+
 ////////CALL TABLE///////////////////////
-const CallTable = ({ tableData, defaultFailedFilter = false, showLogModal, showTaskDataModal }) => {
+const CallTable = ({ tableData, defaultFailedFilter = false, showLogModal, showTaskDataModal, loadWorkflow, enableExplorer = false, workflowName, workflowId }) => {
   const [sort, setSort] = useState({ field: 'index', direction: 'asc' })
   const [statusFilter, setStatusFilter] = useState([])
   const [filteredCallObjects, setFilteredCallObjects] = useState([])
+  //NOTE: workflowPath is used to load the workflow in the explorer, implement after the table update is confirmed to be working
+  const [workflowPath, setWorkflowPath] = useState([{ id: workflowId, workflowName }])
 
   useEffect(() => {
     if (defaultFailedFilter) {
@@ -109,8 +124,18 @@ const CallTable = ({ tableData, defaultFailedFilter = false, showLogModal, showT
     return statusSet
   }, [tableData])
 
+  const updateWorkflowPath = useCallback((id, workflowName) => {
+    const currentIndex = workflowPath.findIndex(workflow => workflow.id === id)
+    if (currentIndex !== -1) {
+      setWorkflowPath(workflowPath.slice(0, currentIndex + 1))
+    } else {
+      setWorkflowPath([...workflowPath, { id, workflowName }])
+    }
+  }, [workflowPath])
+
   return div([
     label({
+      isRendered: !enableExplorer,
       style: {
         fontWeight: 700
       }
@@ -126,7 +151,7 @@ const CallTable = ({ tableData, defaultFailedFilter = false, showLogModal, showT
           flexGrow: 2
         }
       }, [
-        div({ 'data-testid': 'status-dropdown-filter', style: { flexBasis: 250, marginRight: '20px' } }, [
+        div({ 'data-testid': 'status-dropdown-filter', style: { flexBasis: 250, marginRight: '20px' }, isRendered: !enableExplorer }, [
           h(Select, {
             isClearable: true,
             isMulti: true,
@@ -152,7 +177,7 @@ const CallTable = ({ tableData, defaultFailedFilter = false, showLogModal, showT
         h(SearchBar, { filterFn })
       ])
     ]),
-
+    h(WorkflowBreadcrumb, { isRendered: enableExplorer, workflowPath, loadWorkflow, updateWorkflowPath }),
     h(AutoSizer, { disableHeight: true }, [
       ({ width }) => h(FlexTable, {
         'aria-label': 'call table',
@@ -221,32 +246,61 @@ const CallTable = ({ tableData, defaultFailedFilter = false, showLogModal, showT
             field: 'logs',
             headerRenderer: () => h(HeaderCell, { fontWeight: 500 }, ['Logs']),
             cellRenderer: (({ rowIndex }) => {
-              const { stdout, stderr, inputs, outputs } = filteredCallObjects[rowIndex]
-              return div({
-                style: {
-                  display: 'grid',
-                  gridTemplateColumns: '1fr 1fr',
-                  gridColumnGap: '0.3em',
-                  gridRowGap: '0.3em'
-                }
-              }, [
-                h(Link, {
-                  'data-testid': 'inputs-modal-link',
-                  onClick: () => showTaskDataModal('Inputs', inputs)
-                }, ['Inputs']),
-                h(Link, {
-                  'data-testid': 'outputs-modal-link',
-                  onClick: () => showTaskDataModal('Outputs', outputs)
-                }, ['Outputs']),
-                h(Link, {
-                  'data-testid': 'stdout-modal-link',
-                  onClick: () => showLogModal(stdout, true)
-                }, ['stdout']),
-                h(Link, {
-                  'data-testid': 'stderr-modal-link',
-                  onClick: () => showLogModal(stderr, true)
-                }, 'stderr')
-              ])
+              const { stdout, stderr, inputs, outputs, subWorkflowId } = filteredCallObjects[rowIndex]
+              const style =
+                enableExplorer && !_.isEmpty(subWorkflowId) ?
+                  {
+                    display: 'flex',
+                    justifyContent: 'flex-start'
+                  } :
+                  {
+                    display: 'grid',
+                    gridTemplateColumns: '1fr 1fr',
+                    gridColumnGap: '0.3em',
+                    gridRowGap: '0.3em'
+                  }
+              const linkTemplate = enableExplorer && !_.isEmpty(subWorkflowId) ?
+                [h(Link, {
+                  'data-testid': `view-subworkflow-${subWorkflowId}`,
+                  onClick: () => {
+                    loadWorkflow(subWorkflowId, updateWorkflowPath)
+                  }
+                }, ['View sub-workflow'])] :
+                _.isEmpty(subWorkflowId) && [
+                  h(
+                    Link,
+                    {
+                      'data-testid': 'inputs-modal-link',
+                      onClick: () => showTaskDataModal('Inputs', inputs)
+                    },
+                    ['Inputs']
+                  ),
+                  h(
+                    Link,
+                    {
+                      'data-testid': 'outputs-modal-link',
+                      onClick: () => showTaskDataModal('Outputs', outputs)
+                    },
+                    ['Outputs']
+                  ),
+                  h(
+                    Link,
+                    {
+                      'data-testid': 'stdout-modal-link',
+                      onClick: () => showLogModal(stdout, true)
+                    },
+                    ['stdout']
+                  ),
+                  h(
+                    Link,
+                    {
+                      'data-testid': 'stderr-modal-link',
+                      onClick: () => showLogModal(stderr, true)
+                    },
+                    'stderr'
+                  )
+                ]
+              return div({ style }, linkTemplate)
             })
           }
         ]
