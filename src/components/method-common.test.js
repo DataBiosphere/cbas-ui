@@ -1,5 +1,5 @@
 import {
-  convertToRawUrl
+  convertToRawUrl, getMethodVersionName
 } from 'src/components/method-common'
 import { Ajax } from 'src/libs/ajax'
 
@@ -79,5 +79,17 @@ describe('convertToRawUrl', () => {
     } catch (e) {
       expect(e.message).toBe("Unknown method source 'MySource'. Currently supported method sources are [GitHub, Dockstore].")
     }
+  })
+})
+
+describe('getMethodVersionName in ImportGithub component', () => {
+  const testUrls = [
+    { url: 'https://raw.githubusercontent.com/broadinstitute/cromwell/develop/wdl/transforms/draft3/src/test/cases/simple_task.wdl', expectedVersion: 'develop' },
+    { url: 'https://github.com/broadinstitute/warp/blob/Imputation_v1.1.1/pipelines/broad/arrays/imputation/Imputation.wdl', expectedVersion: 'Imputation_v1.1.1' },
+    { url: 'https://github.com/DataBiosphere/topmed-workflows/tree/1.32.0/aligner/functional-equivalence-wdl/FunctionalEquivalence.wdl', expectedVersion: '1.32.0' } // from dockstore
+  ]
+
+  test.each(testUrls)('returns expected version for url', ({ url, expectedVersion }) => {
+    expect(getMethodVersionName(url)).toBe(expectedVersion)
   })
 })

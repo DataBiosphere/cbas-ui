@@ -103,11 +103,9 @@ describe('Add a Workflow Link', () => {
 
     const urlLink = screen.getByPlaceholderText('Paste Github link')
     const workflowName = screen.getByPlaceholderText('Workflow Name')
-    const workflowVersion = screen.getByPlaceholderText('Workflow Version')
 
     fireEvent.change(urlLink, { target: { value: rawGithubLink } })
     fireEvent.change(workflowName, { target: { value: 'Test workflow again' } })
-    fireEvent.change(workflowVersion, { target: { value: 'v.02' } })
     const addToWorkspaceButtonEnabled = screen.getByLabelText('Add to Workspace button')
     fireEvent.click(addToWorkspaceButtonEnabled)
 
@@ -144,12 +142,10 @@ describe('Add a Workflow Link', () => {
 
     const urlLink = screen.getByPlaceholderText('Paste Github link')
     const workflowName = screen.getByPlaceholderText('Workflow Name')
-    const workflowVersion = screen.getByPlaceholderText('Workflow Version')
     const addToWorkspaceButton = screen.getByLabelText('Add to Workspace button')
 
     fireEvent.change(urlLink, { target: { value: 'lol.com' } })
     fireEvent.change(workflowName, { target: { value: 'Test bad workflow' } })
-    fireEvent.change(workflowVersion, { target: { value: 'v.03' } })
 
     expect(addToWorkspaceButton.getAttribute('aria-disabled')).toBe('true')
   })
