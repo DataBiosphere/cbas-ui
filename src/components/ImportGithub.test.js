@@ -27,12 +27,10 @@ describe('Add a Workflow Link', () => {
 
     const urlLink = screen.getByText('Workflow Link *')
     const workflowName = screen.getByText('Workflow Name *')
-    const workflowVersion = screen.getByText('Workflow Version *')
     const addToWorkspaceButton = screen.getByText('Add to Workspace')
 
     expect(urlLink).toBeInTheDocument()
     expect(workflowName).toBeInTheDocument()
-    expect(workflowVersion).toBeInTheDocument()
     expect(addToWorkspaceButton).toBeInTheDocument()
   })
 
@@ -56,14 +54,12 @@ describe('Add a Workflow Link', () => {
 
     const urlLink = screen.getByPlaceholderText('Paste Github link')
     const workflowName = screen.getByPlaceholderText('Workflow Name')
-    const workflowVersion = screen.getByPlaceholderText('Workflow Version')
     const addToWorkspaceButtonDisabled = screen.getByLabelText('Add to Workspace button')
 
     expect(addToWorkspaceButtonDisabled.getAttribute('aria-disabled')).toBe('true')
 
     fireEvent.change(urlLink, { target: { value: githubLink } })
     fireEvent.change(workflowName, { target: { value: 'Test workflow' } })
-    fireEvent.change(workflowVersion, { target: { value: 'v.01' } })
     const addToWorkspaceButtonEnabled = screen.getByLabelText('Add to Workspace button')
     expect(addToWorkspaceButtonEnabled.getAttribute('aria-disabled')).toBe('false')
     fireEvent.click(addToWorkspaceButtonEnabled)
@@ -77,7 +73,7 @@ describe('Add a Workflow Link', () => {
           method_name: 'Test workflow',
           method_description: undefined,
           method_source: 'GitHub',
-          method_version: 'v.01',
+          method_version: 'develop',
           method_url: githubLink
         })
     })
@@ -117,7 +113,7 @@ describe('Add a Workflow Link', () => {
           method_name: 'Test workflow again',
           method_description: undefined,
           method_source: 'GitHub',
-          method_version: 'v.02',
+          method_version: 'develop',
           method_url: rawGithubLink
         })
     })
