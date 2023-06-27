@@ -367,7 +367,7 @@ describe('typeMatch', () => {
   const array = arrayType => ({ type: 'array', array_type: arrayType })
   const arrayWDS = wdsType => `ARRAY_OF_${wdsType}`
 
-  const [cbasTypes, wdsTypes, shouldMatch] = _.unzip([
+  const testCases = [
     ['Int', 'NUMBER', true],
     ['Int', 'BOOLEAN', false],
     ['Int', 'STRING', false],
@@ -383,33 +383,22 @@ describe('typeMatch', () => {
     ['File', 'NUMBER', true],
     ['File', 'BOOLEAN', true],
     ['File', 'STRING', true]
-  ])
-  const primitiveTypes = _.map(primitive)(cbasTypes)
-  const optionalPrimitiveTypes = _.map(optional)(primitiveTypes)
-  const arrayPrimitiveTypes = _.map(array)(primitiveTypes)
+  ]
 
-  it('Optional type disregarded when type matching between CBAS and WDS', () => {
-    const primitiveTypesMatched = _.map(([cbas, wds]) => typeMatch(cbas, wds))(_.zip(primitiveTypes, wdsTypes))
-    const optionalTypesMatched = _.map(([cbas, wds]) => typeMatch(cbas, wds))(_.zip(optionalPrimitiveTypes, wdsTypes))
-    expect(primitiveTypesMatched).toStrictEqual(optionalTypesMatched)
+  test.each(testCases)('(CBAS) %s does or does not match (WDS) %s regardless of optional', (cbas, wds, _shouldMatch) => {
+    expect(typeMatch(primitive(cbas), wds)).toBe(typeMatch(optional(primitive(cbas)), wds))
   })
 
-  it('Primitive type matching between CBAS and WDS', () => {
-    const primitiveTypesMatched = _.map(([cbas, wds]) => typeMatch(cbas, wds))(_.zip(primitiveTypes, wdsTypes))
-    expect(primitiveTypesMatched).toStrictEqual(shouldMatch)
+  test.each(testCases)('CBAS primitive %s can be fulfilled by WDS type %s: %s', (cbas, wds, shouldMatch) => {
+    expect(typeMatch(primitive(cbas), wds)).toBe(shouldMatch)
   })
 
-  it('Array type matching between CBAS and WDS', () => {
+  test.each(testCases)('CBAS array %s can be fulfilled by WDS ARRAY_OF_%s: %s', (cbas, wds, shouldMatch) => {
     // if CBAS expects array but WDS does not provide, it's no good
-    const arrayCbasTypesMismatched = _.map(([cbas, wds]) => typeMatch(cbas, wds))(_.zip(arrayPrimitiveTypes, wdsTypes))
-    expect(arrayCbasTypesMismatched).not.toContain(true)
-
+    expect(typeMatch(array(primitive(cbas)), wds)).toBe(false)
     // if CBAS expects a string but WDS provides arrays... we can convert that to a string
-    const openToArrays = _.map(type => type === 'String' || type === 'File')(cbasTypes)
-    const arrayWdsTypesMismatched = _.map(([cbas, wds]) => typeMatch(cbas, arrayWDS(wds)))(_.zip(primitiveTypes, wdsTypes))
-    expect(arrayWdsTypesMismatched).toStrictEqual(openToArrays)
-
-    const arrayTypesMatched = _.map(([cbas, wds]) => typeMatch(cbas, arrayWDS(wds)))(_.zip(arrayPrimitiveTypes, wdsTypes))
-    expect(arrayTypesMatched).toStrictEqual(shouldMatch)
+    expect(typeMatch(primitive(cbas), arrayWDS(wds))).toBe(cbas === 'String' || cbas === 'File')
+    // Otherwise arrays should typematch the same as if comparing their children
+    expect(typeMatch(array(primitive(cbas)), arrayWDS(wds))).toBe(shouldMatch)
   })
 })
