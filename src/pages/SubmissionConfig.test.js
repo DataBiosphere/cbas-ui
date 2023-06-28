@@ -46,8 +46,6 @@ jest.mock('src/libs/config', () => ({
 const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'offsetHeight')
 const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'offsetWidth')
 
-// jest.setTimeout(6000)
-
 describe('SubmissionConfig workflow details', () => {
   beforeAll(() => {
     Object.defineProperty(HTMLElement.prototype, 'offsetHeight', { configurable: true, value: 1000 })
