@@ -385,6 +385,8 @@ export const typeMatch = (cbasType, wdsType) => {
     )
   } else if (unwrappedCbasType.type === 'array') {
     return _.startsWith('ARRAY_OF_')(wdsType) && typeMatch(unwrappedCbasType.array_type, _.replace('ARRAY_OF_', '')(wdsType))
+  } else if (unwrappedCbasType.type === 'struct') {
+    return wdsType === 'JSON'
   } else return true
 }
 
