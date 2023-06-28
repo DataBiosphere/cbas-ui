@@ -380,6 +380,7 @@ export const typeMatch = (cbasType, wdsType) => {
       ['Int', () => wdsType === 'NUMBER'],
       ['Float', () => wdsType === 'NUMBER'],
       ['Boolean', () => wdsType === 'BOOLEAN'],
+      ['File', () => wdsType === 'FILE' || wdsType === 'STRING'],
       [Utils.DEFAULT, () => true]
     )
   } else if (unwrappedCbasType.type === 'array') {
