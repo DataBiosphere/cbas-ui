@@ -13,7 +13,6 @@ import {
   WithWarnings
 } from 'src/components/submission-common'
 import { FlexTable, HeaderCell, InputsButtonRow, TextCell } from 'src/components/table'
-import { tableButtonRowStyle } from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 
 
@@ -41,6 +40,15 @@ export const StructBuilder = props => {
   } = props
 
   const [includeOptionalInputs, setIncludeOptionalInputs] = useState(true)
+  const [searchFilter, setSearchFilter] = useState('')
+  const [prevStructIndex, setPrevStructIndex] = useState(structIndexPath)
+
+  if (structIndexPath !== prevStructIndex) {
+    setSearchFilter('')
+    setIncludeOptionalInputs(true)
+    setPrevStructIndex(structIndexPath)
+  }
+
   const structTypePath = buildStructTypePath(structIndexPath)
   const structSourcePath = buildStructSourcePath(structIndexPath)
   const structTypeNamePath = buildStructTypeNamePath(structIndexPath)
@@ -66,12 +74,16 @@ export const StructBuilder = props => {
       ])(row)
     }),
     _.orderBy([({ field_name: name }) => _.lowerCase(name)], ['asc']),
-    _.filter(({ optional }) => includeOptionalInputs || !optional)
+    _.filter(_.overEvery([
+      ({ optional }) => includeOptionalInputs || !optional,
+      ({ field_name: name }) => _.lowerCase(name).includes(_.lowerCase(searchFilter))
+    ]))
   )(structInputDefinition)
 
   const breadcrumbsHeight = 35
-  return h(div, { 'aria-label': 'struct-breadcrumbs', style: { height: 500 } }, [
+  return h(div, { style: { height: 500 }, role: 'struct-builder' }, [
     h(div, {
+      'aria-label': 'struct-breadcrumbs',
       style: {
         height: breadcrumbsHeight,
         fontSize: 15,
@@ -86,15 +98,16 @@ export const StructBuilder = props => {
         currentStructName
       ])
     ]),
+    h(InputsButtonRow, {
+      optionalButtonProps: {
+        includeOptionalInputs, setIncludeOptionalInputs
+      },
+      searchProps: {
+        searchFilter, setSearchFilter
+      }
+    }),
     h(AutoSizer, [({ width, height }) => {
       return h(div, {}, [
-        h(InputsButtonRow, {
-          style: tableButtonRowStyle({ width, height }),
-          showRow: !includeOptionalInputs || _.some(row => row.field_type.type === 'optional', currentStructType.fields),
-          optionalButtonProps: {
-            includeOptionalInputs, setIncludeOptionalInputs
-          }
-        }),
         h(FlexTable, {
           'aria-label': 'struct-table',
           rowCount: inputTableData.length,

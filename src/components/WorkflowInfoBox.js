@@ -17,37 +17,46 @@ export const WorkflowInfoBox = ({ workflow }) => {
 
   const [showWDLModal, setShowWDLModal] = useState(false)
 
-  return div({
-    style: {
-      paddingTop: '0.25em',
-      paddingBottom: '0.25em',
-      lineHeight: '24px',
-      display: 'flex',
-      justifyContent: 'space-between',
-      width: '60%'
-    }
-  }, [
-    div({ 'data-testid': 'timing-container' }, [
-      div({}, [span({ style: { fontWeight: 'bold', fontSize: 16 } }, ['Workflow Timing:'])]),
-      div({}, [
-        div({}, [span({ style: { fontWeight: 'bold' } }, ['Start: ']), span({}, [workflowStart])]),
-        div({}, [span({ style: { fontWeight: 'bold' } }, ['End: ']), span({}, [workflowEnd])])
-      ])
-    ]),
-    div({ 'data-testid': 'status-container', style: {} }, [
-      div({}, [span({ style: { fontWeight: 'bold', fontSize: 16 } }, ['Workflow Status:'])]),
-      div({}, [
-        div({ style: { lineHeight: '24px', marginTop: '0.5rem' } }, [
-          makeStatusLine(style => collapseStatus(status).icon(style), status)
+  return div(
+    {
+      style: {
+        paddingTop: '0.25em',
+        paddingBottom: '0.25em',
+        lineHeight: '24px',
+        display: 'flex',
+        justifyContent: 'space-between',
+        width: '60%'
+      }
+    },
+    [
+      div({ 'data-testid': 'timing-container' }, [
+        div({}, [span({ style: { fontWeight: 'bold', fontSize: 16 } }, ['Workflow Timing:'])]),
+        div({}, [
+          div({ 'data-testid': 'workflow-start-container' }, [span({ style: { fontWeight: 'bold' } }, ['Start: ']), span({}, [workflowStart])]),
+          div({ 'data-testid': 'workflow-end-container' }, [span({ style: { fontWeight: 'bold' } }, ['End: ']), span({}, [workflowEnd])])
         ])
-      ])
-    ]),
-    div({ 'data-testid': 'wdl-container', style: { } }, [
-      div({}, [span({ style: { fontWeight: 'bold', fontSize: 16 } }, ['Workflow Script:'])]),
-      div({}, [h(Link, { onClick: () => { setShowWDLModal(true) } }, [
-        icon('fileAlt', { size: 18 }), ' View Workflow Script'
-      ])])
-    ]),
-    showWDLModal && h(ViewWorkflowScriptModal, { workflowScript, onDismiss: () => setShowWDLModal(false) }, [])
-  ])
+      ]),
+      div({ 'data-testid': 'status-container', style: {} }, [
+        div({}, [span({ style: { fontWeight: 'bold', fontSize: 16 } }, ['Workflow Status:'])]),
+        div({}, [
+          div({ style: { lineHeight: '24px', marginTop: '0.5rem' } }, [makeStatusLine(style => collapseStatus(status).icon(style), status)])
+        ])
+      ]),
+      div({ 'data-testid': 'wdl-container', style: {} }, [
+        div({}, [span({ style: { fontWeight: 'bold', fontSize: 16 } }, ['Workflow Script:'])]),
+        div({}, [
+          h(
+            Link,
+            {
+              onClick: () => {
+                setShowWDLModal(true)
+              }
+            },
+            [icon('fileAlt', { size: 18 }), ' View Workflow Script']
+          )
+        ])
+      ]),
+      showWDLModal && h(ViewWorkflowScriptModal, { workflowScript, onDismiss: () => setShowWDLModal(false) }, [])
+    ]
+  )
 }
