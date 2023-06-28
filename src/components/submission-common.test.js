@@ -371,18 +371,23 @@ describe('typeMatch', () => {
     ['Int', 'NUMBER', true],
     ['Int', 'BOOLEAN', false],
     ['Int', 'STRING', false],
+    ['Int', 'FILE', false],
     ['Float', 'NUMBER', true],
     ['Float', 'BOOLEAN', false],
     ['Float', 'STRING', false],
+    ['Float', 'FILE', false],
     ['Boolean', 'NUMBER', false],
     ['Boolean', 'BOOLEAN', true],
     ['Boolean', 'STRING', false],
+    ['Boolean', 'FILE', false],
     ['String', 'NUMBER', true],
     ['String', 'BOOLEAN', true],
     ['String', 'STRING', true],
-    ['File', 'NUMBER', true],
-    ['File', 'BOOLEAN', true],
-    ['File', 'STRING', true]
+    ['String', 'FILE', true],
+    ['File', 'NUMBER', false],
+    ['File', 'BOOLEAN', false],
+    ['File', 'STRING', true],
+    ['File', 'FILE', true],
   ]
 
   test.each(testCases)('(CBAS) %s does or does not match (WDS) %s regardless of optional', (cbas, wds, _shouldMatch) => {
@@ -397,7 +402,7 @@ describe('typeMatch', () => {
     // if CBAS expects array but WDS does not provide, it's no good
     expect(typeMatch(array(primitive(cbas)), wds)).toBe(false)
     // if CBAS expects a string but WDS provides arrays... we can convert that to a string
-    expect(typeMatch(primitive(cbas), arrayWDS(wds))).toBe(cbas === 'String' || cbas === 'File')
+    expect(typeMatch(primitive(cbas), arrayWDS(wds))).toBe(cbas === 'String')
     // Otherwise arrays should typematch the same as if comparing their children
     expect(typeMatch(array(primitive(cbas)), arrayWDS(wds))).toBe(shouldMatch)
   })
