@@ -387,7 +387,7 @@ describe('typeMatch', () => {
     ['File', 'NUMBER', false],
     ['File', 'BOOLEAN', false],
     ['File', 'STRING', true],
-    ['File', 'FILE', true],
+    ['File', 'FILE', true]
   ]
 
   test.each(testCases)('(CBAS) %s does or does not match (WDS) %s regardless of optional', (cbas, wds, _shouldMatch) => {
