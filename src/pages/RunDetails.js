@@ -21,6 +21,7 @@ import { elements } from 'src/libs/style'
 import { cond, newTabLinkProps } from 'src/libs/utils'
 import CallTable from 'src/pages/workspaces/workspace/jobHistory/CallTable'
 
+
 // Filter function that only displays rows based on task name search parameters
 // NOTE: the viewable call should have the task name stored on the call instance itself, should be done via pre-processing step
 export const taskNameFilterFn = searchTerm => filter(call => call?.taskName?.includes(searchTerm))
@@ -40,6 +41,7 @@ export const generateCallTableData = calls => {
     return Object.assign(additionalData, lastCall)
   })
 }
+
 
 export const RunDetails = ({ submissionId, workflowId }) => {
   /*
@@ -88,10 +90,8 @@ export const RunDetails = ({ submissionId, workflowId }) => {
   ], [])
   const excludeKey = useMemo(() => [], [])
   const fetchMetadata = useCallback(workflowId => Ajax(signal).Cromwell.workflows(workflowId).metadata({ includeKey, excludeKey }), [includeKey, excludeKey, signal])
-
   const loadWorkflow = useCallback(async (workflowId, updateWorkflowPath = undefined) => {
     const metadata = await fetchMetadata(workflowId)
-    const { workflowName } = metadata
     isNil(updateWorkflowPath) && setWorkflow(metadata)
     if (!isEmpty(metadata?.calls)) {
       const formattedTableData = generateCallTableData(metadata.calls)
@@ -100,7 +100,7 @@ export const RunDetails = ({ submissionId, workflowId }) => {
         stateRefreshTimer.current = setTimeout(loadWorkflow, 60000)
       }
     }
-    !isNil(updateWorkflowPath) && updateWorkflowPath(workflowId, workflowName)
+    !isNil(updateWorkflowPath) && updateWorkflowPath()
   }, [fetchMetadata])
 
   /*
@@ -187,8 +187,7 @@ export const RunDetails = ({ submissionId, workflowId }) => {
               showLogModal,
               showTaskDataModal,
               tableData,
-              workflowName: workflow?.workflowName,
-              workflowId: workflow?.id
+              workflowName: workflow?.workflowName
             })
           ]
         ),
