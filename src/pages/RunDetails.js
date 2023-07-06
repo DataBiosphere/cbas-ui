@@ -90,9 +90,9 @@ export const RunDetails = ({ submissionId, workflowId }) => {
   ], [])
   const excludeKey = useMemo(() => [], [])
   const fetchMetadata = useCallback(workflowId => Ajax(signal).Cromwell.workflows(workflowId).metadata({ includeKey, excludeKey }), [includeKey, excludeKey, signal])
-  const loadWorkflow = useCallback(async (workflowId, updateWorkflowPath = undefined) => {
+  const loadWorkflow = useCallback(async (workflowId, updateBreadcrumb = undefined) => {
     const metadata = await fetchMetadata(workflowId)
-    isNil(updateWorkflowPath) && setWorkflow(metadata)
+    isNil(updateBreadcrumb) && setWorkflow(metadata)
     if (!isEmpty(metadata?.calls)) {
       const formattedTableData = generateCallTableData(metadata.calls)
       setTableData(formattedTableData)
@@ -100,7 +100,7 @@ export const RunDetails = ({ submissionId, workflowId }) => {
         stateRefreshTimer.current = setTimeout(loadWorkflow, 60000)
       }
     }
-    !isNil(updateWorkflowPath) && updateWorkflowPath()
+    !isNil(updateBreadcrumb) && updateBreadcrumb()
   }, [fetchMetadata])
 
   /*

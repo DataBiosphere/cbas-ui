@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { div, h, input, label, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import { Link, Select } from 'src/components/common'
@@ -75,26 +75,13 @@ const SearchBar = ({ filterFn }) => {
   )
 }
 
-///////WORKFLOW BREADCRUMB SUB-COMPONENT///////////////////////
-const WorkflowBreadcrumb = ({ workflowPath, loadWorkflow, updateWorkflowPath }) => {
-  const workflowPathRender = workflowPath.map((workflow, index) => {
-    const isLast = index === workflowPath.length - 1
-    return span({ key: `${workflow}-breadcrumb`, style: { marginRight: '5px' } }, [
-      isLast ? span([`${workflow}`]) : span({ style: { cursor: 'pointer' }, onClick: () => loadWorkflow(workflowPath.slice(0, index + 1), updateWorkflowPath) }, [`${workflow}`]),
-      !isLast && span(' > ')
-    ])
-  })
-  return div({ style: { marginBottom: '10px' } }, [workflowPathRender])
-}
-
 ////////CALL TABLE///////////////////////
-const CallTable = ({ tableData, defaultFailedFilter = false, showLogModal, showTaskDataModal, loadWorkflow, enableExplorer = false, initWorkflow }) => {
-  const {id, workflowName} = initWorkflow
+const CallTable = ({ tableData, defaultFailedFilter = false, showLogModal, showTaskDataModal, loadWorkflow, enableExplorer = false, workflowName }) => {
   const [sort, setSort] = useState({ field: 'index', direction: 'asc' })
   const [statusFilter, setStatusFilter] = useState([])
   const [filteredCallObjects, setFilteredCallObjects] = useState([])
   //NOTE: workflowPath is used to load the workflow in the explorer, implement after the table update is confirmed to be working
-  const [workflowPath, setWorkflowPath] = useState([{id, workflowName}])
+  const [workflowPath, setWorkflowPath] = useState([workflowName])
 
   useEffect(() => {
     if (defaultFailedFilter) {
@@ -123,15 +110,6 @@ const CallTable = ({ tableData, defaultFailedFilter = false, showLogModal, showT
     })
     return statusSet
   }, [tableData])
-
-  const updateWorkflowPath = useCallback((id, workflowName) => {
-    const currentIndex = workflowPath.findIndex(workflow => workflow.id === id)
-    if(!_.isEmpty(currentIndex)) {
-      setWorkflowPath(workflowPath.slice(0, currentIndex + 1))
-    } else {
-      setWorkflowPath([...workflowPath, { id, workflowName }])
-    }
-  }, [workflowPath])
 
   return div([
     label({
@@ -177,7 +155,7 @@ const CallTable = ({ tableData, defaultFailedFilter = false, showLogModal, showT
         h(SearchBar, { filterFn })
       ])
     ]),
-    h(WorkflowBreadcrumb, { workflowPath, loadWorkflow, updateWorkflowPath }),
+
     h(AutoSizer, { disableHeight: true }, [
       ({ width }) => h(FlexTable, {
         'aria-label': 'call table',
@@ -263,7 +241,8 @@ const CallTable = ({ tableData, defaultFailedFilter = false, showLogModal, showT
                 [h(Link, {
                   'data-testid': `view-subworkflow-${subWorkflowId}-link`,
                   onClick: () => {
-                    loadWorkflow(subWorkflowId, updateWorkflowPath)
+                    //NOTE: defined callback function to execute breadcrumb update here and pass it into loadWorkflow
+                    loadWorkflow(subWorkflowId)
                   }
                 }, ['View subworkflow'])] :
                 _.isEmpty(subWorkflowId) && [
