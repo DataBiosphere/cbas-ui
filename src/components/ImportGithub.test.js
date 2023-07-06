@@ -59,7 +59,7 @@ describe('Add a Workflow Link', () => {
     expect(addToWorkspaceButtonDisabled.getAttribute('aria-disabled')).toBe('true')
 
     fireEvent.change(urlLink, { target: { value: githubLink } })
-    fireEvent.change(workflowName, { target: { value: 'Test workflow' } })
+    expect(workflowName.value).toBe('simple_task')
     const addToWorkspaceButtonEnabled = screen.getByLabelText('Add to Workspace button')
     expect(addToWorkspaceButtonEnabled.getAttribute('aria-disabled')).toBe('false')
     fireEvent.click(addToWorkspaceButtonEnabled)
@@ -70,7 +70,7 @@ describe('Add a Workflow Link', () => {
       expect(postMethodFunction).toHaveBeenCalledTimes(1)
       expect(postMethodFunction).toHaveBeenCalledWith(
         {
-          method_name: 'Test workflow',
+          method_name: 'simple_task',
           method_description: undefined,
           method_source: 'GitHub',
           method_version: 'develop',
@@ -101,6 +101,9 @@ describe('Add a Workflow Link', () => {
     const workflowName = screen.getByPlaceholderText('Workflow Name')
 
     fireEvent.change(urlLink, { target: { value: rawGithubLink } })
+    // Expect autofill
+    expect(workflowName.value).toBe('simple_task')
+    // User change name
     fireEvent.change(workflowName, { target: { value: 'Test workflow again' } })
     const addToWorkspaceButtonEnabled = screen.getByLabelText('Add to Workspace button')
     fireEvent.click(addToWorkspaceButtonEnabled)
