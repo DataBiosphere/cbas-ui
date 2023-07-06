@@ -1,5 +1,5 @@
 
-import { cloneDeep, filter, includes, isEmpty } from 'lodash/fp'
+import { cloneDeep, filter, includes, isEmpty, isNil } from 'lodash/fp'
 import { Fragment, useCallback, useMemo, useRef, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { Link, Navbar } from 'src/components/common'
@@ -20,7 +20,6 @@ import { useCancellation, useOnMount } from 'src/libs/react-utils'
 import { elements } from 'src/libs/style'
 import { cond, newTabLinkProps } from 'src/libs/utils'
 import CallTable from 'src/pages/workspaces/workspace/jobHistory/CallTable'
-
 
 // Filter function that only displays rows based on task name search parameters
 // NOTE: the viewable call should have the task name stored on the call instance itself, should be done via pre-processing step
@@ -72,43 +71,48 @@ export const RunDetails = ({ submissionId, workflowId }) => {
     setShowTaskData(true)
   }, [])
 
+  const includeKey = useMemo(() => [
+    'backendStatus',
+    'executionStatus',
+    'shardIndex',
+    // 'outputs', //not sure if I need this yet
+    // 'inputs', //not sure if I need this yet
+    'jobId',
+    'start',
+    'end',
+    'stderr',
+    'stdout',
+    'attempt',
+    'subWorkflowId' //needed for task type column
+    // 'subWorkflowMetadata' //may need this later
+  ], [])
+  const excludeKey = useMemo(() => [], [])
+  const fetchMetadata = useCallback(workflowId => Ajax(signal).Cromwell.workflows(workflowId).metadata({ includeKey, excludeKey }), [includeKey, excludeKey, signal])
+
+  const loadWorkflow = useCallback(async (workflowId, updateWorkflowPath = undefined) => {
+    const metadata = await fetchMetadata(workflowId)
+    const { workflowName } = metadata
+    isNil(updateWorkflowPath) && setWorkflow(metadata)
+    if (!isEmpty(metadata?.calls)) {
+      const formattedTableData = generateCallTableData(metadata.calls)
+      setTableData(formattedTableData)
+      if (includes(collapseStatus(metadata.status), [statusType.running, statusType.submitted])) {
+        stateRefreshTimer.current = setTimeout(loadWorkflow, 60000)
+      }
+    }
+    !isNil(updateWorkflowPath) && updateWorkflowPath(workflowId, workflowName)
+  }, [fetchMetadata])
+
   /*
    * Data fetchers
    */
   useOnMount(() => {
-    const loadWorkflow = async () => {
-      const includeKey = [
-        'backendStatus',
-        'executionStatus',
-        'shardIndex',
-        // 'outputs', //not sure if I need this yet
-        // 'inputs', //not sure if I need this yet
-        'jobId',
-        'start',
-        'end',
-        'stderr',
-        'stdout',
-        'attempt',
-        'subWorkflowId' //needed for task type column
-        // 'subWorkflowMetadata' //may need this later
-      ]
-      const excludeKey = []
-      const metadata = await Ajax(signal).Cromwell.workflows(workflowId).metadata({ includeKey, excludeKey })
-      setWorkflow(metadata)
-      if (!isEmpty(metadata?.calls)) {
-        const formattedTableData = generateCallTableData(metadata.calls)
-        setTableData(formattedTableData)
-        if (includes(collapseStatus(metadata.status), [statusType.running, statusType.submitted])) {
-          stateRefreshTimer.current = setTimeout(loadWorkflow, 60000)
-        }
-      }
-    }
     const fetchSasToken = async () => {
       const sasToken = await Ajax(signal).WorkspaceManager.getSASToken()
       setSasToken(sasToken)
     }
     fetchSasToken()
-    loadWorkflow()
+    loadWorkflow(workflowId)
     return () => {
       clearTimeout(stateRefreshTimer.current)
     }
@@ -176,11 +180,15 @@ export const RunDetails = ({ submissionId, workflowId }) => {
           },
           [
             h(CallTable, {
+              enableExplorer: workflow?.status.toLocaleLowerCase() === 'succeeded',
+              loadWorkflow,
               defaultFailedFilter: workflow?.status.toLocaleLowerCase().includes('failed'),
               isRendered: !isEmpty(tableData),
               showLogModal,
               showTaskDataModal,
-              tableData
+              tableData,
+              workflowName: workflow?.workflowName,
+              workflowId: workflow?.id
             })
           ]
         ),

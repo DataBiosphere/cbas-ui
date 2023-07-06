@@ -10,6 +10,8 @@ import { Ajax } from 'src/libs/ajax'
 import * as configStore from 'src/libs/config'
 import { makeCompleteDate } from 'src/libs/utils'
 
+import { metadata as childMetadata } from '../fixtures/test-child-workflow'
+import { metadata as parentMetadata } from '../fixtures/test-parent-workflow'
 import { metadata as runDetailsMetadata } from '../fixtures/test-workflow'
 import { RunDetails } from './RunDetails'
 
@@ -62,6 +64,25 @@ const mockObj = {
   }
 }
 
+const subworkflowCromwellAjaxMock = (parentOverride = {}) => {
+  const modifiedParentMetadata = Object.assign({}, parentMetadata, parentOverride)
+  return {
+    Cromwell: {
+      workflows: id => {
+        return {
+          metadata: () => {
+            const workflowMap = {
+              [parentMetadata.id]: modifiedParentMetadata,
+              [childMetadata.id]: childMetadata
+            }
+            return workflowMap[id]
+          }
+        }
+      }
+    }
+  }
+}
+
 beforeEach(() => {
   Ajax.mockImplementation(() => {
     return mockObj
@@ -108,10 +129,14 @@ describe('RunDetails - render smoke test', () => {
   it('shows the workflow timing', async () => {
     render(h(RunDetails, runDetailsProps))
     await waitFor(() => {
-      const startTime = screen.getByText(makeCompleteDate(runDetailsMetadata.start))
+      const startTime = screen.getByTestId('workflow-start-container')
       expect(startTime).toBeDefined
-      const endTime = screen.getByText(makeCompleteDate(runDetailsMetadata.end))
+      const endTime = screen.getByTestId('workflow-end-container')
       expect(endTime).toBeDefined
+      const formattedStart = makeCompleteDate(runDetailsMetadata.start)
+      const formattedEnd = makeCompleteDate(runDetailsMetadata.end)
+      expect(startTime.textContent).toContain(formattedStart)
+      expect(endTime.textContent).toContain(formattedEnd)
     })
   })
 
@@ -187,14 +212,14 @@ describe('RunDetails - render smoke test', () => {
         expect(inputs).toBeDefined
         const outputs = within(row).getByTestId('outputs-modal-link')
         expect(outputs).toBeDefined
-        //Following checks are looking for the taget text on the cell and on the tooltip elements
+        //Checking row text content for dates since querying by formatted date doesn't seem to work
         const statusObj = collapseCromwellStatus(executionStatus, backendStatus)
         const status = within(row).queryAllByText(statusObj.label())
         expect(status.length).toEqual(2)
-        const startTime = within(row).queryAllByText(makeCompleteDate(start))
-        expect(startTime.length).toEqual(2)
-        const endTime = within(row).queryAllByText(makeCompleteDate(end))
-        expect(endTime.length).toEqual(2)
+        const targetStartText = makeCompleteDate(start)
+        const targetEndText = makeCompleteDate(end)
+        expect(row.textContent).toContain(targetStartText)
+        expect(row.textContent).toContain(targetEndText)
       })
     })
   })
@@ -230,10 +255,10 @@ describe('RunDetails - render smoke test', () => {
       expect(taskName).toBeDefined
       const failedStatus = within(targetRow).queryAllByText('Failed')
       expect(failedStatus.length).toEqual(2)
-      const startTime = within(targetRow).queryAllByText(makeCompleteDate(start))
-      expect(startTime.length).toEqual(2)
-      const endTime = within(targetRow).queryAllByText(makeCompleteDate(end))
-      expect(endTime.length).toEqual(2)
+      const targetStartText = makeCompleteDate(start)
+      const targetEndText = makeCompleteDate(end)
+      expect(targetRow.textContent).toContain(targetStartText)
+      expect(targetRow.textContent).toContain(targetEndText)
       const stdout = within(targetRow).getByText('stdout')
       expect(stdout).toBeDefined
       const stderr = within(targetRow).getByText('stderr')
@@ -426,5 +451,93 @@ describe('RunDetails - render smoke test', () => {
     expect(appendedPublic).toEqual(publicURI)
     expect(appendedPrivate).toEqual(`${privateURI}?${mockSAS}`)
   })
-})
 
+  it('renders the workflow path above the table for successful workflows', async () => {
+    render(h(RunDetails, runDetailsProps))
+    await waitFor(() => {
+      const workflowPath = screen.getByTestId('workflow-path')
+      expect(workflowPath).toBeDefined
+      const workflowPathText = within(workflowPath).getByText(runDetailsMetadata.workflowName)
+      expect(workflowPathText).toBeDefined
+    })
+  })
+
+  it('shows the "View sub-workflow" button for sub-workflows', async () => {
+    const altMockObj = cloneDeep(mockObj)
+    const altRunDetailsProps = Object.assign({}, runDetailsProps, { workflowId: parentMetadata.id })
+    Ajax.mockImplementation(() => Object.assign({}, altMockObj, subworkflowCromwellAjaxMock({ status: 'Succeeded' })))
+    render(h(RunDetails, altRunDetailsProps))
+    await waitFor(() => {
+      const childId = childMetadata.id
+      const table = screen.getByTestId('call-table-container')
+      const subworkflowButton = within(table).getByTestId(`view-subworkflow-${childId}`)
+      expect(subworkflowButton).toBeDefined
+    })
+  })
+
+  it('updates the workflow path when the "View sub-workflow" button is clicked', async () => {
+    const altMockObj = cloneDeep(mockObj)
+    const altRunDetailsProps = Object.assign({}, runDetailsProps, { workflowId: parentMetadata.id })
+    Ajax.mockImplementation(() => Object.assign({}, altMockObj, subworkflowCromwellAjaxMock({ status: 'Succeeded' })))
+    const user = userEvent.setup()
+    render(h(RunDetails, altRunDetailsProps))
+    await waitFor(async () => {
+      const childId = childMetadata.id
+      const table = screen.getByTestId('call-table-container')
+      const subworkflowButton = within(table).getByTestId(`view-subworkflow-${childId}`)
+      expect(subworkflowButton).toBeDefined
+      await user.click(subworkflowButton)
+      const workflowPath = screen.getByTestId('workflow-path')
+      expect(workflowPath).toBeDefined
+      const childIdText = within(workflowPath).getByText(childMetadata.workflowName)
+      expect(childIdText).toBeDefined
+    })
+  })
+
+  it('updates the table to show the sub-workflow calls when the "View sub-workflow" button is clicked', async () => {
+    const altMockObj = cloneDeep(mockObj)
+    const altRunDetailsProps = Object.assign({}, runDetailsProps, { workflowId: parentMetadata.id })
+    Ajax.mockImplementation(() => Object.assign({}, altMockObj, subworkflowCromwellAjaxMock({ status: 'Succeeded' })))
+    const user = userEvent.setup()
+    render(h(RunDetails, altRunDetailsProps))
+    await waitFor(async () => {
+      const childId = childMetadata.id
+      const table = screen.getByTestId('call-table-container')
+      const subworkflowButton = within(table).getByTestId(`view-subworkflow-${childId}`)
+      await user.click(subworkflowButton)
+      const updatedTable = screen.getByTestId('call-table-container')
+      const subWorkflowTaskNames = Object.keys(childMetadata.calls)
+      subWorkflowTaskNames.forEach(taskName => {
+        const taskNameText = within(updatedTable).getByText(taskName)
+        expect(taskNameText).toBeDefined
+      })
+    })
+  })
+
+  it('updates the workflow path and the table if the user clicks on a workflow id within the workflow path', async () => {
+    const altMockObj = cloneDeep(mockObj)
+    const altRunDetailsProps = Object.assign({}, runDetailsProps, { workflowId: parentMetadata.id })
+    Ajax.mockImplementation(() => Object.assign({}, altMockObj, subworkflowCromwellAjaxMock({ status: 'Succeeded' })))
+    const user = userEvent.setup()
+    render(h(RunDetails, altRunDetailsProps))
+    await waitFor(async () => {
+      const childId = childMetadata.id
+      const table = screen.getByTestId('call-table-container')
+      const subworkflowButton = within(table).getByTestId(`view-subworkflow-${childId}`)
+      await user.click(subworkflowButton)
+      const workflowPath = screen.getByTestId('workflow-path')
+      const targetIdPath = within(workflowPath).getByText(parentMetadata.workflowName)
+      await user.click(targetIdPath)
+      const updatedTable = screen.getByTestId('call-table-container')
+      const updatedPath = screen.getByTestId('workflow-path')
+      const parentWorkflowName = within(updatedPath).getByText(parentMetadata.workflowName)
+      expect(parentWorkflowName).toBeDefined
+      expect(screen.queryByText(childMetadata.workflowName)).not.toBeInTheDocument
+      const parentTaskNames = Object.keys(parentMetadata.calls)
+      parentTaskNames.forEach(taskName => {
+        const taskNameText = within(updatedTable).getByText(taskName)
+        expect(taskNameText).toBeDefined
+      })
+    })
+  })
+})

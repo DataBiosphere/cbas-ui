@@ -8,12 +8,11 @@ import {
   InputSourceSelect,
   ParameterValueTextInput,
   RecordLookupSelect,
-  StructBuilderLink,
+  StructBuilderLink, typeMatch,
   validateInputs,
   WithWarnings
 } from 'src/components/submission-common'
 import { FlexTable, HeaderCell, InputsButtonRow, TextCell } from 'src/components/table'
-import { tableButtonRowStyle } from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 
 
@@ -41,6 +40,15 @@ export const StructBuilder = props => {
   } = props
 
   const [includeOptionalInputs, setIncludeOptionalInputs] = useState(true)
+  const [searchFilter, setSearchFilter] = useState('')
+  const [prevStructIndex, setPrevStructIndex] = useState(structIndexPath)
+
+  if (structIndexPath !== prevStructIndex) {
+    setSearchFilter('')
+    setIncludeOptionalInputs(true)
+    setPrevStructIndex(structIndexPath)
+  }
+
   const structTypePath = buildStructTypePath(structIndexPath)
   const structSourcePath = buildStructSourcePath(structIndexPath)
   const structTypeNamePath = buildStructTypeNamePath(structIndexPath)
@@ -66,12 +74,16 @@ export const StructBuilder = props => {
       ])(row)
     }),
     _.orderBy([({ field_name: name }) => _.lowerCase(name)], ['asc']),
-    _.filter(({ optional }) => includeOptionalInputs || !optional)
+    _.filter(_.overEvery([
+      ({ optional }) => includeOptionalInputs || !optional,
+      ({ field_name: name }) => _.lowerCase(name).includes(_.lowerCase(searchFilter))
+    ]))
   )(structInputDefinition)
 
   const breadcrumbsHeight = 35
-  return h(div, { 'aria-label': 'struct-breadcrumbs', style: { height: 500 } }, [
+  return h(div, { style: { height: 500 }, role: 'struct-builder' }, [
     h(div, {
+      'aria-label': 'struct-breadcrumbs',
       style: {
         height: breadcrumbsHeight,
         fontSize: 15,
@@ -86,118 +98,121 @@ export const StructBuilder = props => {
         currentStructName
       ])
     ]),
-    h(AutoSizer, [({ width, height }) => {
-      return h(div, {}, [
-        h(InputsButtonRow, {
-          style: tableButtonRowStyle({ width, height }),
-          showRow: !includeOptionalInputs || _.some(row => row.field_type.type === 'optional', currentStructType.fields),
-          optionalButtonProps: {
-            includeOptionalInputs, setIncludeOptionalInputs
-          }
-        }),
-        h(FlexTable, {
-          'aria-label': 'struct-table',
-          rowCount: inputTableData.length,
-          readOnly: false,
-          height: ((!includeOptionalInputs || _.some(row => row.field_type.type === 'optional', currentStructType.fields)) ? height * 0.92 : height) - breadcrumbsHeight,
-          width,
-          columns: [
-            {
-              size: { basis: 250, grow: 0 },
-              field: 'struct',
-              headerRenderer: () => h(HeaderCell, ['Struct']),
-              cellRenderer: () => {
-                return h(TextCell, { style: { fontWeight: 500 } }, [currentStructName])
-              }
-            },
-            {
-              size: { basis: 160, grow: 0 },
-              field: 'field',
-              headerRenderer: () => h(HeaderCell, ['Variable']),
-              cellRenderer: ({ rowIndex }) => {
-                return h(TextCell, { style: Utils.inputTypeStyle(inputTableData[rowIndex].field_type) }, [inputTableData[rowIndex].field_name])
-              }
-            },
-            {
-              size: { basis: 160, grow: 0 },
-              field: 'type',
-              headerRenderer: () => h(HeaderCell, ['Type']),
-              cellRenderer: ({ rowIndex }) => {
-                return h(TextCell, { style: Utils.inputTypeStyle(inputTableData[rowIndex].field_type) }, [inputTableData[rowIndex].inputTypeStr])
-              }
-            },
-            {
-              size: { basis: 350, grow: 0 },
-              headerRenderer: () => h(HeaderCell, ['Input sources']),
-              cellRenderer: ({ rowIndex }) => {
-                const configurationIndex = inputTableData[rowIndex].configurationIndex
-                const typePath = buildStructTypePath([configurationIndex])
-                const typeNamePath = buildStructTypeNamePath([configurationIndex])
-                const sourcePath = buildStructSourcePath([configurationIndex])
-                const sourceNamePath = buildStructSourceNamePath([configurationIndex])
-                return InputSourceSelect({
-                  source: _.get(sourcePath, currentStructSource),
-                  setSource: source => {
+    h(InputsButtonRow, {
+      optionalButtonProps: {
+        includeOptionalInputs, setIncludeOptionalInputs
+      },
+      searchProps: {
+        searchFilter, setSearchFilter
+      }
+    }),
+    h(div, { style: { height: `calc(500px - ${breadcrumbsHeight}px - 2.5rem)` } }, [
+      h(AutoSizer, [({ width, height }) => {
+        return h(div, {}, [
+          h(FlexTable, {
+            'aria-label': 'struct-table',
+            rowCount: inputTableData.length,
+            readOnly: false,
+            height,
+            width,
+            columns: [
+              {
+                size: { basis: 250, grow: 0 },
+                field: 'struct',
+                headerRenderer: () => h(HeaderCell, ['Struct']),
+                cellRenderer: () => {
+                  return h(TextCell, { style: { fontWeight: 500 } }, [currentStructName])
+                }
+              },
+              {
+                size: { basis: 160, grow: 0 },
+                field: 'field',
+                headerRenderer: () => h(HeaderCell, ['Variable']),
+                cellRenderer: ({ rowIndex }) => {
+                  return h(TextCell, { style: Utils.inputTypeStyle(inputTableData[rowIndex].field_type) }, [inputTableData[rowIndex].field_name])
+                }
+              },
+              {
+                size: { basis: 160, grow: 0 },
+                field: 'type',
+                headerRenderer: () => h(HeaderCell, ['Type']),
+                cellRenderer: ({ rowIndex }) => {
+                  return h(TextCell, { style: Utils.inputTypeStyle(inputTableData[rowIndex].field_type) }, [inputTableData[rowIndex].inputTypeStr])
+                }
+              },
+              {
+                size: { basis: 350, grow: 0 },
+                headerRenderer: () => h(HeaderCell, ['Input sources']),
+                cellRenderer: ({ rowIndex }) => {
+                  const configurationIndex = inputTableData[rowIndex].configurationIndex
+                  const typePath = buildStructTypePath([configurationIndex])
+                  const typeNamePath = buildStructTypeNamePath([configurationIndex])
+                  const sourcePath = buildStructSourcePath([configurationIndex])
+                  const sourceNamePath = buildStructSourceNamePath([configurationIndex])
+                  return InputSourceSelect({
+                    source: _.get(sourcePath, currentStructSource),
+                    setSource: source => {
+                      const newSource = _.flow([
+                        _.set(sourceNamePath, _.get(sourceNamePath, currentStructSource) || _.get(typeNamePath, currentStructType)),
+                        _.set(sourcePath, source)
+                      ])(currentStructSource)
+                      setCurrentStructSource(newSource)
+                    },
+                    inputType: _.get(typePath, currentStructType)
+                  })
+                }
+              },
+              {
+                headerRenderer: () => h(HeaderCell, ['Attribute']),
+                cellRenderer: ({ rowIndex }) => {
+                // rowIndex is the index of this input in the currently displayed table
+                // configurationIndex is the index of this input the struct input definition
+                  const configurationIndex = inputTableData[rowIndex].configurationIndex
+                  const typeNamePath = buildStructTypeNamePath([configurationIndex])
+                  const sourcePath = buildStructSourcePath([configurationIndex])
+                  const sourceNamePath = buildStructSourceNamePath([configurationIndex])
+                  const innerStructSource = _.get(sourcePath, currentStructSource)
+                  const inputName = inputTableData[rowIndex].field_name
+                  const setInnerStructSource = source => {
                     const newSource = _.flow([
                       _.set(sourceNamePath, _.get(sourceNamePath, currentStructSource) || _.get(typeNamePath, currentStructType)),
                       _.set(sourcePath, source)
                     ])(currentStructSource)
                     setCurrentStructSource(newSource)
-                  },
-                  inputType: _.get(typePath, currentStructType)
-                })
-              }
-            },
-            {
-              headerRenderer: () => h(HeaderCell, ['Attribute']),
-              cellRenderer: ({ rowIndex }) => {
-                // rowIndex is the index of this input in the currently displayed table
-                // configurationIndex is the index of this input the struct input definition
-                const configurationIndex = inputTableData[rowIndex].configurationIndex
-                const typeNamePath = buildStructTypeNamePath([configurationIndex])
-                const sourcePath = buildStructSourcePath([configurationIndex])
-                const sourceNamePath = buildStructSourceNamePath([configurationIndex])
-                const innerStructSource = _.get(sourcePath, currentStructSource)
-                const inputName = inputTableData[rowIndex].field_name
-                const setInnerStructSource = source => {
-                  const newSource = _.flow([
-                    _.set(sourceNamePath, _.get(sourceNamePath, currentStructSource) || _.get(typeNamePath, currentStructType)),
-                    _.set(sourcePath, source)
-                  ])(currentStructSource)
-                  setCurrentStructSource(newSource)
+                  }
+                  return h(WithWarnings, {
+                    baseComponent: Utils.switchCase(innerStructSource ? innerStructSource.type : 'none',
+                      ['literal',
+                        () => h(ParameterValueTextInput, {
+                          id: `structbuilder-table-attribute-select-${rowIndex}`,
+                          inputType: inputTableData[rowIndex].field_type,
+                          source: innerStructSource,
+                          setSource: setInnerStructSource
+                        })],
+                      ['record_lookup',
+                        () => h(RecordLookupSelect, {
+                          source: innerStructSource,
+                          setSource: setInnerStructSource,
+                          dataTableAttributes: _.pickBy(wdsType => typeMatch(currentStructType.fields[rowIndex].field_type, wdsType.datatype))(dataTableAttributes)
+                        })],
+                      ['object_builder',
+                        () => h(StructBuilderLink, {
+                          onClick: () => setStructIndexPath([...structIndexPath, configurationIndex])
+                        })],
+                      ['none', () => h(TextCell,
+                        { style: Utils.inputTypeStyle(inputTableData[rowIndex].field_type) },
+                        [inputTableData[rowIndex].optional ? 'Optional' : 'This input is required']
+                      )]
+                    ),
+                    message: _.find(validation => validation.name === inputName)(inputValidations)
+                  })
                 }
-                return h(WithWarnings, {
-                  baseComponent: Utils.switchCase(innerStructSource ? innerStructSource.type : 'none',
-                    ['literal',
-                      () => h(ParameterValueTextInput, {
-                        id: `structbuilder-table-attribute-select-${rowIndex}`,
-                        inputType: inputTableData[rowIndex].field_type,
-                        source: innerStructSource,
-                        setSource: setInnerStructSource
-                      })],
-                    ['record_lookup',
-                      () => h(RecordLookupSelect, {
-                        source: innerStructSource,
-                        setSource: setInnerStructSource,
-                        dataTableAttributes
-                      })],
-                    ['object_builder',
-                      () => h(StructBuilderLink, {
-                        onClick: () => setStructIndexPath([...structIndexPath, configurationIndex])
-                      })],
-                    ['none', () => h(TextCell,
-                      { style: Utils.inputTypeStyle(inputTableData[rowIndex].field_type) },
-                      [inputTableData[rowIndex].optional ? 'Optional' : 'This input is required']
-                    )]
-                  ),
-                  message: _.find(validation => validation.name === inputName)(inputValidations)
-                })
               }
-            }
-          ]
-        })
-      ])
-    }])
+            ]
+          })
+        ])
+      }])
+    ])
   ])
 }
 
