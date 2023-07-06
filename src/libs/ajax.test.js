@@ -334,7 +334,9 @@ describe('Ajax tests', () => {
     await cbasPact.addInteraction({
       states: [
         { description: 'ready to fetch myMethodVersion with UUID 90000000-0000-0000-0000-000000000009' },
-        { description: 'cromwell initialized' }
+        { description: 'cromwell initialized' },
+        { description: 'returns a fixed method ID' },
+        { description: 'returns a fixed run set ID' }
       ],
       uponReceiving: 'a POST request to import a method',
       withRequest: { method: 'POST', path: '/api/batch/v1/methods', body, headers },
