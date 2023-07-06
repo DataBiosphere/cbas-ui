@@ -62,6 +62,7 @@ export const SubmissionConfig = ({ methodId }) => {
 
   // TODO: this should probably be moved to a scope more local to the data selector
   const [recordsTableSort, setRecordsTableSort] = useState({ field: 'id', direction: 'asc' })
+  const [inputTableSort, setInputTableSort] = useState({ field: '', direction: 'asc' })
 
   const [displayLaunchModal, setDisplayLaunchModal] = useState(false)
   const [noRecordTypeData, setNoRecordTypeData] = useState(null)
@@ -397,6 +398,7 @@ export const SubmissionConfig = ({ methodId }) => {
     return configuredInputDefinition && recordTypes && records.length ? h(InputsTable, {
       selectedDataTable: _.keyBy('name', recordTypes)[selectedRecordType],
       configuredInputDefinition, setConfiguredInputDefinition,
+      inputTableSort, setInputTableSort,
       inputValidations
     }) : 'No data table rows available or input definition is not configured...'
   }

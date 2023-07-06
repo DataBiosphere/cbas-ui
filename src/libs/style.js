@@ -166,6 +166,6 @@ export const errorStyle = {
   backgroundColor: colors.danger(0.15)
 }
 
-export const tableButtonRowStyle = {
-  height: '2.5rem', width: '100%', display: 'flex', alignItems: 'center'
-}
+export const tableButtonRowStyle = ({ height, width }) => ({
+  height: 0.08 * height, width, display: 'flex', alignItems: 'center'
+})
