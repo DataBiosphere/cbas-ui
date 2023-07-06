@@ -335,7 +335,8 @@ describe('Ajax tests', () => {
       states: [
         { description: 'ready to fetch myMethodVersion with UUID 90000000-0000-0000-0000-000000000009' },
         { description: 'cromwell initialized' },
-        { description: 'ready to receive exactly 1 call to POST /method endpoint' }
+        { description: 'returns a fixed method ID' },
+        { description: 'returns a fixed run set ID' }
       ],
       uponReceiving: 'a POST request to import a method',
       withRequest: { method: 'POST', path: '/api/batch/v1/methods', body, headers },
