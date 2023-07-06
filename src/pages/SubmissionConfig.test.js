@@ -897,7 +897,7 @@ describe('Input source and requirements validation', () => {
 
     // ** ACT **
     const button = await screen.findByRole('button', { name: 'Inputs' })
-    await fireEvent.click(button)
+    await userEvent.click(button)
 
     // ** ASSERT **
     const table = await screen.findByRole('table')
@@ -907,7 +907,7 @@ describe('Input source and requirements validation', () => {
     expect(inputWarningMessageActive).not.toBeNull()
 
     // ** ACT **
-    await fireEvent.click(viewStructLink)
+    await userEvent.click(viewStructLink)
 
     // ** ASSERT **
     const structTable = await screen.getByLabelText('struct-table')
@@ -921,7 +921,7 @@ describe('Input source and requirements validation', () => {
     expect(structWarningMessageActive).not.toBeNull()
 
     // ** ACT **
-    await fireEvent.click(viewMyInnerStructLink)
+    await userEvent.click(viewMyInnerStructLink)
 
 
     // ** ASSERT **
@@ -966,7 +966,7 @@ describe('Input source and requirements validation', () => {
     // user selects a record from Data Table
     const checkboxes = screen.getAllByRole('checkbox')
     const checkbox = checkboxes[1]
-    fireEvent.click(checkbox)
+    await userEvent.click(checkbox)
 
     // ** ASSERT **
     // check that tooltip indicating missing required fields is present for Submit button
@@ -974,7 +974,7 @@ describe('Input source and requirements validation', () => {
 
     // ** ACT **
     const button = await screen.findByRole('button', { name: 'Inputs' })
-    await fireEvent.click(button)
+    await userEvent.click(button)
 
     // ** ASSERT **
     // check that warnings appear next to empty required inputs
@@ -1015,7 +1015,7 @@ describe('Input source and requirements validation', () => {
     // ** ACT **
     // click on View struct to open modal
     const viewStructLink = within(secondInputRowCells[4]).getByText('View Struct')
-    await fireEvent.click(viewStructLink)
+    await userEvent.click(viewStructLink)
 
     // ** ASSERT **
     const innerStructTable = await screen.getByLabelText('struct-table')
