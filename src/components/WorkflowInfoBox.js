@@ -30,8 +30,8 @@ export const WorkflowInfoBox = ({ workflow }) => {
     div({ 'data-testid': 'timing-container' }, [
       div({}, [span({ style: { fontWeight: 'bold', fontSize: 16 } }, ['Workflow Timing:'])]),
       div({}, [
-        div({}, [span({ 'data-testid': 'workflow-start', style: { fontWeight: 'bold' } }, ['Start: ']), span({}, [workflowStart])]),
-        div({}, [span({ 'data-testid': 'workflow-end', style: { fontWeight: 'bold' } }, ['End: ']), span({}, [workflowEnd])])
+        div({}, [span({ style: { fontWeight: 'bold' } }, ['Start: ']), span({}, [workflowStart])]),
+        div({}, [span({ style: { fontWeight: 'bold' } }, ['End: ']), span({}, [workflowEnd])])
       ])
     ]),
     div({ 'data-testid': 'status-container', style: {} }, [

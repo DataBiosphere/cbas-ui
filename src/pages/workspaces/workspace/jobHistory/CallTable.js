@@ -85,7 +85,7 @@ const WorkflowBreadcrumb = ({ workflowPath, loadWorkflow, updateWorkflowPath }) 
       !isLast && span(' > ')
     ])
   })
-  return div({ 'data-testid': 'workflow-path', style: { marginBottom: '10px' } }, [workflowPathRender])
+  return div({ style: { marginBottom: '10px' } }, [workflowPathRender])
 }
 
 ////////CALL TABLE///////////////////////
@@ -94,7 +94,7 @@ const CallTable = ({ tableData, defaultFailedFilter = false, showLogModal, showT
   const [statusFilter, setStatusFilter] = useState([])
   const [filteredCallObjects, setFilteredCallObjects] = useState([])
   //NOTE: workflowPath is used to load the workflow in the explorer, implement after the table update is confirmed to be working
-  const [workflowPath, setWorkflowPath] = useState([{ id: workflowId, workflowName }])
+  const [workflowPath, setWorkflowPath] = useState([{id: workflowId, workflowName}])
 
   useEffect(() => {
     if (defaultFailedFilter) {
@@ -126,7 +126,7 @@ const CallTable = ({ tableData, defaultFailedFilter = false, showLogModal, showT
 
   const updateWorkflowPath = useCallback((id, workflowName) => {
     const currentIndex = workflowPath.findIndex(workflow => workflow.id === id)
-    if (currentIndex !== -1) {
+    if(currentIndex !== -1) {
       setWorkflowPath(workflowPath.slice(0, currentIndex + 1))
     } else {
       setWorkflowPath([...workflowPath, { id, workflowName }])
@@ -261,11 +261,11 @@ const CallTable = ({ tableData, defaultFailedFilter = false, showLogModal, showT
                   }
               const linkTemplate = enableExplorer && !_.isEmpty(subWorkflowId) ?
                 [h(Link, {
-                  'data-testid': `view-subworkflow-${subWorkflowId}`,
+                  'data-testid': `view-subworkflow-${subWorkflowId}-link`,
                   onClick: () => {
                     loadWorkflow(subWorkflowId, updateWorkflowPath)
                   }
-                }, ['View sub-workflow'])] :
+                }, ['View subworkflow'])] :
                 _.isEmpty(subWorkflowId) && [
                   h(
                     Link,

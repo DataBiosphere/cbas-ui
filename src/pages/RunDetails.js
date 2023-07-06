@@ -35,7 +35,7 @@ export const generateCallTableData = calls => {
     //helper construct that assigns task name and status to the call object for easy access within the call tabler renderer
     const additionalData = {
       taskName,
-      statusObj: collapseCromwellStatus(lastCall.executionStatus, lastCall.backendStatus)
+      statusObj: collapseCromwellStatus(lastCall.executionStatus, lastCall.backendStatus),
     }
     return Object.assign(additionalData, lastCall)
   })
