@@ -318,8 +318,8 @@ describe('Ajax tests', () => {
 
   it('should successfully POST a method', async () => {
     const expectedResponse = {
-      run_set_id: fromProviderState('${run_set_id}', '00000000-0000-0000-0000-000000000000'), // eslint-disable-line no-template-curly-in-string
-      method_id: fromProviderState('${method_id}', '00000000-0000-0000-0000-000000000000') // eslint-disable-line no-template-curly-in-string
+      run_set_id: regex(UUID_REGEX, '00000000-0000-0000-0000-000000000000'),
+      method_id: regex(UUID_REGEX, '00000000-0000-0000-0000-000000000000')
     }
 
     const payload = {
@@ -334,9 +334,7 @@ describe('Ajax tests', () => {
     await cbasPact.addInteraction({
       states: [
         { description: 'ready to fetch myMethodVersion with UUID 90000000-0000-0000-0000-000000000009' },
-        { description: 'cromwell initialized' },
-        { description: 'returns a fixed method ID' },
-        { description: 'returns a fixed run set ID' }
+        { description: 'cromwell initialized' }
       ],
       uponReceiving: 'a POST request to import a method',
       withRequest: { method: 'POST', path: '/api/batch/v1/methods', body, headers },
