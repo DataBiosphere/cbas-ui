@@ -1,7 +1,7 @@
 
 import { cloneDeep, filter, includes, isEmpty, isNil } from 'lodash/fp'
 import { Fragment, useCallback, useMemo, useRef, useState } from 'react'
-import { div, h } from 'react-hyperscript-helpers'
+import { div, h, span } from 'react-hyperscript-helpers'
 import { Link, Navbar } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
 import InputOutputModal from 'src/components/InputOutputModal'
@@ -21,13 +21,25 @@ import { elements } from 'src/libs/style'
 import { cond, newTabLinkProps } from 'src/libs/utils'
 import CallTable from 'src/pages/workspaces/workspace/jobHistory/CallTable'
 
-// Filter function that only displays rows based on task name search parameters
-// NOTE: the viewable call should have the task name stored on the call instance itself, should be done via pre-processing step
-export const taskNameFilterFn = searchTerm => filter(call => call?.taskName?.includes(searchTerm))
-export const statusFilterFn = status => filter(call => call.uiStatusLabel.toLocaleLowerCase() === status.toLocaleLowerCase())
+//helper method to combine metadata tasks and failed tasks into a single array
+//if the failed task data is not empty, combine only successful tasks from the metadata with the failed tasks data
+//otherwise just return the metadata
+export const organizeCallTableData = (metadataCalls = {}, failedTaskCalls = {}) => {
+  const metadataTableData = generateCallTableData(metadataCalls)
+  const failedTaskTableData = generateCallTableData(failedTaskCalls)
+  if (!isEmpty(failedTaskTableData)) {
+    const successfulMetadata = filter(({ statusObj }) => {
+      const { id } = statusObj
+      return id?.toLocaleLowerCase() === 'succeeded'
+    }, metadataTableData)
+    return successfulMetadata.concat(failedTaskTableData)
+  }
+  return metadataTableData
+}
 
 //Helper method to generate data for the call table
 export const generateCallTableData = calls => {
+  if (isEmpty(calls)) return []
   const taskName = Object.keys(calls)
   return taskName.map(taskName => {
     const targetData = calls[taskName]
@@ -54,6 +66,8 @@ export const RunDetails = ({ submissionId, workflowId }) => {
   const [taskDataTitle, setTaskDataTitle] = useState('')
   const [taskDataJson, setTaskDataJson] = useState({})
   const [showTaskData, setShowTaskData] = useState(false)
+
+  const [loadWorkflowFailed, setLoadWorkflowFailed] = useState(false)
 
   const signal = useCancellation()
   const stateRefreshTimer = useRef()
@@ -90,31 +104,40 @@ export const RunDetails = ({ submissionId, workflowId }) => {
   const fetchMetadata = useCallback(workflowId => Ajax(signal).Cromwell.workflows(workflowId).metadata({ includeKey, excludeKey }), [includeKey, excludeKey, signal])
 
   const loadWorkflow = useCallback(async (workflowId, updateWorkflowPath = undefined) => {
+    let failedTasks = {}
     const metadata = await fetchMetadata(workflowId)
+    if (metadata?.status?.toLocaleLowerCase() === 'failed') {
+      failedTasks = await Ajax(signal).Cromwell.workflows(workflowId).failedTasks()
+    }
     const { workflowName } = metadata
     isNil(updateWorkflowPath) && setWorkflow(metadata)
     if (!isEmpty(metadata?.calls)) {
-      const formattedTableData = generateCallTableData(metadata.calls)
+      const failedTaskCalls = Object.values(failedTasks)[0]?.calls || {}
+      const formattedTableData = organizeCallTableData(metadata?.calls, failedTaskCalls)
       setTableData(formattedTableData)
       if (includes(collapseStatus(metadata.status), [statusType.running, statusType.submitted])) {
         stateRefreshTimer.current = setTimeout(loadWorkflow, 60000)
       }
     }
     !isNil(updateWorkflowPath) && updateWorkflowPath(workflowId, workflowName)
-  }, [fetchMetadata])
+  }, [fetchMetadata, signal])
 
   /*
    * Data fetchers
    */
   useOnMount(() => {
-    const fetchSasToken = async () => {
-      const sasToken = await Ajax(signal).WorkspaceManager.getSASToken()
-      setSasToken(sasToken)
-    }
-    fetchSasToken()
-    loadWorkflow(workflowId)
-    return () => {
-      clearTimeout(stateRefreshTimer.current)
+    try {
+      const fetchSasToken = async () => {
+        const sasToken = await Ajax(signal).WorkspaceManager.getSASToken()
+        setSasToken(sasToken)
+      }
+      fetchSasToken()
+      loadWorkflow(workflowId)
+      return () => {
+        clearTimeout(stateRefreshTimer.current)
+      }
+    } catch (error) {
+      setLoadWorkflowFailed(true)
     }
   })
 
@@ -143,6 +166,10 @@ export const RunDetails = ({ submissionId, workflowId }) => {
     Navbar('RUN WORKFLOWS WITH CROMWELL'),
     //Loading state (spinner)
     cond(
+      [
+        loadWorkflowFailed === true,
+        () => h(Fragment, [span({ style: { fontStyle: 'italic', marginBottom: '1rem' } }, ['Failed to load workflow data. Please refresh and try again. If the problem persists, contact Terra Support for help'])])
+      ],
       [
         workflow === undefined,
         () => h(Fragment, [div({ style: { fontStyle: 'italic', marginBottom: '1rem' } }, ['Fetching workflow metadata...']), centeredSpinner()])

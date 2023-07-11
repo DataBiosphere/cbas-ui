@@ -93,6 +93,10 @@ const Cromwell = signal => ({
         const keyParams = qs.stringify({ includeKey, excludeKey }, { arrayFormat: 'repeat' })
         const res = await fetchCromwell(`${workflowId}/metadata?${keyParams}`, { signal, method: 'GET' })
         return res.json()
+      },
+      failedTasks: async () => {
+        const res = await fetchCromwell(`${workflowId}/metadata/failed-jobs`, { signal, method: 'GET' })
+        return res.json()
       }
     }
   }

@@ -5,7 +5,7 @@ export const metadata = {
     'wf_scattering.scatteringHello': [
       {
         stdout:
-          '/Users/jthomas/cromwell/cromwell-executions/main_workflow/be48c79d-f8e8-4a0a-bed4-787a30a60305/call-wf_scattering/wf_scattering/97967c22-bcc1-4946-b9c7-d4375f8b3070/call-scatteringHello/shard-0/execution/stdout',
+          '/Users/username/cromwell/cromwell-executions/main_workflow/be48c79d-f8e8-4a0a-bed4-787a30a60305/call-wf_scattering/wf_scattering/97967c22-bcc1-4946-b9c7-d4375f8b3070/call-scatteringHello/shard-0/execution/stdout',
         shardIndex: 0,
         runtimeAttributes: {
           maxRetries: '0',
@@ -60,9 +60,9 @@ export const metadata = {
         retryableFailure: false,
         executionStatus: 'Failed',
         stderr:
-          '/Users/jthomas/cromwell/cromwell-executions/main_workflow/be48c79d-f8e8-4a0a-bed4-787a30a60305/call-wf_scattering/wf_scattering/97967c22-bcc1-4946-b9c7-d4375f8b3070/call-scatteringHello/shard-0/execution/stderr',
+          '/Users/username/cromwell/cromwell-executions/main_workflow/be48c79d-f8e8-4a0a-bed4-787a30a60305/call-wf_scattering/wf_scattering/97967c22-bcc1-4946-b9c7-d4375f8b3070/call-scatteringHello/shard-0/execution/stderr',
         callRoot:
-          '/Users/jthomas/cromwell/cromwell-executions/main_workflow/be48c79d-f8e8-4a0a-bed4-787a30a60305/call-wf_scattering/wf_scattering/97967c22-bcc1-4946-b9c7-d4375f8b3070/call-scatteringHello/shard-0',
+          '/Users/username/cromwell/cromwell-executions/main_workflow/be48c79d-f8e8-4a0a-bed4-787a30a60305/call-wf_scattering/wf_scattering/97967c22-bcc1-4946-b9c7-d4375f8b3070/call-scatteringHello/shard-0',
         attempt: 1,
         executionEvents: [
           {
@@ -104,7 +104,7 @@ export const metadata = {
       },
       {
         stdout:
-          '/Users/jthomas/cromwell/cromwell-executions/main_workflow/be48c79d-f8e8-4a0a-bed4-787a30a60305/call-wf_scattering/wf_scattering/97967c22-bcc1-4946-b9c7-d4375f8b3070/call-scatteringHello/shard-1/execution/stdout',
+          '/Users/username/cromwell/cromwell-executions/main_workflow/be48c79d-f8e8-4a0a-bed4-787a30a60305/call-wf_scattering/wf_scattering/97967c22-bcc1-4946-b9c7-d4375f8b3070/call-scatteringHello/shard-1/execution/stdout',
         shardIndex: 1,
         runtimeAttributes: {
           maxRetries: '0',
@@ -159,9 +159,9 @@ export const metadata = {
         retryableFailure: false,
         executionStatus: 'Failed',
         stderr:
-          '/Users/jthomas/cromwell/cromwell-executions/main_workflow/be48c79d-f8e8-4a0a-bed4-787a30a60305/call-wf_scattering/wf_scattering/97967c22-bcc1-4946-b9c7-d4375f8b3070/call-scatteringHello/shard-1/execution/stderr',
+          '/Users/username/cromwell/cromwell-executions/main_workflow/be48c79d-f8e8-4a0a-bed4-787a30a60305/call-wf_scattering/wf_scattering/97967c22-bcc1-4946-b9c7-d4375f8b3070/call-scatteringHello/shard-1/execution/stderr',
         callRoot:
-          '/Users/jthomas/cromwell/cromwell-executions/main_workflow/be48c79d-f8e8-4a0a-bed4-787a30a60305/call-wf_scattering/wf_scattering/97967c22-bcc1-4946-b9c7-d4375f8b3070/call-scatteringHello/shard-1',
+          '/Users/username/cromwell/cromwell-executions/main_workflow/be48c79d-f8e8-4a0a-bed4-787a30a60305/call-wf_scattering/wf_scattering/97967c22-bcc1-4946-b9c7-d4375f8b3070/call-scatteringHello/shard-1',
         attempt: 1,
         executionEvents: [
           {
@@ -203,7 +203,7 @@ export const metadata = {
       },
       {
         stdout:
-          '/Users/jthomas/cromwell/cromwell-executions/main_workflow/be48c79d-f8e8-4a0a-bed4-787a30a60305/call-wf_scattering/wf_scattering/97967c22-bcc1-4946-b9c7-d4375f8b3070/call-scatteringHello/shard-2/execution/stdout',
+          '/Users/username/cromwell/cromwell-executions/main_workflow/be48c79d-f8e8-4a0a-bed4-787a30a60305/call-wf_scattering/wf_scattering/97967c22-bcc1-4946-b9c7-d4375f8b3070/call-scatteringHello/shard-2/execution/stdout',
         shardIndex: 2,
         runtimeAttributes: {
           maxRetries: '0',
@@ -258,9 +258,9 @@ export const metadata = {
         retryableFailure: false,
         executionStatus: 'Failed',
         stderr:
-          '/Users/jthomas/cromwell/cromwell-executions/main_workflow/be48c79d-f8e8-4a0a-bed4-787a30a60305/call-wf_scattering/wf_scattering/97967c22-bcc1-4946-b9c7-d4375f8b3070/call-scatteringHello/shard-2/execution/stderr',
+          '/Users/username/cromwell/cromwell-executions/main_workflow/be48c79d-f8e8-4a0a-bed4-787a30a60305/call-wf_scattering/wf_scattering/97967c22-bcc1-4946-b9c7-d4375f8b3070/call-scatteringHello/shard-2/execution/stderr',
         callRoot:
-          '/Users/jthomas/cromwell/cromwell-executions/main_workflow/be48c79d-f8e8-4a0a-bed4-787a30a60305/call-wf_scattering/wf_scattering/97967c22-bcc1-4946-b9c7-d4375f8b3070/call-scatteringHello/shard-2',
+          '/Users/username/cromwell/cromwell-executions/main_workflow/be48c79d-f8e8-4a0a-bed4-787a30a60305/call-wf_scattering/wf_scattering/97967c22-bcc1-4946-b9c7-d4375f8b3070/call-scatteringHello/shard-2',
         attempt: 1,
         executionEvents: [
           {
@@ -304,7 +304,7 @@ export const metadata = {
     'wf_scattering.scatteringGoodbye': [
       {
         stdout:
-          '/Users/jthomas/cromwell/cromwell-executions/main_workflow/be48c79d-f8e8-4a0a-bed4-787a30a60305/call-wf_scattering/wf_scattering/97967c22-bcc1-4946-b9c7-d4375f8b3070/call-scatteringGoodbye/shard-0/execution/stdout',
+          '/Users/username/cromwell/cromwell-executions/main_workflow/be48c79d-f8e8-4a0a-bed4-787a30a60305/call-wf_scattering/wf_scattering/97967c22-bcc1-4946-b9c7-d4375f8b3070/call-scatteringGoodbye/shard-0/execution/stdout',
         shardIndex: 0,
         runtimeAttributes: {
           maxRetries: '0',
@@ -359,9 +359,9 @@ export const metadata = {
         retryableFailure: false,
         executionStatus: 'Failed',
         stderr:
-          '/Users/jthomas/cromwell/cromwell-executions/main_workflow/be48c79d-f8e8-4a0a-bed4-787a30a60305/call-wf_scattering/wf_scattering/97967c22-bcc1-4946-b9c7-d4375f8b3070/call-scatteringGoodbye/shard-0/execution/stderr',
+          '/Users/username/cromwell/cromwell-executions/main_workflow/be48c79d-f8e8-4a0a-bed4-787a30a60305/call-wf_scattering/wf_scattering/97967c22-bcc1-4946-b9c7-d4375f8b3070/call-scatteringGoodbye/shard-0/execution/stderr',
         callRoot:
-          '/Users/jthomas/cromwell/cromwell-executions/main_workflow/be48c79d-f8e8-4a0a-bed4-787a30a60305/call-wf_scattering/wf_scattering/97967c22-bcc1-4946-b9c7-d4375f8b3070/call-scatteringGoodbye/shard-0',
+          '/Users/username/cromwell/cromwell-executions/main_workflow/be48c79d-f8e8-4a0a-bed4-787a30a60305/call-wf_scattering/wf_scattering/97967c22-bcc1-4946-b9c7-d4375f8b3070/call-scatteringGoodbye/shard-0',
         attempt: 1,
         executionEvents: [
           {
@@ -403,7 +403,7 @@ export const metadata = {
       },
       {
         stdout:
-          '/Users/jthomas/cromwell/cromwell-executions/main_workflow/be48c79d-f8e8-4a0a-bed4-787a30a60305/call-wf_scattering/wf_scattering/97967c22-bcc1-4946-b9c7-d4375f8b3070/call-scatteringGoodbye/shard-1/execution/stdout',
+          '/Users/username/cromwell/cromwell-executions/main_workflow/be48c79d-f8e8-4a0a-bed4-787a30a60305/call-wf_scattering/wf_scattering/97967c22-bcc1-4946-b9c7-d4375f8b3070/call-scatteringGoodbye/shard-1/execution/stdout',
         shardIndex: 1,
         runtimeAttributes: {
           maxRetries: '0',
@@ -458,9 +458,9 @@ export const metadata = {
         retryableFailure: false,
         executionStatus: 'Failed',
         stderr:
-          '/Users/jthomas/cromwell/cromwell-executions/main_workflow/be48c79d-f8e8-4a0a-bed4-787a30a60305/call-wf_scattering/wf_scattering/97967c22-bcc1-4946-b9c7-d4375f8b3070/call-scatteringGoodbye/shard-1/execution/stderr',
+          '/Users/username/cromwell/cromwell-executions/main_workflow/be48c79d-f8e8-4a0a-bed4-787a30a60305/call-wf_scattering/wf_scattering/97967c22-bcc1-4946-b9c7-d4375f8b3070/call-scatteringGoodbye/shard-1/execution/stderr',
         callRoot:
-          '/Users/jthomas/cromwell/cromwell-executions/main_workflow/be48c79d-f8e8-4a0a-bed4-787a30a60305/call-wf_scattering/wf_scattering/97967c22-bcc1-4946-b9c7-d4375f8b3070/call-scatteringGoodbye/shard-1',
+          '/Users/username/cromwell/cromwell-executions/main_workflow/be48c79d-f8e8-4a0a-bed4-787a30a60305/call-wf_scattering/wf_scattering/97967c22-bcc1-4946-b9c7-d4375f8b3070/call-scatteringGoodbye/shard-1',
         attempt: 1,
         executionEvents: [
           {
@@ -502,7 +502,7 @@ export const metadata = {
       }
     ]
   },
-  workflowRoot: '/Users/jthomas/cromwell/cromwell-executions/main_workflow/be48c79d-f8e8-4a0a-bed4-787a30a60305',
+  workflowRoot: '/Users/username/cromwell/cromwell-executions/main_workflow/be48c79d-f8e8-4a0a-bed4-787a30a60305',
   status: 'Failed',
   parentWorkflowId: 'be48c79d-f8e8-4a0a-bed4-787a30a60305',
   end: '2023-06-18T15:50:28.385Z',

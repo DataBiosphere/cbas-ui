@@ -10,6 +10,7 @@ import { Ajax } from 'src/libs/ajax'
 import * as configStore from 'src/libs/config'
 import { makeCompleteDate } from 'src/libs/utils'
 
+import { failedTasks, failedTasks as failedTasksMetadata } from '../fixtures/failed-tasks'
 import { metadata as childMetadata } from '../fixtures/test-child-workflow'
 import { metadata as parentMetadata } from '../fixtures/test-parent-workflow'
 import { metadata as runDetailsMetadata } from '../fixtures/test-workflow'
@@ -37,6 +38,9 @@ const mockObj = {
       return {
         metadata: () => {
           return runDetailsMetadata
+        },
+        failedTasks: () => {
+          return failedTasksMetadata
         }
       }
     }
@@ -76,6 +80,9 @@ const subworkflowCromwellAjaxMock = (parentOverride = {}) => {
               [childMetadata.id]: childMetadata
             }
             return workflowMap[id]
+          },
+          failedTasks: () => {
+            return {}
           }
         }
       }
@@ -225,15 +232,22 @@ describe('RunDetails - render smoke test', () => {
   })
 
   it('only shows failed tasks if a workflow has failed', async () => {
+    const failedTaskCalls = Object.values(failedTasks)[0].calls
+    const targetCall = Object.values(failedTaskCalls)[0][0]
+    const { start, end } = targetCall
     const workflowCopy = cloneDeep(runDetailsMetadata)
-    const targetCall = Object.values(workflowCopy.calls)[0]
-    const callCopy = cloneDeep(targetCall)
-    callCopy[0].executionStatus = 'Failed'
-    workflowCopy.calls['Failed Call'] = callCopy
     workflowCopy.status = 'Failed'
-    const { start, end } = callCopy[0]
 
-    const modifiedMock = Object.assign({}, cloneDeep(mockObj), { Cromwell: { workflows: () => { return { metadata: () => { return workflowCopy } } } } })
+    const modifiedMock = Object.assign({}, cloneDeep(mockObj), {
+      Cromwell: {
+        workflows: () => {
+          return {
+            metadata: () => { return workflowCopy },
+            failedTasks: () => { return failedTasksMetadata }
+          }
+        }
+      }
+    })
 
     //redefine Ajax mock so that it returns the modified workflow instead of the original
     Ajax.mockImplementation(() => {
@@ -248,10 +262,10 @@ describe('RunDetails - render smoke test', () => {
 
       const table = screen.getByTestId('call-table-container')
       const rows = within(table).getAllByRole('row')
-      expect(rows.length).toEqual(2)
+      expect(rows.length).toEqual(6)
       const targetRow = within(table).getAllByRole('row')[1]
       expect(targetRow).toBeDefined
-      const taskName = within(targetRow).getByText('Failed Call')
+      const taskName = within(targetRow).getByText('sub_wf_scattering.subSubworkflowHello')
       expect(taskName).toBeDefined
       const failedStatus = within(targetRow).queryAllByText('Failed')
       expect(failedStatus.length).toEqual(2)
