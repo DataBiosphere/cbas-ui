@@ -94,7 +94,7 @@ describe('getMethodVersionName in ImportGithub component', () => {
     { url: 'https://github.com/broadinstitute/warp/blob/AnnotationFiltration_v1.2.4/pipelines/broad/annotation_filtration/AnnotationFiltration.wdl', expectedVersion: 'AnnotationFiltration_v1.2.4' },
     { url: 'https://raw.githubusercontent.com/broadinstitute/warp/AnnotationFiltration_v1.2.4/pipelines/broad/annotation_filtration/AnnotationFiltration.wdl', expectedVersion: 'AnnotationFiltration_v1.2.4' },
     { url: 'https://github.com/broadinstitute/warp/blob/scATAC_v1.3.0/tasks/skylab/HISAT2.wdl', expectedVersion: 'scATAC_v1.3.0' },
-    { url: 'https://raw.githubusercontent.com/broadinstitute/cromwell/54/wom/src/test/resources/command_parameters/test.wdl', expectedVersion: '54'}
+    { url: 'https://raw.githubusercontent.com/broadinstitute/cromwell/54/wom/src/test/resources/command_parameters/test.wdl', expectedVersion: '54' }
   ]
 
   test.each(testUrls)('returns expected version for url', ({ url, expectedVersion }) => {
