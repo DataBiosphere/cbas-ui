@@ -83,10 +83,18 @@ describe('convertToRawUrl', () => {
 })
 
 describe('getMethodVersionName in ImportGithub component', () => {
+  // testing various methods living at different depths of directory trees to ensure accuracy of getMethodVersionName()
   const testUrls = [
     { url: 'https://raw.githubusercontent.com/broadinstitute/cromwell/develop/wdl/transforms/draft3/src/test/cases/simple_task.wdl', expectedVersion: 'develop' },
     { url: 'https://github.com/broadinstitute/warp/blob/Imputation_v1.1.1/pipelines/broad/arrays/imputation/Imputation.wdl', expectedVersion: 'Imputation_v1.1.1' },
-    { url: 'https://github.com/DataBiosphere/topmed-workflows/tree/1.32.0/aligner/functional-equivalence-wdl/FunctionalEquivalence.wdl', expectedVersion: '1.32.0' } // from dockstore
+    { url: 'https://github.com/DataBiosphere/topmed-workflows/tree/1.32.0/aligner/functional-equivalence-wdl/FunctionalEquivalence.wdl', expectedVersion: '1.32.0' }, // from dockstore
+    { url: 'https://github.com/broadinstitute/cromwell/blob/develop/wom/src/test/resources/command_parameters/test.wdl', expectedVersion: 'develop' },
+    { url: 'https://raw.githubusercontent.com/broadinstitute/cromwell/develop/wom/src/test/resources/wc.wdl', expectedVersion: 'develop' },
+    { url: 'https://raw.githubusercontent.com/broadinstitute/warp/VariantCalling_v2.1.2/pipelines/broad/dna_seq/germline/variant_calling/VariantCalling.wdl', expectedVersion: 'VariantCalling_v2.1.2' },
+    { url: 'https://github.com/broadinstitute/warp/blob/AnnotationFiltration_v1.2.4/pipelines/broad/annotation_filtration/AnnotationFiltration.wdl', expectedVersion: 'AnnotationFiltration_v1.2.4' },
+    { url: 'https://raw.githubusercontent.com/broadinstitute/warp/AnnotationFiltration_v1.2.4/pipelines/broad/annotation_filtration/AnnotationFiltration.wdl', expectedVersion: 'AnnotationFiltration_v1.2.4' },
+    { url: 'https://github.com/broadinstitute/warp/blob/scATAC_v1.3.0/tasks/skylab/HISAT2.wdl', expectedVersion: 'scATAC_v1.3.0' },
+    { url: 'https://raw.githubusercontent.com/broadinstitute/cromwell/54/wom/src/test/resources/command_parameters/test.wdl', expectedVersion: '54'}
   ]
 
   test.each(testUrls)('returns expected version for url', ({ url, expectedVersion }) => {
