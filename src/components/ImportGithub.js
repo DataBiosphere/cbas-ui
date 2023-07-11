@@ -3,7 +3,7 @@ import { div, h } from 'react-hyperscript-helpers'
 import { ButtonPrimary } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { ValidatedInput } from 'src/components/input'
-import { submitMethod } from 'src/components/method-common'
+import { getMethodVersionName, submitMethod } from 'src/components/method-common'
 import { TooltipCell } from 'src/components/table'
 import colors from 'src/libs/colors'
 import { FormLabel } from 'src/libs/form'
@@ -17,9 +17,6 @@ const constraints = {
     length: { maximum: 254 },
     url: true
   },
-  methodVersionName: {
-    presence: { allowEmpty: false }
-  },
   methodName: {
     presence: { allowEmpty: false }
   }
@@ -31,11 +28,14 @@ const ImportGithub = ({ setLoading, signal, onDismiss }) => {
   const [methodUrl, setMethodUrl] = useState('')
   const [methodUrlModified, setMethodUrlModified] = useState(false)
   const [methodNameModified, setMethodNameModified] = useState(false)
-  const [versionNameModified, setVersionNameModified] = useState(false)
 
-  const errors = validate({ methodName, methodVersionName, methodUrl }, constraints, {
-    prettify: v => ({ methodName: 'Method name', methodVersionName: 'Method version name', methodUrl: 'Workflow url' }[v] || validate.prettify(v))
+  const errors = validate({ methodName, methodUrl }, constraints, {
+    prettify: v => ({ methodName: 'Method name', methodUrl: 'Workflow url' }[v] || validate.prettify(v))
   })
+
+  const updateWorkflowName = url => {
+    setMethodName(url.substring(url.lastIndexOf('/') + 1).replace('.wdl', ''))
+  }
 
   return div({ style: { marginLeft: '4rem', width: '50%' } }, [
     div({ style: { fontSize: 30, display: 'flex', alignItems: 'center' } }, [h(FormLabel, { htmlFor: 'methodurl', required: true }, ['Workflow Link']), h(TooltipCell, { tooltip: 'Link must start with https://github.com or https://raw.githubusercontent.com' }, [icon('error-standard', { size: 20, style: { top: '50px', marginLeft: '1rem', color: colors.accent(), cursor: 'help' } })])]),
@@ -45,6 +45,8 @@ const ImportGithub = ({ setLoading, signal, onDismiss }) => {
         placeholder: 'Paste Github link',
         value: methodUrl,
         onChange: u => {
+          updateWorkflowName(u)
+          setMethodVersionName(getMethodVersionName(u))
           setMethodUrl(u)
           setMethodUrlModified(true)
         }
@@ -63,19 +65,6 @@ const ImportGithub = ({ setLoading, signal, onDismiss }) => {
         }
       },
       error: Utils.summarizeErrors(methodNameModified && errors?.methodName)
-    }),
-    h(FormLabel, { htmlFor: 'workflowVersion', required: true }, ['Workflow Version']),
-    h(ValidatedInput, {
-      inputProps: {
-        id: 'workflowVersion',
-        placeholder: 'Workflow Version',
-        value: methodVersionName,
-        onChange: v => {
-          setMethodVersionName(v)
-          setVersionNameModified(true)
-        }
-      },
-      error: Utils.summarizeErrors(versionNameModified && errors?.methodVersionName)
     }),
     div({}, [h(ButtonPrimary, {
       style: { marginTop: '2rem' },

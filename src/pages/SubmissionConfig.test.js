@@ -2321,7 +2321,7 @@ describe('SubmissionConfig submitting a run set', () => {
     // user selects 'FOO1' record from Data Table
     const checkboxes = screen.getAllByRole('checkbox')
     const checkbox = checkboxes[1]
-    fireEvent.click(checkbox)
+    await userEvent.click(checkbox)
 
     // ** ASSERT **
     // verify that the record was indeed selected
@@ -2330,13 +2330,13 @@ describe('SubmissionConfig submitting a run set', () => {
     const inputsTabButton = await screen.findByRole('button', { name: 'Inputs' })
 
     // ** ACT **
-    await fireEvent.click(inputsTabButton)
+    await userEvent.click(inputsTabButton)
 
     // ** ASSERT **
     await screen.findByRole('table') // there should be only one table at this point
 
     const viewStructLink = await screen.getByText('View Struct')
-    await fireEvent.click(viewStructLink)
+    await userEvent.click(viewStructLink)
     await screen.getByText('myInnerStruct')
 
     const structTable = await screen.getByLabelText('struct-table')
@@ -2348,7 +2348,7 @@ describe('SubmissionConfig submitting a run set', () => {
     const myPrimitiveRowCells = within(structRows[5]).queryAllByRole('cell')
     within(myPrimitiveRowCells[1]).getByText('myPrimitive')
     const myPrimitiveInput = within(myPrimitiveRowCells[4]).getByDisplayValue('Fiesty')
-    await fireEvent.change(myPrimitiveInput, { target: { value: 'Docile' } })
+    fireEvent.change(myPrimitiveInput, { target: { value: 'Docile' } })
     within(myPrimitiveRowCells[4]).getByDisplayValue('Docile')
 
     // ** ACT **
@@ -2356,7 +2356,7 @@ describe('SubmissionConfig submitting a run set', () => {
     const myInnerStructRowCells = within(structRows[2]).queryAllByRole('cell')
     within(myInnerStructRowCells[1]).getByText('myInnerStruct')
     const viewMyInnerStructLink = within(myInnerStructRowCells[4]).getByText('View Struct')
-    await fireEvent.click(viewMyInnerStructLink)
+    await userEvent.click(viewMyInnerStructLink)
 
     const myInnerStructTable = await screen.getByLabelText('struct-table')
     const myInnerStructRows = within(myInnerStructTable).queryAllByRole('row')
@@ -2372,22 +2372,22 @@ describe('SubmissionConfig submitting a run set', () => {
       await userEvent.click(selectOption)
     })
     const myInnermostPrimitiveInput = within(myInnermostPrimitiveRowCells[4]).getByLabelText('Enter a value')
-    await fireEvent.change(myInnermostPrimitiveInput, { target: { value: 'bar' } })
+    fireEvent.change(myInnermostPrimitiveInput, { target: { value: 'bar' } })
     within(myInnermostPrimitiveRowCells[4]).getByDisplayValue('bar')
 
 
     // ** ACT **
     // Exit the modal and submit
     const innerStructModalDoneButton = await screen.getByText('Back')
-    fireEvent.click(innerStructModalDoneButton)
+    await userEvent.click(innerStructModalDoneButton)
     const modalDoneButton = await screen.getByText('Done')
-    fireEvent.click(modalDoneButton)
+    await userEvent.click(modalDoneButton)
     await screen.findByRole('table') // there should be only one table again
 
     // ** ACT **
     // user clicks on Submit (inputs and outputs should be rendered based on previous submission)
     const submitButton = screen.getByLabelText('Submit button')
-    fireEvent.click(submitButton)
+    await userEvent.click(submitButton)
 
     // ** ASSERT **
     // Launch modal should be displayed
@@ -2396,7 +2396,7 @@ describe('SubmissionConfig submitting a run set', () => {
 
     // ** ACT **
     // user click on Submit button
-    fireEvent.click(modalSubmitButton)
+    await userEvent.click(modalSubmitButton)
 
     // ** ASSERT **
     // assert POST /run_sets endpoint was called with expected parameters, with struct input sources updated
