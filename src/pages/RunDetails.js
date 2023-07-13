@@ -30,7 +30,7 @@ export const organizeCallTableData = (metadataCalls = {}, failedTaskCalls = {}) 
   if (!isEmpty(failedTaskTableData)) {
     const successfulMetadata = filter(({ statusObj }) => {
       const { id } = statusObj
-      return id?.toLocaleLowerCase() === 'succeeded'
+      return id?.toLocaleLowerCase() !== 'failed'
     }, metadataTableData)
     return successfulMetadata.concat(failedTaskTableData)
   }
@@ -192,7 +192,7 @@ export const RunDetails = ({ submissionId, workflowId }) => {
           ])
         ])
       ],
-      () => h(Fragment, {}, [
+      () => div({ role: 'main' }, [
         div({ style: { padding: '1rem 2rem 2rem' } }, [header]),
         div({ 'data-testid': 'details-top-container', style: { display: 'flex', justifyContent: 'space-between', padding: '1rem 2rem 2rem' } }, [
           h(WorkflowInfoBox, { workflow }, []),
