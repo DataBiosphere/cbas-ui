@@ -11,6 +11,4 @@ export const getConfig = () => {
 /**
  * Flags for hidden features
  */
-export const isFindWorkflowEnabled = () => getConfig().isFindWorkflowEnabled
-export const isURLEnabled = () => getConfig().isURLEnabled
 export const isDockstoreEnabled = () => getConfig().isDockstoreEnabled

@@ -4,7 +4,6 @@ import { ButtonOutline, Clickable, Navbar } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
-import { isFindWorkflowEnabled } from 'src/libs/config'
 import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
 import { useCancellation, useOnMount } from 'src/libs/react-utils'
@@ -60,8 +59,7 @@ export const SubmitWorkflow = () => {
       div(['Run a workflow in Terra using Cromwell engine. Full feature workflow submission coming soon.']),
       div({ style: { marginTop: '3rem' } }, [(h(Clickable, {
         'aria-haspopup': 'dialog',
-        disabled: !isFindWorkflowEnabled(),
-        style: { ...styles.card, ...styles.shortCard, color: isFindWorkflowEnabled() ? colors.accent() : colors.dark(0.7), fontSize: 18, lineHeight: '22px' },
+        style: { ...styles.card, ...styles.shortCard, color: colors.accent(), fontSize: 18, lineHeight: '22px' },
         onClick: () => setViewFindWorkflowModal(true)
       }, ['Find a Workflow', icon('plus-circle', { size: 32 })])),
       (h(Fragment, [h(SavedWorkflows, { methodsData })]))]),
