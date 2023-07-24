@@ -11,4 +11,3 @@ export const getConfig = () => {
 /**
  * Flags for hidden features
  */
-export const isDockstoreEnabled = () => getConfig().isDockstoreEnabled
