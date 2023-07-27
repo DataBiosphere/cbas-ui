@@ -75,7 +75,7 @@ const FindWorkflowModal = ({ onDismiss }) => {
   const subHeadersMap = {
     'browse-suggested-workflows': 'Browse Suggested Workflows',
     'add-a-workflow-link': 'Add a Workflow Link',
-    ...(getConfig().isDockstoreEnabled && { 'go-to-dockstore': h(TextCell, {}, ['Dockstore', icon('export', { style: { marginLeft: '0.5rem' } })]) })
+    'go-to-dockstore': h(TextCell, {}, ['Dockstore', icon('export', { style: { marginLeft: '0.5rem' } })])
   }
 
   const isSubHeaderActive = subHeader => selectedSubHeader === subHeader

@@ -18,7 +18,6 @@ jest.mock('src/libs/config', () => ({
 
 describe('FindWorkflowModal', () => {
   beforeEach(() => {
-    getConfig.mockReturnValue({ isDockstoreEnabled: false })
     getConfig.mockReturnValue(({ dockstoreRootUrl: 'https://staging.dockstore.org/' }))
   })
   it('should render FindWorkflowModal with 5 hardcoded Method cards', () => {
@@ -79,8 +78,6 @@ describe('FindWorkflowModal', () => {
   })
 
   it('should link to Dockstore staging when clicked', () => {
-    getConfig().isDockstoreEnabled = true
-
     // ** ACT **
     render(h(FindWorkflowModal, { onDismiss: jest.fn() }))
 
