@@ -22,11 +22,11 @@ export const TroubleshootingBox = ({ logUri, submissionId, workflowId, showLogMo
     div({}, [span({ style: { fontSize: 16, fontWeight: 'bold' } }, ['Troubleshooting?'])]),
     div({ 'data-testid': 'workflow-id-container', style: { display: 'flex', justifyContent: 'space-between' } }, [
       span({}, [span({ style: { marginRight: '0.5rem', fontWeight: 'bold' } }, ['Workflow ID: ']), span({}, [workflowId])]),
-      span({ 'data-testid': 'workflow-clipboard-button' }, [h(ClipboardButton, { text: workflowId })])
+      span({ 'data-testid': 'workflow-clipboard-button' }, [h(ClipboardButton, { text: workflowId, 'aria-label': 'Copy workflow id' })])
     ]),
     div({ style: { display: 'flex', justifyContent: 'space-between' } }, [
       span({}, [span({ style: { marginRight: '0.5rem', fontWeight: 'bold' } }, ['Submission ID: ']), span({}, [submissionId])]),
-      span({ 'data-testid': 'submission-clipboard-button' }, [h(ClipboardButton, { text: submissionId })])
+      span({ 'data-testid': 'submission-clipboard-button' }, [h(ClipboardButton, { text: submissionId, 'aria-label': 'Copy submission id' })])
     ]),
     div({ 'data-testid': 'log-link-container', style: { display: 'flex', justifyContent: 'left', paddingTop: '3px' } }, [
       h(Link, { onClick: () => { showLogModal(logUri) } }, [
