@@ -107,7 +107,11 @@ export const RunDetails = ({ submissionId, workflowId }) => {
     let failedTasks = {}
     const metadata = await fetchMetadata(workflowId)
     if (metadata?.status?.toLocaleLowerCase() === 'failed') {
-      failedTasks = await Ajax(signal).Cromwell.workflows(workflowId).failedTasks()
+      try {
+        failedTasks = await Ajax(signal).Cromwell.workflows(workflowId).failedTasks()
+      } catch (error) {
+        //do nothing, failure here means that user may not have access to an updated version of Cromwell
+      }
     }
     const { workflowName } = metadata
     isNil(updateWorkflowPath) && setWorkflow(metadata)
