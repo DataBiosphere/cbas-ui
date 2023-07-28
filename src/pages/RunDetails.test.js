@@ -573,10 +573,10 @@ describe('RunDetails - render smoke test', () => {
             },
             failedTasks: () => {
               return Promise.reject()
-            },
-          };
-        },
-      },
+            }
+          }
+        }
+      }
     })
 
     Ajax.mockImplementation(() => {
