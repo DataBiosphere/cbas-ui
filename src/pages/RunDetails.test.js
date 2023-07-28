@@ -10,7 +10,7 @@ import { Ajax } from 'src/libs/ajax'
 import * as configStore from 'src/libs/config'
 import { makeCompleteDate } from 'src/libs/utils'
 
-import { failedTasks, failedTasks as failedTasksMetadata } from '../fixtures/failed-tasks'
+import { failedTasks as failedTasksMetadata } from '../fixtures/failed-tasks'
 import { metadata as childMetadata } from '../fixtures/test-child-workflow'
 import { metadata as parentMetadata } from '../fixtures/test-parent-workflow'
 import { metadata as runDetailsMetadata } from '../fixtures/test-workflow'
@@ -232,7 +232,7 @@ describe('RunDetails - render smoke test', () => {
   })
 
   it('only shows failed tasks if a workflow has failed', async () => {
-    const failedTaskCalls = Object.values(failedTasks)[0].calls
+    const failedTaskCalls = Object.values(failedTasksMetadata)[0].calls
     const targetCall = Object.values(failedTaskCalls)[0][0]
     const { start, end } = targetCall
     const workflowCopy = cloneDeep(runDetailsMetadata)
@@ -552,6 +552,55 @@ describe('RunDetails - render smoke test', () => {
         const taskNameText = within(updatedTable).getByText(taskName)
         expect(taskNameText).toBeDefined
       })
+    })
+  })
+
+  it('loads the page even if the failed tasks endpoint returns an error', async () => {
+    const workflowCopy = cloneDeep(runDetailsMetadata)
+    const failedTaskName = 'fetch_sra_to_bam.Fetch_SRA_to_BAM'
+    const failedCall = workflowCopy.calls[failedTaskName][0]
+    const { start, end } = failedCall
+    failedCall.backendStatus = 'Failed'
+    failedCall.executionStatus = 'Failed'
+    workflowCopy.status = 'Failed'
+
+    const modifiedMock = Object.assign({}, cloneDeep(mockObj), {
+      Cromwell: {
+        workflows: () => {
+          return {
+            metadata: () => {
+              return workflowCopy
+            },
+            failedTasks: () => {
+              return Promise.reject()
+            },
+          };
+        },
+      },
+    })
+
+    Ajax.mockImplementation(() => {
+      return modifiedMock
+    })
+
+    render(h(RunDetails, { runDetailsProps }))
+    await waitFor(async () => {
+      const statusFilter = await screen.findByTestId('status-dropdown-filter')
+      const failedOption = within(statusFilter).getByText('Failed')
+      expect(failedOption).toBeDefined
+      const table = await screen.findByTestId('call-table-container')
+      const rows = within(table).getAllByRole('row')
+      expect(rows.length).toEqual(2)
+      const targetRow = within(table).getAllByRole('row')[1]
+      expect(targetRow).toBeDefined
+      const taskName = within(targetRow).getByText(failedTaskName)
+      expect(taskName).toBeDefined
+      const failedStatus = within(targetRow).queryAllByText('Failed')
+      expect(failedStatus.length).toEqual(2)
+      const targetStartText = makeCompleteDate(start)
+      const targetEndText = makeCompleteDate(end)
+      expect(targetRow.textContent).toContain(targetStartText)
+      expect(targetRow.textContent).toContain(targetEndText)
     })
   })
 })
