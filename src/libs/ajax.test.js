@@ -132,6 +132,7 @@ describe('Ajax tests', () => {
     }
 
     const body = JSON.stringify(payload)
+    const headers = { 'Content-Type': 'application/json' }
 
     await cbasPact.addInteraction({
       states: [
@@ -140,7 +141,7 @@ describe('Ajax tests', () => {
         { description: 'ready to receive exactly 1 call to POST run_sets' }
       ],
       uponReceiving: 'post a simple run set',
-      withRequest: { path: '/api/batch/v1/run_sets', method: 'POST', body, headers: expect.any(Object) },
+      withRequest: { path: '/api/batch/v1/run_sets', method: 'POST', body, headers },
       willRespondWith: { status: 200, body: expectedResponse }
     })
 
@@ -149,7 +150,7 @@ describe('Ajax tests', () => {
       const signal = 'fakeSignal'
 
       fetchCbas.mockImplementation(async path => await fetch(
-        `${mockService.url}/api/batch/v1/${path}`, { method: 'POST', body, headers: expect.any(Object) }))
+        `${mockService.url}/api/batch/v1/${path}`, { method: 'POST', body, headers }))
 
       // ACT
       const response = await Ajax(signal).Cbas.runSets.post(payload)
@@ -186,6 +187,7 @@ describe('Ajax tests', () => {
     }
 
     const body = JSON.stringify(payload)
+    const headers = { 'Content-Type': 'application/json' }
 
     await cbasPact.addInteraction({
       states: [
@@ -194,7 +196,7 @@ describe('Ajax tests', () => {
         { description: 'ready to receive exactly 1 call to POST run_sets' }
       ],
       uponReceiving: 'post a run set with a "none" source',
-      withRequest: { path: '/api/batch/v1/run_sets', method: 'POST', body, headers: expect.any(Object) },
+      withRequest: { path: '/api/batch/v1/run_sets', method: 'POST', body, headers },
       willRespondWith: { status: 200, body: expectedResponse }
     })
 
@@ -203,7 +205,7 @@ describe('Ajax tests', () => {
       const signal = 'fakeSignal'
 
       fetchCbas.mockImplementation(async path => await fetch(
-        `${mockService.url}/api/batch/v1/${path}`, { method: 'POST', body, headers: expect.any(Object) }))
+        `${mockService.url}/api/batch/v1/${path}`, { method: 'POST', body, headers }))
 
       // ACT
       const response = await Ajax(signal).Cbas.runSets.post(payload)
@@ -240,6 +242,7 @@ describe('Ajax tests', () => {
     }
 
     const body = JSON.stringify(payload)
+    const headers = { 'Content-Type': 'application/json' }
 
     await cbasPact.addInteraction({
       states: [
@@ -248,7 +251,7 @@ describe('Ajax tests', () => {
         { description: 'ready to receive exactly 1 call to POST run_sets' }
       ],
       uponReceiving: 'post a run set with a struct source',
-      withRequest: { path: '/api/batch/v1/run_sets', method: 'POST', body, headers: expect.any(Object) },
+      withRequest: { path: '/api/batch/v1/run_sets', method: 'POST', body, headers },
       willRespondWith: { status: 200, body: expectedResponse }
     })
 
@@ -257,7 +260,7 @@ describe('Ajax tests', () => {
       const signal = 'fakeSignal'
 
       fetchCbas.mockImplementation(async path => await fetch(
-        `${mockService.url}/api/batch/v1/${path}`, { method: 'POST', body, headers: expect.any(Object) }))
+        `${mockService.url}/api/batch/v1/${path}`, { method: 'POST', body, headers }))
 
       // ACT
       const response = await Ajax(signal).Cbas.runSets.post(payload)
@@ -281,6 +284,7 @@ describe('Ajax tests', () => {
     }
 
     const runSetId = '20000000-0000-0000-0000-000000000002'
+    const headers = { 'Content-Type': 'application/json' }
 
     await cbasPact.addInteraction({
       states: [
@@ -296,7 +300,7 @@ describe('Ajax tests', () => {
       const signal = 'fakeSignal'
 
       fetchCbas.mockImplementation(async path => await fetch(
-        `${mockService.url}/api/batch/v1/${path}`, { method: 'POST', headers: expect.any(Object) }))
+        `${mockService.url}/api/batch/v1/${path}`, { method: 'POST', headers }))
 
       // ACT
       const response = await Ajax(signal).Cbas.runSets.cancel(runSetId)
@@ -325,6 +329,7 @@ describe('Ajax tests', () => {
       method_url: 'https://github.com/broadinstitute/warp/blob/develop/pipelines/skylab/scATAC/scATAC.wdl'
     }
     const body = JSON.stringify(payload)
+    const headers = { 'Content-Type': 'application/json' }
 
     await cbasPact.addInteraction({
       states: [
@@ -332,7 +337,7 @@ describe('Ajax tests', () => {
         { description: 'cromwell initialized' }
       ],
       uponReceiving: 'a POST request to import a method',
-      withRequest: { method: 'POST', path: '/api/batch/v1/methods', body, headers: expect.any(Object) },
+      withRequest: { method: 'POST', path: '/api/batch/v1/methods', body, headers },
       willRespondWith: { status: 200, body: expectedResponse }
     })
 
@@ -340,7 +345,7 @@ describe('Ajax tests', () => {
       // ARRANGE
       const signal = 'fakeSignal'
       fetchCbas.mockImplementation(async path => await fetch(
-        `${mockService.url}/api/batch/v1/${path}`, { method: 'POST', body, headers: expect.any(Object) }))
+        `${mockService.url}/api/batch/v1/${path}`, { method: 'POST', body, headers }))
 
       // ACT
       const response = await Ajax(signal).Cbas.methods.post(payload)
