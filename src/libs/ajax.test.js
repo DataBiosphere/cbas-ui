@@ -102,7 +102,7 @@ describe('Ajax tests', () => {
       // ASSERT
       expect(response).toBeDefined()
       expect(fetchCbas).toBeCalledTimes(1)
-      expect(fetchCbas).toBeCalledWith('run_sets?method_id=00000000-0000-0000-0000-000000000009&page_size=1', { method: 'GET', signal: 'fakeSignal' })
+      expect(fetchCbas).toBeCalledWith('run_sets?method_id=00000000-0000-0000-0000-000000000009&page_size=1', { method: 'GET', signal: 'fakeSignal', headers: { Authorization: expect.any(String) } })
       expect(response).toHaveProperty('run_sets')
       expect(response).toHaveProperty('fully_updated')
       expect(response.run_sets.length).toEqual(1)
@@ -132,7 +132,7 @@ describe('Ajax tests', () => {
     }
 
     const body = JSON.stringify(payload)
-    const headers = { 'Content-Type': 'application/json' }
+    const headers = { 'Content-Type': 'application/json', Authorization: expect.any(String) }
 
     await cbasPact.addInteraction({
       states: [
@@ -187,7 +187,7 @@ describe('Ajax tests', () => {
     }
 
     const body = JSON.stringify(payload)
-    const headers = { 'Content-Type': 'application/json' }
+    const headers = { 'Content-Type': 'application/json', Authorization: expect.any(String) }
 
     await cbasPact.addInteraction({
       states: [
@@ -242,7 +242,7 @@ describe('Ajax tests', () => {
     }
 
     const body = JSON.stringify(payload)
-    const headers = { 'Content-Type': 'application/json' }
+    const headers = { 'Content-Type': 'application/json', Authorization: expect.any(String) }
 
     await cbasPact.addInteraction({
       states: [
@@ -284,7 +284,7 @@ describe('Ajax tests', () => {
     }
 
     const runSetId = '20000000-0000-0000-0000-000000000002'
-    const headers = { 'Content-Type': 'application/json' }
+    const headers = { 'Content-Type': 'application/json', Authorization: expect.any(String) }
 
     await cbasPact.addInteraction({
       states: [
@@ -329,7 +329,7 @@ describe('Ajax tests', () => {
       method_url: 'https://github.com/broadinstitute/warp/blob/develop/pipelines/skylab/scATAC/scATAC.wdl'
     }
     const body = JSON.stringify(payload)
-    const headers = { 'Content-Type': 'application/json' }
+    const headers = { 'Content-Type': 'application/json', Authorization: expect.any(String) }
 
     await cbasPact.addInteraction({
       states: [
