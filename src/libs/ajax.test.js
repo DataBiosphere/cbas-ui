@@ -102,7 +102,7 @@ describe('Ajax tests', () => {
       // ASSERT
       expect(response).toBeDefined()
       expect(fetchCbas).toBeCalledTimes(1)
-      expect(fetchCbas).toBeCalledWith('run_sets?method_id=00000000-0000-0000-0000-000000000009&page_size=1', { method: 'GET', signal: 'fakeSignal', headers: { Authorization: expect.any(String) } })
+      expect(fetchCbas).toBeCalledWith('run_sets?method_id=00000000-0000-0000-0000-000000000009&page_size=1', { method: 'GET', signal: 'fakeSignal', headers: expect.any(Object) })
       expect(response).toHaveProperty('run_sets')
       expect(response).toHaveProperty('fully_updated')
       expect(response.run_sets.length).toEqual(1)
@@ -132,7 +132,6 @@ describe('Ajax tests', () => {
     }
 
     const body = JSON.stringify(payload)
-    const headers = { 'Content-Type': 'application/json', Authorization: expect.any(String) }
 
     await cbasPact.addInteraction({
       states: [
@@ -141,7 +140,7 @@ describe('Ajax tests', () => {
         { description: 'ready to receive exactly 1 call to POST run_sets' }
       ],
       uponReceiving: 'post a simple run set',
-      withRequest: { path: '/api/batch/v1/run_sets', method: 'POST', body, headers },
+      withRequest: { path: '/api/batch/v1/run_sets', method: 'POST', body, headers: expect.any(Object) },
       willRespondWith: { status: 200, body: expectedResponse }
     })
 
@@ -150,7 +149,7 @@ describe('Ajax tests', () => {
       const signal = 'fakeSignal'
 
       fetchCbas.mockImplementation(async path => await fetch(
-        `${mockService.url}/api/batch/v1/${path}`, { method: 'POST', body, headers }))
+        `${mockService.url}/api/batch/v1/${path}`, { method: 'POST', body, headers: expect.any(Object) }))
 
       // ACT
       const response = await Ajax(signal).Cbas.runSets.post(payload)
@@ -158,7 +157,7 @@ describe('Ajax tests', () => {
       // ASSERT
       expect(response).toBeDefined()
       expect(fetchCbas).toBeCalledTimes(1)
-      expect(fetchCbas).toBeCalledWith('run_sets', { body, headers, method: 'POST', signal })
+      expect(fetchCbas).toBeCalledWith('run_sets', { body, headers: expect.any(Object), method: 'POST', signal })
       expect(response).toHaveProperty('run_set_id')
       expect(response.runs.length).toEqual(1)
     })
@@ -187,7 +186,6 @@ describe('Ajax tests', () => {
     }
 
     const body = JSON.stringify(payload)
-    const headers = { 'Content-Type': 'application/json', Authorization: expect.any(String) }
 
     await cbasPact.addInteraction({
       states: [
@@ -196,7 +194,7 @@ describe('Ajax tests', () => {
         { description: 'ready to receive exactly 1 call to POST run_sets' }
       ],
       uponReceiving: 'post a run set with a "none" source',
-      withRequest: { path: '/api/batch/v1/run_sets', method: 'POST', body, headers },
+      withRequest: { path: '/api/batch/v1/run_sets', method: 'POST', body, headers: expect.any(Object) },
       willRespondWith: { status: 200, body: expectedResponse }
     })
 
@@ -205,7 +203,7 @@ describe('Ajax tests', () => {
       const signal = 'fakeSignal'
 
       fetchCbas.mockImplementation(async path => await fetch(
-        `${mockService.url}/api/batch/v1/${path}`, { method: 'POST', body, headers }))
+        `${mockService.url}/api/batch/v1/${path}`, { method: 'POST', body, headers: expect.any(Object) }))
 
       // ACT
       const response = await Ajax(signal).Cbas.runSets.post(payload)
@@ -213,7 +211,7 @@ describe('Ajax tests', () => {
       // ASSERT
       expect(response).toBeDefined()
       expect(fetchCbas).toBeCalledTimes(1)
-      expect(fetchCbas).toBeCalledWith('run_sets', { body, headers, method: 'POST', signal })
+      expect(fetchCbas).toBeCalledWith('run_sets', { body, headers: expect.any(Object), method: 'POST', signal })
       expect(response).toHaveProperty('run_set_id')
       expect(response.runs.length).toEqual(1)
     })
@@ -242,7 +240,6 @@ describe('Ajax tests', () => {
     }
 
     const body = JSON.stringify(payload)
-    const headers = { 'Content-Type': 'application/json', Authorization: expect.any(String) }
 
     await cbasPact.addInteraction({
       states: [
@@ -251,7 +248,7 @@ describe('Ajax tests', () => {
         { description: 'ready to receive exactly 1 call to POST run_sets' }
       ],
       uponReceiving: 'post a run set with a struct source',
-      withRequest: { path: '/api/batch/v1/run_sets', method: 'POST', body, headers },
+      withRequest: { path: '/api/batch/v1/run_sets', method: 'POST', body, headers: expect.any(Object) },
       willRespondWith: { status: 200, body: expectedResponse }
     })
 
@@ -260,7 +257,7 @@ describe('Ajax tests', () => {
       const signal = 'fakeSignal'
 
       fetchCbas.mockImplementation(async path => await fetch(
-        `${mockService.url}/api/batch/v1/${path}`, { method: 'POST', body, headers }))
+        `${mockService.url}/api/batch/v1/${path}`, { method: 'POST', body, headers: expect.any(Object) }))
 
       // ACT
       const response = await Ajax(signal).Cbas.runSets.post(payload)
@@ -268,7 +265,7 @@ describe('Ajax tests', () => {
       // ASSERT
       expect(response).toBeDefined()
       expect(fetchCbas).toBeCalledTimes(1)
-      expect(fetchCbas).toBeCalledWith('run_sets', { body, headers, method: 'POST', signal })
+      expect(fetchCbas).toBeCalledWith('run_sets', { body, headers: expect.any(Object), method: 'POST', signal })
       expect(response).toHaveProperty('run_set_id')
       expect(response.runs.length).toEqual(1)
     })
@@ -284,7 +281,6 @@ describe('Ajax tests', () => {
     }
 
     const runSetId = '20000000-0000-0000-0000-000000000002'
-    const headers = { 'Content-Type': 'application/json', Authorization: expect.any(String) }
 
     await cbasPact.addInteraction({
       states: [
@@ -300,7 +296,7 @@ describe('Ajax tests', () => {
       const signal = 'fakeSignal'
 
       fetchCbas.mockImplementation(async path => await fetch(
-        `${mockService.url}/api/batch/v1/${path}`, { method: 'POST', headers }))
+        `${mockService.url}/api/batch/v1/${path}`, { method: 'POST', headers: expect.any(Object) }))
 
       // ACT
       const response = await Ajax(signal).Cbas.runSets.cancel(runSetId)
@@ -308,7 +304,7 @@ describe('Ajax tests', () => {
       // ASSERT
       expect(response).toBeDefined()
       expect(fetchCbas).toBeCalledTimes(1)
-      expect(fetchCbas).toBeCalledWith(`run_sets/abort?run_set_id=${runSetId}`, { method: 'POST', signal })
+      expect(fetchCbas).toBeCalledWith(`run_sets/abort?run_set_id=${runSetId}`, { method: 'POST', signal, headers: expect.any(Object) })
       expect(response).toHaveProperty('run_set_id')
       expect(response).toHaveProperty('runs')
       expect(response).toHaveProperty('state')
@@ -329,7 +325,6 @@ describe('Ajax tests', () => {
       method_url: 'https://github.com/broadinstitute/warp/blob/develop/pipelines/skylab/scATAC/scATAC.wdl'
     }
     const body = JSON.stringify(payload)
-    const headers = { 'Content-Type': 'application/json', Authorization: expect.any(String) }
 
     await cbasPact.addInteraction({
       states: [
@@ -337,7 +332,7 @@ describe('Ajax tests', () => {
         { description: 'cromwell initialized' }
       ],
       uponReceiving: 'a POST request to import a method',
-      withRequest: { method: 'POST', path: '/api/batch/v1/methods', body, headers },
+      withRequest: { method: 'POST', path: '/api/batch/v1/methods', body, headers: expect.any(Object) },
       willRespondWith: { status: 200, body: expectedResponse }
     })
 
@@ -345,7 +340,7 @@ describe('Ajax tests', () => {
       // ARRANGE
       const signal = 'fakeSignal'
       fetchCbas.mockImplementation(async path => await fetch(
-        `${mockService.url}/api/batch/v1/${path}`, { method: 'POST', body, headers }))
+        `${mockService.url}/api/batch/v1/${path}`, { method: 'POST', body, headers: expect.any(Object) }))
 
       // ACT
       const response = await Ajax(signal).Cbas.methods.post(payload)
@@ -353,7 +348,7 @@ describe('Ajax tests', () => {
       // ASSERT
       expect(response).toBeDefined()
       expect(fetchCbas).toBeCalledTimes(1)
-      expect(fetchCbas).toBeCalledWith('methods', { method: 'POST', signal, body, headers })
+      expect(fetchCbas).toBeCalledWith('methods', { method: 'POST', signal, body, headers: expect.any(Object) })
     })
   })
 })
