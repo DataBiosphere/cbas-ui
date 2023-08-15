@@ -102,7 +102,7 @@ describe('Ajax tests', () => {
       // ASSERT
       expect(response).toBeDefined()
       expect(fetchCbas).toBeCalledTimes(1)
-      expect(fetchCbas).toBeCalledWith('run_sets?method_id=00000000-0000-0000-0000-000000000009&page_size=1', { method: 'GET', signal: 'fakeSignal' })
+      expect(fetchCbas).toBeCalledWith('run_sets?method_id=00000000-0000-0000-0000-000000000009&page_size=1', { method: 'GET', signal: 'fakeSignal', headers: expect.any(Object) })
       expect(response).toHaveProperty('run_sets')
       expect(response).toHaveProperty('fully_updated')
       expect(response.run_sets.length).toEqual(1)
@@ -158,7 +158,7 @@ describe('Ajax tests', () => {
       // ASSERT
       expect(response).toBeDefined()
       expect(fetchCbas).toBeCalledTimes(1)
-      expect(fetchCbas).toBeCalledWith('run_sets', { body, headers, method: 'POST', signal })
+      expect(fetchCbas).toBeCalledWith('run_sets', { body, headers: expect.any(Object), method: 'POST', signal })
       expect(response).toHaveProperty('run_set_id')
       expect(response.runs.length).toEqual(1)
     })
@@ -213,7 +213,7 @@ describe('Ajax tests', () => {
       // ASSERT
       expect(response).toBeDefined()
       expect(fetchCbas).toBeCalledTimes(1)
-      expect(fetchCbas).toBeCalledWith('run_sets', { body, headers, method: 'POST', signal })
+      expect(fetchCbas).toBeCalledWith('run_sets', { body, headers: expect.any(Object), method: 'POST', signal })
       expect(response).toHaveProperty('run_set_id')
       expect(response.runs.length).toEqual(1)
     })
@@ -268,7 +268,7 @@ describe('Ajax tests', () => {
       // ASSERT
       expect(response).toBeDefined()
       expect(fetchCbas).toBeCalledTimes(1)
-      expect(fetchCbas).toBeCalledWith('run_sets', { body, headers, method: 'POST', signal })
+      expect(fetchCbas).toBeCalledWith('run_sets', { body, headers: expect.any(Object), method: 'POST', signal })
       expect(response).toHaveProperty('run_set_id')
       expect(response.runs.length).toEqual(1)
     })
@@ -308,7 +308,7 @@ describe('Ajax tests', () => {
       // ASSERT
       expect(response).toBeDefined()
       expect(fetchCbas).toBeCalledTimes(1)
-      expect(fetchCbas).toBeCalledWith(`run_sets/abort?run_set_id=${runSetId}`, { method: 'POST', signal })
+      expect(fetchCbas).toBeCalledWith(`run_sets/abort?run_set_id=${runSetId}`, { method: 'POST', signal, headers: expect.any(Object) })
       expect(response).toHaveProperty('run_set_id')
       expect(response).toHaveProperty('runs')
       expect(response).toHaveProperty('state')
@@ -353,7 +353,7 @@ describe('Ajax tests', () => {
       // ASSERT
       expect(response).toBeDefined()
       expect(fetchCbas).toBeCalledTimes(1)
-      expect(fetchCbas).toBeCalledWith('methods', { method: 'POST', signal, body, headers })
+      expect(fetchCbas).toBeCalledWith('methods', { method: 'POST', signal, body, headers: expect.any(Object) })
     })
   })
 })

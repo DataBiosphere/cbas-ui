@@ -39,48 +39,48 @@ const Cbas = signal => ({
   runs: {
     get: async submissionId => {
       const keyParams = qs.stringify({ run_set_id: submissionId })
-      const res = await fetchCbas(`runs?${keyParams}`, { signal, method: 'GET' })
+      const res = await fetchCbas(`runs?${keyParams}`, _.mergeAll([authHeader, { signal, method: 'GET' }]))
       return res.json()
     }
   },
   runSets: {
     post: async payload => {
-      const res = await fetchCbas(`run_sets`, _.mergeAll([{ signal, method: 'POST' }, jsonBody(payload)]))
+      const res = await fetchCbas(`run_sets`, _.mergeAll([authHeader, { signal, method: 'POST' }, jsonBody(payload)]))
       return res.json()
     },
     get: async () => {
-      const res = await fetchCbas(`run_sets`, { signal, method: 'GET' })
+      const res = await fetchCbas(`run_sets`, _.mergeAll([authHeader, { signal, method: 'GET' }]))
       return res.json()
     },
     getForMethod: async (methodId, pageSize) => {
       const keyParams = qs.stringify({ method_id: methodId, page_size: pageSize }, { arrayFormat: 'repeat' })
-      const res = await fetchCbas(`run_sets?${keyParams}`, { signal, method: 'GET' })
+      const res = await fetchCbas(`run_sets?${keyParams}`, _.mergeAll([authHeader, { signal, method: 'GET' }]))
       return res.json()
     },
     cancel: async runSetId => {
       const keyParams = qs.stringify({ run_set_id: runSetId })
-      const res = await fetchCbas(`run_sets/abort?${keyParams}`, { signal, method: 'POST' })
+      const res = await fetchCbas(`run_sets/abort?${keyParams}`, _.mergeAll([authHeader, { signal, method: 'POST' }]))
       return res.json()
     }
   },
   methods: {
     getWithoutVersions: async () => {
       const keyParams = qs.stringify({ show_versions: false })
-      const res = await fetchCbas(`methods?${keyParams}`, { signal, method: 'GET' })
+      const res = await fetchCbas(`methods?${keyParams}`, _.mergeAll([authHeader, { signal, method: 'GET' }]))
       return res.json()
     },
     getById: async methodId => {
       const keyParams = qs.stringify({ method_id: methodId })
-      const res = await fetchCbas(`methods?${keyParams}`, { signal, method: 'GET' })
+      const res = await fetchCbas(`methods?${keyParams}`, _.mergeAll([authHeader, { signal, method: 'GET' }]))
       return await res.json()
     },
     getByMethodVersionId: async methodVersionId => {
       const keyParams = qs.stringify({ method_version_id: methodVersionId })
-      const res = await fetchCbas(`methods?${keyParams}`, { signal, method: 'GET' })
+      const res = await fetchCbas(`methods?${keyParams}`, _.mergeAll([authHeader, { signal, method: 'GET' }]))
       return await res.json()
     },
     post: async payload => {
-      const res = await fetchCbas(`methods`, _.mergeAll([{ signal, method: 'POST' }, jsonBody(payload)]))
+      const res = await fetchCbas(`methods`, _.mergeAll([authHeader, { signal, method: 'POST' }, jsonBody(payload)]))
       return res.json()
     }
   }
