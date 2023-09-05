@@ -71,33 +71,6 @@ jobs:
       - name: Push GCR image
         run: docker push ${{ steps.image-name.outputs.GCR_NAME }}
 
-      - name: Clone Cromwhelm
-        uses: actions/checkout@v2
-        with:
-          repository: broadinstitute/cromwhelm
-          token: ${{ secrets.BROADBOT_TOKEN }}
-          path: cromwhelm
-
-      - name: Update CBAS UI version in helm chart in cromwhelm
-        env:
-          BROADBOT_TOKEN: ${{ secrets.BROADBOT_TOKEN }}
-        run: |
-          set -e
-          cd cromwhelm
-          git checkout main
-          ls -la
-          HELM_CUR_TAG=$(grep "/cbas-ui:" terra-batch-libchart/values.yaml | sed "s,.*/cbas-ui:,,")
-          HELM_NEW_TAG=${{ steps.tag.outputs.tag }}
-          [[ -n "$HELM_CUR_TAG" && -n "$HELM_NEW_TAG" ]]
-          # prefixing search and replacement text with 'cbas-ui' is needed to avoid replacing tag for cbas
-          # when both cbas and cbas-ui have the same image version
-          sed -i "s/cbas-ui:$HELM_CUR_TAG/cbas-ui:$HELM_NEW_TAG/" terra-batch-libchart/values.yaml
-          git diff
-          git config --global user.name "broadbot"
-          git config --global user.email "broadbot@broadinstitute.org"
-          git commit -am "${{ steps.fetch-jira-id.outputs.JIRA_ID }}: Auto update CBAS UI version to $HELM_NEW_TAG"
-          git push https://broadbot:$BROADBOT_TOKEN@github.com/broadinstitute/cromwhelm.git main
-
   sonarcloud:
     name: SonarCloud
     runs-on: ubuntu-latest
